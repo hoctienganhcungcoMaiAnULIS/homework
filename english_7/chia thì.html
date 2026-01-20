@@ -1,0 +1,478 @@
+﻿<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bài Tập Ngữ Pháp (Instant Check) - Ms Mai An ULIS</title>
+    <style>
+        /* --- CẤU HÌNH GIAO DIỆN (UI) --- */
+        :root {
+            --primary-blue: #0056b3;
+            --success-green: #28a745;
+            --error-red: #dc3545;
+            --warning-yellow: #ffc107;
+            --bg-color: #f4f7f6;
+            --card-bg: #ffffff;
+            --text-color: #333;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        /* HEADER */
+        .header {
+            background-color: var(--primary-blue);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .header h1 { margin: 0; font-size: 22px; text-transform: uppercase; font-weight: 700; }
+        .header h4 { margin: 5px 0 0; font-size: 14px; font-weight: 400; opacity: 0.9; font-style: italic; }
+
+        /* SECTIONS */
+        .section-title {
+            color: var(--primary-blue);
+            border-bottom: 2px solid var(--primary-blue);
+            padding-bottom: 10px;
+            margin-top: 40px;
+            margin-bottom: 20px;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        /* CARD CÂU HỎI */
+        .question-card {
+            background: var(--card-bg);
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            border-left: 5px solid #ccc; /* Màu mặc định */
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        /* INPUT STYLES */
+        input[type="text"] {
+            border: none;
+            border-bottom: 2px dashed #999;
+            background: #f9f9f9;
+            outline: none;
+            padding: 5px 10px;
+            font-size: 16px;
+            color: var(--primary-blue);
+            font-weight: 600;
+            width: 140px;
+            text-align: center;
+            border-radius: 4px;
+        }
+        input[type="text"]:focus { border-bottom: 2px solid var(--primary-blue); background: #fff; }
+
+        /* TRẮC NGHIỆM */
+        .mc-options { list-style: none; padding: 0; margin-top: 15px; }
+        .mc-option {
+            margin: 8px 0;
+            padding: 10px;
+            border: 1px solid #e0e0e0;
+            border-radius: 5px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+        }
+        .mc-option:hover { background-color: #f0f8ff; border-color: var(--primary-blue); }
+        .mc-option input { margin-right: 12px; transform: scale(1.2); cursor: pointer; }
+
+        /* NÚT KIỂM TRA ĐƠN LẺ */
+        .card-actions {
+            margin-top: 15px;
+            border-top: 1px solid #eee;
+            padding-top: 10px;
+            text-align: right;
+        }
+        .btn-check-single {
+            background-color: transparent;
+            color: var(--primary-blue);
+            border: 1px solid var(--primary-blue);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-check-single:hover {
+            background-color: var(--primary-blue);
+            color: white;
+        }
+
+        /* GIẢI THÍCH (FEEDBACK) */
+        .feedback {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 5px;
+            font-size: 14px;
+            display: none; /* Ẩn mặc định */
+            animation: fadeIn 0.5s;
+        }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .explanation-title { font-weight: bold; margin-bottom: 5px; display: block; }
+        .explanation-text { font-style: italic; color: #555; }
+
+        /* TRẠNG THÁI ĐÚNG/SAI */
+        .correct { border-left-color: var(--success-green) !important; }
+        .correct input[type="text"] { color: var(--success-green); border-bottom: 2px solid var(--success-green); }
+        .correct .feedback { display: block; background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .correct .btn-check-single { display: none; } /* Ẩn nút check khi đã đúng */
+
+        .incorrect { border-left-color: var(--error-red) !important; }
+        .incorrect input[type="text"] { color: var(--error-red); border-bottom: 2px solid var(--error-red); }
+        .incorrect .feedback { display: block; background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+
+        .unanswered { border-left-color: var(--warning-yellow) !important; }
+
+        /* MAIN BUTTONS */
+        .sticky-footer {
+            position: sticky;
+            bottom: 0;
+            background: rgba(255,255,255,0.95);
+            padding: 15px;
+            border-top: 1px solid #ddd;
+            text-align: center;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+            margin-top: 30px;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            font-size: 16px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            margin: 0 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+        }
+        .btn-submit { background-color: var(--success-green); color: white; }
+        .btn-submit:hover { background-color: #218838; transform: translateY(-2px); }
+        .btn-reset { background-color: var(--primary-blue); color: white; }
+
+        /* SCORE BOARD */
+        #score-board {
+            text-align: center;
+            font-size: 22px;
+            font-weight: bold;
+            padding: 15px;
+            background: #fff;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            color: var(--primary-blue);
+            display: none;
+            border: 2px solid var(--primary-blue);
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>Bài Tập 5 Thì Tiếng Anh (Có Đáp Án)</h1>
+        <h4>Giáo viên biên soạn: Ms Mai An ULIS</h4>
+    </div>
+
+    <div id="score-board"></div>
+
+    <form id="quizForm">
+        <h2 class="section-title">Phần 1: Chia động từ (Điền từ rồi ấn "Kiểm tra" ở góc phải mỗi câu)</h2>
+        <div id="part1-container"></div>
+
+        <h2 class="section-title">Phần 2: Trắc nghiệm (Chọn đáp án rồi ấn "Kiểm tra")</h2>
+        <div id="part2-container"></div>
+
+        <div class="sticky-footer">
+            <button type="button" class="btn btn-submit" onclick="submitAll()">Nộp Bài Tổng Kết Điểm</button>
+            <button type="button" class="btn btn-reset" onclick="resetQuiz()">Làm Lại Từ Đầu</button>
+        </div>
+    </form>
+</div>
+
+<script>
+    /**
+     * DỮ LIỆU ĐỀ BÀI - Ms Mai An ULIS
+     */
+    const part1Data = [
+        { q: "Listen! The birds ________ (sing) in the garden.", ans: ["are singing"], exp: "'Listen!' (Nghe kìa!) -> Dấu hiệu của HTTD." },
+        { q: "I think people ________ (live) on Mars in the future.", ans: ["will live"], exp: "'I think' + 'in the future' -> Dự đoán không chắc chắn -> Tương lai đơn." },
+        { q: "We ________ (not visit) our grandparents last weekend because of the rain.", ans: ["didn't visit", "did not visit"], exp: "'Last weekend' -> Quá khứ đơn." },
+        { q: "My father usually ________ (drink) tea in the morning, but today he ________ (drink) coffee.", isSplit: false, multiInputs: true, textParts: ["My father usually ", " (drink) tea in the morning, but today he ", " (drink) coffee."], ans: ["drinks", "is drinking"], exp: "Vế 1: 'usually' (HTĐ). Vế 2: 'but today' (hành động tạm thời -> HTTD)." },
+        { q: "They ________ (live) in this neighborhood for 10 years.", ans: ["have lived"], exp: "'For 10 years' -> Hiện tại hoàn thành." },
+        { q: "I think it ________ (rain) tomorrow.", ans: ["will rain"], exp: "Dự đoán 'I think' + 'tomorrow' -> Tương lai đơn." },
+        { q: "She ________ (be) a teacher since 2015.", ans: ["has been"], exp: "'Since 2015' -> Hiện tại hoàn thành." },
+        { q: "________ you ________ (see) the moon last night?", isSplit: true, ans: ["Did", "see"], exp: "Câu hỏi Quá khứ đơn: Did + S + V(nguyên thể)?" },
+        { q: "The sun ________ (rise) in the East and ________ (set) in the West.", multiInputs: true, textParts: ["The sun ", " (rise) in the East and ", " (set) in the West."], ans: ["rises", "sets"], exp: "Sự thật hiển nhiên -> Hiện tại đơn." },
+        { q: "I promise I ________ (help) you with your homework later.", ans: ["will help"], exp: "'Promise' (lời hứa) -> Tương lai đơn." },
+        { q: "He ________ (not finish) his project yet.", ans: ["has not finished", "hasn't finished"], exp: "'Yet' (chưa) -> Hiện tại hoàn thành." },
+        { q: "Be quiet! The baby ________ (sleep) in the next room.", ans: ["is sleeping"], exp: "'Be quiet!' -> HTTD." },
+        { q: "________ you ever ________ (eat) Sushi?", isSplit: true, ans: ["Have", "eaten"], exp: "Hỏi về trải nghiệm 'ever' -> Hiện tại hoàn thành." },
+        { q: "My brother ________ (buy) a new computer two days ago.", ans: ["bought"], exp: "'Two days ago' -> Quá khứ đơn." },
+        { q: "Nam often ________ (play) football after school.", ans: ["plays"], exp: "'Often' -> Hiện tại đơn." },
+        { q: "At the moment, my sister ________ (read) a comic book.", ans: ["is reading"], exp: "'At the moment' -> Hiện tại tiếp diễn." },
+        { q: "I ________ (lose) my key. Can you help me find it?", ans: ["have lost"], exp: "Mất chìa khóa (hậu quả hiện tại) -> Hiện tại hoàn thành." },
+        { q: "In 2010, we ________ (move) to Ho Chi Minh City.", ans: ["moved"], exp: "'In 2010' (mốc cụ thể trong QK) -> Quá khứ đơn." },
+        { q: "Wait! I ________ (open) the door for you.", ans: ["will open"], exp: "Quyết định tức thời khi nói -> Tương lai đơn." },
+        { q: "They ________ (not go) to school on Sundays.", ans: ["don't go", "do not go"], exp: "Thói quen/Lịch trình 'on Sundays' -> Hiện tại đơn." },
+        { q: "We ________ (know) each other since we were children.", ans: ["have known"], exp: "'Since' -> Hiện tại hoàn thành." },
+        { q: "Where ________ you ________ (go) next summer holiday?", isSplit: true, ans: ["will", "go"], altAns: ["are", "going"], exp: "'Next summer holiday' -> Tương lai đơn (will) hoặc Tương lai gần (be going to/HTTD)." },
+        { q: "Yesterday, she ________ (go) to the supermarket and ________ (buy) some vegetables.", multiInputs: true, textParts: ["Yesterday, she ", " (go) to the supermarket and ", " (buy) some vegetables."], ans: ["went", "bought"], exp: "Chuỗi hành động QK -> Quá khứ đơn." },
+        { q: "Look! The bus ________ (come).", ans: ["is coming"], exp: "'Look!' -> HTTD." },
+        { q: "He ________ (write) three letters so far.", ans: ["has written"], exp: "'So far' (cho đến nay) -> Hiện tại hoàn thành." },
+        { q: "I hope she ________ (come) to my party next week.", ans: ["will come"], exp: "'Hope' + tương lai -> Tương lai đơn." },
+        { q: "________ your mother ________ (work) in a hospital?", isSplit: true, ans: ["Does", "work"], exp: "Hỏi sự thật về nghề nghiệp -> HTĐ (Mượn Does vì your mother số ít)." },
+        { q: "Just a minute! I ________ (check) my email right now.", ans: ["am checking"], exp: "'Right now' -> HTTD." },
+        { q: "We ________ (not watch) TV last night; we listened to music.", ans: ["didn't watch", "did not watch"], exp: "'Last night' -> Quá khứ đơn." },
+        { q: "How long ________ you ________ (study) English? – For 5 years.", isSplit: true, ans: ["have", "studied"], exp: "'How long' + 'For...' -> Hiện tại hoàn thành." }
+    ];
+
+    const part2Data = [
+        { q: "Look! The boys ________ basketball in the schoolyard.", options: ["play", "are playing", "played", "have played"], ans: 1, exp: "'Look!' -> Dấu hiệu HTTD." },
+        { q: "I ________ my grandparents in the countryside last summer.", options: ["visit", "am visiting", "visited", "will visit"], ans: 2, exp: "'Last summer' -> Quá khứ đơn." },
+        { q: "________ you ever ________ to Da Nang?", options: ["Do / be", "Did / go", "Have / been", "Are / going"], ans: 2, exp: "'Ever' -> Hiện tại hoàn thành." },
+        { q: "The Earth ________ around the Sun.", options: ["goes", "is going", "went", "has gone"], ans: 0, exp: "Sự thật hiển nhiên -> Hiện tại đơn." },
+        { q: "We ________ a test tomorrow. I hope it will be easy.", options: ["have", "had", "have had", "will have"], ans: 3, exp: "'Tomorrow' -> Tương lai đơn." },
+        { q: "He ________ his homework yet.", options: ["doesn't finish", "didn't finish", "hasn't finished", "won't finish"], ans: 2, exp: "'Yet' (chưa) -> Hiện tại hoàn thành." },
+        { q: "________ she ________ to the party tonight?", options: ["Does / come", "Is / coming", "Did / come", "Has / come"], ans: 1, exp: "'Tonight' -> Tương lai gần/HTTD chỉ kế hoạch." },
+        { q: "My father ________ coffee every morning.", options: ["drink", "drinks", "is drinking", "drank"], ans: 1, exp: "'Every morning' -> Hiện tại đơn." },
+        { q: "They ________ that house in 2010.", options: ["buy", "buyed", "bought", "have bought"], ans: 2, exp: "'In 2010' -> Quá khứ đơn." },
+        { q: "Be quiet! The baby ________.", options: ["sleeps", "is sleeping", "slept", "will sleep"], ans: 1, exp: "'Be quiet!' -> HTTD." },
+        { q: "I promise I ________ late again.", options: ["won't be", "don't be", "am not", "haven't been"], ans: 0, exp: "'Promise' -> Tương lai đơn." },
+        { q: "________ Nam ________ football yesterday?", options: ["Does / play", "Did / play", "Has / played", "Is / playing"], ans: 1, exp: "'Yesterday' -> Quá khứ đơn." },
+        { q: "We ________ here for three years.", options: ["live", "lived", "are living", "have lived"], ans: 3, exp: "'For three years' -> Hiện tại hoàn thành." },
+        { q: "Where ________ you ________ now?", options: ["do / go", "are / going", "did / go", "will / go"], ans: 1, exp: "'Now' -> HTTD." },
+        { q: "She ________ very happy when she saw her gift.", options: ["is", "was", "has been", "will be"], ans: 1, exp: "Vế sau quá khứ (saw) -> Vế trước quá khứ (was)." },
+        { q: "I think it ________ sunny tomorrow.", options: ["is", "was", "will be", "has been"], ans: 2, exp: "'Think' + 'tomorrow' -> Tương lai đơn." },
+        { q: "________ your mother ________ to work by bus?", options: ["Does / go", "Do / go", "Is / going", "Did / go"], ans: 0, exp: "Hỏi thói quen -> Hiện tại đơn." },
+        { q: "I ________ him since we left school.", options: ["didn't see", "don't see", "haven't seen", "won't see"], ans: 2, exp: "'Since' -> Hiện tại hoàn thành." },
+        { q: "Right now, Tom ________ a letter to his friend.", options: ["writes", "is writing", "wrote", "has written"], ans: 1, exp: "'Right now' -> HTTD." },
+        { q: "We ________ out because it was raining heavily.", options: ["don't go", "didn't go", "haven't gone", "won't go"], ans: 1, exp: "Ngữ cảnh quá khứ -> Quá khứ đơn phủ định." },
+        { q: "This is the best movie I ________.", options: ["see", "saw", "have ever seen", "am seeing"], ans: 2, exp: "So sánh nhất + Hiện tại hoàn thành." },
+        { q: "________ you help me with this box, please?", options: ["Do", "Did", "Will", "Have"], ans: 2, exp: "Lời yêu cầu -> Will you help...?" },
+        { q: "My sister usually ________ up at 6 o'clock.", options: ["get", "gets", "is getting", "got"], ans: 1, exp: "'Usually' -> Hiện tại đơn." },
+        { q: "Last night, my brother ________ games.", options: ["plays", "played", "has played", "is playing"], ans: 1, exp: "'Last night' -> Quá khứ đơn." },
+        { q: "Where ________ you yesterday morning?", options: ["are", "were", "have been", "will be"], ans: 1, exp: "'Yesterday' -> Quá khứ đơn của to be là were (với you)." },
+        { q: "Listen! Someone ________ at the door.", options: ["knocks", "is knocking", "knocked", "has knocked"], ans: 1, exp: "'Listen!' -> HTTD." },
+        { q: "I ________ my keys. I can't find them anywhere.", options: ["lost", "lose", "have lost", "am losing"], ans: 2, exp: "Mất (hậu quả còn) -> HTHT." },
+        { q: "They ________ to the zoo next Sunday.", options: ["go", "went", "have gone", "will go"], ans: 3, exp: "'Next Sunday' -> Tương lai đơn." },
+        { q: "She ________ not like spicy food.", options: ["does", "is", "did", "has"], ans: 0, exp: "Phủ định HTĐ động từ thường -> Does not." },
+        { q: "How long ________ you ________ English?", options: ["do / learn", "did / learn", "have / learned", "are / learning"], ans: 2, exp: "'How long' -> Hiện tại hoàn thành." }
+    ];
+
+    // RENDER UI
+    function renderQuiz() {
+        const p1Container = document.getElementById('part1-container');
+        const p2Container = document.getElementById('part2-container');
+
+        // Part 1
+        part1Data.forEach((item, index) => {
+            let html = `<div class="question-card" id="p1-q${index}">`;
+            html += `<p><strong>Câu ${index + 1}:</strong> `;
+
+            if (item.multiInputs) {
+                html += `${item.textParts[0]} <input type="text" id="p1-q${index}-i0"> ${item.textParts[1]} <input type="text" id="p1-q${index}-i1"> ${item.textParts[2]}`;
+            } else if (item.isSplit) {
+                const parts = item.q.split('________');
+                html += `<input type="text" id="p1-q${index}-i0"> ${parts[1]} <input type="text" id="p1-q${index}-i1"> ${parts[2]}`;
+            } else {
+                const parts = item.q.split('________');
+                html += `${parts[0]} <input type="text" id="p1-q${index}-i0"> ${parts[1]}`;
+            }
+
+            // Thêm nút Check và vùng Feedback
+            html += `</p>
+                    <div class="card-actions">
+                        <button type="button" class="btn-check-single" onclick="checkOneQuestion('p1', ${index})">✓ Kiểm tra</button>
+                    </div>
+                    <div class="feedback">
+                        <span class="explanation-title">Đáp án:</span> <span id="p1-ans${index}" style="font-weight: bold;"></span><br>
+                        <div class="explanation-text">💡 ${item.exp}</div>
+                    </div>
+                </div>`;
+            p1Container.innerHTML += html;
+        });
+
+        // Part 2
+        part2Data.forEach((item, index) => {
+            let optionsHtml = `<ul class="mc-options">`;
+            item.options.forEach((opt, optIndex) => {
+                optionsHtml += `
+                    <li class="mc-option">
+                        <input type="radio" name="p2-q${index}" value="${optIndex}" id="p2-q${index}-o${optIndex}">
+                        <label for="p2-q${index}-o${optIndex}">${String.fromCharCode(65 + optIndex)}. ${opt}</label>
+                    </li>`;
+            });
+            optionsHtml += `</ul>`;
+
+            html = `
+                <div class="question-card" id="p2-q${index}">
+                    <p><strong>Câu ${index + 1}:</strong> ${item.q.replace('________', '<u>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</u>')}</p>
+                    ${optionsHtml}
+                    <div class="card-actions">
+                        <button type="button" class="btn-check-single" onclick="checkOneQuestion('p2', ${index})">✓ Kiểm tra</button>
+                    </div>
+                    <div class="feedback">
+                        <span class="explanation-title">Đáp án đúng:</span> ${String.fromCharCode(65 + item.ans)}. ${item.options[item.ans]}<br>
+                        <div class="explanation-text">💡 ${item.exp}</div>
+                    </div>
+                </div>`;
+            p2Container.innerHTML += html;
+        });
+    }
+
+    // LOGIC CHECK TỪNG CÂU
+    function checkOneQuestion(part, index) {
+        let isCorrect = false;
+        const card = document.getElementById(`${part}-q${index}`);
+        card.classList.remove('correct', 'incorrect', 'unanswered');
+
+        if (part === 'p1') {
+            const item = part1Data[index];
+            let check0, check1;
+            let displayAns = "";
+
+            if (item.multiInputs || item.isSplit) {
+                const i0 = document.getElementById(`p1-q${index}-i0`).value.trim();
+                const i1 = document.getElementById(`p1-q${index}-i1`).value.trim();
+                
+                check0 = i0.toLowerCase() === item.ans[0].toLowerCase();
+                check1 = i1.toLowerCase() === item.ans[1].toLowerCase();
+
+                if (item.altAns) {
+                    if (i0.toLowerCase() === item.altAns[0].toLowerCase() && i1.toLowerCase() === item.altAns[1].toLowerCase()) {
+                        check0 = true; check1 = true;
+                    }
+                }
+                
+                if (i0 === "" && i1 === "") { alert("Em chưa nhập câu trả lời!"); return; }
+                
+                displayAns = `${item.ans[0]} / ${item.ans[1]}`;
+                if(item.altAns) displayAns += ` (hoặc ${item.altAns[0]} / ${item.altAns[1]})`;
+                isCorrect = check0 && check1;
+
+            } else {
+                const input = document.getElementById(`p1-q${index}-i0`).value.trim();
+                if (input === "") { alert("Em chưa nhập câu trả lời!"); return; }
+
+                isCorrect = item.ans.some(a => input.toLowerCase() === a.toLowerCase());
+                displayAns = item.ans.join(" hoặc ");
+            }
+
+            document.getElementById(`p1-ans${index}`).innerText = displayAns;
+
+        } else if (part === 'p2') {
+            const selected = document.querySelector(`input[name="p2-q${index}"]:checked`);
+            if (!selected) { alert("Em chưa chọn đáp án!"); return; }
+            
+            isCorrect = (parseInt(selected.value) === part2Data[index].ans);
+        }
+
+        if (isCorrect) {
+            card.classList.add('correct');
+        } else {
+            card.classList.add('incorrect');
+        }
+        
+        // Trả về kết quả true/false để dùng cho hàm Submit All nếu cần
+        return isCorrect;
+    }
+
+    // LOGIC NỘP TỔNG
+    function submitAll() {
+        let score = 0;
+        let total = part1Data.length + part2Data.length;
+
+        // Tự động check tất cả các câu Part 1
+        part1Data.forEach((item, index) => {
+            // Logic check ngầm không alert
+            const card = document.getElementById(`p1-q${index}`);
+            let isCorrect = false;
+            
+            // Lấy giá trị inputs
+            let i0 = "", i1 = "";
+            let el0 = document.getElementById(`p1-q${index}-i0`);
+            if(el0) i0 = el0.value.trim();
+            
+            let el1 = document.getElementById(`p1-q${index}-i1`);
+            if(el1) i1 = el1.value.trim();
+
+            // Hiển thị đáp án text
+            let displayAns = "";
+            if (item.multiInputs || item.isSplit) {
+                 displayAns = `${item.ans[0]} / ${item.ans[1]}`;
+                 let c0 = i0.toLowerCase() === item.ans[0].toLowerCase();
+                 let c1 = i1.toLowerCase() === item.ans[1].toLowerCase();
+                 if(item.altAns && i0.toLowerCase() === item.altAns[0].toLowerCase() && i1.toLowerCase() === item.altAns[1].toLowerCase()) {
+                     c0 = true; c1 = true;
+                 }
+                 isCorrect = c0 && c1;
+            } else {
+                 displayAns = item.ans.join(" hoặc ");
+                 isCorrect = item.ans.some(a => i0.toLowerCase() === a.toLowerCase());
+            }
+            
+            document.getElementById(`p1-ans${index}`).innerText = displayAns;
+            
+            // Apply style
+            card.classList.remove('correct', 'incorrect', 'unanswered');
+            if(i0 === "" && i1 === "") card.classList.add('unanswered');
+            else if(isCorrect) { score++; card.classList.add('correct'); }
+            else { card.classList.add('incorrect'); }
+        });
+
+        // Tự động check tất cả các câu Part 2
+        part2Data.forEach((item, index) => {
+            const card = document.getElementById(`p2-q${index}`);
+            const selected = document.querySelector(`input[name="p2-q${index}"]:checked`);
+            card.classList.remove('correct', 'incorrect', 'unanswered');
+
+            if(selected) {
+                if(parseInt(selected.value) === item.ans) { score++; card.classList.add('correct'); }
+                else { card.classList.add('incorrect'); }
+            } else {
+                card.classList.add('unanswered');
+            }
+        });
+
+        // Show Score
+        const scoreBoard = document.getElementById('score-board');
+        scoreBoard.style.display = 'block';
+        scoreBoard.innerHTML = `Tổng kết điểm: <span style="font-size: 32px; color: var(--error-red)">${score}</span> / ${total}`;
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function resetQuiz() {
+        if(confirm("Làm lại sẽ xóa hết kết quả. Em có chắc không?")) {
+            document.getElementById('quizForm').reset();
+            document.getElementById('score-board').style.display = 'none';
+            document.querySelectorAll('.question-card').forEach(c => c.classList.remove('correct', 'incorrect', 'unanswered'));
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    }
+
+    window.onload = renderQuiz;
+</script>
+
+</body>
+</html>

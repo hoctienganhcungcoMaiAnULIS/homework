@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bài Kiểm Tra - Ms Mai An ULIS</title>
+    <style>
+        :root {
+            --primary-blue: #0056b3; /* Màu yêu cầu */
+            --bg-pink: #fff0f5;      /* Hồng nhạt base */
+            --correct: #28a745;
+            --wrong: #dc3545;
+            --warning: #ffc107;
+            --text-dark: #333;
+            --card-bg: #ffffff;
+            --shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-pink);
+            color: var(--text-dark);
+            margin: 0;
+            padding-bottom: 80px; /* Space for sticky footer */
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Header */
+        header {
+            background: white;
+            padding: 15px 20px;
+            border-radius: 0 0 15px 15px;
+            box-shadow: var(--shadow);
+            margin-bottom: 30px;
+            border-top: 5px solid var(--primary-blue);
+            text-align: center;
+        }
+
+        h1 {
+            color: var(--primary-blue);
+            font-size: 1.5rem;
+            margin: 0;
+        }
+
+        h2 {
+            font-size: 1.1rem;
+            color: #666;
+            margin-top: 5px;
+            font-weight: normal;
+        }
+
+        /* Question Cards */
+        .question-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: var(--shadow);
+            border-left: 5px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .question-card.correct { border-left-color: var(--correct); }
+        .question-card.wrong { border-left-color: var(--wrong); }
+        .question-card.unanswered { border-left-color: var(--warning); }
+
+        .q-title {
+            font-weight: bold;
+            color: var(--primary-blue);
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .q-content {
+            font-size: 1.1rem;
+            margin-bottom: 15px;
+            font-weight: 500;
+        }
+
+        /* Multiple Choice Options */
+        .options-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .option-label {
+            display: flex;
+            align-items: flex-start;
+            cursor: pointer;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            transition: background 0.2s;
+        }
+
+        .option-label:hover {
+            background-color: #f8f9fa;
+        }
+
+        .option-label input {
+            margin-top: 5px;
+            margin-right: 10px;
+        }
+
+        /* Writing Input */
+        .writing-input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 1rem;
+            box-sizing: border-box;
+            transition: border-color 0.3s;
+        }
+
+        .writing-input:focus {
+            outline: none;
+            border-color: var(--primary-blue);
+        }
+
+        /* Explanation Box */
+        .explanation {
+            display: none; /* Hidden by default */
+            margin-top: 15px;
+            background-color: #f1f8ff;
+            border-radius: 8px;
+            padding: 15px;
+            border: 1px solid #cfe2ff;
+        }
+
+        .exp-header {
+            font-weight: bold;
+            color: var(--primary-blue);
+            margin-bottom: 5px;
+            display: block;
+            border-bottom: 1px solid #cfe2ff;
+            padding-bottom: 5px;
+        }
+
+        .exp-detail p {
+            margin: 5px 0;
+            font-size: 0.95rem;
+        }
+
+        .btn-check-single {
+            margin-top: 15px;
+            background-color: white;
+            color: var(--primary-blue);
+            border: 1px solid var(--primary-blue);
+            padding: 5px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+
+        .btn-check-single:hover {
+            background-color: var(--primary-blue);
+            color: white;
+        }
+
+        /* Glossary Table */
+        .glossary-section {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-top: 40px;
+            box-shadow: var(--shadow);
+        }
+
+        table.glossary-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        .glossary-table th, .glossary-table td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+        }
+
+        .glossary-table th {
+            background-color: var(--primary-blue);
+            color: white;
+        }
+
+        /* Footer */
+        .sticky-footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: white;
+            padding: 15px;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .score-box {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--primary-blue);
+        }
+
+        .btn-submit {
+            background-color: var(--primary-blue);
+            color: white;
+            border: none;
+            padding: 10px 30px;
+            border-radius: 25px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            font-weight: bold;
+            box-shadow: 0 4px 6px rgba(0,86,179,0.3);
+        }
+
+        .btn-submit:hover {
+            background-color: #004494;
+        }
+
+        /* Badge for Correct/Wrong/Status */
+        .badge {
+            font-size: 0.8rem;
+            padding: 2px 8px;
+            border-radius: 4px;
+            color: white;
+            display: none;
+        }
+        .badge.correct { background-color: var(--correct); display: inline-block; }
+        .badge.wrong { background-color: var(--wrong); display: inline-block; }
+
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Giáo viên tạo: Ms Mai An ULIS</h1>
+        <h2>English Practice Test: Festivals & Sentence Building</h2>
+    </header>
+
+    <div class="container" id="quiz-container">
+        </div>
+
+    <div class="container">
+        <div class="glossary-section">
+            <h3 style="color: var(--primary-blue); margin-top: 0;">📚 Glossary (Từ vựng nâng cao)</h3>
+            <p>Bảng từ vựng tổng hợp từ bài tập giúp các em ôn luyện.</p>
+            <table class="glossary-table">
+                <thead>
+                    <tr>
+                        <th>Word</th>
+                        <th>Type</th>
+                        <th>Meaning (Vietnamese)</th>
+                    </tr>
+                </thead>
+                <tbody id="glossary-body">
+                    </tbody>
+            </table>
+        </div>
+    </div>
+
+    <footer class="sticky-footer">
+        <div class="score-box" id="score-display">Score: --/--</div>
+        <button class="btn-submit" onclick="submitAll()">NỘP BÀI</button>
+    </footer>
+
+    <script>
+        // DATA SOURCE
+        const quizData = {
+            exercise1: [
+                {
+                    id: 1,
+                    prompt: "The Twins Day Festival/ held/ the first weekend/ August.",
+                    options: [
+                        "The Twins Day Festival held on the first weekend in August.",
+                        "The Twins Day Festival is held on the first weekend in August.",
+                        "The Twins Day Festival is held in the first weekend in August.",
+                        "The Twins Day Festival is held on the first weekend on August."
+                    ],
+                    correct: 1, // Index B
+                    explanation: "<b>Dịch câu:</b> Lễ hội Ngày hội Sinh đôi được tổ chức vào cuối tuần đầu tiên của tháng Tám.<br><b>Phân tích:</b><br>- Cấu trúc bị động thì hiện tại đơn: <i>is held</i> (được tổ chức).<br>- Giới từ chỉ thời gian: <i>on the weekend</i> (vào cuối tuần) và <i>in August</i> (vào tháng).<br>-> Đáp án B dùng đúng giới từ 'on' và 'in'."
+                },
+                {
+                    id: 2,
+                    prompt: "The festival/ celebrated/ Twinsburg, Ohio.",
+                    options: [
+                        "The festival celebrated Twinsburg, Ohio.",
+                        "The festival is celebrated at Twinsburg, Ohio.",
+                        "The festival is celebrated in Twinsburg, Ohio.",
+                        "The festival are celebrated in Twinsburg, Ohio."
+                    ],
+                    correct: 2, // Index C
+                    explanation: "<b>Dịch câu:</b> Lễ hội được tổ chức tại Twinsburg, Ohio.<br><b>Phân tích:</b><br>- Bị động: <i>is celebrated</i>.<br>- Giới từ chỉ địa điểm: Dùng <i>in</i> cho thành phố/bang (Twinsburg, Ohio).<br>- Đáp án B dùng 'at' là sai (at dùng cho địa điểm cụ thể nhỏ hẹp). Đáp án D sai tobe 'are'."
+                },
+                {
+                    id: 3,
+                    prompt: "People here /hold /this festival / each year.",
+                    options: [
+                        "People here holds this festival each year.",
+                        "People here hold this festival each year.",
+                        "People here is hold this festival each year.",
+                        "People here are hold this festival each year."
+                    ],
+                    correct: 1, // Index B
+                    explanation: "<b>Dịch câu:</b> Người dân ở đây tổ chức lễ hội này mỗi năm.<br><b>Phân tích:</b><br>- Chủ ngữ 'People' là danh từ số nhiều -> Động từ 'hold' giữ nguyên.<br>- Đáp án A sai (chia s). C và D sai cấu trúc (thừa tobe)."
+                },
+                {
+                    id: 4,
+                    prompt: "Thousands of twins / come / different countries.",
+                    options: [
+                        "Thousands of twins come different countries.",
+                        "Thousands of twins come from different countries.",
+                        "Thousands of twins are come from different countries.",
+                        "Thousands of twins does come from different countries."
+                    ],
+                    correct: 1, // Index B
+                    explanation: "<b>Dịch câu:</b> Hàng ngàn cặp song sinh đến từ các quốc gia khác nhau.<br><b>Phân tích:</b><br>- Cụm từ: <i>come from</i> (đến từ).<br>- Chủ ngữ số nhiều 'Thousands of twins' -> Động từ 'come' nguyên thể.<br>- Đáp án A thiếu giới từ 'from'. C thừa 'are'."
+                },
+                {
+                    id: 5,
+                    prompt: "They / wear / traditional costumes/ dance/ together.",
+                    options: [
+                        "They wear traditional costumes dance together.",
+                        "They wears traditional costumes and dance together.",
+                        "They wears traditional costumes and dance with together.",
+                        "They wear traditional costumes and dance together."
+                    ],
+                    correct: 3, // Index D
+                    explanation: "<b>Dịch câu:</b> Họ mặc trang phục truyền thống và nhảy múa cùng nhau.<br><b>Phân tích:</b><br>- Chủ ngữ 'They' số nhiều -> Động từ 'wear' và 'dance' nguyên thể.<br>- Cần liên từ 'and' để nối hai hành động.<br>- Đáp án B sai 'wears'. A thiếu 'and'."
+                },
+                {
+                    id: 6,
+                    prompt: "The Twins Day Festival/ the largest gathering/ for/ twins/ the world.",
+                    options: [
+                        "The Twins Day Festival is the largest gathering for twins in the world.",
+                        "The Twins Day Festival are the largest gathering for twins in the world.",
+                        "The Twins Day Festival do the largest gathering for twins in the world.",
+                        "The Twins Day Festival does the largest gathering for twins in the world."
+                    ],
+                    correct: 0, // Index A
+                    explanation: "<b>Dịch câu:</b> Lễ hội Ngày hội Sinh đôi là cuộc tụ họp lớn nhất dành cho các cặp song sinh trên thế giới.<br><b>Phân tích:</b><br>- Câu định nghĩa/mô tả -> Dùng động từ tobe 'is'.<br>- Cấu trúc so sánh nhất: <i>the largest gathering</i>.<br>- Giới từ: <i>in the world</i>."
+                },
+                {
+                    id: 7,
+                    prompt: "La Tomatina / unusual festival/ Spain.",
+                    options: [
+                        "La Tomatina is unusual festival in Spain.",
+                        "La Tomatina is unusual festival in Spain.",
+                        "La Tomatina is an unusual festival in Spain.",
+                        "La Tomatina is an unusual festival on Spain."
+                    ],
+                    correct: 2, // Index C
+                    explanation: "<b>Dịch câu:</b> La Tomatina là một lễ hội kỳ lạ ở Tây Ban Nha.<br><b>Phân tích:</b><br>- Cần mạo từ 'an' trước tính từ bắt đầu bằng nguyên âm 'unusual'.<br>- Giới từ 'in' Spain.<br>- Đáp án A, B thiếu mạo từ 'an'. D sai giới từ 'on'."
+                },
+                {
+                    id: 8,
+                    prompt: "This festival/ held/ the last Wednesday/ every August.",
+                    options: [
+                        "This festival held on the last Wednesday in every August.",
+                        "This festival is held in the last Wednesday in every August.",
+                        "This festival is held on the last Wednesday of every August.",
+                        "This festival is held in the last Wednesday at every August."
+                    ],
+                    correct: 2, // Index C
+                    explanation: "<b>Dịch câu:</b> Lễ hội này được tổ chức vào ngày thứ Tư cuối cùng của mỗi tháng Tám.<br><b>Phân tích:</b><br>- Bị động: <i>is held</i>.<br>- Ngày trong tuần dùng 'on' (on the last Wednesday).<br>- Của tháng dùng 'of' (of every August) hoặc 'in August'. Ở đây 'of every August' hợp lý nhất trong ngữ cảnh sở hữu thời gian."
+                },
+                {
+                    id: 9,
+                    prompt: "People/ throw/ bags of tomatoes/ the crowd.",
+                    options: [
+                        "People throw bags of tomatoes the crowd.",
+                        "People throw bags of tomatoes on the crowd.",
+                        "People throws bags of tomatoes at the crowd.",
+                        "People throw bags of tomatoes at the crowd."
+                    ],
+                    correct: 3, // Index D
+                    explanation: "<b>Dịch câu:</b> Mọi người ném những túi cà chua vào đám đông.<br><b>Phân tích:</b><br>- Cấu trúc: <i>throw something AT somebody/something</i> (ném vào ai/cái gì với mục đích nhắm trúng).<br>- Chủ ngữ 'People' -> Verb nguyên thể.<br>- C dùng 'throws' sai ngữ pháp."
+                },
+                {
+                    id: 10,
+                    prompt: "you / perform/ Dutch folk dances/?",
+                    options: [
+                        "Are you perform Dutch folk dances?",
+                        "Does you perform Dutch folk dances?",
+                        "Can you perform Dutch folk dances?",
+                        "Is you perform Dutch folk dances?"
+                    ],
+                    correct: 2, // Index C
+                    explanation: "<b>Dịch câu:</b> Bạn có thể biểu diễn các điệu nhảy dân gian Hà Lan không?<br><b>Phân tích:</b><br>- Câu hỏi với động từ thường 'perform' cần trợ động từ. 'Are/Is' không đi với V-nguyên thể.<br>- 'Does' không đi với 'you'.<br>- 'Can' (Modal verb) là phù hợp nhất để hỏi khả năng."
+                }
+            ],
+            exercise2: [
+                {
+                    prompt: "on/ is/ held/ last/ the/ of/ Wednesday/ August/ La Tomatina/ every year.",
+                    answer: "La Tomatina is held on the last Wednesday of August every year.",
+                    explanation: "Trật tự câu bị động: S + is/are + V3/ed + time. (La Tomatina được tổ chức vào thứ Tư cuối cùng của tháng Tám hàng năm)."
+                },
+                {
+                    prompt: "last year/ 60,000/ attended/ About/people/ festival/ the",
+                    answer: "About 60,000 people attended the festival last year.",
+                    explanation: "S (About 60,000 people) + V (attended) + O (the festival) + Time (last year)."
+                },
+                {
+                    prompt: "went/ the/ to/ Flower Festival/ We/ Da Lat/ last year/ in",
+                    answer: "We went to the Flower Festival in Da Lat last year.",
+                    explanation: "S + went to + Place (Event + Location) + Time."
+                },
+                {
+                    prompt: "decorate/ During/ the Vietnamese/ Tet, / with/ their/ houses/ peach blossoms",
+                    answer: "During Tet, the Vietnamese decorate their houses with peach blossoms.",
+                    explanation: "Trạng ngữ thời gian đứng đầu (During Tet), S (the Vietnamese) + V (decorate) + O + with..."
+                },
+                {
+                    prompt: "tomatoes/ People/ at/ throw/ each other/ for/ one day/ at La Tomatina",
+                    answer: "People throw tomatoes at each other for one day at La Tomatina.",
+                    explanation: "S + throw + O + at + O + time + place."
+                },
+                {
+                    prompt: "it/ celebrate/ with/ and/ People/ street fairs/ live music",
+                    answer: "People celebrate it with street fairs and live music.",
+                    explanation: "S + celebrate + O + with + means (hội chợ đường phố và nhạc sống)."
+                },
+                {
+                    prompt: "hosts/ its/ Every year/ Cannes/ film/ international/ festival",
+                    answer: "Every year Cannes hosts its international film festival.",
+                    explanation: "Time, S (Cannes) + V (hosts) + O (its international film festival)."
+                },
+                {
+                    prompt: "it/ a/ celebrate/ People/ special/ in/ way",
+                    answer: "People celebrate it in a special way.",
+                    explanation: "Cụm 'in a special way' (theo một cách đặc biệt)."
+                },
+                {
+                    prompt: "costumes/ People/ wear/ parade/ and/ through/ the streets",
+                    answer: "People wear costumes and parade through the streets.",
+                    explanation: "Hai động từ 'wear' và 'parade' nối với nhau bằng 'and'."
+                },
+                {
+                    prompt: "is/ This/ festival/ two/ every/ held/ years",
+                    answer: "This festival is held every two years.",
+                    explanation: "Cụm 'every two years' (hai năm một lần)."
+                },
+                {
+                    prompt: "lunar month/Taiwanese people/ the lantern Festival / celebrate/ on the 15th / of the first /.",
+                    answer: "Taiwanese people celebrate the lantern Festival on the 15th of the first lunar month.",
+                    explanation: "S + celebrate + O + on (ngày)."
+                },
+                {
+                    prompt: "The festival/ in the New Year/ aims to / prosperity, / wish for peace, / and joy /.",
+                    answer: "The festival aims to wish for peace, prosperity, and joy in the New Year.",
+                    explanation: "Cấu trúc 'aims to V' (nhằm mục đích làm gì)."
+                },
+                {
+                    prompt: "Every year, / of people and / thousands / attend / visitors / the festival /.",
+                    answer: "Every year, thousands of people and visitors attend the festival.",
+                    explanation: "Chủ ngữ: Thousands of people and visitors."
+                },
+                {
+                    prompt: "fly to the sky /They write / these lanterns / on the lanterns, / and / their wishes /.",
+                    answer: "They write their wishes on the lanterns, and these lanterns fly to the sky.",
+                    explanation: "Câu ghép nối bằng 'and'. Mệnh đề 1: Viết ước nguyện. Mệnh đề 2: Đèn lồng bay lên."
+                },
+                {
+                    prompt: "to the Gods / People / their wishes / the lanterns / believe that / will bring /.",
+                    answer: "People believe that the lanterns will bring their wishes to the Gods.",
+                    explanation: "S + believe that + Clause (S + will bring + O + to...)."
+                },
+                {
+                    prompt: "on the lanterns / Family members / the quizzes / have a feast / gather to / and solve /.",
+                    answer: "Family members gather to have a feast and solve the quizzes on the lanterns.",
+                    explanation: "Mục đích 'gather to V' (tụ tập để ăn tiệc và giải đố)."
+                },
+                {
+                    prompt: "folk dances / The dancers / perform / will / the / at / festival /.",
+                    answer: "The dancers will perform folk dances at the festival.",
+                    explanation: "Thì tương lai đơn: will perform."
+                },
+                {
+                    prompt: "in /The Rio Carnival / every year / takes place / Brazil/.",
+                    answer: "The Rio Carnival takes place in Brazil every year.",
+                    explanation: "Cụm 'takes place' (diễn ra)."
+                },
+                {
+                    prompt: "do / need / you / How many / candy apples / the Halloween party / for /?",
+                    answer: "How many candy apples do you need for the Halloween party?",
+                    explanation: "Câu hỏi số lượng: How many + Noun + do + S + V...?"
+                },
+                {
+                    prompt: "favorite / Lion dances / the Mid-Autumn Festival/ is / one / at / my / activities / of /.",
+                    answer: "Lion dances is one of my favorite activities at the Mid-Autumn Festival.",
+                    explanation: "Cấu trúc: 'one of my favorite...' (một trong những... yêu thích của tôi)."
+                }
+            ]
+        };
+
+        const glossaryData = [
+            { word: "Twin", type: "n", mean: "Cặp song sinh" },
+            { word: "Gathering", type: "n", mean: "Cuộc tụ họp, gặp mặt" },
+            { word: "Traditional costume", type: "np", mean: "Trang phục truyền thống" },
+            { word: "Unusual", type: "adj", mean: "Kỳ lạ, bất thường" },
+            { word: "Participate / Attend", type: "v", mean: "Tham gia / Tham dự" },
+            { word: "Crowd", type: "n", mean: "Đám đông" },
+            { word: "Lantern", type: "n", mean: "Đèn lồng" },
+            { word: "Prosperity", type: "n", mean: "Sự thịnh vượng" },
+            { word: "Feast", type: "n", mean: "Yến tiệc, bữa tiệc lớn" },
+            { word: "Parade", type: "v/n", mean: "Diễu hành" },
+            { word: "Folk dance", type: "np", mean: "Điệu nhảy dân gian" }
+        ];
+
+        // RENDER FUNCTIONS
+        const container = document.getElementById('quiz-container');
+
+        function renderQuiz() {
+            // Render Exercise 1
+            const ex1Title = document.createElement('h3');
+            ex1Title.innerHTML = 'Exercise 1. Choose the correct sentence (Chọn câu đúng).';
+            ex1Title.style.color = 'var(--primary-blue)';
+            container.appendChild(ex1Title);
+
+            quizData.exercise1.forEach((q, index) => {
+                const card = document.createElement('div');
+                card.className = 'question-card';
+                card.id = `q1-${index}`;
+                
+                let optionsHtml = '';
+                q.options.forEach((opt, optIndex) => {
+                    optionsHtml += `
+                        <label class="option-label">
+                            <input type="radio" name="q1-${index}" value="${optIndex}">
+                            <span>${["A", "B", "C", "D"][optIndex]}. ${opt}</span>
+                        </label>
+                    `;
+                });
+
+                card.innerHTML = `
+                    <div class="q-title">
+                        <span>Question ${index + 1}</span>
+                        <span class="badge" id="badge-1-${index}"></span>
+                    </div>
+                    <div class="q-content">${q.prompt}</div>
+                    <div class="options-grid">
+                        ${optionsHtml}
+                    </div>
+                    <button class="btn-check-single" onclick="checkOneMC(${index})">✨ Giải thích & Đáp án</button>
+                    <div class="explanation" id="exp-1-${index}">
+                        <span class="exp-header">📝 Ms Mai An giải thích chi tiết:</span>
+                        <div class="exp-detail">${q.explanation}</div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+
+            // Render Exercise 2
+            const ex2Title = document.createElement('h3');
+            ex2Title.innerHTML = 'Exercise 2. Reorder the words (Sắp xếp từ thành câu hoàn chỉnh).';
+            ex2Title.style.color = 'var(--primary-blue)';
+            ex2Title.style.marginTop = '40px';
+            container.appendChild(ex2Title);
+
+            quizData.exercise2.forEach((q, index) => {
+                const card = document.createElement('div');
+                card.className = 'question-card';
+                card.id = `q2-${index}`;
+
+                card.innerHTML = `
+                    <div class="q-title">
+                        <span>Question ${index + 1}</span>
+                        <span class="badge" id="badge-2-${index}"></span>
+                    </div>
+                    <div class="q-content" style="font-style: italic; color: #555;">${q.prompt}</div>
+                    <input type="text" class="writing-input" id="input-2-${index}" placeholder="Type your answer here..." autocomplete="off">
+                    <button class="btn-check-single" onclick="checkOneWriting(${index})">✨ Giải thích & Đáp án</button>
+                    <div class="explanation" id="exp-2-${index}">
+                        <span class="exp-header">📝 Đáp án đúng & Giải thích:</span>
+                        <div class="exp-detail">
+                            <p><b>Đáp án:</b> <span style="color:var(--correct); font-weight:bold;">${q.answer}</span></p>
+                            <p>${q.explanation}</p>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+
+            // Render Glossary
+            const glossaryBody = document.getElementById('glossary-body');
+            glossaryData.forEach(item => {
+                const row = `<tr>
+                    <td><b>${item.word}</b></td>
+                    <td><i>${item.type}</i></td>
+                    <td>${item.mean}</td>
+                </tr>`;
+                glossaryBody.innerHTML += row;
+            });
+        }
+
+        // LOGIC CHECKING
+        function normalizeText(text) {
+            return text.trim().toLowerCase().replace(/\s+/g, ' ').replace(/[.,?!]/g, '');
+        }
+
+        function checkOneMC(index) {
+            const inputs = document.getElementsByName(`q1-${index}`);
+            let selected = -1;
+            for(let i=0; i<inputs.length; i++) {
+                if(inputs[i].checked) selected = i;
+                inputs[i].disabled = true; // Lock answers
+            }
+
+            const card = document.getElementById(`q1-${index}`);
+            const badge = document.getElementById(`badge-1-${index}`);
+            const exp = document.getElementById(`exp-1-${index}`);
+            const correctIndex = quizData.exercise1[index].correct;
+
+            exp.style.display = 'block';
+
+            if (selected === -1) {
+                card.classList.add('unanswered');
+                badge.textContent = 'Chưa làm';
+                badge.className = 'badge wrong';
+            } else if (selected === correctIndex) {
+                card.classList.add('correct');
+                badge.textContent = 'Đúng';
+                badge.className = 'badge correct';
+            } else {
+                card.classList.add('wrong');
+                badge.textContent = 'Sai';
+                badge.className = 'badge wrong';
+            }
+            
+            // Highlight correct answer label
+            const labels = card.querySelectorAll('.option-label');
+            labels[correctIndex].style.backgroundColor = '#d4edda';
+            labels[correctIndex].style.border = '1px solid var(--correct)';
+            if(selected !== -1 && selected !== correctIndex) {
+                labels[selected].style.backgroundColor = '#f8d7da';
+                labels[selected].style.border = '1px solid var(--wrong)';
+            }
+        }
+
+        function checkOneWriting(index) {
+            const input = document.getElementById(`input-2-${index}`);
+            const card = document.getElementById(`q2-${index}`);
+            const badge = document.getElementById(`badge-2-${index}`);
+            const exp = document.getElementById(`exp-2-${index}`);
+            
+            const userAnswer = normalizeText(input.value);
+            const correctAnswer = normalizeText(quizData.exercise2[index].answer);
+
+            input.disabled = true;
+            exp.style.display = 'block';
+
+            if (userAnswer === "") {
+                card.classList.add('unanswered');
+                badge.textContent = 'Chưa làm';
+                badge.className = 'badge wrong';
+            } else if (userAnswer === correctAnswer) {
+                card.classList.add('correct');
+                badge.textContent = 'Đúng';
+                badge.className = 'badge correct';
+            } else {
+                card.classList.add('wrong');
+                badge.textContent = 'Sai';
+                badge.className = 'badge wrong';
+            }
+        }
+
+        function submitAll() {
+            let score = 0;
+            let total = quizData.exercise1.length + quizData.exercise2.length;
+
+            // Check Ex 1
+            quizData.exercise1.forEach((q, index) => {
+                const inputs = document.getElementsByName(`q1-${index}`);
+                let selected = -1;
+                for(let i=0; i<inputs.length; i++) {
+                    if(inputs[i].checked) selected = i;
+                }
+                if (selected === q.correct) score++;
+                checkOneMC(index); // Trigger visual feedback for all
+            });
+
+            // Check Ex 2
+            quizData.exercise2.forEach((q, index) => {
+                const input = document.getElementById(`input-2-${index}`);
+                const userAnswer = normalizeText(input.value);
+                const correctAnswer = normalizeText(q.answer);
+                if (userAnswer === correctAnswer) score++;
+                checkOneWriting(index); // Trigger visual feedback for all
+            });
+
+            // Update Score Display
+            const scoreDisplay = document.getElementById('score-display');
+            scoreDisplay.textContent = `Score: ${score}/${total}`;
+            
+            alert(`Bạn đã hoàn thành bài thi!\nĐiểm số: ${score}/${total}\nHãy xem lại phần giải thích chi tiết bên dưới mỗi câu nhé!`);
+        }
+
+        // Initialize
+        renderQuiz();
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,1084 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Yourself 3 - Ms. Mai An ULIS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+    <style>
+        :root {
+            --primary: #8854C0; /* Hồng tím */
+            --secondary: #00C9A7; /* Xanh ngọc */
+            --correct: #00D26A; /* Xanh lá */
+            --wrong: #FF4757; /* Đỏ cam */
+            --bg-color: #f0f3f8;
+            --text-color: #2d3436;
+            --card-bg: #ffffff;
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: var(--bg-color);
+            background-image: radial-gradient(var(--secondary) 1px, transparent 1px), radial-gradient(var(--primary) 1px, transparent 1px);
+            background-size: 40px 40px;
+            background-position: 0 0, 20px 20px;
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            padding-bottom: 80px;
+        }
+
+        .header-sticker {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            background: linear-gradient(45deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: 800;
+            font-size: 0.9rem;
+            z-index: 1000;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: var(--primary);
+            font-weight: 900;
+            text-shadow: 2px 2px 0px #fff;
+            margin-bottom: 30px;
+            font-size: 2.5rem;
+        }
+
+        h2.section-title {
+            background: #fff;
+            color: var(--primary);
+            display: inline-block;
+            padding: 10px 20px;
+            border-radius: 15px;
+            border-bottom: 4px solid var(--secondary);
+            margin-top: 40px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+
+        /* --- Question Card Style --- */
+        .quiz-card {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 8px 0 rgba(0,0,0,0.1);
+            border: 2px solid #eee;
+            position: relative;
+            transition: transform 0.2s;
+        }
+
+        .question-text {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        .question-text u {
+            text-decoration: none;
+            border-bottom: 3px solid var(--secondary);
+            padding-bottom: 2px;
+        }
+
+        /* --- Options Grid --- */
+        .options-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .option-btn {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 15px;
+            padding: 15px;
+            font-family: 'Nunito', sans-serif;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 0 #e0e0e0;
+            text-align: left;
+            position: relative;
+            outline: none;
+        }
+
+        .option-btn:hover:not(.disabled) {
+            transform: translateY(-2px);
+            border-color: var(--secondary);
+        }
+
+        .option-btn:active:not(.disabled) {
+            transform: translateY(2px);
+            box-shadow: 0 0 0 #e0e0e0;
+        }
+
+        /* --- States --- */
+        .option-btn.correct {
+            background-color: var(--correct);
+            color: white;
+            border-color: #00b85c;
+            box-shadow: 0 4px 0 #00b85c;
+        }
+
+        .option-btn.wrong {
+            background-color: var(--wrong);
+            color: white;
+            border-color: #d6303f;
+            box-shadow: 0 4px 0 #d6303f;
+            animation: shake 0.5s;
+        }
+
+        .option-btn.disabled {
+            pointer-events: none;
+            opacity: 0.7;
+        }
+
+        /* --- Explanation Box --- */
+        .explanation {
+            display: none; /* Hidden by default */
+            margin-top: 20px;
+            background: #f8f9fa;
+            border-left: 5px solid var(--primary);
+            padding: 20px;
+            border-radius: 10px;
+            animation: slideDown 0.3s ease-out;
+        }
+
+        .explanation h4 {
+            margin-top: 0;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .exp-content p {
+            margin: 5px 0;
+            line-height: 1.6;
+        }
+        
+        .exp-detail-item {
+            margin-bottom: 10px;
+            border-bottom: 1px dashed #ccc;
+            padding-bottom: 10px;
+        }
+
+        .exp-tag {
+            font-weight: bold;
+            font-size: 0.9em;
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-right: 5px;
+        }
+        .tag-correct { background: #e6fffa; color: var(--secondary); border: 1px solid var(--secondary); }
+        .tag-wrong { background: #fff5f5; color: var(--wrong); border: 1px solid var(--wrong); }
+
+        /* --- Special Layouts --- */
+        .options-box {
+            background: #fff0f6;
+            border: 2px dashed var(--primary);
+            padding: 15px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+        }
+        .options-box p { margin: 5px 0; font-weight: 600; }
+
+        .reading-text {
+            background: #fff;
+            padding: 25px;
+            border-radius: 15px;
+            line-height: 1.8;
+            border: 1px solid #ddd;
+            margin-bottom: 25px;
+            font-size: 1.05rem;
+            text-align: justify;
+        }
+        
+        .glossary-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        
+        .glossary-table th {
+            background: var(--primary);
+            color: white;
+            padding: 10px;
+            text-align: left;
+        }
+        
+        .glossary-table td {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            font-size: 0.95rem;
+        }
+
+        /* --- Animations --- */
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-5px) rotate(-5deg); }
+            50% { transform: translateX(5px) rotate(5deg); }
+            75% { transform: translateX(-5px) rotate(-5deg); }
+            100% { transform: translateX(0); }
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* --- Footer/Submit --- */
+        .submit-section {
+            text-align: center;
+            margin-top: 50px;
+        }
+
+        .submit-btn {
+            background: var(--secondary);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.5rem;
+            border-radius: 50px;
+            font-weight: 800;
+            box-shadow: 0 6px 0 #009e82;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .submit-btn:active {
+            transform: translateY(4px);
+            box-shadow: 0 2px 0 #009e82;
+        }
+        
+        /* Popup Stats */
+        .popup-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+        
+        .popup-content {
+            background: white;
+            padding: 40px;
+            border-radius: 25px;
+            text-align: center;
+            max-width: 400px;
+            animation: slideDown 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        
+        .score-display {
+            font-size: 4rem;
+            font-weight: 900;
+            color: var(--primary);
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+
+<div class="header-sticker">👩‍🏫 Ms. Mai An FELTE - ULIS</div>
+
+<div class="container">
+    <h1>TEST YOURSELF 3 <br><span style="font-size: 0.6em; font-weight: 600; color: #666;">Interactive English Test</span></h1>
+
+    <h2 class="section-title">I. Pronunciation - Odd one out</h2>
+    
+    <div class="quiz-card" id="q1">
+        <div class="question-text">1. Choose the word whose underlined part is pronounced differently:</div>
+        <div class="options-grid">
+            <button class="option-btn" onclick="checkAnswer('q1', 'A', 'A')">A. <u>i</u>con</button>
+            <button class="option-btn" onclick="checkAnswer('q1', 'B', 'A')">B. v<u>i</u>sual</button>
+            <button class="option-btn" onclick="checkAnswer('q1', 'C', 'A')">C. scen<u>i</u>c</button>
+            <button class="option-btn" onclick="checkAnswer('q1', 'D', 'A')">D. d<u>i</u>saster</button>
+        </div>
+        <div class="explanation">
+            <h4><i class="fas fa-lightbulb"></i> Cô Mai An giải thích:</h4>
+            <div class="exp-content">
+                <p><strong>Đáp án đúng: A</strong></p>
+                <div class="exp-detail-item"><span class="exp-tag tag-correct">A. icon</span> /<strong>aɪ</strong>kɒn/ (Âm /aɪ/)</div>
+                <div class="exp-detail-item"><span class="exp-tag tag-wrong">B. visual</span> /<strong>ˈvɪ</strong>ʒuəl/ (Âm /ɪ/)</div>
+                <div class="exp-detail-item"><span class="exp-tag tag-wrong">C. scenic</span> /<strong>ˈsiː</strong>nɪk/ hoặc /senik/ (Thường là âm /i:/ hoặc /e/, nhưng ở đây so sánh nhóm /ɪ/ thì visual/disaster rõ nhất. Tuy nhiên trong bài này Icon là /ai/ khác biệt hoàn toàn).</div>
+                <div class="exp-detail-item"><span class="exp-tag tag-wrong">D. disaster</span> /dɪ<strong>ˈzɑː</strong>stə(r)/ (Âm /ɪ/)</div>
+                <p>👉 <strong>Giải thích:</strong> Đáp án A phát âm là nguyên âm đôi <strong>/aɪ/</strong>, các từ còn lại phần gạch chân phát âm là <strong>/ɪ/</strong>.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="quiz-card" id="q2">
+        <div class="question-text">2. Choose the word whose underlined part is pronounced differently:</div>
+        <div class="options-grid">
+            <button class="option-btn" onclick="checkAnswer('q2', 'A', 'A')">A. pr<u>e</u>dict</button>
+            <button class="option-btn" onclick="checkAnswer('q2', 'B', 'A')">B. prop<u>e</u>rty</button>
+            <button class="option-btn" onclick="checkAnswer('q2', 'C', 'A')">C. nat<u>u</u>ral</button>
+            <button class="option-btn" onclick="checkAnswer('q2', 'D', 'A')">D. torn<u>a</u>do</button>
+        </div>
+        <div class="explanation">
+            <h4><i class="fas fa-lightbulb"></i> Cô Mai An giải thích:</h4>
+            <div class="exp-content">
+                <p><strong>Đáp án đúng: A</strong> (Lưu ý: Đề bài gốc không gạch chân, cô giáo giả định kiểm tra âm tiết mang trọng âm/nguyên âm chính).</p>
+                <div class="exp-detail-item"><span class="exp-tag tag-correct">A. predict</span> /pr<strong>ɪ</strong>ˈdɪkt/ (Âm /ɪ/)</div>
+                <div class="exp-detail-item"><span class="exp-tag tag-wrong">B. property</span> /<strong>ˈprɒ</strong>pəti/ (Âm /ə/ - schwa ở âm tiết 2)</div>
+                <div class="exp-detail-item"><span class="exp-tag tag-wrong">C. natural</span> /<strong>ˈnæt</strong>ʃrəl/ (Âm /ə/ - schwa ở âm tiết 2)</div>
+                <div class="exp-detail-item"><span class="exp-tag tag-wrong">D. tornado</span> /tɔː<strong>ˈneɪ</strong>dəʊ/ (Âm /ə/ - schwa ở âm tiết cuối)</div>
+                <p>👉 <strong>Giải thích:</strong> Đây là câu hỏi về nhận diện nguyên âm. Nếu xét vị trí gạch chân giả định (như trên), <strong>predict</strong> rõ nhất là âm /ɪ/, trong khi các vị trí không nhấn trọng âm của các từ kia thường biến thành âm /ə/.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="quiz-card" id="q3">
+        <div class="question-text">3. Choose the word whose underlined part is pronounced differently:</div>
+        <div class="options-grid">
+            <button class="option-btn" onclick="checkAnswer('q3', 'A', 'D')">A. par<u>a</u>de</button>
+            <button class="option-btn" onclick="checkAnswer('q3', 'B', 'D')">B. r<u>a</u>ge</button>
+            <button class="option-btn" onclick="checkAnswer('q3', 'C', 'D')">C. earthqu<u>a</u>ke</button>
+            <button class="option-btn" onclick="checkAnswer('q3', 'D', 'D')">D. clim<u>a</u>te</button>
+        </div>
+        <div class="explanation">
+            <h4><i class="fas fa-lightbulb"></i> Cô Mai An giải thích:</h4>
+            <div class="exp-content">
+                <p><strong>Đáp án đúng: D</strong></p>
+                <div class="exp-detail-item"><span class="exp-tag tag-wrong">A. parade</span> /pə<strong>ˈreɪ</strong>d/ (Âm /eɪ/)</div>
+                <div class="exp-detail-item"><span class="exp-tag tag-wrong">B. rage</span> /r<strong>eɪ</strong>dʒ/ (Âm /eɪ/)</div>
+                <div class="exp-detail-item"><span class="exp-tag tag-wrong">C. earthquake</span> /...kw<strong>eɪ</strong>k/ (Âm /eɪ/)</div>
+                <div class="exp-detail-item"><span class="exp-tag tag-correct">D. climate</span> /<strong>ˈklaɪ</strong>mət/ (Âm /ə/ hoặc /ɪt/ nhẹ)</div>
+                <p>👉 <strong>Giải thích:</strong> Đáp án D phần gạch chân là âm đuôi đọc nhẹ /ət/, các đáp án còn lại là nguyên âm đôi mạnh <strong>/eɪ/</strong>.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="quiz-card" id="q4">
+        <div class="question-text">4. Choose the word whose underlined part is pronounced differently:</div>
+        <div class="options-grid">
+            <button class="option-btn" onclick="checkAnswer('q4', 'A', 'B')">A. <u>s</u>ource</button>
+            <button class="option-btn" onclick="checkAnswer('q4', 'B', 'B')">B. vi<u>s</u>it</button>
+            <button class="option-btn" onclick="checkAnswer('q4', 'C', 'B')">C. ca<u>s</u>tle</button>
+            <button class="option-btn" onclick="checkAnswer('q4', 'D', 'B')">D. <u>s</u>tation</button>
+        </div>
+        <div class="explanation">
+            <h4><i class="fas fa-lightbulb"></i> Cô Mai An giải thích:</h4>
+            <div class="exp-content">
+                <p><strong>Đáp án đúng: B</strong></p>
+                <div class="exp-detail-item"><span class="exp-tag tag-wrong">A. source</span> /<strong>s</strong>ɔːs/ (Âm /s/)</div>
+                <div class="exp-detail-item"><span class="exp-tag tag-correct">B. visit</span> /<strong>ˈvɪz</strong>ɪt/ (Âm /z/ - hữu thanh)</div>
+                <div class="exp-detail-item"><span class="exp-tag tag-wrong">C. castle</span> /<strong>ˈkɑːs</strong>l/ (Âm /s/)</div>
+                <div class="exp-detail-item"><span class="exp-tag tag-wrong">D. station</span> /<strong>s</strong>teɪʃn/ (Âm /s/)</div>
+                <p>👉 <strong>Giải thích:</strong> Chữ 's' trong 'visit' đứng giữa 2 nguyên âm nên đọc là <strong>/z/</strong>, các từ còn lại đọc là <strong>/s/</strong>.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="quiz-card" id="q5">
+        <div class="question-text">5. Choose the word whose underlined part is pronounced differently:</div>
+        <div class="options-grid">
+            <button class="option-btn" onclick="checkAnswer('q5', 'A', 'C')">A. d<u>ea</u>d</button>
+            <button class="option-btn" onclick="checkAnswer('q5', 'B', 'C')">B. h<u>ea</u>lth</button>
+            <button class="option-btn" onclick="checkAnswer('q5', 'C', 'C')">C. gr<u>ea</u>t</button>
+            <button class="option-btn" onclick="checkAnswer('q5', 'D', 'C')">D. h<u>ea</u>vy</button>
+        </div>
+        <div class="explanation">
+            <h4><i class="fas fa-lightbulb"></i> Cô Mai An giải thích:</h4>
+            <div class="exp-content">
+                <p><strong>Đáp án đúng: C</strong></p>
+                <div class="exp-detail-item"><span class="exp-tag tag-wrong">A. dead</span> /d<strong>e</strong>d/ (Âm /e/)</div>
+                <div class="exp-detail-item"><span class="exp-tag tag-wrong">B. health</span> /h<strong>e</strong>lθ/ (Âm /e/)</div>
+                <div class="exp-detail-item"><span class="exp-tag tag-correct">C. great</span> /gr<strong>eɪ</strong>t/ (Âm /eɪ/)</div>
+                <div class="exp-detail-item"><span class="exp-tag tag-wrong">D. heavy</span> /h<strong>e</strong>vi/ (Âm /e/)</div>
+                <p>👉 <strong>Giải thích:</strong> Cụm 'ea' trong 'great' đọc là <strong>/eɪ/</strong>, còn lại đọc là <strong>/e/</strong>.</p>
+            </div>
+        </div>
+    </div>
+
+    <h2 class="section-title">II. Stress Pattern</h2>
+
+    <div class="quiz-card" id="q6">
+        <div class="question-text">1. Choose the word with different stress pattern:</div>
+        <div class="options-grid">
+            <button class="option-btn" onclick="checkAnswer('q6', 'A', 'A')">A. paradise</button>
+            <button class="option-btn" onclick="checkAnswer('q6', 'B', 'A')">B. exhibit</button>
+            <button class="option-btn" onclick="checkAnswer('q6', 'C', 'A')">C. invention</button>
+            <button class="option-btn" onclick="checkAnswer('q6', 'D', 'A')">D. performance</button>
+        </div>
+        <div class="explanation">
+            <h4><i class="fas fa-lightbulb"></i> Cô Mai An giải thích:</h4>
+            <div class="exp-content">
+                <p><strong>Đáp án đúng: A</strong></p>
+                <div class="exp-detail-item"><span class="exp-tag tag-correct">A. paradise</span> /ˈpær.ə.daɪs/ (Trọng âm 1)</div>
+                <div class="exp-detail-item"><span class="exp-tag tag-wrong">B. exhibit</span> /ɪɡˈzɪb.ɪt/ (Trọng âm 2)</div>
+                <div class="exp-detail-item"><span class="exp-tag tag-wrong">C. invention</span> /ɪnˈven.ʃən/ (Trọng âm 2)</div>
+                <div class="exp-detail-item"><span class="exp-tag tag-wrong">D. performance</span> /pəˈfɔː.məns/ (Trọng âm 2)</div>
+            </div>
+        </div>
+    </div>
+
+     <div class="quiz-card" id="q7">
+        <div class="question-text">2. Choose the word with different stress pattern:</div>
+        <div class="options-grid">
+            <button class="option-btn" onclick="checkAnswer('q7', 'A', 'C')">A. medical</button>
+            <button class="option-btn" onclick="checkAnswer('q7', 'B', 'C')">B. natural</button>
+            <button class="option-btn" onclick="checkAnswer('q7', 'C', 'C')">C. arrival</button>
+            <button class="option-btn" onclick="checkAnswer('q7', 'D', 'C')">D. national</button>
+        </div>
+        <div class="explanation">
+            <h4><i class="fas fa-lightbulb"></i> Cô Mai An giải thích:</h4>
+            <div class="exp-content">
+                <p><strong>Đáp án đúng: C</strong></p>
+                <div class="exp-detail-item"><span class="exp-tag tag-wrong">A. medical</span> /ˈmed.ɪ.kəl/ (Trọng âm 1)</div>
+                <div class="exp-detail-item"><span class="exp-tag tag-wrong">B. natural</span> /ˈnætʃ.ər.əl/ (Trọng âm 1)</div>
+                <div class="exp-detail-item"><span class="exp-tag tag-correct">C. arrival</span> /əˈraɪ.vəl/ (Trọng âm 2)</div>
+                <div class="exp-detail-item"><span class="exp-tag tag-wrong">D. national</span> /ˈnæʃ.ən.əl/ (Trọng âm 1)</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="quiz-card" id="q8">
+        <div class="question-text">3. Choose the word with different stress pattern:</div>
+        <div class="options-grid">
+            <button class="option-btn" onclick="checkAnswer('q8', 'A', 'B')">A. volcanic</button>
+            <button class="option-btn" onclick="checkAnswer('q8', 'B', 'B')">B. volunteer</button>
+            <button class="option-btn" onclick="checkAnswer('q8', 'C', 'B')">C. pollution</button>
+            <button class="option-btn" onclick="checkAnswer('q8', 'D', 'B')">D. tsunami</button>
+        </div>
+        <div class="explanation">
+            <h4><i class="fas fa-lightbulb"></i> Cô Mai An giải thích:</h4>
+            <div class="exp-content">
+                <p><strong>Đáp án đúng: B</strong></p>
+                <div class="exp-detail-item"><span class="exp-tag tag-wrong">A. volcanic</span> /vɒlˈkæn.ɪk/ (Trọng âm 2)</div>
+                <div class="exp-detail-item"><span class="exp-tag tag-correct">B. volunteer</span> /ˌvɒl.ənˈtɪər/ (Trọng âm 3)</div>
+                <div class="exp-detail-item"><span class="exp-tag tag-wrong">C. pollution</span> /pəˈluː.ʃən/ (Trọng âm 2)</div>
+                <div class="exp-detail-item"><span class="exp-tag tag-wrong">D. tsunami</span> /tsuːˈnɑː.mi/ (Trọng âm 2)</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="quiz-card" id="q9">
+        <div class="question-text">4. Choose the word with different stress pattern:</div>
+        <div class="options-grid">
+            <button class="option-btn" onclick="checkAnswer('q9', 'A', 'D')">A. festival</button>
+            <button class="option-btn" onclick="checkAnswer('q9', 'B', 'D')">B. practical</button>
+            <button class="option-btn" onclick="checkAnswer('q9', 'C', 'D')">C. marvellous</button>
+            <button class="option-btn" onclick="checkAnswer('q9', 'D', 'D')">D. disastrous</button>
+        </div>
+        <div class="explanation">
+            <h4><i class="fas fa-lightbulb"></i> Cô Mai An giải thích:</h4>
+            <div class="exp-content">
+                <p><strong>Đáp án đúng: D</strong></p>
+                <div class="exp-detail-item"><span class="exp-tag tag-wrong">A. festival</span> /ˈfes.tɪ.vəl/ (Trọng âm 1)</div>
+                <div class="exp-detail-item"><span class="exp-tag tag-wrong">B. practical</span> /ˈpræk.tɪ.kəl/ (Trọng âm 1)</div>
+                <div class="exp-detail-item"><span class="exp-tag tag-wrong">C. marvellous</span> /ˈmɑː.vəl.əs/ (Trọng âm 1)</div>
+                <div class="exp-detail-item"><span class="exp-tag tag-correct">D. disastrous</span> /dɪˈzɑː.strəs/ (Trọng âm 2)</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="quiz-card" id="q10">
+        <div class="question-text">5. Choose the word with different stress pattern:</div>
+        <div class="options-grid">
+            <button class="option-btn" onclick="checkAnswer('q10', 'A', 'C')">A. rescue</button>
+            <button class="option-btn" onclick="checkAnswer('q10', 'B', 'C')">B. damage</button>
+            <button class="option-btn" onclick="checkAnswer('q10', 'C', 'C')">C. erupt</button>
+            <button class="option-btn" onclick="checkAnswer('q10', 'D', 'C')">D. tremble</button>
+        </div>
+        <div class="explanation">
+            <h4><i class="fas fa-lightbulb"></i> Cô Mai An giải thích:</h4>
+            <div class="exp-content">
+                <p><strong>Đáp án đúng: C</strong></p>
+                <div class="exp-detail-item"><span class="exp-tag tag-wrong">A. rescue</span> /ˈres.kjuː/ (Trọng âm 1)</div>
+                <div class="exp-detail-item"><span class="exp-tag tag-wrong">B. damage</span> /ˈdæm.ɪdʒ/ (Trọng âm 1)</div>
+                <div class="exp-detail-item"><span class="exp-tag tag-correct">C. erupt</span> /ɪˈrʌpt/ (Trọng âm 2)</div>
+                <div class="exp-detail-item"><span class="exp-tag tag-wrong">D. tremble</span> /ˈtrem.bəl/ (Trọng âm 1)</div>
+            </div>
+        </div>
+    </div>
+
+    <h2 class="section-title">VIII. Complete the Dialogue</h2>
+    <div class="quiz-card">
+        <div class="options-box">
+            <p><strong>OPTIONS:</strong></p>
+            <p>A. I visited three shopping centres, and the one I like most is IconSiam.</p>
+            <p>B. I spent the whole morning shopping, then I had lunch at the food court...</p>
+            <p>C. Well, it depends. But all shops have fixed price, so you cannot bargain.</p>
+            <p>D. It's a good idea. I'll give you a list of shops and restaurants that you should go.</p>
+            <p>E. They are much bigger than those in Viet Nam, and they have a wide range of entertainment.</p>
+            <p>F. It's one of the biggest shopping centres in Thailand.</p>
+            <p>G. It was awesome. The shopping centres there are really impressive.</p>
+            <p>H. It has more than 7,000 shops, 100 restaurants and even a floating market!</p>
+        </div>
+
+        <div class="reading-text">
+            <strong>Nga:</strong> How was your trip to Bangkok?<br>
+            <strong>Lien:</strong> (1) ________________________<br>
+            <strong>Nga:</strong> Really? What do you like about them?<br>
+            <strong>Lien:</strong> (2) ________________________<br>
+            <strong>Nga:</strong> Wow! What's your favourite shopping centre there?<br>
+            <strong>Lien:</strong> (3) ________________________<br>
+            <strong>Nga:</strong> I've never heard of that name before.<br>
+            <strong>Lien:</strong> (4) ________________________<br>
+            <strong>Nga:</strong> Oh, I see. Why do you find it impressive?<br>
+            <strong>Lien:</strong> (5) ________________________<br>
+            <strong>Nga:</strong> A floating market inside the mall? How wonderful! What did you do there?<br>
+            <strong>Lien:</strong> (6) ________________________<br>
+            <strong>Nga:</strong> You seemed to have a lot of fun. Was the price reasonable?<br>
+            <strong>Lien:</strong> (7) ________________________<br>
+            <strong>Nga:</strong> Hmm... Interesting. I think I'll visit IconSiam when I travel to Bangkok.<br>
+            <strong>Lien:</strong> (8) ________________________<br>
+            <strong>Nga:</strong> Wow! Thank you!
+        </div>
+
+        <p><strong>Select the correct sentence for each gap:</strong></p>
+        
+        <div style="margin-bottom:15px;" id="d1">
+            <p><strong>Gap (1):</strong></p>
+            <div class="options-grid">
+                <button class="option-btn" onclick="checkAnswer('d1', 'G', 'G')">G. It was awesome...</button>
+                <button class="option-btn" onclick="checkAnswer('d1', 'F', 'G')">F. It's one of the biggest...</button>
+                <button class="option-btn" onclick="checkAnswer('d1', 'A', 'G')">A. I visited three...</button>
+            </div>
+            <div class="explanation">
+                <h4><i class="fas fa-lightbulb"></i> Giải thích:</h4>
+                <p>Nga hỏi "Chuyến đi thế nào?". Liên cần trả lời cảm xúc chung -> <strong>G (Tuyệt vời).</strong></p>
+            </div>
+        </div>
+
+        <div style="margin-bottom:15px;" id="d2">
+            <p><strong>Gap (2):</strong></p>
+            <div class="options-grid">
+                <button class="option-btn" onclick="checkAnswer('d2', 'E', 'E')">E. They are much bigger...</button>
+                <button class="option-btn" onclick="checkAnswer('d2', 'B', 'E')">B. I spent the whole morning...</button>
+            </div>
+            <div class="explanation">
+                <h4><i class="fas fa-lightbulb"></i> Giải thích:</h4>
+                <p>Nga hỏi "Bạn thích gì về chúng (các trung tâm)?". Liên so sánh với VN -> <strong>E.</strong></p>
+            </div>
+        </div>
+
+        <div style="margin-bottom:15px;" id="d3">
+            <p><strong>Gap (3):</strong></p>
+            <div class="options-grid">
+                <button class="option-btn" onclick="checkAnswer('d3', 'A', 'A')">A. ...IconSiam</button>
+                <button class="option-btn" onclick="checkAnswer('d3', 'H', 'A')">H. ...7000 shops</button>
+            </div>
+            <div class="explanation">
+                <h4><i class="fas fa-lightbulb"></i> Giải thích:</h4>
+                <p>Nga hỏi "Cái nào bạn thích nhất?". Liên trả lời tên cụ thể -> <strong>A (IconSiam).</strong></p>
+            </div>
+        </div>
+
+        <div style="margin-bottom:15px;" id="d4">
+            <p><strong>Gap (4):</strong></p>
+            <div class="options-grid">
+                <button class="option-btn" onclick="checkAnswer('d4', 'F', 'F')">F. It's one of the biggest...</button>
+                <button class="option-btn" onclick="checkAnswer('d4', 'C', 'F')">C. Well, it depends...</button>
+            </div>
+            <div class="explanation">
+                <h4><i class="fas fa-lightbulb"></i> Giải thích:</h4>
+                <p>Nga nói chưa nghe tên bao giờ. Liên giải thích chung về nó -> <strong>F.</strong></p>
+            </div>
+        </div>
+
+        <div style="margin-bottom:15px;" id="d5">
+            <p><strong>Gap (5):</strong></p>
+            <div class="options-grid">
+                <button class="option-btn" onclick="checkAnswer('d5', 'H', 'H')">H. It has ... a floating market!</button>
+                <button class="option-btn" onclick="checkAnswer('d5', 'G', 'H')">G. It was awesome...</button>
+            </div>
+            <div class="explanation">
+                <h4><i class="fas fa-lightbulb"></i> Giải thích:</h4>
+                <p>Nga hỏi "Tại sao ấn tượng?". Liên liệt kê số liệu và chi tiết chợ nổi -> <strong>H.</strong></p>
+            </div>
+        </div>
+
+        <div style="margin-bottom:15px;" id="d6">
+            <p><strong>Gap (6):</strong></p>
+            <div class="options-grid">
+                <button class="option-btn" onclick="checkAnswer('d6', 'B', 'B')">B. ...shopping... lunch...</button>
+                <button class="option-btn" onclick="checkAnswer('d6', 'D', 'B')">D. It's a good idea...</button>
+            </div>
+            <div class="explanation">
+                <h4><i class="fas fa-lightbulb"></i> Giải thích:</h4>
+                <p>Nga hỏi "Bạn đã làm gì ở đó?". Liên kể hành động -> <strong>B.</strong></p>
+            </div>
+        </div>
+
+        <div style="margin-bottom:15px;" id="d7">
+            <p><strong>Gap (7):</strong></p>
+            <div class="options-grid">
+                <button class="option-btn" onclick="checkAnswer('d7', 'C', 'C')">C. ...fixed price...</button>
+                <button class="option-btn" onclick="checkAnswer('d7', 'E', 'C')">E. They are much bigger...</button>
+            </div>
+            <div class="explanation">
+                <h4><i class="fas fa-lightbulb"></i> Giải thích:</h4>
+                <p>Nga hỏi "Giá cả hợp lý không?". Liên nói về giá niêm yết -> <strong>C.</strong></p>
+            </div>
+        </div>
+
+        <div style="margin-bottom:15px;" id="d8">
+            <p><strong>Gap (8):</strong></p>
+            <div class="options-grid">
+                <button class="option-btn" onclick="checkAnswer('d8', 'D', 'D')">D. ...give you a list...</button>
+                <button class="option-btn" onclick="checkAnswer('d8', 'A', 'D')">A. ...IconSiam...</button>
+            </div>
+            <div class="explanation">
+                <h4><i class="fas fa-lightbulb"></i> Giải thích:</h4>
+                <p>Nga nói sẽ đi thăm. Liên ủng hộ và hứa đưa danh sách -> <strong>D.</strong></p>
+            </div>
+        </div>
+    </div>
+
+    <h2 class="section-title">IX. Gap Fill - Pollution</h2>
+    <div class="quiz-card">
+        <div class="options-box">
+            <p><strong>Đọc kỹ đoạn văn sau và chọn đáp án đúng cho mỗi chỗ trống bên dưới:</strong></p>
+        </div>
+        
+        <div class="reading-text">
+            What is pollution? Stinky stuff? Muck? Poison? Yes, all those things... and more. Some is obvious like smoke <strong>(1) ________</strong> you can see but much of it is not obvious at all. Yet you're eating it and drinking it and breathing it most of the time. And what is worse is that all this muck <strong>(2) ________</strong> all other life on Earth. You can find pollution made by people just about <strong>(3) ________</strong> on the planet. Even <strong>(4) ________</strong> places like the Arctic are badly polluted by nasty chemicals made by people. The polar bears and seals there have poisonous chemicals made by people in their bodies and <strong>(5) ________</strong> do the Inuit people who live with them. These nasty things kill many animals and make others sick including penguins <strong>(6) ________</strong> the Antarctic. They also kill people and make them ill too. There's nowhere on the planet <strong>(7) ________</strong> with no pollution; <strong>(8) ________</strong> the bottom of the sea or high up in the air.
+        </div>
+        
+        <table class="glossary-table">
+             <thead><tr><th>Word</th><th>Type</th><th>Meaning</th></tr></thead>
+             <tbody>
+                 <tr><td>Muck</td><td>(n)</td><td>Bùn đất, rác rưởi bẩn thỉu</td></tr>
+                 <tr><td>Obvious</td><td>(adj)</td><td>Rõ ràng, hiển nhiên</td></tr>
+                 <tr><td>Arctic</td><td>(n)</td><td>Bắc Cực</td></tr>
+             </tbody>
+        </table>
+        <br>
+
+        <div class="gap-question" id="g1" style="margin-bottom: 20px;">
+            <p><strong>Question (1):</strong> like smoke (1) ________ you can see</p>
+            <div class="options-grid">
+                <button class="option-btn" onclick="checkAnswer('g1', 'A', 'D')">A. what</button>
+                <button class="option-btn" onclick="checkAnswer('g1', 'B', 'D')">B. where</button>
+                <button class="option-btn" onclick="checkAnswer('g1', 'C', 'D')">C. when</button>
+                <button class="option-btn" onclick="checkAnswer('g1', 'D', 'D')">D. which</button>
+            </div>
+            <div class="explanation">
+                <h4><i class="fas fa-lightbulb"></i> Cô Mai An giải thích:</h4>
+                <div class="exp-content">
+                    <p><strong>Đáp án đúng: D. which</strong></p>
+                    <p>Đây là mệnh đề quan hệ bổ nghĩa cho sự vật "smoke".</p>
+                    <p>A. what (cái gì - sai ngữ pháp MĐQH), B. where (nơi chốn), C. when (thời gian).</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="gap-question" id="g2" style="margin-bottom: 20px;">
+            <p><strong>Question (2):</strong> all this muck (2) ________ all other life</p>
+            <div class="options-grid">
+                <button class="option-btn" onclick="checkAnswer('g2', 'A', 'B')">A. pollutes</button>
+                <button class="option-btn" onclick="checkAnswer('g2', 'B', 'B')">B. affects</button>
+                <button class="option-btn" onclick="checkAnswer('g2', 'C', 'B')">C. results</button>
+                <button class="option-btn" onclick="checkAnswer('g2', 'D', 'B')">D. attracts</button>
+            </div>
+            <div class="explanation">
+                <h4><i class="fas fa-lightbulb"></i> Cô Mai An giải thích:</h4>
+                <div class="exp-content">
+                    <p><strong>Đáp án đúng: B. affects</strong> (ảnh hưởng)</p>
+                    <p>Rác rưởi "ảnh hưởng" đến sự sống khác. "Pollutes" cũng có lý nhưng "affects" bao quát hơn trong ngữ cảnh "muck affects life". Tuy nhiên, nếu xét ngữ pháp, cả hai đều đi được. Nhưng "affects" hợp lý với "life" (sự sống).</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="gap-question" id="g3" style="margin-bottom: 20px;">
+             <p><strong>Question (3):</strong> just about (3) ________ on the planet</p>
+             <div class="options-grid">
+                 <button class="option-btn" onclick="checkAnswer('g3', 'A', 'A')">A. everywhere</button>
+                 <button class="option-btn" onclick="checkAnswer('g3', 'B', 'A')">B. nowhere</button>
+                 <button class="option-btn" onclick="checkAnswer('g3', 'C', 'A')">C. wherever</button>
+                 <button class="option-btn" onclick="checkAnswer('g3', 'D', 'A')">D. somewhere</button>
+             </div>
+             <div class="explanation">
+                 <h4><i class="fas fa-lightbulb"></i> Giải thích:</h4>
+                 <p><strong>Đáp án A. everywhere</strong> (mọi nơi). Ngữ cảnh nói ô nhiễm có ở khắp mọi nơi.</p>
+             </div>
+         </div>
+
+        <div class="gap-question" id="g4" style="margin-bottom: 20px;">
+            <p><strong>Question (4):</strong> Even (4) ________ places like the Arctic</p>
+            <div class="options-grid">
+                <button class="option-btn" onclick="checkAnswer('g4', 'A', 'A')">A. remote</button>
+                <button class="option-btn" onclick="checkAnswer('g4', 'B', 'A')">B. quiet</button>
+                <button class="option-btn" onclick="checkAnswer('g4', 'C', 'A')">C. interesting</button>
+                <button class="option-btn" onclick="checkAnswer('g4', 'D', 'A')">D. crowded</button>
+            </div>
+            <div class="explanation">
+                <h4><i class="fas fa-lightbulb"></i> Giải thích:</h4>
+                <p><strong>Đáp án A. remote</strong> (xa xôi/hẻo lánh). Bắc Cực là nơi xa xôi.</p>
+            </div>
+        </div>
+
+        <div class="gap-question" id="g5" style="margin-bottom: 20px;">
+            <p><strong>Question (5):</strong> and (5) ________ do the Inuit people</p>
+            <div class="options-grid">
+                <button class="option-btn" onclick="checkAnswer('g5', 'A', 'D')">A. either</button>
+                <button class="option-btn" onclick="checkAnswer('g5', 'B', 'D')">B. also</button>
+                <button class="option-btn" onclick="checkAnswer('g5', 'C', 'D')">C. neither</button>
+                <button class="option-btn" onclick="checkAnswer('g5', 'D', 'D')">D. so</button>
+            </div>
+            <div class="explanation">
+                <h4><i class="fas fa-lightbulb"></i> Giải thích:</h4>
+                <p><strong>Đáp án D. so</strong>. Cấu trúc đảo ngữ "So + do + S" (Người Inuit cũng vậy).</p>
+            </div>
+        </div>
+
+        <div class="gap-question" id="g6" style="margin-bottom: 20px;">
+            <p><strong>Question (6):</strong> penguins (6) ________ the Antarctic</p>
+            <div class="options-grid">
+                <button class="option-btn" onclick="checkAnswer('g6', 'A', 'C')">A. of</button>
+                <button class="option-btn" onclick="checkAnswer('g6', 'B', 'C')">B. on</button>
+                <button class="option-btn" onclick="checkAnswer('g6', 'C', 'C')">C. in</button>
+                <button class="option-btn" onclick="checkAnswer('g6', 'D', 'C')">D. at</button>
+            </div>
+            <div class="explanation">
+                <h4><i class="fas fa-lightbulb"></i> Giải thích:</h4>
+                <p><strong>Đáp án C. in</strong>. Dùng "in" cho các khu vực địa lý lớn như châu lục (Antarctic).</p>
+            </div>
+        </div>
+
+        <div class="gap-question" id="g7" style="margin-bottom: 20px;">
+            <p><strong>Question (7):</strong> nowhere ... (7) ________ with no pollution</p>
+            <div class="options-grid">
+                <button class="option-btn" onclick="checkAnswer('g7', 'A', 'B')">A. made</button>
+                <button class="option-btn" onclick="checkAnswer('g7', 'B', 'B')">B. left</button>
+                <button class="option-btn" onclick="checkAnswer('g7', 'C', 'B')">C. taken</button>
+                <button class="option-btn" onclick="checkAnswer('g7', 'D', 'B')">D. led</button>
+            </div>
+            <div class="explanation">
+                <h4><i class="fas fa-lightbulb"></i> Giải thích:</h4>
+                <p><strong>Đáp án B. left</strong>. "Left" ở đây là phân từ quá khứ, nghĩa là "còn sót lại". Không còn nơi nào còn sót lại mà không có ô nhiễm.</p>
+            </div>
+        </div>
+
+        <div class="gap-question" id="g8" style="margin-bottom: 20px;">
+            <p><strong>Question (8):</strong> (8) ________ the bottom of the sea</p>
+            <div class="options-grid">
+                <button class="option-btn" onclick="checkAnswer('g8', 'A', 'C')">A. now that</button>
+                <button class="option-btn" onclick="checkAnswer('g8', 'B', 'C')">B. but for</button>
+                <button class="option-btn" onclick="checkAnswer('g8', 'C', 'C')">C. not even</button>
+                <button class="option-btn" onclick="checkAnswer('g8', 'D', 'C')">D. no ever</button>
+            </div>
+            <div class="explanation">
+                <h4><i class="fas fa-lightbulb"></i> Giải thích:</h4>
+                <p><strong>Đáp án C. not even</strong>. Dùng để nhấn mạnh: "thậm chí ngay cả đáy biển cũng không".</p>
+            </div>
+        </div>
+    </div>
+
+    <h2 class="section-title">X. Reading Comprehension</h2>
+    <div class="quiz-card">
+        <div class="reading-text">
+            A magnitude-9.0 earthquake, also known as the Great East Japan Earthquake, struck in the Pacific Ocean off the northeast coast of Japan's Honshu island on March 11, 2011. It was the most powerful earthquake ever to hit Japan and the fourth largest ever recorded in the world.<br><br>
+            The earthquake triggered a massive tsunami that flooded more than 200 square miles of coastal land. Waves estimated to be as high as 38 meters, the height of a 12-story building, tore apart coastal towns and villages, carrying ships inland as thousands of homes were flattened, then washed tons of debris and vehicles back out to sea. Damage to the reactors at TEPCO's Fukushima Daiichi Nuclear Power Plant then caused a third disaster, contaminating a wide area that still forces nearly 100,000 residents to live as evacuees. Tsunami waves also swept across the Pacific, causing damage or disruptions in Hawaii, California, Oregon, Washington and British Columbia.<br><br>
+            Casualties from the earthquake and tsunami in Japan may be 30,000 and close to 500,000 people were forced to evacuate. More than 125,000 buildings have been washed away or seriously damaged; property damage is estimated to be more than $310 billion.
+        </div>
+
+        <table class="glossary-table">
+            <thead>
+                <tr><th colspan="3" style="text-align:center; font-size:1.1rem;">📚 ACADEMIC GLOSSARY (Từ vựng học thuật)</th></tr>
+                <tr><th>Word</th><th>Type</th><th>Vietnamese Meaning</th></tr>
+            </thead>
+            <tbody>
+                <tr><td>Trigger</td><td>(v)</td><td>Gây ra, kích hoạt</td></tr>
+                <tr><td>Massive</td><td>(adj)</td><td>To lớn, đồ sộ</td></tr>
+                <tr><td>Flatten</td><td>(v)</td><td>San phẳng</td></tr>
+                <tr><td>Debris</td><td>(n)</td><td>Mảnh vụn, đống đổ nát</td></tr>
+                <tr><td>Contaminate</td><td>(v)</td><td>Làm ô nhiễm</td></tr>
+                <tr><td>Evacuee</td><td>(n)</td><td>Người đi sơ tán</td></tr>
+                <tr><td>Casualty</td><td>(n)</td><td>Thương vong (người chết/bị thương)</td></tr>
+                <tr><td>Estimate</td><td>(v)</td><td>Ước tính</td></tr>
+            </tbody>
+        </table>
+
+        <h3 style="color:var(--primary); margin-top:30px;">Part A: True (T) or False (F)</h3>
+        
+        <div class="quiz-card" id="rtf1">
+            <p>1. A magnitude-9.0 earthquake struck offshore of Japan on March 11, 2011.</p>
+            <div class="options-grid">
+                <button class="option-btn" onclick="checkAnswer('rtf1', 'T', 'T')">True</button>
+                <button class="option-btn" onclick="checkAnswer('rtf1', 'F', 'T')">False</button>
+            </div>
+            <div class="explanation">
+                <h4><i class="fas fa-lightbulb"></i> Giải thích:</h4>
+                <p><strong>True.</strong> Dẫn chứng: "struck ... on March 11, 2011."</p>
+            </div>
+        </div>
+
+        <div class="quiz-card" id="rtf2">
+            <p>2. This earthquake was the world's largest recorded quake.</p>
+            <div class="options-grid">
+                <button class="option-btn" onclick="checkAnswer('rtf2', 'T', 'F')">True</button>
+                <button class="option-btn" onclick="checkAnswer('rtf2', 'F', 'F')">False</button>
+            </div>
+            <div class="explanation">
+                <h4><i class="fas fa-lightbulb"></i> Giải thích:</h4>
+                <p><strong>False.</strong> Dẫn chứng: "fourth largest ever recorded in the world" (lớn thứ 4, không phải nhất).</p>
+            </div>
+        </div>
+
+        <div class="quiz-card" id="rtf3">
+            <p>3. Tsunami waves caused by the earthquake smashed the coast, causing massive damage and flooding.</p>
+            <div class="options-grid">
+                <button class="option-btn" onclick="checkAnswer('rtf3', 'T', 'T')">True</button>
+                <button class="option-btn" onclick="checkAnswer('rtf3', 'F', 'T')">False</button>
+            </div>
+            <div class="explanation">
+                <h4><i class="fas fa-lightbulb"></i> Giải thích:</h4>
+                <p><strong>True.</strong> Dẫn chứng: "flooded more than 200 square miles... tore apart coastal towns".</p>
+            </div>
+        </div>
+
+        <div class="quiz-card" id="rtf4">
+            <p>4. As the waves retreated back to the sea, they carried ships with them.</p>
+            <div class="options-grid">
+                <button class="option-btn" onclick="checkAnswer('rtf4', 'T', 'F')">True</button>
+                <button class="option-btn" onclick="checkAnswer('rtf4', 'F', 'F')">False</button>
+            </div>
+            <div class="explanation">
+                <h4><i class="fas fa-lightbulb"></i> Giải thích:</h4>
+                <p><strong>False.</strong> Dẫn chứng: "carrying ships inland... washed tons of debris... back out to sea". (Sóng cuốn tàu vào đất liền, và cuốn mảnh vỡ ra biển, câu hỏi nói ngược lại).</p>
+            </div>
+        </div>
+        
+        <div class="quiz-card" id="rtf6">
+            <p>5. About 500,000 people within the nuclear evacuation zone were evacuated.</p>
+            <div class="options-grid">
+                <button class="option-btn" onclick="checkAnswer('rtf6', 'T', 'F')">True</button>
+                <button class="option-btn" onclick="checkAnswer('rtf6', 'F', 'F')">False</button>
+            </div>
+            <div class="explanation">
+                <h4><i class="fas fa-lightbulb"></i> Giải thích:</h4>
+                <p><strong>False.</strong> Dẫn chứng: "nearly 100,000 residents" (khu vực hạt nhân). 500,000 là tổng số sơ tán (bao gồm sóng thần).</p>
+            </div>
+        </div>
+
+        <h3 style="color:var(--primary); margin-top:30px;">Part B: Multiple Choice</h3>
+
+        <div class="quiz-card" id="mcq1">
+            <p>1. Where did the earthquake strike?</p>
+            <div class="options-grid">
+                <button class="option-btn" onclick="checkAnswer('mcq1', 'A', 'C')">A. On the coast of Hawaii</button>
+                <button class="option-btn" onclick="checkAnswer('mcq1', 'B', 'C')">B. In the center of Tokyo</button>
+                <button class="option-btn" onclick="checkAnswer('mcq1', 'C', 'C')">C. Off the northeast coast of Japan's Honshu island</button>
+                <button class="option-btn" onclick="checkAnswer('mcq1', 'D', 'C')">D. On the island of British Columbia</button>
+            </div>
+            <div class="explanation">
+                <h4><i class="fas fa-lightbulb"></i> Giải thích:</h4>
+                <p><strong>Đáp án C.</strong> Dẫn chứng: "struck in the Pacific Ocean off the northeast coast of Japan's Honshu island".</p>
+            </div>
+        </div>
+
+        <div class="quiz-card" id="mcq2">
+            <p>2. What caused the tsunami?</p>
+            <div class="options-grid">
+                <button class="option-btn" onclick="checkAnswer('mcq2', 'A', 'A')">A. A magnitude-9.0 earthquake</button>
+                <button class="option-btn" onclick="checkAnswer('mcq2', 'B', 'A')">B. A nuclear explosion</button>
+                <button class="option-btn" onclick="checkAnswer('mcq2', 'C', 'A')">C. High winds</button>
+                <button class="option-btn" onclick="checkAnswer('mcq2', 'D', 'A')">D. Ships crashing</button>
+            </div>
+            <div class="explanation">
+                <h4><i class="fas fa-lightbulb"></i> Giải thích:</h4>
+                <p><strong>Đáp án A.</strong> Dẫn chứng: "The earthquake triggered a massive tsunami".</p>
+            </div>
+        </div>
+        
+        <div class="quiz-card" id="mcq3">
+            <p>3. What was the estimated height of the tsunami waves?</p>
+             <div class="options-grid">
+                <button class="option-btn" onclick="checkAnswer('mcq3', 'A', 'B')">A. 12 meters</button>
+                <button class="option-btn" onclick="checkAnswer('mcq3', 'B', 'B')">B. 38 meters</button>
+                <button class="option-btn" onclick="checkAnswer('mcq3', 'C', 'B')">C. 200 meters</button>
+                <button class="option-btn" onclick="checkAnswer('mcq3', 'D', 'B')">D. 310 meters</button>
+            </div>
+            <div class="explanation">
+                <h4><i class="fas fa-lightbulb"></i> Giải thích:</h4>
+                <p><strong>Đáp án B.</strong> Dẫn chứng: "Waves estimated to be as high as 38 meters". (12 meters là chiều cao tòa nhà so sánh).</p>
+            </div>
+        </div>
+
+    </div>
+    
+    <div class="submit-section">
+        <button class="submit-btn" onclick="calculateScore()">NỘP BÀI & XEM ĐIỂM 🚀</button>
+    </div>
+
+</div>
+
+<div class="popup-overlay" id="scorePopup">
+    <div class="popup-content">
+        <h2>KẾT QUẢ CỦA BẠN</h2>
+        <div class="score-display" id="scoreText">0/20</div>
+        <p id="feedbackText">Hãy cố gắng hơn nhé!</p>
+        <button class="submit-btn" style="font-size:1rem; padding: 10px 20px;" onclick="closePopup()">Xem lại bài làm</button>
+    </div>
+</div>
+
+<script>
+    // Audio Context for Generating Sounds (No external files needed)
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+    function playSound(type) {
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        osc.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+
+        if (type === 'correct') {
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(500, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(1000, audioCtx.currentTime + 0.1);
+            gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.3);
+        } else {
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+            osc.frequency.linearRampToValueAtTime(100, audioCtx.currentTime + 0.3);
+            gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.3);
+        }
+    }
+
+    let totalScore = 0;
+    const totalQuestions = 30; // Approximation of total clickable items
+
+    function checkAnswer(questionId, selectedValue, correctValue) {
+        const container = document.getElementById(questionId);
+        const buttons = container.querySelectorAll('.option-btn');
+        const explanation = container.querySelector('.explanation');
+
+        // Disable all buttons in this question
+        buttons.forEach(btn => {
+            btn.classList.add('disabled');
+            if(btn.innerText.startsWith(correctValue) || btn.innerText.includes(correctValue + ".")) {
+                btn.classList.add('correct');
+            } else if (btn.innerText.startsWith(selectedValue) || btn.innerText.includes(selectedValue + ".")) {
+                 // Mark selected as wrong if it's not the correct one
+                 if(selectedValue !== correctValue) btn.classList.add('wrong');
+            }
+        });
+        
+        // Specific logic for handling text content matching vs Value matching
+        // Re-loop to strictly visualize user choice
+        buttons.forEach(btn => {
+             // Clean button text to check against values like "A", "B" or "True"
+             let btnVal = "";
+             if (btn.innerText.startsWith("A")) btnVal = "A";
+             else if (btn.innerText.startsWith("B")) btnVal = "B";
+             else if (btn.innerText.startsWith("C")) btnVal = "C";
+             else if (btn.innerText.startsWith("D")) btnVal = "D";
+             else if (btn.innerText.startsWith("T")) btnVal = "T";
+             else if (btn.innerText.startsWith("F")) btnVal = "F";
+             else if (btn.innerText.startsWith("G")) btnVal = "G"; // For dialogue
+             else if (btn.innerText.startsWith("E")) btnVal = "E";
+             else if (btn.innerText.startsWith("H")) btnVal = "H";
+             
+             // Visual marking
+             if (btnVal === correctValue) btn.classList.add('correct');
+             if (btnVal === selectedValue && selectedValue !== correctValue) btn.classList.add('wrong');
+        });
+
+        // Show Explanation
+        explanation.style.display = 'block';
+
+        // Feedback
+        if (selectedValue === correctValue) {
+            playSound('correct');
+            confetti({
+                particleCount: 50,
+                spread: 60,
+                origin: { y: 0.6 },
+                colors: ['#00D26A', '#8854C0']
+            });
+            container.dataset.status = "correct";
+        } else {
+            playSound('wrong');
+            container.dataset.status = "wrong";
+        }
+    }
+
+    function calculateScore() {
+        let score = 0;
+        let total = 0;
+        
+        // Count all question containers
+        const questions = document.querySelectorAll('.quiz-card, .gap-question');
+        
+        questions.forEach(q => {
+            if (q.querySelector('.options-grid')) { // Check if it's a question card
+                total++;
+                if (q.dataset.status === "correct") {
+                    score++;
+                }
+            }
+        });
+
+        const feedback = document.getElementById('feedbackText');
+        const scoreTxt = document.getElementById('scoreText');
+        
+        scoreTxt.innerText = `${score}/${total}`;
+        
+        if (score === total) feedback.innerText = "Xuất sắc! Cô Mai An rất tự hào về em! 🌟";
+        else if (score > total * 0.7) feedback.innerText = "Làm tốt lắm! Chỉ còn sai vài lỗi nhỏ thôi. 💪";
+        else feedback.innerText = "Cố gắng lên nhé! Hãy xem kỹ phần giải thích của cô. 📚";
+
+        document.getElementById('scorePopup').style.display = 'flex';
+        
+        // Big Confetti
+        if (score > total * 0.5) {
+            var duration = 3000;
+            var end = Date.now() + duration;
+            (function frame() {
+                confetti({
+                    particleCount: 5,
+                    angle: 60,
+                    spread: 55,
+                    origin: { x: 0 },
+                    colors: ['#8854C0', '#00C9A7']
+                });
+                confetti({
+                    particleCount: 5,
+                    angle: 120,
+                    spread: 55,
+                    origin: { x: 1 },
+                    colors: ['#8854C0', '#00C9A7']
+                });
+                if (Date.now() < end) requestAnimationFrame(frame);
+            }());
+        }
+    }
+
+    function closePopup() {
+        document.getElementById('scorePopup').style.display = 'none';
+    }
+</script>
+
+</body>
+</html>

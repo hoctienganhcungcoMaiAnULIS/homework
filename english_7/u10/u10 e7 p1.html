@@ -1,0 +1,879 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ms Mai An ULIS - English Practice Game</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #8854C0; /* Hồng tím pastel */
+            --secondary: #00C9A7; /* Xanh ngọc */
+            --correct: #00D26A; /* Xanh lá */
+            --wrong: #FF4757; /* Đỏ cam */
+            --text-dark: #2f3542;
+            --bg-pattern: radial-gradient(#ffffff 15%, transparent 16%) 0 0, radial-gradient(#ffffff 15%, transparent 16%) 8px 8px, radial-gradient(rgba(255,255,255,.1) 15%, transparent 20%) 0 1px, radial-gradient(rgba(255,255,255,.1) 15%, transparent 20%) 8px 9px;
+            --bg-color: #f3e5f5;
+        }
+
+        * {
+            box-sizing: border-box;
+            user-select: none;
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: var(--bg-color);
+            background-image: var(--bg-pattern);
+            background-size: 20px 20px;
+            color: var(--text-dark);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            padding: 30px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Header */
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 3px dashed #e0e0e0;
+            padding-bottom: 20px;
+        }
+
+        h1 {
+            color: var(--primary);
+            font-family: 'Quicksand', sans-serif;
+            font-weight: 800;
+            margin: 0;
+            font-size: 2.2rem;
+            text-shadow: 2px 2px 0px rgba(0,0,0,0.1);
+        }
+
+        .teacher-name {
+            font-size: 0.9rem;
+            color: #666;
+            margin-top: 5px;
+            font-style: italic;
+        }
+
+        /* Question Section */
+        .section-title {
+            background: var(--primary);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 50px;
+            display: inline-block;
+            margin-bottom: 20px;
+            font-weight: bold;
+            box-shadow: 0 4px 0 #6c4299;
+        }
+
+        .question-card {
+            background: white;
+            border: 2px solid #eee;
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 40px;
+            transition: all 0.3s ease;
+        }
+
+        .question-text {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .reading-passage {
+            background: #f8f9fa;
+            border-left: 5px solid var(--secondary);
+            padding: 20px;
+            margin-bottom: 20px;
+            font-family: 'Quicksand', sans-serif;
+            line-height: 1.6;
+            border-radius: 10px;
+            white-space: pre-line;
+            font-size: 1.05rem;
+        }
+
+        /* Options */
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+        }
+
+        @media(min-width: 600px) {
+            .options-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        .option-btn {
+            background: white;
+            border: 2px solid #eee;
+            border-radius: 15px;
+            padding: 15px 20px;
+            font-family: 'Nunito', sans-serif;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: left;
+            position: relative;
+            box-shadow: 0 5px 0 #ddd;
+            color: #555;
+        }
+
+        .option-btn:hover:not(.disabled) {
+            transform: scale(1.02);
+            border-color: var(--secondary);
+            background: #f0fffc;
+        }
+
+        .option-btn:active:not(.disabled) {
+            transform: translateY(5px);
+            box-shadow: none;
+        }
+
+        .option-btn.correct {
+            background: var(--correct);
+            color: white;
+            border-color: var(--correct);
+            box-shadow: 0 5px 0 #00a352;
+        }
+
+        .option-btn.wrong {
+            background: var(--wrong);
+            color: white;
+            border-color: var(--wrong);
+            box-shadow: 0 5px 0 #c43240;
+            animation: shake 0.5s;
+        }
+
+        .option-btn.disabled {
+            cursor: not-allowed;
+            opacity: 0.7;
+            pointer-events: none;
+        }
+
+        /* Explanation Box */
+        .explanation-box {
+            margin-top: 20px;
+            background: #fff8e1;
+            border: 2px solid #ffecb3;
+            border-radius: 15px;
+            padding: 20px;
+            display: none; /* Hidden by default */
+            animation: slideDown 0.4s ease-out;
+        }
+
+        .explanation-header {
+            font-weight: 800;
+            color: #ff6f00;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .exp-detail {
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        .exp-detail strong {
+            color: var(--primary);
+        }
+
+        /* Glossary Table */
+        .glossary-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .glossary-table th {
+            background: var(--secondary);
+            color: white;
+            padding: 10px;
+            text-align: left;
+        }
+
+        .glossary-table td {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            font-size: 0.9rem;
+        }
+
+        /* Animations */
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-5px) rotate(-2deg); }
+            50% { transform: translateX(5px) rotate(2deg); }
+            75% { transform: translateX(-5px) rotate(-2deg); }
+            100% { transform: translateX(0); }
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Score & Submit */
+        .controls {
+            margin-top: 30px;
+            text-align: center;
+        }
+
+        .submit-btn {
+            background: var(--secondary);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.2rem;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 6px 0 #00967d;
+            font-weight: 800;
+            transition: all 0.3s;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 0 #00967d;
+        }
+
+        .submit-btn:active {
+            transform: translateY(6px);
+            box-shadow: none;
+        }
+
+        /* Confetti Canvas */
+        #confetti {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 9999;
+        }
+
+        /* Result Popup */
+        .result-popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            background: white;
+            padding: 40px;
+            border-radius: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            text-align: center;
+            z-index: 1000;
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            max-width: 90%;
+        }
+
+        .result-popup.show {
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        .result-score {
+            font-size: 4rem;
+            font-weight: 900;
+            color: var(--primary);
+            margin: 10px 0;
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 999;
+            display: none;
+        }
+
+        .overlay.show {
+            display: block;
+        }
+
+    </style>
+</head>
+<body>
+
+<canvas id="confetti"></canvas>
+<div class="overlay" id="overlay"></div>
+
+<div class="container">
+    <header>
+        <div class="teacher-name">Giáo viên tạo: Ms Mai An ULIS</div>
+        <h1>ENGLISH PRACTICE GAME</h1>
+        <p style="color: #888">Interactive Quiz for Students</p>
+    </header>
+
+    <div id="quiz-content">
+        </div>
+
+    <div class="controls">
+        <button class="submit-btn" onclick="finishQuiz()">NỘP BÀI & XEM ĐIỂM</button>
+    </div>
+</div>
+
+<div class="result-popup" id="resultPopup">
+    <h2 style="color: var(--secondary)">KẾT QUẢ CỦA CON</h2>
+    <div class="result-score" id="scoreDisplay">0/0</div>
+    <p id="feedbackText" style="font-size: 1.2rem; color: #555;">Làm tốt lắm!</p>
+    <button class="submit-btn" onclick="closePopup()">Xem lại bài làm</button>
+</div>
+
+<script>
+    // --- AUDIO SYSTEM (Pure JS - No external files) ---
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    
+    function playSound(type) {
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        osc.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+
+        if (type === 'correct') {
+            // Ding sound (High pitch sine wave sequence)
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(800, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.1);
+            gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.5);
+            fireConfetti();
+        } else if (type === 'wrong') {
+            // Buzz sound (Low pitch sawtooth)
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+            osc.frequency.linearRampToValueAtTime(100, audioCtx.currentTime + 0.3);
+            gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.3);
+        }
+    }
+
+    // --- DATA ---
+    const quizData = [
+        // --- Exercise 1: Stress Pattern ---
+        {
+            type: "sorting",
+            title: "Exercise 1. Stress Pattern",
+            instruction: "Put the words in the correct column according to their stress pattern.",
+            questions: [
+                { id: "s1", word: "illegal", correct: "2nd", options: ["1st Syllable", "2nd Syllable"], explain: "Âm tiết 2: /ɪˈliː.ɡəl/. Tiền tố 'il-' thường không nhận trọng âm." },
+                { id: "s2", word: "celebrate", correct: "1st", options: ["1st Syllable", "2nd Syllable"], explain: "Âm tiết 1: /ˈsel.ə.breɪt/. Động từ 3 âm tiết kết thúc -ate trọng âm rơi vào âm tiết thứ 3 từ dưới lên." },
+                { id: "s3", word: "available", correct: "2nd", options: ["1st Syllable", "2nd Syllable"], explain: "Âm tiết 2: /əˈveɪ.lə.bəl/." },
+                { id: "s4", word: "festival", correct: "1st", options: ["1st Syllable", "2nd Syllable"], explain: "Âm tiết 1: /ˈfes.tɪ.vəl/." },
+                { id: "s5", word: "consumption", correct: "2nd", options: ["1st Syllable", "2nd Syllable"], explain: "Âm tiết 2: /kənˈsʌmp.ʃən/. Từ có đuôi -tion trọng âm rơi vào âm tiết ngay trước nó." },
+                { id: "s6", word: "electric", correct: "2nd", options: ["1st Syllable", "2nd Syllable"], explain: "Âm tiết 2: /iˈlek.trɪk/. Đuôi -ic trọng âm rơi vào âm trước nó." },
+                { id: "s7", word: "performance", correct: "2nd", options: ["1st Syllable", "2nd Syllable"], explain: "Âm tiết 2: /pəˈfɔː.məns/." },
+                { id: "s8", word: "performer", correct: "2nd", options: ["1st Syllable", "2nd Syllable"], explain: "Âm tiết 2: /pəˈfɔː.mər/." },
+                { id: "s9", word: "generate", correct: "1st", options: ["1st Syllable", "2nd Syllable"], explain: "Âm tiết 1: /ˈdʒen.ə.reɪt/. Đuôi -ate 3 âm tiết." },
+                { id: "s10", word: "effective", correct: "2nd", options: ["1st Syllable", "2nd Syllable"], explain: "Âm tiết 2: /ɪˈfek.tɪv/. Đuôi -tive thường không ảnh hưởng, gốc 'effect' trọng âm 2." },
+                { id: "s11", word: "imagine", correct: "2nd", options: ["1st Syllable", "2nd Syllable"], explain: "Âm tiết 2: /ɪˈmædʒ.ɪn/." },
+                { id: "s12", word: "convenient", correct: "2nd", options: ["1st Syllable", "2nd Syllable"], explain: "Âm tiết 2: /kənˈviː.ni.ənt/." },
+                { id: "s13", word: "exhausted", correct: "2nd", options: ["1st Syllable", "2nd Syllable"], explain: "Âm tiết 2: /ɪɡˈzɔː.stɪd/." },
+                { id: "s14", word: "comfortable", correct: "1st", options: ["1st Syllable", "2nd Syllable"], explain: "Âm tiết 1: /ˈkʌmf.tə.bəl/ (lưu ý từ này hay bị đọc sai)." },
+                { id: "s15", word: "library", correct: "1st", options: ["1st Syllable", "2nd Syllable"], explain: "Âm tiết 1: /ˈlaɪ.brər.i/." },
+                { id: "s16", word: "improvement", correct: "2nd", options: ["1st Syllable", "2nd Syllable"], explain: "Âm tiết 2: /ɪmˈpruːv.mənt/." },
+                { id: "s17", word: "relative", correct: "1st", options: ["1st Syllable", "2nd Syllable"], explain: "Âm tiết 1: /ˈrel.ə.tɪv/." },
+                { id: "s18", word: "fortunate", correct: "1st", options: ["1st Syllable", "2nd Syllable"], explain: "Âm tiết 1: /ˈfɔː.tʃən.ət/." }
+            ]
+        },
+        // --- Exercise 2: Communication ---
+        {
+            type: "mcq",
+            title: "Exercise 1. Choose the correct response.",
+            instruction: "Practice the short exchanges in pairs.",
+            questions: [
+                {
+                    id: "c1",
+                    text: "<b>A:</b> Why didn’t you turn off the TV when you were away?<br><b>B:</b> ...",
+                    options: [
+                        { text: "a) I’ll come back tomorrow.", correct: false },
+                        { text: "b) Sorry, I’ll do it next time", correct: true }
+                    ],
+                    explanation: {
+                        trans: "A: Tại sao con không tắt TV khi ra ngoài? <br> B: Xin lỗi, lần sau con sẽ làm ạ.",
+                        detail: "<b>Đáp án đúng (b):</b> Đây là câu trả lời xin lỗi và hứa sửa sai, phù hợp ngữ cảnh bị phàn nàn.<br><b>Tại sao sai:</b> Câu (a) 'Con sẽ quay lại ngày mai' không liên quan đến việc quên tắt TV."
+                    }
+                },
+                {
+                    id: "c2",
+                    text: "<b>A:</b> Which source of energy will our homes rely on in the future?<br><b>B:</b> ...",
+                    options: [
+                        { text: "a) I think we use a lot of solar energy.", correct: true },
+                        { text: "b) We rely on non-renewable as usual.", correct: false }
+                    ],
+                    explanation: {
+                        trans: "A: Nhà chúng ta sẽ phụ thuộc vào nguồn năng lượng nào trong tương lai? <br> B: Tớ nghĩ chúng ta sẽ dùng nhiều năng lượng mặt trời.",
+                        detail: "<b>Đáp án đúng (a):</b> Dự đoán về tương lai thường hướng tới năng lượng sạch (solar energy).<br><b>Tại sao sai:</b> Câu (b) nói về năng lượng không tái tạo (non-renewable) là đi ngược xu hướng phát triển."
+                    }
+                },
+                {
+                    id: "c3",
+                    text: "<b>A:</b> Do you think wind energy is good?<br><b>B:</b> ...",
+                    options: [
+                        { text: "a) I don’t think so. It’s clean.", correct: false },
+                        { text: "b) It’s green energy, I think.", correct: true }
+                    ],
+                    explanation: {
+                        trans: "A: Cậu có nghĩ năng lượng gió tốt không? <br> B: Tớ nghĩ nó là năng lượng xanh.",
+                        detail: "<b>Đáp án đúng (b):</b> Đồng ý rằng nó tốt vì là 'green energy'.<br><b>Tại sao sai:</b> Câu (a) Mâu thuẫn ('Tôi không nghĩ vậy' nhưng lại khen 'nó sạch')."
+                    }
+                },
+                {
+                    id: "c4",
+                    text: "<b>A:</b> Are you practising anything to save energy?<br><b>B:</b> ...",
+                    options: [
+                        { text: "a) I ride to school every morning.", correct: true },
+                        { text: "b) I use a lot of electric appliances.", correct: false }
+                    ],
+                    explanation: {
+                        trans: "A: Cậu có đang làm gì để tiết kiệm năng lượng không? <br> B: Tớ đạp xe đi học mỗi sáng.",
+                        detail: "<b>Đáp án đúng (a):</b> Đạp xe thay vì đi xe máy/ô tô là cách tiết kiệm năng lượng.<br><b>Tại sao sai:</b> Câu (b) 'Dùng nhiều thiết bị điện' là lãng phí, không phải tiết kiệm."
+                    }
+                },
+                {
+                    id: "c5",
+                    text: "<b>A:</b> Why do we take showers instead of baths?<br><b>B:</b> ...",
+                    options: [
+                        { text: "a) It’s more comfortable.", correct: false },
+                        { text: "b) It can save water.", correct: true }
+                    ],
+                    explanation: {
+                        trans: "A: Tại sao chúng ta nên tắm vòi sen thay vì tắm bồn? <br> B: Nó giúp tiết kiệm nước.",
+                        detail: "<b>Đáp án đúng (b):</b> Lý do chính của việc tắm vòi sen (showers) trong ngữ cảnh bảo vệ môi trường là tiết kiệm nước.<br><b>Tại sao sai:</b> Câu (a) 'Thoải mái hơn' là ý kiến chủ quan, không phải lý do môi trường."
+                    }
+                },
+                {
+                    id: "c6",
+                    text: "<b>A:</b> I have just changed to low energy light bulbs.<br><b>B:</b> ...",
+                    options: [
+                        { text: "a) Good idea. Your carbon footprint will be bigger.", correct: false },
+                        { text: "b) Great idea. It saves a lot of energy.", correct: true }
+                    ],
+                    explanation: {
+                        trans: "A: Tớ vừa đổi sang bóng đèn tiết kiệm điện. <br> B: Ý hay đó. Nó tiết kiệm rất nhiều năng lượng.",
+                        detail: "<b>Đáp án đúng (b):</b> Khen ngợi và nêu lợi ích đúng.<br><b>Tại sao sai:</b> Câu (a) sai vì nếu tiết kiệm điện thì 'carbon footprint' (dấu chân carbon) phải nhỏ đi, không phải 'bigger' (lớn hơn)."
+                    }
+                },
+                {
+                    id: "c7",
+                    text: "<b>A:</b> We should rely on fossil fuels.<br><b>B:</b> ...",
+                    options: [
+                        { text: "a) Yes. It’s cheap and limited.", correct: false },
+                        { text: "b) But they run out soon.", correct: true }
+                    ],
+                    explanation: {
+                        trans: "A: Chúng ta nên phụ thuộc vào nhiên liệu hóa thạch. <br> B: Nhưng chúng sẽ sớm cạn kiệt thôi.",
+                        detail: "<b>Đáp án đúng (b):</b> Phản biện hợp lý vì nhiên liệu hóa thạch có hạn.<br><b>Tại sao sai:</b> Câu (a) Đồng ý nhưng lại nói 'limited' (có hạn) là mâu thuẫn trong lập luận ủng hộ."
+                    }
+                },
+                {
+                    id: "c8",
+                    text: "<b>A:</b> Some people in the country use biogas.<br><b>B:</b> ...",
+                    options: [
+                        { text: "a) I think it’s limited.", correct: false },
+                        { text: "b) Good, it's clean and cheap.", correct: true }
+                    ],
+                    explanation: {
+                        trans: "A: Một số người ở nông thôn dùng khí sinh học (biogas). <br> B: Tốt quá, nó sạch và rẻ.",
+                        detail: "<b>Đáp án đúng (b):</b> Biogas là năng lượng tái tạo, sạch và rẻ (tận dụng chất thải).<br><b>Tại sao sai:</b> Câu (a) sai vì Biogas là tái tạo được (renewable), không phải 'limited'."
+                    }
+                },
+                {
+                    id: "c9",
+                    text: "<b>A:</b> Why do some nations stop using nuclear energy?<br><b>B:</b> ...",
+                    options: [
+                        { text: "a) Because it’s sometimes dangerous.", correct: true },
+                        { text: "b) Because it’s abundant and renewable.", correct: false }
+                    ],
+                    explanation: {
+                        trans: "A: Tại sao một số quốc gia ngừng sử dụng năng lượng hạt nhân? <br> B: Bởi vì đôi khi nó nguy hiểm.",
+                        detail: "<b>Đáp án đúng (a):</b> Lo ngại về an toàn (rò rỉ phóng xạ) là lý do chính.<br><b>Tại sao sai:</b> Câu (b) Nếu nó dồi dào và tái tạo thì người ta đã dùng tiếp, không ngừng lại."
+                    }
+                },
+                {
+                    id: "c10",
+                    text: "<b>A:</b> Why do we try to save energy?<br><b>B:</b> ...",
+                    options: [
+                        { text: "a) Because it’s good for the environment.", correct: true },
+                        { text: "b) Because we can rely on renewable energy.", correct: false }
+                    ],
+                    explanation: {
+                        trans: "A: Tại sao chúng ta cố gắng tiết kiệm năng lượng? <br> B: Vì nó tốt cho môi trường.",
+                        detail: "<b>Đáp án đúng (a):</b> Tiết kiệm năng lượng giúp giảm khí thải, bảo vệ môi trường.<br><b>Tại sao sai:</b> Câu (b) Không trả lời trực tiếp cho câu hỏi 'Tại sao'."
+                    }
+                }
+            ]
+        },
+        // --- Exercise 3: Reading ---
+        {
+            type: "reading",
+            title: "Exercise 1. Read the text and choose the correct answer.",
+            passage: `Producing electricity from wind energy has many advantages. Firstly, it brings money into poor rural areas around the country. It creates thousands of jobs for the local people. Wind energy is an easy crop for farmers to sell. Farmers do not have to depend on water or sun to make money. Farmers can receive a lot of money from farm renting. Secondly, wind power does not produce pollutants, so the costs for health care also decrease. The American Lung Association is in favor of wind energy because it keeps the air clean and free from pollution. They also launch a Healthy Air Campaign to promote the use of wind energy.
+            Wind energy also keeps energy bills down for the users. It is becoming more competitive with other types of energy in terms of cost. Wind farms leave most of the farmer’s land free for other uses while providing a steady income.`,
+            glossary: [
+                { word: "Advantages", type: "n", mean: "Lợi ích, ưu điểm" },
+                { word: "Rural areas", type: "n", mean: "Vùng nông thôn" },
+                { word: "Depend on", type: "v", mean: "Phụ thuộc vào" },
+                { word: "Pollutants", type: "n", mean: "Chất gây ô nhiễm" },
+                { word: "In favor of", type: "idm", mean: "Ủng hộ" },
+                { word: "Launch", type: "v", mean: "Phát động, khởi động" },
+                { word: "Promote", type: "v", mean: "Thúc đẩy, khuyến khích" },
+                { word: "Competitive", type: "adj", mean: "Có tính cạnh tranh" },
+                { word: "Steady income", type: "n", mean: "Thu nhập ổn định" },
+                { word: "Campaign", type: "n", mean: "Chiến dịch" }
+            ],
+            questions: [
+                {
+                    id: "r1",
+                    text: "1. This text is about _______.",
+                    options: [
+                        { text: "A. the disadvantages of wind energy", correct: false },
+                        { text: "B. the benefits of wind energy", correct: true },
+                        { text: "C. the production of wind energy", correct: false },
+                        { text: "D. producing electricity", correct: false }
+                    ],
+                    explanation: {
+                        trans: "Đoạn văn này nói về...",
+                        detail: "<b>Đáp án đúng (B):</b> Lợi ích của năng lượng gió.<br><b>Tại sao đúng:</b> Câu đầu tiên chốt ý toàn bài: 'Producing electricity from wind energy has many advantages.' (Sản xuất điện gió có nhiều lợi ích).<br><b>Tại sao sai:</b> A sai vì bài nói về advantages, không phải disadvantages. C và D quá chung chung hoặc chỉ là một phần nhỏ."
+                    }
+                },
+                {
+                    id: "r2",
+                    text: "2. Wind energy helps the farmers_______.",
+                    options: [
+                        { text: "A. get more jobs", correct: false },
+                        { text: "B. grow more crops", correct: false },
+                        { text: "C. earn less money", correct: false },
+                        { text: "D. earn more money", correct: true }
+                    ],
+                    explanation: {
+                        trans: "Năng lượng gió giúp người nông dân...",
+                        detail: "<b>Đáp án đúng (D):</b> Kiếm thêm tiền.<br><b>Tại sao đúng:</b> Dẫn chứng: 'It brings money into poor rural areas... Farmers can receive a lot of money from farm renting.' (Nông dân nhận được nhiều tiền từ việc cho thuê đất làm trang trại gió).<br><b>Tại sao sai:</b> A nói về jobs cho local people (chung chung), B nói về trồng trọt là sai nghĩa bóng 'crop' trong bài."
+                    }
+                },
+                {
+                    id: "r3",
+                    text: "3. Another advantage of wind power is _________.",
+                    options: [
+                        { text: "A. clean and safe for health", correct: true },
+                        { text: "B. reducing pollutants", correct: false },
+                        { text: "C. cleaning the water", correct: false },
+                        { text: "D. cleaning the air", correct: false }
+                    ],
+                    explanation: {
+                        trans: "Một lợi ích khác của điện gió là...",
+                        detail: "<b>Đáp án đúng (A):</b> Sạch và an toàn cho sức khỏe.<br><b>Tại sao đúng:</b> Dẫn chứng: 'wind power does not produce pollutants, so the costs for health care also decrease.' (Không sinh ra chất ô nhiễm nên chi phí y tế giảm -> tốt cho sức khỏe).<br><b>Lưu ý:</b> B và D cũng đúng về mặt ý nghĩa nhưng A bao quát nhất về khía cạnh 'Advantage' (lợi ích tổng thể)."
+                    }
+                },
+                {
+                    id: "r4",
+                    text: "4. The campaign of the American Lung Association aims at ______",
+                    options: [
+                        { text: "A. advertising the wind turbines", correct: false },
+                        { text: "B. supporting the growth of wind energy", correct: true },
+                        { text: "C. cleaning the air", correct: false },
+                        { text: "D. reducing pollutants", correct: false }
+                    ],
+                    explanation: {
+                        trans: "Chiến dịch của Hiệp hội Phổi Hoa Kỳ nhằm mục đích...",
+                        detail: "<b>Đáp án đúng (B):</b> Ủng hộ sự phát triển của năng lượng gió.<br><b>Tại sao đúng:</b> Dẫn chứng: 'promote the use of wind energy' (thúc đẩy việc sử dụng năng lượng gió) = supporting the growth.<br><b>Tại sao sai:</b> A sai (quảng cáo tua bin). C và D là kết quả, không phải mục đích trực tiếp của chiến dịch 'promote wind energy'."
+                    }
+                },
+                {
+                    id: "r5",
+                    text: "5. The price of wind energy is _______.",
+                    options: [
+                        { text: "A. increasing", correct: false },
+                        { text: "B. decreasing", correct: true },
+                        { text: "C. staying the same", correct: false },
+                        { text: "D. reducing", correct: false }
+                    ],
+                    explanation: {
+                        trans: "Giá của năng lượng gió đang...",
+                        detail: "<b>Đáp án đúng (B):</b> Giảm xuống.<br><b>Tại sao đúng:</b> Dẫn chứng: 'Wind energy also keeps energy bills down... becoming more competitive' (Giữ hóa đơn thấp, cạnh tranh hơn -> tức là giá rẻ đi/giảm).<br><b>Lưu ý:</b> 'Decreasing' thường dùng cho xu hướng giá cả. 'Reducing' là ngoại động từ (làm giảm cái gì đó)."
+                    }
+                }
+            ]
+        }
+    ];
+
+    let totalScore = 0;
+    let maxScore = 0;
+    let questionsAnswered = 0;
+    let totalQuestions = 0;
+
+    // --- RENDER FUNCTIONS ---
+
+    function renderQuiz() {
+        const container = document.getElementById('quiz-content');
+        
+        quizData.forEach((section, index) => {
+            const sectionDiv = document.createElement('div');
+            
+            // Section Title
+            const titleHtml = `<div style="text-align: center;"><div class="section-title">${section.title}</div><p>${section.instruction}</p></div>`;
+            sectionDiv.innerHTML += titleHtml;
+
+            // Reading Passage & Glossary if available
+            if (section.type === "reading") {
+                // Glossary HTML builder
+                let glossaryHtml = `
+                    <table class="glossary-table">
+                        <thead><tr><th>Word</th><th>Type</th><th>Meaning</th></tr></thead>
+                        <tbody>
+                `;
+                section.glossary.forEach(g => {
+                    glossaryHtml += `<tr><td><b>${g.word}</b></td><td><i>${g.type}</i></td><td>${g.mean}</td></tr>`;
+                });
+                glossaryHtml += `</tbody></table>`;
+
+                sectionDiv.innerHTML += `
+                    <div class="reading-passage">
+                        ${section.passage}
+                        <h4 style="margin-top:20px; color:var(--primary)">📝 Glossary (Từ vựng Academic):</h4>
+                        ${glossaryHtml}
+                    </div>
+                `;
+            }
+
+            // Questions Loop
+            section.questions.forEach(q => {
+                totalQuestions++;
+                maxScore++;
+                const card = document.createElement('div');
+                card.className = 'question-card';
+                
+                let qContent = '';
+
+                // Format depending on type
+                if (section.type === "sorting") {
+                    qContent = `
+                        <div class="question-text">Word: <span style="color:var(--primary); font-size:1.5rem">${q.word}</span></div>
+                        <div class="options-grid" id="opts-${q.id}">
+                            ${q.options.map((opt, i) => `
+                                <button class="option-btn" onclick="checkSorting('${q.id}', '${q.correct}', ${i}, this)">
+                                    ${opt}
+                                </button>
+                            `).join('')}
+                        </div>
+                    `;
+                } else {
+                    // MCQ
+                    qContent = `
+                        <div class="question-text">${q.text}</div>
+                        <div class="options-grid" id="opts-${q.id}">
+                            ${q.options.map((opt, i) => `
+                                <button class="option-btn" onclick="checkMCQ('${q.id}', ${opt.correct}, this)">
+                                    ${opt.text}
+                                </button>
+                            `).join('')}
+                        </div>
+                    `;
+                }
+
+                // Add Explanation Block
+                let expContent = '';
+                if(section.type === "sorting") {
+                     expContent = `
+                        <div class="explanation-box" id="exp-${q.id}">
+                            <div class="explanation-header">💡 Ms Mai An giải thích:</div>
+                            <div class="exp-detail">${q.explain}</div>
+                        </div>
+                    `;
+                } else {
+                     expContent = `
+                        <div class="explanation-box" id="exp-${q.id}">
+                            <div class="explanation-header">💡 Ms Mai An giải thích:</div>
+                            <div class="exp-detail">
+                                <i>${q.explanation.trans}</i><br><br>
+                                ${q.explanation.detail}
+                            </div>
+                        </div>
+                    `;
+                }
+
+                card.innerHTML = qContent + expContent;
+                sectionDiv.appendChild(card);
+            });
+
+            container.appendChild(sectionDiv);
+        });
+    }
+
+    // --- INTERACTION LOGIC ---
+
+    function checkSorting(id, correctVal, chosenIndex, btn) {
+        const parent = document.getElementById(`opts-${id}`);
+        const btns = parent.getElementsByClassName('option-btn');
+        
+        // Disable all
+        for(let b of btns) b.classList.add('disabled');
+
+        const isCorrect = (correctVal === "1st" && chosenIndex === 0) || (correctVal === "2nd" && chosenIndex === 1);
+
+        if (isCorrect) {
+            btn.classList.add('correct');
+            playSound('correct');
+            totalScore++;
+        } else {
+            btn.classList.add('wrong');
+            playSound('wrong');
+            // Highlight correct
+            if(correctVal === "1st") btns[0].classList.add('correct');
+            else btns[1].classList.add('correct');
+        }
+
+        document.getElementById(`exp-${id}`).style.display = 'block';
+        questionsAnswered++;
+    }
+
+    function checkMCQ(id, isCorrect, btn) {
+        const parent = document.getElementById(`opts-${id}`);
+        const btns = parent.getElementsByClassName('option-btn');
+        
+        // Disable all
+        for(let b of btns) b.classList.add('disabled');
+
+        if (isCorrect) {
+            btn.classList.add('correct');
+            playSound('correct');
+            totalScore++;
+        } else {
+            btn.classList.add('wrong');
+            playSound('wrong');
+            // Find and highlight correct one
+            // We need to look at data again or simpler: find the one with onclick containing true? 
+            // Better: Scan DOM isn't ideal but works. Let's look at logic.
+            // Actually, in generated HTML, I passed `true` or `false` to the function.
+            // I need to find the button that has `true` in its handler.
+            // A simple hack: The data is generated in order.
+            // Let's just find the correct button by index from data? No, simpler:
+            // The generated HTML has onclick="checkMCQ(..., true, ...)"
+            for(let b of btns) {
+                if(b.getAttribute('onclick').includes('true')) {
+                    b.classList.add('correct');
+                }
+            }
+        }
+
+        document.getElementById(`exp-${id}`).style.display = 'block';
+        questionsAnswered++;
+    }
+
+    function finishQuiz() {
+        if(questionsAnswered < totalQuestions) {
+            if(!confirm(`Con mới làm được ${questionsAnswered}/${totalQuestions} câu. Con có chắc muốn nộp bài không?`)) {
+                return;
+            }
+        }
+        
+        const scoreEl = document.getElementById('scoreDisplay');
+        const feedback = document.getElementById('feedbackText');
+        const popup = document.getElementById('resultPopup');
+        const overlay = document.getElementById('overlay');
+
+        scoreEl.innerText = `${totalScore}/${maxScore}`;
+        
+        const percentage = (totalScore / maxScore) * 100;
+        if (percentage === 100) feedback.innerText = "Xuất sắc! Con là thiên tài tiếng Anh! 🌟";
+        else if (percentage >= 80) feedback.innerText = "Giỏi lắm! Chỉ sai một xíu thôi! 💪";
+        else if (percentage >= 50) feedback.innerText = "Khá tốt! Cố gắng xem kỹ lại giải thích nhé! 📚";
+        else feedback.innerText = "Đừng buồn nhé! Hãy xem kỹ giải thích để tiến bộ hơn! ❤️";
+
+        overlay.classList.add('show');
+        popup.classList.add('show');
+        playSound('correct'); // Celebration sound
+    }
+
+    function closePopup() {
+        document.getElementById('resultPopup').classList.remove('show');
+        document.getElementById('overlay').classList.remove('show');
+    }
+
+    // --- CONFETTI EFFECT ---
+    const canvas = document.getElementById("confetti");
+    const ctx = canvas.getContext("2d");
+    let particles = [];
+
+    function resizeCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    function fireConfetti() {
+        for (let i = 0; i < 50; i++) {
+            particles.push({
+                x: Math.random() * canvas.width,
+                y: -10,
+                r: Math.random() * 8 + 2,
+                d: Math.random() * 5 + 2,
+                color: `hsl(${Math.random() * 360}, 100%, 50%)`,
+                tilt: Math.floor(Math.random() * 10) - 10,
+                tiltAngle: 0,
+                tiltAngleIncremental: (Math.random() * 0.07) + 0.05
+            });
+        }
+    }
+
+    function drawConfetti() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        particles.forEach((p, index) => {
+            p.tiltAngle += p.tiltAngleIncremental;
+            p.y += (Math.cos(p.d) + 3 + p.r / 2) / 2;
+            p.x += Math.sin(0);
+            p.tilt = Math.sin(p.tiltAngle) * 15;
+
+            ctx.beginPath();
+            ctx.lineWidth = p.r;
+            ctx.strokeStyle = p.color;
+            ctx.moveTo(p.x + p.tilt + p.r / 4, p.y);
+            ctx.lineTo(p.x + p.tilt, p.y + p.tilt + p.r / 4);
+            ctx.stroke();
+
+            if (p.y > canvas.height) particles.splice(index, 1);
+        });
+        requestAnimationFrame(drawConfetti);
+    }
+    drawConfetti();
+
+    // Start
+    renderQuiz();
+
+</script>
+</body>
+</html>

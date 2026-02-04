@@ -1,0 +1,879 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ms Mai An ULIS - Writing Disaster Quiz</title>
+    <!-- Google Fonts: Nunito & Quicksand -->
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Confetti Library -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <style>
+        :root {
+            --primary: #8854C0;
+            --secondary: #00C9A7;
+            --correct: #00D26A;
+            --wrong: #FF4757;
+            --bg-pattern: #f0f4f8;
+            --card-bg: #ffffff;
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: #E0EAFC;
+            background-image: radial-gradient(#8854c0 0.8px, transparent 0.8px), radial-gradient(#8854c0 0.8px, #E0EAFC 0.8px);
+            background-size: 32px 32px;
+            background-position: 0 0, 16px 16px;
+            color: #2d3748;
+            padding-bottom: 50px;
+        }
+
+        h1, h2, h3 {
+            font-family: 'Quicksand', sans-serif;
+        }
+
+        /* 3D Button Style */
+        .btn-3d {
+            transition: all 0.1s;
+            box-shadow: 0px 5px 0px 0px rgba(0,0,0,0.1);
+            transform: translateY(0);
+        }
+
+        .btn-3d:active {
+            transform: translateY(5px);
+            box-shadow: 0px 0px 0px 0px rgba(0,0,0,0.1);
+        }
+
+        /* Option Button */
+        .option-btn {
+            background-color: white;
+            border: 2px solid #e2e8f0;
+            color: #4a5568;
+            border-radius: 15px;
+            padding: 15px;
+            font-weight: 600;
+            width: 100%;
+            text-align: left;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: flex-start; /* Align text to top if multiline */
+            transition: all 0.2s;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 0 #cbd5e0;
+        }
+
+        .option-btn:hover:not(.disabled) {
+            transform: scale(1.02);
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .option-btn:active:not(.disabled) {
+            transform: scale(0.98);
+            box-shadow: 0 0 0 #cbd5e0;
+        }
+
+        /* States */
+        .option-btn.correct {
+            background-color: #C6F6D5 !important;
+            border-color: var(--correct) !important;
+            color: #045224 !important;
+            box-shadow: 0 4px 0 #48BB78 !important;
+        }
+
+        .option-btn.wrong {
+            background-color: #FED7D7 !important;
+            border-color: var(--wrong) !important;
+            color: #822727 !important;
+            box-shadow: 0 4px 0 #F56565 !important;
+            animation: shake 0.5s;
+        }
+
+        .option-btn.disabled {
+            pointer-events: none;
+            opacity: 0.7;
+        }
+
+        /* Explanation Box */
+        .explanation-box {
+            background-color: #ebf8ff;
+            border-left: 5px solid var(--secondary);
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+            display: none; /* Hidden by default */
+            animation: slideDown 0.4s ease-out;
+        }
+
+        /* Animations */
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            50% { transform: translateX(5px); }
+            75% { transform: translateX(-5px); }
+            100% { transform: translateX(0); }
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .header-shadow {
+            text-shadow: 3px 3px 0px rgba(0,0,0,0.1);
+        }
+
+        /* Markdown styling inside explanation */
+        .rationale-content strong {
+            color: var(--primary);
+            font-weight: 800;
+        }
+        .rationale-content ul {
+            list-style-type: disc;
+            padding-left: 20px;
+            margin-top: 5px;
+        }
+        .rationale-content li {
+            margin-bottom: 5px;
+        }
+
+        /* Sticker/Badge */
+        .question-badge {
+            background: var(--primary);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            display: inline-block;
+            margin-bottom: 10px;
+            box-shadow: 0 3px 0 #5b2d8a;
+        }
+        
+        .sticky-bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: white;
+            padding: 15px;
+            box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.1);
+            z-index: 50;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #8854C0; 
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <header class="bg-gradient-to-r from-purple-500 to-teal-400 text-white p-6 text-center shadow-lg relative overflow-hidden">
+        <div class="relative z-10">
+            <h1 class="text-3xl md:text-5xl font-bold header-shadow mb-2">
+                <i class="fas fa-graduation-cap mr-2"></i> Ms Mai An ULIS
+            </h1>
+            <p class="text-lg md:text-xl opacity-90 font-medium">Writing Skills: Reorder & Rewrite Sentences</p>
+        </div>
+        <!-- Decorative circles -->
+        <div class="absolute top-[-50px] left-[-50px] w-32 h-32 bg-white opacity-10 rounded-full"></div>
+        <div class="absolute bottom-[-30px] right-[-30px] w-40 h-40 bg-white opacity-10 rounded-full"></div>
+    </header>
+
+    <!-- Main Container -->
+    <main id="quiz-container" class="max-w-4xl mx-auto p-4 mt-6 space-y-8 mb-24">
+        <!-- Questions will be injected here via JS -->
+    </main>
+
+    <!-- Bottom Nav -->
+    <div class="sticky-bottom-nav">
+        <div class="font-bold text-gray-700 text-lg">
+            Điểm số: <span id="score-display" class="text-purple-600">0</span>
+        </div>
+        <button onclick="finishQuiz()" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-6 rounded-full btn-3d shadow-lg border-b-4 border-green-700 transition duration-200">
+            <i class="fas fa-flag-checkered mr-2"></i> Nộp Bài
+        </button>
+    </div>
+
+    <!-- Result Modal -->
+    <div id="result-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl p-8 max-w-md w-full text-center shadow-2xl border-4 border-purple-200 transform scale-100 transition-transform">
+            <div class="text-6xl mb-4" id="result-icon">🏆</div>
+            <h2 class="text-3xl font-bold text-gray-800 mb-2">Tổng Kết</h2>
+            <p class="text-gray-600 mb-6" id="result-message">Bạn đã làm rất tốt!</p>
+            
+            <div class="bg-purple-50 rounded-xl p-4 mb-6">
+                <div class="text-sm text-gray-500 uppercase font-bold tracking-wide">Điểm của bạn</div>
+                <div class="text-4xl font-extrabold text-purple-600" id="final-score">0/0</div>
+            </div>
+
+            <button onclick="closeModal()" class="w-full bg-teal-500 text-white font-bold py-3 px-6 rounded-xl btn-3d border-b-4 border-teal-700 hover:bg-teal-600">
+                Xem lại bài làm
+            </button>
+        </div>
+    </div>
+
+    <!-- Audio Scripts -->
+    <script>
+        // Web Audio API for Sound Effects (No external files needed)
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        function playSound(type) {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            
+            const now = audioCtx.currentTime;
+
+            if (type === 'correct') {
+                // Ding sound (High pitch sine wave)
+                oscillator.type = 'sine';
+                oscillator.frequency.setValueAtTime(800, now);
+                oscillator.frequency.exponentialRampToValueAtTime(1200, now + 0.1);
+                gainNode.gain.setValueAtTime(0.3, now);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
+                oscillator.start(now);
+                oscillator.stop(now + 0.5);
+            } else if (type === 'wrong') {
+                // Buzz sound (Low pitch sawtooth)
+                oscillator.type = 'sawtooth';
+                oscillator.frequency.setValueAtTime(150, now);
+                oscillator.frequency.linearRampToValueAtTime(100, now + 0.3);
+                gainNode.gain.setValueAtTime(0.3, now);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+                oscillator.start(now);
+                oscillator.stop(now + 0.4);
+            }
+        }
+    </script>
+
+    <!-- Quiz Logic -->
+    <script>
+        // Data from User
+        const quizData = {
+          "questions": [
+            {
+              "questionNumber": 1,
+              "question": "I. Reorder the words: the/ dangerous/ Flood/ disasters/ in/ most/ world/ of/ the/ is/ one",
+              "answerOptions": [
+                {
+                  "text": "Flood is one of the most dangerous disasters in the world.",
+                  "rationale": "**1. Phân tích ngữ pháp:**<br>- Cấu trúc so sánh nhất: one of the + most + adj + Nouns (số nhiều).<br>- Chủ ngữ: Flood (Lũ lụt).<br>- Động từ: is (là).<br>**2. Dịch nghĩa:** \"Lũ lụt là một trong những thảm họa nguy hiểm nhất trên thế giới.\"<br>**3. Giải thích chi tiết:**<br>- \"one of the most dangerous disasters\" (một trong những thảm họa nguy hiểm nhất) là cụm chuẩn. \"in the world\" là trạng ngữ chỉ nơi chốn đặt cuối câu.",
+                  "isCorrect": true
+                },
+                {
+                  "text": "Flood is the most dangerous one of disasters in the world.",
+                  "rationale": "**1. Phân tích:**<br>- Sai trật tự.<br>**2. Dịch:** \"Lũ lụt là cái nguy hiểm nhất của thảm họa...\"<br>**3. Giải thích:**<br>- Cấu trúc đúng phải là \"one of the\" (một trong những) đứng trước tính từ so sánh nhất.",
+                  "isCorrect": false
+                },
+                {
+                  "text": "One of the most dangerous disasters in the world is Flood.",
+                  "rationale": "**1. Phân tích:**<br>- Đảo ngữ không sai ngữ pháp nhưng ít tự nhiên hơn trong văn cảnh định nghĩa.<br>**2. Dịch:** \"Một trong những thảm họa nguy hiểm nhất thế giới là Lũ lụt.\"<br>**3. Giải thích:**<br>- Thường chủ ngữ chính (Flood) đứng đầu câu để nhấn mạnh đối tượng được nói đến.",
+                  "isCorrect": false
+                },
+                {
+                  "text": "Flood is one of most dangerous the disasters in the world.",
+                  "rationale": "**1. Phân tích:**<br>- Sai vị trí \"the\".<br>**2. Dịch:** (Vô nghĩa).<br>**3. Giải thích:**<br>- \"The\" phải đứng trước \"most\" (so sánh nhất).",
+                  "isCorrect": false
+                }
+              ],
+              "hint": "Cấu trúc: One of the + So sánh nhất + Danh từ số nhiều."
+            },
+            {
+              "questionNumber": 2,
+              "question": "I. Reorder the words: shelters/ the villagers/ yesterday/ moving/ 8 o’clock/ Were/ the mountains/ to/ in/ at?",
+              "answerOptions": [
+                {
+                  "text": "Were the villagers moving to shelters in the mountains at 8 o’clock yesterday?",
+                  "rationale": "**1. Phân tích ngữ pháp:**<br>- Câu hỏi nghi vấn thì Quá khứ tiếp diễn: Were + S + V-ing...?<br>- Chủ ngữ: the villagers.<br>- Động từ: moving to (di chuyển tới).<br>- Địa điểm: in the mountains.<br>- Thời gian: at 8 o’clock yesterday.<br>**2. Dịch nghĩa:** \"Có phải dân làng đang di chuyển đến các nơi trú ẩn trên núi vào lúc 8 giờ hôm qua không?\"<br>**3. Giải thích chi tiết:**<br>- Trạng từ chỉ nơi chốn (shelters in the mountains) đứng trước trạng từ chỉ thời gian (at 8 o’clock yesterday).",
+                  "isCorrect": true
+                },
+                {
+                  "text": "Were the villagers moving to the mountains in shelters at 8 o’clock yesterday?",
+                  "rationale": "**1. Phân tích:**<br>- Sai ý nghĩa giới từ.<br>**2. Dịch:** \"...di chuyển tới núi ở trong nơi trú ẩn...\"<br>**3. Giải thích:**<br>- Logic là \"nơi trú ẩn nằm trên núi\" (shelters in the mountains), không phải \"núi nằm trong nơi trú ẩn\".",
+                  "isCorrect": false
+                },
+                {
+                  "text": "Were the villagers moving at 8 o’clock yesterday to shelters in the mountains?",
+                  "rationale": "**1. Phân tích:**<br>- Sai trật tự trạng từ.<br>**2. Dịch:** \"...di chuyển lúc 8 giờ tới nơi trú ẩn...\"<br>**3. Giải thích:**<br>- Trong tiếng Anh, quy tắc thường là Nơi chốn (Place) trước Thời gian (Time).",
+                  "isCorrect": false
+                },
+                {
+                  "text": "Were the villagers moving to shelters at 8 o’clock yesterday in the mountains?",
+                  "rationale": "**1. Phân tích:**<br>- Sai vị trí cụm từ.<br>**2. Dịch:** \"...tới nơi trú ẩn lúc 8 giờ ở trên núi...\"<br>**3. Giải thích:**<br>- \"In the mountains\" bổ nghĩa cho \"shelters\" nên phải đứng ngay sau nó.",
+                  "isCorrect": false
+                }
+              ],
+              "hint": "Nơi chốn trước, thời gian sau (Place before Time)."
+            },
+            {
+              "questionNumber": 3,
+              "question": "I. Reorder the words: They/ with/ people/ homeless/ will/ temporary/ provide/ accommodation",
+              "answerOptions": [
+                {
+                  "text": "They will provide homeless people with temporary accommodation.",
+                  "rationale": "**1. Phân tích ngữ pháp:**<br>- Cấu trúc: provide somebody with something (cung cấp cho ai cái gì).<br>- S: They.<br>- V: will provide.<br>- O (sb): homeless people.<br>- O (sth): temporary accommodation.<br>**2. Dịch nghĩa:** \"Họ sẽ cung cấp chỗ ở tạm thời cho những người vô gia cư.\"<br>**3. Giải thích chi tiết:**<br>- Áp dụng đúng công thức \"provide sb with sth\".",
+                  "isCorrect": true
+                },
+                {
+                  "text": "They will provide temporary accommodation with homeless people.",
+                  "rationale": "**1. Phân tích:**<br>- Sai cấu trúc.<br>**2. Dịch:** \"Họ sẽ cung cấp chỗ ở cùng với người vô gia cư.\"<br>**3. Giải thích:**<br>- Nếu muốn đưa vật lên trước, phải dùng: provide something FOR somebody (provide temporary accommodation FOR homeless people). Đề bài dùng \"with\" nên câu này sai.",
+                  "isCorrect": false
+                },
+                {
+                  "text": "They will provide with homeless people temporary accommodation.",
+                  "rationale": "**1. Phân tích:**<br>- Sai vị trí giới từ.<br>**2. Dịch:** (Vô nghĩa).<br>**3. Giải thích:**<br>- \"With\" phải đứng sau tân ngữ chỉ người.",
+                  "isCorrect": false
+                },
+                {
+                  "text": "Homeless people will provide with they temporary accommodation.",
+                  "rationale": "**1. Phân tích:**<br>- Sai chủ ngữ/ngữ pháp.<br>**2. Dịch:** \"Người vô gia cư sẽ cung cấp...\"<br>**3. Giải thích:**<br>- Sai nghĩa và sai đại từ \"they\" (phải là them nếu đứng sau giới từ).",
+                  "isCorrect": false
+                }
+              ],
+              "hint": "Cấu trúc: provide someone WITH something."
+            },
+            {
+              "questionNumber": 4,
+              "question": "I. Reorder the words: A/ Friday/ 6.9/ Indonesia/ magnitude/ earthquake/ powerful/ on/ struck",
+              "answerOptions": [
+                {
+                  "text": "A powerful magnitude 6.9 earthquake struck Indonesia on Friday.",
+                  "rationale": "**1. Phân tích ngữ pháp:**<br>- Cụm danh từ: A powerful magnitude 6.9 earthquake (Một trận động đất mạnh 6.9 độ).<br>- V: struck (đã tấn công).<br>- O: Indonesia.<br>- Time: on Friday.<br>**2. Dịch nghĩa:** \"Một trận động đất mạnh 6.9 độ đã tấn công Indonesia vào thứ Sáu.\"<br>**3. Giải thích chi tiết:**<br>- Tính từ \"powerful\" đứng trước, sau đó đến thông số kỹ thuật \"magnitude 6.9\", cuối cùng là danh từ chính \"earthquake\".",
+                  "isCorrect": true
+                },
+                {
+                  "text": "A magnitude 6.9 powerful earthquake struck Indonesia on Friday.",
+                  "rationale": "**1. Phân tích:**<br>- Trật tự tính từ chưa chuẩn.<br>**2. Dịch:** \"Một trận 6.9 độ mạnh động đất...\"<br>**3. Giải thích:**<br>- Thường tính từ miêu tả chung (powerful) đứng trước tính từ chỉ số đo/loại (magnitude 6.9).",
+                  "isCorrect": false
+                },
+                {
+                  "text": "A powerful earthquake magnitude 6.9 struck Indonesia on Friday.",
+                  "rationale": "**1. Phân tích:**<br>- Sai vị trí cụm danh từ.<br>**2. Dịch:** \"Một trận động đất mạnh độ lớn 6.9...\"<br>**3. Giải thích:**<br>- Magnitude 6.9 đóng vai trò như tính từ bổ nghĩa, nên đứng trước danh từ earthquake.",
+                  "isCorrect": false
+                },
+                {
+                  "text": "Indonesia struck a powerful magnitude 6.9 earthquake on Friday.",
+                  "rationale": "**1. Phân tích:**<br>- Sai chủ ngữ - tân ngữ.<br>**2. Dịch:** \"Indonesia đã tấn công một trận động đất...\"<br>**3. Giải thích:**<br>- Sai nghĩa nghiêm trọng. Động đất tấn công đất nước, không phải ngược lại.",
+                  "isCorrect": false
+                }
+              ],
+              "hint": "Tính từ miêu tả (powerful) -> Số đo (magnitude 6.9) -> Danh từ (earthquake)."
+            },
+            {
+              "questionNumber": 5,
+              "question": "I. Reorder the words: field/ tornado/ working/ Many/ touched/ were/ when/ farmers/ down/ the/ on the",
+              "answerOptions": [
+                {
+                  "text": "Many farmers were working on the field when the tornado touched down.",
+                  "rationale": "**1. Phân tích ngữ pháp:**<br>- Mệnh đề 1 (Tiếp diễn): Many farmers were working on the field (Nhiều nông dân đang làm việc trên đồng).<br>- Liên từ: when (thì).<br>- Mệnh đề 2 (Đơn): the tornado touched down (lốc xoáy chạm đất).<br>**2. Dịch nghĩa:** \"Nhiều nông dân đang làm việc trên cánh đồng thì cơn lốc xoáy chạm đất.\"<br>**3. Giải thích chi tiết:**<br>- Cấu trúc Past Continuous + when + Past Simple.",
+                  "isCorrect": true
+                },
+                {
+                  "text": "The tornado touched down when many farmers were working on the field.",
+                  "rationale": "**1. Phân tích:**<br>- Ngữ pháp đúng nhưng đảo ngược trật tự nhấn mạnh.<br>**2. Dịch:** \"Lốc xoáy chạm đất khi nông dân đang làm việc.\"<br>**3. Giải thích:**<br>- Tuy đúng ngữ pháp, nhưng câu gốc \"Many...\" viết hoa gợi ý \"Many farmers\" đứng đầu câu.",
+                  "isCorrect": false
+                },
+                {
+                  "text": "Many farmers were working on the tornado when the field touched down.",
+                  "rationale": "**1. Phân tích:**<br>- Sai nghĩa hoàn toàn.<br>**2. Dịch:** \"Nông dân đang làm việc trên cơn lốc xoáy khi cánh đồng chạm đất.\"<br>**3. Giải thích:**<br>- Vô lý.",
+                  "isCorrect": false
+                },
+                {
+                  "text": "When the tornado touched down many farmers were working on the field.",
+                  "rationale": "**1. Phân tích:**<br>- Thiếu dấu phẩy.<br>**2. Dịch:** \"Khi lốc xoáy chạm đất nhiều nông dân...\"<br>**3. Giải thích:**<br>- Nếu \"When\" đứng đầu câu, cần dấu phẩy ngăn cách hai mệnh đề. Hơn nữa, từ \"Many\" viết hoa gợi ý nó đứng đầu.",
+                  "isCorrect": false
+                }
+              ],
+              "hint": "Chủ ngữ viết hoa là 'Many'."
+            },
+            {
+              "questionNumber": 6,
+              "question": "I. Reorder the words: natural/ typhoons and floods/ the/ in/ most/ Are/ frequent/ Vietnam/ disasters?",
+              "answerOptions": [
+                {
+                  "text": "Are typhoons and floods the most frequent natural disasters in Vietnam?",
+                  "rationale": "**1. Phân tích ngữ pháp:**<br>- Câu hỏi đảo ngữ: Are + S + cụm danh từ?<br>- S: typhoons and floods.<br>- Cụm danh từ: the most frequent natural disasters (những thảm họa thiên nhiên thường gặp nhất).<br>**2. Dịch nghĩa:** \"Bão và lũ lụt có phải là những thảm họa thiên nhiên thường gặp nhất ở Việt Nam không?\"<br>**3. Giải thích chi tiết:**<br>- Trật tự tính từ: So sánh nhất (most frequent) -> Loại hình (natural) -> Danh từ (disasters).",
+                  "isCorrect": true
+                },
+                {
+                  "text": "Are the most frequent natural disasters in Vietnam typhoons and floods?",
+                  "rationale": "**1. Phân tích:**<br>- Đảo ngược chủ ngữ - vị ngữ.<br>**2. Dịch:** \"Có phải những thảm họa... là bão và lũ không?\"<br>**3. Giải thích:**<br>- Về mặt ngữ pháp không sai, nhưng câu hỏi thường đặt đối tượng cụ thể (Typhoons and floods) lên đầu để xác nhận tính chất của nó.",
+                  "isCorrect": false
+                },
+                {
+                  "text": "Are typhoons and floods the most natural frequent disasters in Vietnam?",
+                  "rationale": "**1. Phân tích:**<br>- Sai trật tự tính từ.<br>**2. Dịch:** \"...tự nhiên thường xuyên nhất...\"<br>**3. Giải thích:**<br>- \"Frequent\" (tần suất) bổ nghĩa cho mức độ, \"natural\" (tự nhiên) phân loại disaster. Trật tự đúng: Frequent natural disasters.",
+                  "isCorrect": false
+                },
+                {
+                  "text": "Are natural disasters the most frequent typhoons and floods in Vietnam?",
+                  "rationale": "**1. Phân tích:**<br>- Sai nghĩa.<br>**2. Dịch:** \"Thảm họa thiên nhiên có phải là bão và lũ thường xuyên nhất không?\"<br>**3. Giải thích:**<br>- Logic sai. Bão/lũ LÀ thảm họa, chứ không phải thảm họa LÀ bão/lũ.",
+                  "isCorrect": false
+                }
+              ],
+              "hint": "Cấu trúc câu hỏi: Are + Chủ ngữ + Cụm danh từ so sánh nhất?"
+            },
+            {
+              "questionNumber": 7,
+              "question": "I. Reorder the words: escape/ putting out/ The employees/ were/ while/ the fire/ trying/ the fire crews/ to/ were",
+              "answerOptions": [
+                {
+                  "text": "The employees were trying to escape while the fire crews were putting out the fire.",
+                  "rationale": "**1. Phân tích ngữ pháp:**<br>- Mệnh đề 1: The employees were trying to escape (Nhân viên cố gắng thoát ra).<br>- Mệnh đề 2: the fire crews were putting out the fire (Lính cứu hỏa đang dập lửa).<br>- \"The\" viết hoa -> The employees đứng đầu.<br>**2. Dịch nghĩa:** \"Các nhân viên đang cố gắng thoát ra ngoài trong khi đội cứu hỏa đang dập lửa.\"<br>**3. Giải thích chi tiết:**<br>- Logic hành động: Nhân viên thì chạy (escape), cứu hỏa thì dập lửa (put out).",
+                  "isCorrect": true
+                },
+                {
+                  "text": "The fire crews were trying to escape while the employees were putting out the fire.",
+                  "rationale": "**1. Phân tích:**<br>- Ngược vai trò.<br>**2. Dịch:** \"Lính cứu hỏa cố chạy trốn trong khi nhân viên đang dập lửa.\"<br>**3. Giải thích:**<br>- Sai logic thực tế.",
+                  "isCorrect": false
+                },
+                {
+                  "text": "The employees were putting out the fire while the fire crews were trying to escape.",
+                  "rationale": "**1. Phân tích:**<br>- Ngược vai trò.<br>**2. Dịch:** \"Nhân viên đang dập lửa trong khi lính cứu hỏa cố chạy trốn.\"<br>**3. Giải thích:**<br>- Sai logic.",
+                  "isCorrect": false
+                },
+                {
+                  "text": "The employees were trying to escape while the fire were putting out the fire crews.",
+                  "rationale": "**1. Phân tích:**<br>- Sai nghĩa trầm trọng.<br>**2. Dịch:** \"...trong khi ngọn lửa đang dập tắt lính cứu hỏa.\"<br>**3. Giải thích:**<br>- Lửa không thể dập tắt người.",
+                  "isCorrect": false
+                }
+              ],
+              "hint": "Nhân viên (employees) thì chạy trốn, đội cứu hỏa (fire crews) thì dập lửa."
+            },
+            {
+              "questionNumber": 8,
+              "question": "I. Reorder the words: property/ people’s/ disasters/ devastate/ and destroy/ their/ lives/ Natural",
+              "answerOptions": [
+                {
+                  "text": "Natural disasters destroy people’s property and devastate their lives.",
+                  "rationale": "**1. Phân tích ngữ pháp:**<br>- S: Natural disasters (Thảm họa thiên nhiên).<br>- V1: destroy (phá hủy) + O1: people's property (tài sản con người).<br>- V2: devastate (tàn phá) + O2: their lives (cuộc sống của họ).<br>**2. Dịch nghĩa:** \"Thảm họa thiên nhiên phá hủy tài sản của con người và tàn phá cuộc sống của họ.\"<br>**3. Giải thích chi tiết:**<br>- \"Destroy\" thường đi với vật chất (property), \"devastate\" hay đi với những thứ trừu tượng hoặc lớn lao hơn (lives/areas). Tuy nhiên, đảo ngược 2 động từ này cũng chấp nhận được, nhưng cấu trúc \"Natural disasters\" phải đứng đầu.",
+                  "isCorrect": true
+                },
+                {
+                  "text": "Natural disasters devastate people’s property and destroy their lives.",
+                  "rationale": "**1. Phân tích:**<br>- Cũng đúng ngữ pháp nhưng ít phổ biến hơn về cách dùng từ (collocation).<br>**2. Dịch:** \"Thảm họa thiên nhiên tàn phá tài sản và phá hủy cuộc sống.\"<br>**3. Giải thích:**<br>- Collocation \"destroy property\" (phá hủy tài sản) rất phổ biến. Câu trên (đáp án A) tự nhiên hơn.",
+                  "isCorrect": false
+                },
+                {
+                  "text": "People’s property destroy natural disasters and devastate their lives.",
+                  "rationale": "**1. Phân tích:**<br>- Sai chủ ngữ.<br>**2. Dịch:** \"Tài sản con người phá hủy thảm họa thiên nhiên...\"<br>**3. Giải thích:**<br>- Sai nghĩa.",
+                  "isCorrect": false
+                },
+                {
+                  "text": "Natural disasters destroy their lives and devastate people’s property.",
+                  "rationale": "**1. Phân tích:**<br>- Sai tham chiếu đại từ.<br>**2. Dịch:** \"Thảm họa phá hủy cuộc sống của họ và tàn phá tài sản của con người.\"<br>**3. Giải thích:**<br>- Nên dùng danh từ rõ ràng (people's) trước khi dùng đại từ sở hữu (their). Câu A dùng \"people's property\" trước rồi mới đến \"their lives\" là chuẩn nhất.",
+                  "isCorrect": false
+                }
+              ],
+              "hint": "Destroy property (phá hủy tài sản) & Devastate lives (tàn phá cuộc sống)."
+            },
+            {
+              "questionNumber": 9,
+              "question": "II. Rewrite: The volunteers were distributing rice when the second earthquake occurred. -> While ________________",
+              "answerOptions": [
+                {
+                  "text": "While the volunteers were distributing rice, the second earthquake occurred.",
+                  "rationale": "**1. Phân tích ngữ pháp:**<br>- Câu gốc: Hành động dài (phát gạo) bị hành động ngắn (động đất) cắt ngang.<br>- Viết lại với \"While\": While + Past Continuous (Hành động dài), Past Simple (Hành động ngắn).<br>**2. Dịch nghĩa:** \"Trong khi các tình nguyện viên đang phát gạo, trận động đất thứ hai đã xảy ra.\"<br>**3. Giải thích chi tiết:**<br>- \"While\" đi kèm với mệnh đề tiếp diễn (were distributing).",
+                  "isCorrect": true
+                },
+                {
+                  "text": "While the second earthquake occurred, the volunteers were distributing rice.",
+                  "rationale": "**1. Phân tích:**<br>- Sai thì với \"While\".<br>**2. Dịch:** \"Trong khi động đất xảy ra, tình nguyện viên đang phát gạo.\"<br>**3. Giải thích:**<br>- Động đất là sự kiện tức thì (occurred), không dùng sau \"While\" (thường chỉ khoảng thời gian dài). Dùng \"When the earthquake occurred...\" thì đúng.",
+                  "isCorrect": false
+                },
+                {
+                  "text": "While the volunteers distributed rice, the second earthquake occurred.",
+                  "rationale": "**1. Phân tích:**<br>- Sai thì.<br>**2. Dịch:** \"Trong khi tình nguyện viên đã phát gạo...\"<br>**3. Giải thích:**<br>- Sau While nên dùng tiếp diễn để nhấn mạnh quá trình.",
+                  "isCorrect": false
+                },
+                {
+                  "text": "While the volunteers were distributing rice, the second earthquake was occurring.",
+                  "rationale": "**1. Phân tích:**<br>- Sai thì mệnh đề chính.<br>**2. Dịch:** \"...động đất đang xảy ra.\"<br>**3. Giải thích:**<br>- Động đất là hành động cắt ngang bất ngờ, phải dùng Quá khứ đơn (occurred).",
+                  "isCorrect": false
+                }
+              ],
+              "hint": "While + Quá khứ tiếp diễn (hành động dài), Quá khứ đơn (hành động ngắn)."
+            },
+            {
+              "questionNumber": 10,
+              "question": "II. Rewrite: Some firefighters were injured because the building collapsed. -> The building ________________",
+              "answerOptions": [
+                {
+                  "text": "The building collapsed, so some firefighters were injured.",
+                  "rationale": "**1. Phân tích ngữ pháp:**<br>- Câu gốc: Nguyên nhân (building collapsed) -> Kết quả (injured). Dùng \"because\".<br>- Viết lại: Nguyên nhân -> \"so\" (vì vậy) -> Kết quả.<br>**2. Dịch nghĩa:** \"Tòa nhà bị sập, vì vậy một số lính cứu hỏa đã bị thương.\"<br>**3. Giải thích chi tiết:**<br>- Cấu trúc chuyển đổi Cause -> Effect dùng liên từ \"so\".",
+                  "isCorrect": true
+                },
+                {
+                  "text": "The building collapsed because some firefighters were injured.",
+                  "rationale": "**1. Phân tích:**<br>- Sai logic nguyên nhân - kết quả.<br>**2. Dịch:** \"Tòa nhà sập BỞI VÌ lính cứu hỏa bị thương.\"<br>**3. Giải thích:**<br>- Ngược nhân quả.",
+                  "isCorrect": false
+                },
+                {
+                  "text": "The building collapsed but some firefighters were injured.",
+                  "rationale": "**1. Phân tích:**<br>- Sai liên từ.<br>**2. Dịch:** \"Tòa nhà sập NHƯNG lính cứu hỏa bị thương.\"<br>**3. Giải thích:**<br>- Sai nghĩa.",
+                  "isCorrect": false
+                },
+                {
+                  "text": "The building collapsed although some firefighters were injured.",
+                  "rationale": "**1. Phân tích:**<br>- Sai liên từ.<br>**2. Dịch:** \"Tòa nhà sập MẶC DÙ lính cứu hỏa bị thương.\"<br>**3. Giải thích:**<br>- Sai nghĩa.",
+                  "isCorrect": false
+                }
+              ],
+              "hint": "Chuyển từ 'Because' (nguyên nhân) sang cấu trúc với 'So' (kết quả)."
+            },
+            {
+              "questionNumber": 11,
+              "question": "II. Rewrite: It was such a strong typhoon that all trees were uprooted. -> The typhoon was ________________",
+              "answerOptions": [
+                {
+                  "text": "The typhoon was so strong that all trees were uprooted.",
+                  "rationale": "**1. Phân tích ngữ pháp:**<br>- Câu gốc: Such + (a/an) + Adj + N + that... (Quá... đến nỗi mà...)<br>- Viết lại: S + be + so + Adj + that...<br>**2. Dịch nghĩa:** \"Cơn bão mạnh đến nỗi tất cả cây cối đều bị bật gốc.\"<br>**3. Giải thích chi tiết:**<br>- \"Such a strong typhoon\" = \"The typhoon was so strong\".",
+                  "isCorrect": true
+                },
+                {
+                  "text": "The typhoon was too strong that all trees were uprooted.",
+                  "rationale": "**1. Phân tích:**<br>- Sai cấu trúc.<br>**2. Dịch:** \"Bão quá mạnh rằng...\"<br>**3. Giải thích:**<br>- Cấu trúc đúng là \"too... to...\" (quá... để làm gì), không dùng \"too... that\".",
+                  "isCorrect": false
+                },
+                {
+                  "text": "The typhoon was very strong that all trees were uprooted.",
+                  "rationale": "**1. Phân tích:**<br>- Sai cấu trúc.<br>**2. Dịch:** \"Bão rất mạnh rằng...\"<br>**3. Giải thích:**<br>- \"Very\" không đi với mệnh đề \"that\" chỉ kết quả. Phải dùng \"so\".",
+                  "isCorrect": false
+                },
+                {
+                  "text": "The typhoon was enough strong that all trees were uprooted.",
+                  "rationale": "**1. Phân tích:**<br>- Sai cấu trúc.<br>**2. Dịch:** \"Bão đủ mạnh rằng...\"<br>**3. Giải thích:**<br>- \"Enough\" đứng sau tính từ (strong enough).",
+                  "isCorrect": false
+                }
+              ],
+              "hint": "Cấu trúc: S + be + SO + Adj + THAT + Clause."
+            },
+            {
+              "questionNumber": 12,
+              "question": "II. Rewrite: If the scientists don’t propose another solution for drought, the farmers may lose their crops. -> Unless ________________",
+              "answerOptions": [
+                {
+                  "text": "Unless the scientists propose another solution for drought, the farmers may lose their crops.",
+                  "rationale": "**1. Phân tích ngữ pháp:**<br>- Câu gốc: If ... not (Nếu không).<br>- Viết lại: Unless = If ... not (Trừ khi).<br>- Lưu ý: Khi dùng Unless, mệnh đề theo sau phải ở dạng khẳng định.<br>**2. Dịch nghĩa:** \"Trừ khi các nhà khoa học đề xuất giải pháp khác cho hạn hán, nông dân có thể mất mùa màng.\"<br>**3. Giải thích chi tiết:**<br>- Bỏ \"If\" và \"don't\", thay bằng \"Unless\". Động từ \"propose\" giữ nguyên (vì chủ ngữ số nhiều).",
+                  "isCorrect": true
+                },
+                {
+                  "text": "Unless the scientists don't propose another solution for drought, the farmers may lose their crops.",
+                  "rationale": "**1. Phân tích:**<br>- Sai ngữ pháp (Double negative).<br>**2. Dịch:** \"Trừ khi các nhà khoa học KHÔNG đề xuất...\"<br>**3. Giải thích:**<br>- Unless đã mang nghĩa phủ định (If not), không dùng thêm \"don't\".",
+                  "isCorrect": false
+                },
+                {
+                  "text": "Unless the scientists propose another solution for drought, the farmers will not lose their crops.",
+                  "rationale": "**1. Phân tích:**<br>- Sai nghĩa vế sau.<br>**2. Dịch:** \"Trừ khi... nông dân sẽ KHÔNG mất mùa.\"<br>**3. Giải thích:**<br>- Nghĩa ngược lại với câu gốc.",
+                  "isCorrect": false
+                },
+                {
+                  "text": "Unless the scientists didn't propose another solution for drought, the farmers may lose their crops.",
+                  "rationale": "**1. Phân tích:**<br>- Sai thì và sai ngữ pháp (phủ định kép).<br>**2. Dịch:** (Sai ngữ pháp).<br>**3. Giải thích:**<br>- Câu điều kiện loại 1 dùng hiện tại đơn ở mệnh đề If.",
+                  "isCorrect": false
+                }
+              ],
+              "hint": "Unless = If ... not. Mệnh đề sau Unless phải ở dạng khẳng định."
+            },
+            {
+              "questionNumber": 13,
+              "question": "II. Rewrite: The storm was raging outside during our sleep. -> While we were ________________",
+              "answerOptions": [
+                {
+                  "text": "While we were sleeping, the storm was raging outside.",
+                  "rationale": "**1. Phân tích ngữ pháp:**<br>- Câu gốc: during our sleep (trong giấc ngủ của chúng tôi - danh từ).<br>- Viết lại: While we were sleeping (Trong khi chúng tôi đang ngủ - mệnh đề).<br>**2. Dịch nghĩa:** \"Trong khi chúng tôi đang ngủ, cơn bão đang hoành hành bên ngoài.\"<br>**3. Giải thích chi tiết:**<br>- Chuyển cụm danh từ \"our sleep\" thành mệnh đề tiếp diễn \"we were sleeping\".",
+                  "isCorrect": true
+                },
+                {
+                  "text": "While we were sleep, the storm was raging outside.",
+                  "rationale": "**1. Phân tích:**<br>- Sai ngữ pháp.<br>**2. Dịch:** \"...chúng tôi đang giấc ngủ...\"<br>**3. Giải thích:**<br>- Sau to be (were) phải là V-ing (sleeping) hoặc tính từ (asleep), không dùng động từ nguyên thể (sleep).",
+                  "isCorrect": false
+                },
+                {
+                  "text": "While we were sleeping, the storm raged outside.",
+                  "rationale": "**1. Phân tích:**<br>- Chấp nhận được nhưng không hay bằng gốc.<br>**2. Dịch:** \"...bão đã hoành hành...\"<br>**3. Giải thích:**<br>- Câu gốc dùng \"was raging\" (tiếp diễn), nên giữ nguyên thì tiếp diễn để bảo toàn ý nghĩa nhấn mạnh quá trình.",
+                  "isCorrect": false
+                },
+                {
+                  "text": "While we were asleeping, the storm was raging outside.",
+                  "rationale": "**1. Phân tích:**<br>- Sai từ vựng.<br>**2. Dịch:** (Không có từ asleeping).<br>**3. Giải thích:**<br>- Chỉ có \"sleeping\" (động từ) hoặc \"asleep\" (tính từ).",
+                  "isCorrect": false
+                }
+              ],
+              "hint": "During + Danh từ -> While + Mệnh đề (S + V-ing)."
+            },
+            {
+              "questionNumber": 14,
+              "question": "II. Rewrite: We’re grateful that you sent us food and fresh water. -> Thank you ________________",
+              "answerOptions": [
+                {
+                  "text": "Thank you for sending us food and fresh water.",
+                  "rationale": "**1. Phân tích ngữ pháp:**<br>- Cấu trúc: Thank you for + V-ing (Cảm ơn vì đã làm gì).<br>- Câu gốc: sent (quá khứ) -> chuyển thành V-ing: sending.<br>**2. Dịch nghĩa:** \"Cảm ơn bạn vì đã gửi cho chúng tôi thức ăn và nước sạch.\"<br>**3. Giải thích chi tiết:**<br>- \"We're grateful\" (Biết ơn) tương đương với lời cảm ơn \"Thank you\".",
+                  "isCorrect": true
+                },
+                {
+                  "text": "Thank you that you sent us food and fresh water.",
+                  "rationale": "**1. Phân tích:**<br>- Ít tự nhiên.<br>**2. Dịch:** \"Cảm ơn rằng bạn đã gửi...\"<br>**3. Giải thích:**<br>- Người bản xứ dùng \"Thank you for doing sth\" phổ biến hơn là \"Thank you that clause\".",
+                  "isCorrect": false
+                },
+                {
+                  "text": "Thank you to send us food and fresh water.",
+                  "rationale": "**1. Phân tích:**<br>- Sai cấu trúc.<br>**2. Dịch:** \"Cảm ơn để gửi...\"<br>**3. Giải thích:**<br>- Không dùng \"Thank you to V\".",
+                  "isCorrect": false
+                },
+                {
+                  "text": "Thank you for sent us food and fresh water.",
+                  "rationale": "**1. Phân tích:**<br>- Sai ngữ pháp.<br>**2. Dịch:** \"Cảm ơn vì đã gửi (dạng quá khứ)...\"<br>**3. Giải thích:**<br>- Sau giới từ \"for\" phải là V-ing, không được dùng V-ed/V2.",
+                  "isCorrect": false
+                }
+              ],
+              "hint": "Cấu trúc: Thank you for + V-ing."
+            },
+            {
+              "questionNumber": 15,
+              "question": "II. Rewrite: The rescue workers came to the forest and saw many people helping the injured panda. -> Many people were ________________",
+              "answerOptions": [
+                {
+                  "text": "Many people were helping the injured panda when the rescue workers came to the forest.",
+                  "rationale": "**1. Phân tích ngữ pháp:**<br>- Câu gốc: A đến và thấy B đang làm gì -> B đang làm gì thì A đến.<br>- Chuyển đổi: Hành động đang diễn ra (were helping) bị hành động khác xen vào (came).<br>**2. Dịch nghĩa:** \"Nhiều người đang giúp đỡ chú gấu trúc bị thương thì đội cứu hộ đến khu rừng.\"<br>**3. Giải thích chi tiết:**<br>- Dùng thì Past Continuous cho hành động \"helping\".",
+                  "isCorrect": true
+                },
+                {
+                  "text": "Many people were help the injured panda when the rescue workers came to the forest.",
+                  "rationale": "**1. Phân tích:**<br>- Sai ngữ pháp.<br>**2. Dịch:** \"...đang giúp (nguyên mẫu)...\"<br>**3. Giải thích:**<br>- Sau to be (were) phải là V-ing.",
+                  "isCorrect": false
+                },
+                {
+                  "text": "Many people were helping the injured panda while the rescue workers came to the forest.",
+                  "rationale": "**1. Phân tích:**<br>- Dùng từ nối chưa chuẩn nhất.<br>**2. Dịch:** \"...trong khi đội cứu hộ đến.\"<br>**3. Giải thích:**<br>- Với hành động cắt ngang ngắn (came), dùng \"when\" hay hơn \"while\". \"While\" thường đi với hành động dài.",
+                  "isCorrect": false
+                },
+                {
+                  "text": "Many people were helped the injured panda when the rescue workers came to the forest.",
+                  "rationale": "**1. Phân tích:**<br>- Sai dạng bị động.<br>**2. Dịch:** \"Nhiều người bị giúp đỡ chú gấu trúc...\"<br>**3. Giải thích:**<br>- Sai nghĩa và ngữ pháp (were helped + tân ngữ là sai).",
+                  "isCorrect": false
+                }
+              ],
+              "hint": "Chuyển sang cấu trúc hành động đang diễn ra (Past Continuous) + when + hành động xen vào."
+            },
+            {
+              "questionNumber": 16,
+              "question": "II. Rewrite: It’s a good idea to find safe shelter right away when there is a tornado warning. -> You ________________",
+              "answerOptions": [
+                {
+                  "text": "You should find safe shelter right away when there is a tornado warning.",
+                  "rationale": "**1. Phân tích ngữ pháp:**<br>- Câu gốc: It's a good idea to... (Đó là ý hay để...) -> Lời khuyên.<br>- Viết lại: You should... (Bạn nên...).<br>**2. Dịch nghĩa:** \"Bạn nên tìm nơi trú ẩn an toàn ngay lập tức khi có cảnh báo lốc xoáy.\"<br>**3. Giải thích chi tiết:**<br>- \"It's a good idea\" tương đương với modal verb \"should\".",
+                  "isCorrect": true
+                },
+                {
+                  "text": "You can find safe shelter right away when there is a tornado warning.",
+                  "rationale": "**1. Phân tích:**<br>- \"Can\" chỉ khả năng.<br>**2. Dịch:** \"Bạn có thể tìm...\"<br>**3. Giải thích:**<br>- Không diễn tả mạnh lời khuyên như câu gốc.",
+                  "isCorrect": false
+                },
+                {
+                  "text": "You may find safe shelter right away when there is a tornado warning.",
+                  "rationale": "**1. Phân tích:**<br>- \"May\" chỉ khả năng/xin phép.<br>**2. Dịch:** \"Bạn có lẽ tìm...\"<br>**3. Giải thích:**<br>- Không phù hợp với ngữ cảnh cảnh báo thảm họa (cần khuyên bảo/bắt buộc).",
+                  "isCorrect": false
+                },
+                {
+                  "text": "You will find safe shelter right away when there is a tornado warning.",
+                  "rationale": "**1. Phân tích:**<br>- \"Will\" chỉ tương lai.<br>**2. Dịch:** \"Bạn sẽ tìm...\"<br>**3. Giải thích:**<br>- Đây là lời khuyên, không phải tiên đoán.",
+                  "isCorrect": false
+                }
+              ],
+              "hint": "It's a good idea to V = You should V."
+            },
+            {
+              "questionNumber": 17,
+              "question": "II. Rewrite: We could look for the information about natural disasters on the Internet. -> How ________________",
+              "answerOptions": [
+                {
+                  "text": "How about looking for the information about natural disasters on the Internet?",
+                  "rationale": "**1. Phân tích ngữ pháp:**<br>- Câu gốc: We could... (Chúng ta có thể... - Lời đề nghị).<br>- Viết lại: How about + V-ing...? (Còn về việc... thì sao? - Cấu trúc gợi ý).<br>**2. Dịch nghĩa:** \"Thế còn việc tìm kiếm thông tin về thiên tai trên Internet thì sao?\"<br>**3. Giải thích chi tiết:**<br>- Cấu trúc gợi ý \"How about\" đi với động từ thêm đuôi -ing.",
+                  "isCorrect": true
+                },
+                {
+                  "text": "How about look for the information about natural disasters on the Internet?",
+                  "rationale": "**1. Phân tích:**<br>- Sai ngữ pháp.<br>**2. Dịch:** \"Thế còn tìm kiếm (nguyên mẫu)...\"<br>**3. Giải thích:**<br>- Sau giới từ \"about\" phải là V-ing.",
+                  "isCorrect": false
+                },
+                {
+                  "text": "How to look for the information about natural disasters on the Internet?",
+                  "rationale": "**1. Phân tích:**<br>- Sai nghĩa.<br>**2. Dịch:** \"Làm thế nào để tìm kiếm...\"<br>**3. Giải thích:**<br>- Đây là câu hỏi về phương pháp (How to), không phải câu đề nghị (We could).",
+                  "isCorrect": false
+                },
+                {
+                  "text": "How we look for the information about natural disasters on the Internet?",
+                  "rationale": "**1. Phân tích:**<br>- Sai ngữ pháp câu hỏi.<br>**2. Dịch:** \"Chúng ta tìm kiếm như thế nào...\"<br>**3. Giải thích:**<br>- Thiếu trợ động từ \"do\".",
+                  "isCorrect": false
+                }
+              ],
+              "hint": "Cấu trúc câu đề nghị: How about + V-ing?"
+            }
+          ]
+        };
+
+        let score = 0;
+        const totalQuestions = quizData.questions.length;
+        let answeredCount = 0;
+
+        function renderQuiz() {
+            const container = document.getElementById('quiz-container');
+            container.innerHTML = '';
+
+            quizData.questions.forEach((q, index) => {
+                const questionCard = document.createElement('div');
+                questionCard.className = 'bg-white rounded-3xl p-6 shadow-xl border-2 border-purple-100 relative';
+                
+                // Content
+                let html = `
+                    <div class="question-badge">Câu ${index + 1}</div>
+                    <h3 class="text-xl font-bold text-gray-800 mb-4">${q.question}</h3>
+                    
+                    <div class="grid gap-3" id="options-${index}">
+                        ${q.answerOptions.map((opt, optIndex) => `
+                            <button onclick="checkAnswer(${index}, ${optIndex}, ${opt.isCorrect})" 
+                                    class="option-btn btn-3d" id="btn-${index}-${optIndex}">
+                                <div class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center mr-3 font-bold text-gray-500 shrink-0 border border-gray-200">
+                                    ${String.fromCharCode(65 + optIndex)}
+                                </div>
+                                <span>${opt.text}</span>
+                            </button>
+                        `).join('')}
+                    </div>
+
+                    <div id="explanation-${index}" class="explanation-box">
+                        <div class="flex items-center text-teal-600 font-bold mb-2">
+                            <i class="fas fa-chalkboard-teacher mr-2 text-2xl"></i>
+                            <span>Ms Mai An giải thích:</span>
+                        </div>
+                        <div class="rationale-content text-gray-700 leading-relaxed text-sm md:text-base">
+                            <!-- Rationale will be inserted here based on selection -->
+                        </div>
+                    </div>
+                `;
+
+                questionCard.innerHTML = html;
+                container.appendChild(questionCard);
+            });
+        }
+
+        function checkAnswer(qIndex, optIndex, isCorrect) {
+            // Prevent re-answering
+            const optionsDiv = document.getElementById(`options-${qIndex}`);
+            if (optionsDiv.classList.contains('answered')) return;
+            
+            optionsDiv.classList.add('answered');
+            answeredCount++;
+
+            // Visual Feedback
+            const selectedBtn = document.getElementById(`btn-${qIndex}-${optIndex}`);
+            const allBtns = optionsDiv.querySelectorAll('.option-btn');
+
+            // Disable all buttons
+            allBtns.forEach(btn => btn.classList.add('disabled'));
+
+            // Show Correct Button logic
+            const questionData = quizData.questions[qIndex];
+            const correctOptIndex = questionData.answerOptions.findIndex(o => o.isCorrect);
+            const correctBtn = document.getElementById(`btn-${qIndex}-${correctOptIndex}`);
+
+            if (isCorrect) {
+                score++;
+                selectedBtn.classList.add('correct');
+                playSound('correct');
+                
+                // Confetti effect from the button position
+                const rect = selectedBtn.getBoundingClientRect();
+                const x = (rect.left + rect.width / 2) / window.innerWidth;
+                const y = (rect.top + rect.height / 2) / window.innerHeight;
+                confetti({
+                    particleCount: 50,
+                    spread: 70,
+                    origin: { x: x, y: y },
+                    colors: ['#00D26A', '#8854C0', '#00C9A7']
+                });
+
+            } else {
+                selectedBtn.classList.add('wrong');
+                correctBtn.classList.add('correct'); // Show correct answer even if wrong
+                playSound('wrong');
+            }
+
+            // Update Score Display
+            document.getElementById('score-display').innerText = `${score}/${totalQuestions}`;
+
+            // Show Rationale
+            const explanationBox = document.getElementById(`explanation-${qIndex}`);
+            const rationaleContent = explanationBox.querySelector('.rationale-content');
+            
+            // Get rationale from the correct option (usually comprehensive) or the specific selected option
+            // Here we use the rationale of the CORRECT option to ensure full explanation is shown
+            const explanationText = questionData.answerOptions[correctOptIndex].rationale;
+            
+            rationaleContent.innerHTML = explanationText;
+            explanationBox.style.display = 'block';
+        }
+
+        function finishQuiz() {
+            const modal = document.getElementById('result-modal');
+            const scoreText = document.getElementById('final-score');
+            const message = document.getElementById('result-message');
+            const icon = document.getElementById('result-icon');
+
+            scoreText.innerText = `${score}/${totalQuestions}`;
+            
+            const percentage = (score / totalQuestions) * 100;
+            
+            if (percentage === 100) {
+                message.innerText = "Xuất sắc! Bạn là thiên tài ngôn ngữ! 🌟";
+                icon.innerText = "👑";
+                playSound('correct');
+                confetti({ particleCount: 200, spread: 100, origin: { y: 0.6 } });
+            } else if (percentage >= 80) {
+                message.innerText = "Rất tốt! Bạn nắm rất chắc kiến thức! 🔥";
+                icon.innerText = "🤩";
+            } else if (percentage >= 50) {
+                message.innerText = "Cố gắng lên! Bạn làm khá ổn rồi đấy! 👍";
+                icon.innerText = "😊";
+            } else {
+                message.innerText = "Đừng buồn! Hãy xem lại phần giải thích để học thêm nhé! 💪";
+                icon.innerText = "📚";
+            }
+
+            modal.classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('result-modal').classList.add('hidden');
+        }
+
+        // Initialize
+        renderQuiz();
+        document.getElementById('score-display').innerText = `0/${totalQuestions}`;
+
+    </script>
+</body>
+</html>

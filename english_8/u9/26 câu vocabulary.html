@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trắc nghiệm Thiên tai (Disasters) - Ms Mai An ULIS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #8854C0; /* Tím */
+            --secondary: #00C9A7; /* Xanh ngọc */
+            --correct: #00D26A; /* Xanh lá */
+            --wrong: #FF4757; /* Đỏ cam */
+            --background: #f0f3f5;
+            --card-bg: #ffffff;
+            --text-main: #2f3542;
+            --text-light: #57606f;
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: var(--background);
+            background-image: radial-gradient(#dcdde1 15%, transparent 16%), radial-gradient(#dcdde1 15%, transparent 16%);
+            background-size: 60px 60px;
+            background-position: 0 0, 30px 30px;
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .header-container {
+            text-align: center;
+            margin-bottom: 30px;
+            animation: popIn 0.8s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+        }
+
+        h1 {
+            color: var(--primary);
+            font-weight: 800;
+            font-size: 2.2rem;
+            margin: 0;
+            text-shadow: 2px 2px 0px #fff, 4px 4px 0px rgba(0,0,0,0.1);
+        }
+
+        h3 {
+            color: var(--text-light);
+            font-weight: 600;
+            margin-top: 5px;
+            font-size: 1.1rem;
+        }
+
+        .quiz-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding-bottom: 80px;
+        }
+
+        /* Card Style */
+        .question-card {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 8px 0 rgba(0,0,0,0.1);
+            border: 2px solid #eee;
+            position: relative;
+            transition: transform 0.3s;
+        }
+
+        .question-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            border-bottom: 2px dashed #f1f2f6;
+            padding-bottom: 10px;
+        }
+
+        .q-tag {
+            background: var(--secondary);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            box-shadow: 0 3px 0 rgba(0,0,0,0.1);
+        }
+
+        .question-text {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        /* Options Grid */
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        @media (max-width: 600px) {
+            .options-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .option-btn {
+            background: white;
+            border: 2px solid #e1e4e8;
+            border-radius: 15px;
+            padding: 15px 20px;
+            font-family: 'Nunito', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-light);
+            cursor: pointer;
+            position: relative;
+            transition: all 0.1s;
+            box-shadow: 0 5px 0 #d1d8e0;
+            text-align: left;
+            display: flex;
+            align-items: center;
+        }
+
+        .option-btn:active {
+            box-shadow: 0 2px 0 #d1d8e0;
+            transform: translateY(3px);
+        }
+
+        .option-btn:hover:not(:disabled) {
+            background-color: #f7f9fa;
+            transform: scale(1.02);
+        }
+
+        /* Correct/Wrong States */
+        .option-btn.correct {
+            background-color: var(--correct);
+            color: white;
+            border-color: #00b85c;
+            box-shadow: 0 5px 0 #008f47;
+        }
+
+        .option-btn.wrong {
+            background-color: var(--wrong);
+            color: white;
+            border-color: #ff2e40;
+            box-shadow: 0 5px 0 #d61e30;
+            animation: shake 0.5s;
+        }
+
+        .option-btn:disabled {
+            cursor: default;
+            opacity: 0.7;
+            transform: none !important;
+        }
+
+        /* Explanation Box */
+        .explanation-box {
+            display: none;
+            margin-top: 20px;
+            background-color: #f8f0fc;
+            border: 2px solid var(--primary);
+            border-radius: 15px;
+            padding: 20px;
+            animation: slideDown 0.5s ease;
+        }
+
+        .explanation-header {
+            color: var(--primary);
+            font-weight: 800;
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .explanation-content {
+            font-size: 1rem;
+            line-height: 1.6;
+            color: #4b4b4b;
+            white-space: pre-wrap; /* Preserve line breaks from JSON */
+        }
+
+        /* Footer / Submit */
+        .footer-controls {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: white;
+            padding: 15px;
+            box-shadow: 0 -5px 20px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            z-index: 100;
+        }
+
+        .submit-btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 40px;
+            font-size: 1.2rem;
+            font-weight: 800;
+            border-radius: 30px;
+            box-shadow: 0 6px 0 #5f2a9e;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+
+        .submit-btn:active {
+            box-shadow: 0 3px 0 #5f2a9e;
+            transform: translateY(3px);
+        }
+
+        .score-display {
+            font-weight: 800;
+            font-size: 1.2rem;
+            color: var(--text-main);
+        }
+
+        /* Animations */
+        @keyframes popIn {
+            0% { transform: scale(0); opacity: 0; }
+            80% { transform: scale(1.1); opacity: 1; }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px) rotate(-5deg); }
+            75% { transform: translateX(5px) rotate(5deg); }
+        }
+
+        /* Confetti Canvas */
+        #confetti-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 999;
+        }
+
+        /* Result Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 40px;
+            border-radius: 30px;
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+            animation: popIn 0.5s;
+            border: 5px solid var(--secondary);
+        }
+
+        .final-score {
+            font-size: 3rem;
+            font-weight: 800;
+            color: var(--primary);
+            margin: 20px 0;
+        }
+
+        .feedback-text {
+            font-size: 1.2rem;
+            color: var(--text-light);
+            margin-bottom: 30px;
+        }
+
+    </style>
+</head>
+<body>
+
+    <canvas id="confetti-canvas"></canvas>
+
+    <div class="header-container">
+        <h1>BÀI KIỂM TRA THIÊN TAI (DISASTERS)</h1>
+        <h3>Giáo viên tạo: Ms Mai An ULIS</h3>
+    </div>
+
+    <div class="quiz-container" id="quiz-area">
+        <!-- Questions will be injected here via JS -->
+    </div>
+
+    <div class="footer-controls">
+        <div class="score-display">Đã làm: <span id="progress-text">0</span>/<span id="total-text">0</span></div>
+        <button class="submit-btn" onclick="finishQuiz()">NỘP BÀI</button>
+    </div>
+
+    <!-- Result Modal -->
+    <div class="modal-overlay" id="result-modal">
+        <div class="modal-content">
+            <h2 style="color: var(--secondary); font-weight: 800;">TỔNG KẾT</h2>
+            <div class="final-score" id="final-score-display">0/0</div>
+            <p class="feedback-text" id="feedback-msg">Bạn đã làm rất tốt!</p>
+            <button class="submit-btn" onclick="location.reload()">LÀM LẠI</button>
+        </div>
+    </div>
+
+    <script>
+        // --- DATA SOURCE (Embed from input) ---
+        const quizData = [
+            {
+                "questionNumber": 1,
+                "question": "Exercise 2 - Q1: The _______ blew lava and ash into the sky.",
+                "answerOptions": [
+                    { "text": "volcanic eruption", "rationale": "Dịch đáp án:\nA. volcanic eruption (noun phrase): sự phun trào núi lửa\nB. earthquake (noun): động đất\nC. tornado (noun): lốc xoáy\nD. tsunami (noun): sóng thần\n\nGiải thích: Từ khóa 'lava and ash' (dung nham và tro bụi) là đặc điểm của núi lửa phun trào.\n\nDịch câu: Vụ phun trào núi lửa đã thổi dung nham và tro bụi lên bầu trời.", "isCorrect": true },
+                    { "text": "earthquake", "isCorrect": false, "rationale": "Sai. Động đất gây rung lắc, không phun dung nham." },
+                    { "text": "tornado", "isCorrect": false, "rationale": "Sai. Lốc xoáy là gió, không có dung nham." },
+                    { "text": "tsunami", "isCorrect": false, "rationale": "Sai. Sóng thần liên quan đến nước." }
+                ]
+            },
+            {
+                "questionNumber": 2,
+                "question": "Exercise 2 - Q2: The _______ with strong winds darkened the sky and rattled the windows.",
+                "answerOptions": [
+                    { "text": "storm", "rationale": "Dịch đáp án:\nA. wildfire (noun): cháy rừng\nB. storm (noun): cơn bão\nC. flood (noun): lũ lụt\nD. drought (noun): hạn hán\n\nGiải thích: Từ khóa 'strong winds' (gió mạnh), 'darkened the sky' (làm tối bầu trời) và 'rattled the windows' (làm rung cửa sổ) miêu tả một cơn bão.\n\nDịch câu: Cơn bão với gió mạnh làm tối sầm bầu trời và làm rung chuyển các cửa sổ.", "isCorrect": true },
+                    { "text": "wildfire", "isCorrect": false, "rationale": "Sai. Cháy rừng gây khói lửa, không đặc trưng bởi gió làm tối trời theo cách này." },
+                    { "text": "flood", "isCorrect": false, "rationale": "Sai. Lũ lụt là nước dâng." },
+                    { "text": "drought", "isCorrect": false, "rationale": "Sai. Hạn hán là thiếu nước." }
+                ]
+            },
+            {
+                "questionNumber": 3,
+                "question": "Exercise 2 - Q3: The sudden _______ caused the buildings to shake and people to run for cover.",
+                "answerOptions": [
+                    { "text": "earthquake", "rationale": "Dịch đáp án:\nA. earthquake (noun): động đất\nB. landslide (noun): sạt lở đất\nC. tsunami (noun): sóng thần\nD. flood (noun): lũ lụt\n\nGiải thích: Từ khóa 'buildings to shake' (các tòa nhà rung lắc) là dấu hiệu rõ nhất của động đất.\n\nDịch câu: Trận động đất bất ngờ khiến các tòa nhà rung chuyển và mọi người chạy đi tìm chỗ trú ẩn.", "isCorrect": true },
+                    { "text": "landslide", "isCorrect": false, "rationale": "Sai. Sạt lở đất là đất đá rơi xuống, thường không làm rung chuyển cả tòa nhà ở vùng bằng phẳng." },
+                    { "text": "tsunami", "isCorrect": false, "rationale": "Sai. Sóng thần là nước biển dâng cao." },
+                    { "text": "flood", "isCorrect": false, "rationale": "Sai." }
+                ]
+            },
+            {
+                "questionNumber": 4,
+                "question": "Exercise 2 - Q4: A _______ moved in a circle like a big funnel and hit the town last night.",
+                "answerOptions": [
+                    { "text": "tornado", "rationale": "Dịch đáp án:\nA. typhoon (noun): bão nhiệt đới (thường ở châu Á)\nB. flood (noun): lũ lụt\nC. tornado (noun): lốc xoáy\nD. drought (noun): hạn hán\n\nGiải thích: Từ khóa 'moved in a circle' (di chuyển theo vòng tròn) và 'like a big funnel' (như một cái phễu lớn) là hình ảnh đặc trưng của lốc xoáy.\n\nDịch câu: Một trận lốc xoáy di chuyển theo vòng tròn như một cái phễu lớn và đánh vào thị trấn đêm qua.", "isCorrect": true },
+                    { "text": "typhoon", "isCorrect": false, "rationale": "Sai. Typhoon là bão diện rộng, không có hình dạng cái phễu (funnel)." },
+                    { "text": "flood", "isCorrect": false, "rationale": "Sai." },
+                    { "text": "drought", "isCorrect": false, "rationale": "Sai." }
+                ]
+            },
+            {
+                "questionNumber": 5,
+                "question": "Exercise 2 - Q5: The heavy rainfall caused a _______, sending rocks and soil falling down the hillside.",
+                "answerOptions": [
+                    { "text": "landslide", "rationale": "Dịch đáp án:\nA. landslide (noun): sạt lở đất\nB. drought (noun): hạn hán\nC. volcanic eruption (noun phrase): phun trào núi lửa\nD. storm (noun): cơn bão\n\nGiải thích: Từ khóa 'rocks and soil falling down the hillside' (đá và đất rơi xuống sườn đồi) miêu tả sạt lở đất.\n\nDịch câu: Mưa lớn gây ra một vụ sạt lở đất, khiến đá và đất rơi xuống sườn đồi.", "isCorrect": true },
+                    { "text": "drought", "isCorrect": false, "rationale": "Sai. Hạn hán là do thiếu mưa." },
+                    { "text": "volcanic eruption", "isCorrect": false, "rationale": "Sai. Phun trào núi lửa liên quan đến dung nham." },
+                    { "text": "storm", "isCorrect": false, "rationale": "Sai. Storm là nguyên nhân gây mưa, không phải kết quả là đất đá rơi." }
+                ]
+            },
+            {
+                "questionNumber": 6,
+                "question": "Exercise 2 - Q6: The overflowing river led to a _______, submerging homes and streets in water.",
+                "answerOptions": [
+                    { "text": "flood", "rationale": "Dịch đáp án:\nA. drought (noun): hạn hán\nB. earthquake (noun): động đất\nC. flood (noun): lũ lụt\nD. wildfire (noun): cháy rừng\n\nGiải thích: Từ khóa 'overflowing river' (sông tràn bờ) và 'submerging... in water' (nhấn chìm... trong nước) là mô tả lũ lụt.\n\nDịch câu: Con sông tràn bờ dẫn đến một trận lũ lụt, nhấn chìm nhà cửa và đường phố trong nước.", "isCorrect": true },
+                    { "text": "drought", "isCorrect": false, "rationale": "Sai. Hạn hán là thiếu nước." },
+                    { "text": "earthquake", "isCorrect": false, "rationale": "Sai." },
+                    { "text": "wildfire", "isCorrect": false, "rationale": "Sai." }
+                ]
+            },
+            {
+                "questionNumber": 7,
+                "question": "Exercise 3 - Q1: The volcanic _________ sent plumes of ash and smoke high into the sky.",
+                "answerOptions": [
+                    { "text": "eruption", "rationale": "Dịch đáp án:\nA. eruption (noun): sự phun trào\nB. outbreak (noun): sự bùng phát (dịch bệnh/chiến tranh)\nC. burst (noun/verb): sự nổ tung/vỡ\nD. discharge (noun/verb): sự thải ra/xả ra\n\nGiải thích: Cụm từ cố định 'volcanic eruption' (sự phun trào núi lửa).\n\nDịch câu: Vụ phun trào núi lửa đã đẩy những cột tro và khói lên cao bầu trời.", "isCorrect": true },
+                    { "text": "outbreak", "isCorrect": false, "rationale": "Sai. Thường dùng cho dịch bệnh." },
+                    { "text": "burst", "isCorrect": false, "rationale": "Sai ngữ cảnh." },
+                    { "text": "discharge", "isCorrect": false, "rationale": "Sai ngữ cảnh." }
+                ]
+            },
+            {
+                "questionNumber": 8,
+                "question": "Exercise 3 - Q2: The _________ shook the region, leaving buildings damaged and roads cracked.",
+                "answerOptions": [
+                    { "text": "earthquake", "rationale": "Dịch đáp án:\nA. earthquake (noun): động đất\nB. thunderstorm (noun): bão dông\nC. shock (noun): cú sốc\nD. tornado (noun): lốc xoáy\n\nGiải thích: Động từ 'shook' (rung chuyển) và hậu quả 'roads cracked' (đường nứt) là đặc trưng của động đất.\n\nDịch câu: Trận động đất làm rung chuyển khu vực, khiến các tòa nhà bị hư hại và đường xá bị nứt.", "isCorrect": true },
+                    { "text": "thunderstorm", "isCorrect": false, "rationale": "Sai. Bão dông không làm nứt đường." },
+                    { "text": "shock", "isCorrect": false, "rationale": "Sai. Shock là danh từ trừu tượng hoặc một phần của động đất (aftershock), không dùng đứng một mình làm chủ ngữ gây nứt đường." },
+                    { "text": "tornado", "isCorrect": false, "rationale": "Sai. Lốc xoáy gây gió mạnh, ít khi làm nứt đường." }
+                ]
+            },
+            {
+                "questionNumber": 9,
+                "question": "Exercise 3 - Q3: A _________, with strong winds that move in a circle, touched down in the small town, causing damage to homes and businesses.",
+                "answerOptions": [
+                    { "text": "tornado", "rationale": "Dịch đáp án:\nA. lightning (noun): tia sét\nB. thunder (noun): sấm\nC. tornado (noun): lốc xoáy\nD. tsunami (noun): sóng thần\n\nGiải thích: 'Strong winds that move in a circle' (gió mạnh di chuyển theo vòng tròn) và 'touched down' (chạm đất) là mô tả lốc xoáy.\n\nDịch câu: Một trận lốc xoáy, với những cơn gió mạnh di chuyển theo vòng tròn, đã chạm xuống thị trấn nhỏ, gây thiệt hại cho nhà cửa và doanh nghiệp.", "isCorrect": true },
+                    { "text": "lightning", "isCorrect": false, "rationale": "Sai." },
+                    { "text": "thunder", "isCorrect": false, "rationale": "Sai." },
+                    { "text": "tsunami", "isCorrect": false, "rationale": "Sai." }
+                ]
+            },
+            {
+                "questionNumber": 10,
+                "question": "Exercise 3 - Q4: The heavy rains caused a _________ with huge rocks that blocked the mountain road.",
+                "answerOptions": [
+                    { "text": "landslide", "rationale": "Dịch đáp án:\nA. hurricane (noun): bão cuồng phong\nB. landslide (noun): sạt lở đất\nC. eruption (noun): sự phun trào\nD. earthquake (noun): động đất\n\nGiải thích: Mưa lớn (heavy rains) thường dẫn đến sạt lở đất (landslide), kéo theo đá lớn (huge rocks) chắn đường.\n\nDịch câu: Mưa lớn gây ra một vụ sạt lở đất với những tảng đá khổng lồ chặn ngang con đường núi.", "isCorrect": true },
+                    { "text": "hurricane", "isCorrect": false, "rationale": "Sai. Bão là gió, không phải đá rơi." },
+                    { "text": "eruption", "isCorrect": false, "rationale": "Sai. Liên quan đến núi lửa." },
+                    { "text": "earthquake", "isCorrect": false, "rationale": "Sai. Động đất do kiến tạo địa chất, không trực tiếp do mưa." }
+                ]
+            },
+            {
+                "questionNumber": 11,
+                "question": "Exercise 3 - Q5: The floodwaters rose rapidly, forcing residents to _________ their homes and seek shelters.",
+                "answerOptions": [
+                    { "text": "evacuate", "rationale": "Dịch đáp án:\nA. quit (verb): từ bỏ/nghỉ việc\nB. discharge (verb): thải ra\nC. evacuate (verb): sơ tán\nD. empty (verb): làm trống rỗng\n\nGiải thích: Khi có thiên tai, người dân phải 'sơ tán' (evacuate) khỏi nhà để đến nơi an toàn.\n\nDịch câu: Nước lũ dâng nhanh, buộc người dân phải sơ tán khỏi nhà và tìm nơi trú ẩn.", "isCorrect": true },
+                    { "text": "quit", "isCorrect": false, "rationale": "Sai ngữ cảnh." },
+                    { "text": "discharge", "isCorrect": false, "rationale": "Sai ngữ cảnh." },
+                    { "text": "empty", "isCorrect": false, "rationale": "Sai. Empty mang nghĩa lấy đồ vật ra khỏi nhà, evacuate mang nghĩa con người rời đi để lánh nạn." }
+                ]
+            },
+            {
+                "questionNumber": 12,
+                "question": "Exercise 3 - Q6: An immense volume of rocks and molten lava was _________ from Mount Vesuvius.",
+                "answerOptions": [
+                    { "text": "erupted", "rationale": "Dịch đáp án:\nA. caught (verb): bắt được\nB. occurred (verb): xảy ra\nC. burned (verb): đốt cháy\nD. erupted (verb): phun trào\n\nGiải thích: 'Rocks and molten lava' (đá và dung nham nóng chảy) được 'phun trào' từ núi lửa.\n\nDịch câu: Một lượng lớn đá và dung nham nóng chảy đã được phun trào từ núi Vesuvius.", "isCorrect": true },
+                    { "text": "caught", "isCorrect": false, "rationale": "Sai nghĩa." },
+                    { "text": "occurred", "isCorrect": false, "rationale": "Sai. Occur là nội động từ, không dùng thể bị động 'was occurred'." },
+                    { "text": "burned", "isCorrect": false, "rationale": "Sai nghĩa." }
+                ]
+            },
+            {
+                "questionNumber": 13,
+                "question": "Exercise 3 - Q7: The hurricane hit the coastal village with incredible force, leaving a trail of _______ in its wake.",
+                "answerOptions": [
+                    { "text": "destruction", "rationale": "Dịch đáp án:\nA. warning (noun): cảnh báo\nB. prediction (noun): dự đoán\nC. destruction (noun): sự phá hủy/tàn phá\nD. property (noun): tài sản\n\nGiải thích: Cụm từ 'trail of destruction' (một vệt tàn phá/dấu vết tàn phá) là cách diễn đạt phổ biến khi nói về hậu quả thiên tai.\n\nDịch câu: Cơn bão đã tấn công ngôi làng ven biển với sức mạnh khủng khiếp, để lại một vệt tàn phá sau lưng nó.", "isCorrect": true },
+                    { "text": "warning", "isCorrect": false, "rationale": "Sai nghĩa." },
+                    { "text": "prediction", "isCorrect": false, "rationale": "Sai nghĩa." },
+                    { "text": "property", "isCorrect": false, "rationale": "Sai nghĩa." }
+                ]
+            },
+            {
+                "questionNumber": 14,
+                "question": "Exercise 3 - Q8: Many residents lost _________ in the wildfire that swept through the forested area.",
+                "answerOptions": [
+                    { "text": "property", "rationale": "Dịch đáp án:\nA. property (noun): tài sản/nhà cửa\nB. ownership (noun): quyền sở hữu\nC. materials (noun): vật liệu\nD. taxes (noun): thuế\n\nGiải thích: Trong thiên tai, người dân thường mất 'property' (tài sản như nhà cửa, xe cộ, đồ đạc).\n\nDịch câu: Nhiều cư dân đã mất tài sản trong vụ cháy rừng quét qua khu vực rừng.", "isCorrect": true },
+                    { "text": "ownership", "isCorrect": false, "rationale": "Sai. Quyền sở hữu là khái niệm trừu tượng." },
+                    { "text": "materials", "isCorrect": false, "rationale": "Sai nghĩa." },
+                    { "text": "taxes", "isCorrect": false, "rationale": "Sai nghĩa." }
+                ]
+            },
+            {
+                "questionNumber": 15,
+                "question": "Exercise 3 - Q9: It's important to have an _________ kit prepared with essential supplies in case of a natural disaster.",
+                "answerOptions": [
+                    { "text": "emergency", "rationale": "Dịch đáp án:\nA. protection (noun): sự bảo vệ\nB. emergency (noun/adj): khẩn cấp\nC. rescue (noun/verb): giải cứu\nD. warning (noun): cảnh báo\n\nGiải thích: Cụm từ 'emergency kit' (bộ dụng cụ khẩn cấp/túi cứu thương) là vật dụng chuẩn bị cho thiên tai.\n\nDịch câu: Việc chuẩn bị sẵn một bộ dụng cụ khẩn cấp với các nhu yếu phẩm là rất quan trọng trong trường hợp xảy ra thiên tai.", "isCorrect": true },
+                    { "text": "protection", "isCorrect": false, "rationale": "Sai cụm từ." },
+                    { "text": "rescue", "isCorrect": false, "rationale": "Sai cụm từ." },
+                    { "text": "warning", "isCorrect": false, "rationale": "Sai cụm từ." }
+                ]
+            },
+            {
+                "questionNumber": 16,
+                "question": "Exercise 3 - Q10: The earthquake left many _________ trapped beneath the broken stones and awaiting rescue.",
+                "answerOptions": [
+                    { "text": "victims", "rationale": "Dịch đáp án:\nA. sufferers (noun): người đau khổ (thường vì bệnh tật)\nB. patients (noun): bệnh nhân\nC. victims (noun): nạn nhân\nD. researchers (noun): nhà nghiên cứu\n\nGiải thích: Những người bị ảnh hưởng, mắc kẹt trong thiên tai được gọi là 'victims' (nạn nhân).\n\nDịch câu: Trận động đất đã khiến nhiều nạn nhân bị mắc kẹt dưới những tảng đá vỡ và chờ được giải cứu.", "isCorrect": true },
+                    { "text": "sufferers", "isCorrect": false, "rationale": "Ít dùng trong ngữ cảnh này." },
+                    { "text": "patients", "isCorrect": false, "rationale": "Sai nghĩa." },
+                    { "text": "researchers", "isCorrect": false, "rationale": "Sai nghĩa." }
+                ]
+            },
+            {
+                "questionNumber": 17,
+                "question": "Exercise 3 - Q11: The _________ workers tirelessly searched for survivors in the aftermath of the disaster.",
+                "answerOptions": [
+                    { "text": "rescue", "rationale": "Dịch đáp án:\nA. delivery (noun): giao hàng\nB. saving (noun/adj): tiết kiệm/cứu\nC. recovery (noun): phục hồi\nD. rescue (noun/verb): giải cứu\n\nGiải thích: Cụm từ 'rescue workers' (nhân viên cứu hộ) là những người tìm kiếm người sống sót.\n\nDịch câu: Các nhân viên cứu hộ đã không mệt mỏi tìm kiếm những người sống sót sau thảm họa.", "isCorrect": true },
+                    { "text": "delivery", "isCorrect": false, "rationale": "Sai nghĩa." },
+                    { "text": "saving", "isCorrect": false, "rationale": "Sai cụm từ." },
+                    { "text": "recovery", "isCorrect": false, "rationale": "Recovery workers thường là người dọn dẹp sau thảm họa, nhưng ngữ cảnh 'searched for survivors' (tìm người sống sót) thì 'rescue' chính xác hơn." }
+                ]
+            },
+            {
+                "questionNumber": 18,
+                "question": "Exercise 3 - Q12: The forest fire _________ for eight hours, killing all of the animals.",
+                "answerOptions": [
+                    { "text": "raged", "rationale": "Dịch đáp án:\nA. burst (verb): bùng nổ/vỡ\nB. occurred (verb): xảy ra\nC. raged (verb): hoành hành/cháy dữ dội\nD. spread (verb): lan rộng\n\nGiải thích: Động từ 'rage' thường dùng để miêu tả lửa cháy dữ dội hoặc bão tố hoành hành trong một khoảng thời gian.\n\nDịch câu: Trận cháy rừng đã hoành hành suốt tám giờ, giết chết tất cả các loài động vật.", "isCorrect": true },
+                    { "text": "burst", "isCorrect": false, "rationale": "Sai ngữ cảnh." },
+                    { "text": "occurred", "isCorrect": false, "rationale": "Sai ngữ pháp (occurred for 8 hours nghe không tự nhiên bằng raged)." },
+                    { "text": "spread", "isCorrect": false, "rationale": "Spread (lan ra) cũng hợp lý nhưng 'raged' (cháy dữ dội) miêu tả sức tàn phá (killing all animals) tốt hơn." }
+                ]
+            },
+            {
+                "questionNumber": 19,
+                "question": "Exercise 3 - Q13: Thousands of buildings and houses were completely destroyed when the earthquake ________ the city.",
+                "answerOptions": [
+                    { "text": "struck", "rationale": "Dịch đáp án:\nA. fought (verb): chiến đấu\nB. struck (verb - quá khứ của strike): tấn công/ập đến\nC. happened (verb): xảy ra\nD. arrived (verb): đến\n\nGiải thích: Dùng động từ 'strike' (quá khứ là struck) cho thiên tai như động đất, bão lũ khi chúng ập vào một địa điểm.\n\nDịch câu: Hàng ngàn tòa nhà và ngôi nhà đã bị phá hủy hoàn toàn khi trận động đất tấn công thành phố.", "isCorrect": true },
+                    { "text": "fought", "isCorrect": false, "rationale": "Sai nghĩa." },
+                    { "text": "happened", "isCorrect": false, "rationale": "Sai. Happened không đi trực tiếp với tân ngữ 'the city'." },
+                    { "text": "arrived", "isCorrect": false, "rationale": "Sai. Arrived cần giới từ (arrived in/at)." }
+                ]
+            },
+            {
+                "questionNumber": 20,
+                "question": "Exercise 3 - Q14: New Zealand rescue services carried out several searches for _________.",
+                "answerOptions": [
+                    { "text": "survivors", "rationale": "Dịch đáp án:\nA. movers (noun): người chuyển đồ\nB. helpers (noun): người giúp đỡ\nC. rescuers (noun): người giải cứu\nD. survivors (noun): người sống sót\n\nGiải thích: Đội cứu hộ (rescue services) đi tìm kiếm 'survivors' (người sống sót).\n\nDịch câu: Các dịch vụ cứu hộ của New Zealand đã thực hiện nhiều cuộc tìm kiếm những người sống sót.", "isCorrect": true },
+                    { "text": "movers", "isCorrect": false, "rationale": "Sai nghĩa." },
+                    { "text": "helpers", "isCorrect": false, "rationale": "Sai nghĩa." },
+                    { "text": "rescuers", "isCorrect": false, "rationale": "Sai. Rescuers đi tìm survivors, không ai đi tìm rescuers (trừ khi họ bị lạc)." }
+                ]
+            },
+            {
+                "questionNumber": 21,
+                "question": "Exercise 3 - Q15: What can be done to protect people from _________ disasters?",
+                "answerOptions": [
+                    { "text": "environmental", "rationale": "Dịch đáp án:\nA. environment (noun): môi trường\nB. environmental (adjective): thuộc về môi trường\nC. environmentally (adverb): về mặt môi trường\nD. environmentalist (noun): nhà môi trường học\n\nGiải thích: Trước danh từ 'disasters' cần một tính từ bổ nghĩa. 'Environmental disasters' = thảm họa môi trường.\n\nDịch câu: Có thể làm gì để bảo vệ mọi người khỏi các thảm họa môi trường?", "isCorrect": true },
+                    { "text": "environment", "isCorrect": false, "rationale": "Sai loại từ." },
+                    { "text": "environmentally", "isCorrect": false, "rationale": "Sai loại từ." },
+                    { "text": "environmentalist", "isCorrect": false, "rationale": "Sai loại từ." }
+                ]
+            },
+            {
+                "questionNumber": 22,
+                "question": "Exercise 3 - Q16: The _________ from the plane crash was scattered over a wide area, making the search and recovery efforts challenging for the rescue teams.",
+                "answerOptions": [
+                    { "text": "debris", "rationale": "Dịch đáp án:\nA. debris (noun): mảnh vỡ/đống đổ nát\nB. dust (noun): bụi\nC. piece (noun): mảnh (số ít)\nD. waste (noun): rác thải\n\nGiải thích: 'Debris' là từ chuyên dùng chỉ các mảnh vỡ vương vãi sau tai nạn hoặc thảm họa.\n\nDịch câu: Các mảnh vỡ từ vụ tai nạn máy bay nằm rải rác trên một khu vực rộng lớn, khiến nỗ lực tìm kiếm và phục hồi trở nên khó khăn đối với các đội cứu hộ.", "isCorrect": true },
+                    { "text": "dust", "isCorrect": false, "rationale": "Sai nghĩa." },
+                    { "text": "piece", "isCorrect": false, "rationale": "Sai. Phải là số nhiều 'pieces' mới hợp ngữ pháp, nhưng 'debris' vẫn chính xác hơn về thuật ngữ." },
+                    { "text": "waste", "isCorrect": false, "rationale": "Sai nghĩa." }
+                ]
+            },
+            {
+                "questionNumber": 23,
+                "question": "Exercise 3 - Q17: She is good ___________ meteorology.",
+                "answerOptions": [
+                    { "text": "at", "rationale": "Dịch đáp án:\nA. on (prep): trên\nB. in (prep): trong\nC. at (prep): tại\nD. for (prep): cho\n\nGiải thích: Cấu trúc 'be good at + Noun/V-ing' (giỏi về cái gì).\n\nDịch câu: Cô ấy giỏi về khí tượng học.", "isCorrect": true },
+                    { "text": "on", "isCorrect": false, "rationale": "Sai giới từ." },
+                    { "text": "in", "isCorrect": false, "rationale": "Sai giới từ." },
+                    { "text": "for", "isCorrect": false, "rationale": "Sai giới từ (good for = tốt cho sức khỏe/lợi ích)." }
+                ]
+            },
+            {
+                "questionNumber": 24,
+                "question": "Exercise 3 - Q18: Last night, volcano Maui ___________ and the large areas of land were affected.",
+                "answerOptions": [
+                    { "text": "erupted", "rationale": "Dịch đáp án:\nA. erupts (verb - hiện tại đơn): phun trào\nB. erupted (verb - quá khứ đơn): đã phun trào\nC. erupting (verb - V-ing): đang phun trào\nD. erupt (verb - nguyên thể): phun trào\n\nGiải thích: Trạng từ 'Last night' (tối qua) chỉ thời gian trong quá khứ -> Dùng thì quá khứ đơn (erupted).\n\nDịch câu: Tối qua, núi lửa Maui đã phun trào và những vùng đất rộng lớn đã bị ảnh hưởng.", "isCorrect": true },
+                    { "text": "erupts", "isCorrect": false, "rationale": "Sai thì." },
+                    { "text": "erupting", "isCorrect": false, "rationale": "Sai ngữ pháp (thiếu to be)." },
+                    { "text": "erupt", "isCorrect": false, "rationale": "Sai thì." }
+                ]
+            },
+            {
+                "questionNumber": 25,
+                "question": "Exercise 3 - Q19: When a volcanic eruption occurs, the hot ___________ pours downhill.",
+                "answerOptions": [
+                    { "text": "lava", "rationale": "Dịch đáp án:\nA. ash (noun): tro\nB. smoke (noun): khói\nC. dirt (noun): đất bẩn\nD. lava (noun): dung nham\n\nGiải thích: Cái 'nóng' (hot) và 'chảy xuống đồi' (pours downhill) là đặc điểm của 'lava' (dung nham).\n\nDịch câu: Khi núi lửa phun trào xảy ra, dung nham nóng chảy xuống đồi.", "isCorrect": true },
+                    { "text": "ash", "isCorrect": false, "rationale": "Sai. Tro bay lên trời, không chảy xuống đồi." },
+                    { "text": "smoke", "isCorrect": false, "rationale": "Sai. Khói bay lên." },
+                    { "text": "dirt", "isCorrect": false, "rationale": "Sai." }
+                ]
+            },
+            {
+                "questionNumber": 26,
+                "question": "Exercise 3 - Q20: Since there are two villages located at the foot of the volcano, the local population was __________.",
+                "answerOptions": [
+                    { "text": "evacuated", "rationale": "Dịch đáp án:\nA. evacuated (verb - bị động): được sơ tán\nB. killed (verb): bị giết\nC. died (verb): chết\nD. injured (verb): bị thương\n\nGiải thích: Vì làng nằm dưới chân núi lửa nguy hiểm, hành động hợp lý và thường xảy ra nhất là 'được sơ tán' (evacuated) để đảm bảo an toàn.\n\nDịch câu: Vì có hai ngôi làng nằm dưới chân núi lửa, người dân địa phương đã được sơ tán.", "isCorrect": true },
+                    { "text": "killed", "isCorrect": false, "rationale": "Không hợp lý trong ngữ cảnh phòng ngừa." },
+                    { "text": "died", "isCorrect": false, "rationale": "Sai ngữ pháp (die là nội động từ, không dùng bị động 'was died')." },
+                    { "text": "injured", "isCorrect": false, "rationale": "Không hợp lý bằng evacuated." }
+                ]
+            }
+        ];
+
+        let score = 0;
+        let answeredCount = 0;
+        const totalQuestions = quizData.length;
+
+        // Sounds (Short Base64 for offline compatibility)
+        const soundCorrect = new Audio("data:audio/wav;base64,UklGRjIAAABXQVZFZm10IBIAAAABAAEAQB8AAEAfAAABAAgAAABmYWN0BAAAAAAAAABkYXRhAAAAAA=="); // Placeholder - using synthesized logic below
+        const soundWrong = new Audio("data:audio/wav;base64,UklGRjIAAABXQVZFZm10IBIAAAABAAEAQB8AAEAfAAABAAgAAABmYWN0BAAAAAAAAABkYXRhAAAAAA=="); // Placeholder
+
+        // Better Sound synthesis using Web Audio API for consistency without external files
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        
+        function playSound(type) {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            osc.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+
+            if (type === 'correct') {
+                // High pitch Ding
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(800, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.1);
+                gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.5);
+            } else {
+                // Low pitch Buzz
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+                osc.frequency.linearRampToValueAtTime(100, audioCtx.currentTime + 0.3);
+                gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                gainNode.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.3);
+            }
+        }
+
+        function initQuiz() {
+            const quizArea = document.getElementById('quiz-area');
+            document.getElementById('total-text').innerText = totalQuestions;
+
+            quizData.forEach((item, index) => {
+                const card = document.createElement('div');
+                card.className = 'question-card';
+                card.id = `card-${index}`;
+
+                // Header
+                let qNumber = `Câu ${index + 1}`;
+                if(item.question.includes("Exercise 2")) qNumber = `Bài 2 - Câu ${item.questionNumber}`;
+                if(item.question.includes("Exercise 3")) qNumber = `Bài 3 - Câu ${item.questionNumber}`;
+                
+                // Question Text (Handling placeholders)
+                const displayText = item.question.replace("Exercise 2 - Q" + item.questionNumber + ": ", "").replace("Exercise 3 - Q" + item.questionNumber + ": ", "");
+
+                // Options HTML
+                // Find correct answer index
+                const correctIndex = item.answerOptions.findIndex(opt => opt.isCorrect);
+
+                let optionsHtml = '';
+                item.answerOptions.forEach((opt, optIndex) => {
+                    // Create a composite value to check: isCorrect
+                    optionsHtml += `<button class="option-btn" onclick="checkAnswer(${index}, ${optIndex}, ${opt.isCorrect})">${String.fromCharCode(65+optIndex)}. ${opt.text}</button>`;
+                });
+
+                // Explanation text
+                const rationale = item.answerOptions.find(opt => opt.isCorrect)?.rationale || "Đang cập nhật...";
+
+                card.innerHTML = `
+                    <div class="question-header">
+                        <span class="q-tag">${qNumber}</span>
+                    </div>
+                    <div class="question-text">${displayText}</div>
+                    <div class="options-grid" id="options-${index}">
+                        ${optionsHtml}
+                    </div>
+                    <div class="explanation-box" id="explain-${index}">
+                        <div class="explanation-header">
+                            <span style="font-size: 1.5rem;">💡</span> Cô Mai An giải thích chi tiết:
+                        </div>
+                        <div class="explanation-content">${rationale}</div>
+                    </div>
+                `;
+
+                quizArea.appendChild(card);
+            });
+        }
+
+        function checkAnswer(cardIndex, btnIndex, isCorrect) {
+            const optionsContainer = document.getElementById(`options-${cardIndex}`);
+            const buttons = optionsContainer.getElementsByClassName('option-btn');
+            
+            // If already answered, do nothing
+            if(optionsContainer.dataset.answered === "true") return;
+
+            optionsContainer.dataset.answered = "true";
+            answeredCount++;
+            document.getElementById('progress-text').innerText = answeredCount;
+
+            const selectedBtn = buttons[btnIndex];
+
+            if (isCorrect) {
+                // Correct
+                selectedBtn.classList.add('correct');
+                playSound('correct');
+                triggerConfetti();
+                score++;
+            } else {
+                // Wrong
+                selectedBtn.classList.add('wrong');
+                playSound('wrong');
+                
+                // Highlight the correct answer automatically
+                const dataItem = quizData[cardIndex];
+                const correctBtnIndex = dataItem.answerOptions.findIndex(o => o.isCorrect);
+                if(correctBtnIndex !== -1) {
+                    buttons[correctBtnIndex].classList.add('correct');
+                }
+            }
+
+            // Disable all buttons
+            for (let btn of buttons) {
+                btn.disabled = true;
+            }
+
+            // Show explanation
+            document.getElementById(`explain-${cardIndex}`).style.display = 'block';
+        }
+
+        function finishQuiz() {
+            if(answeredCount < totalQuestions) {
+                const confirmMsg = confirm(`Bạn mới làm ${answeredCount}/${totalQuestions} câu. Bạn có chắc chắn muốn nộp bài không?`);
+                if(!confirmMsg) return;
+            }
+
+            const modal = document.getElementById('result-modal');
+            const scoreDisplay = document.getElementById('final-score-display');
+            const feedback = document.getElementById('feedback-msg');
+
+            scoreDisplay.innerText = `${score}/${totalQuestions}`;
+
+            const percentage = (score / totalQuestions) * 100;
+            if(percentage === 100) {
+                feedback.innerText = "Xuất sắc! Bạn là thiên tài ngữ pháp! 🌟";
+                triggerConfetti();
+            } else if (percentage >= 80) {
+                feedback.innerText = "Làm tốt lắm! Chỉ một chút nữa là hoàn hảo! 🔥";
+            } else if (percentage >= 50) {
+                feedback.innerText = "Khá tốt, nhưng hãy xem lại phần giải thích kỹ hơn nhé! 📚";
+            } else {
+                feedback.innerText = "Đừng buồn, hãy ôn tập lại từ vựng và thử lại nhé! 💪";
+            }
+
+            modal.style.display = 'flex';
+        }
+
+        // --- Simple Confetti Logic ---
+        function triggerConfetti() {
+            const canvas = document.getElementById('confetti-canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+
+            const particles = [];
+            const colors = ['#8854C0', '#00C9A7', '#FF4757', '#FFD700', '#00D26A'];
+
+            for (let i = 0; i < 100; i++) {
+                particles.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height - canvas.height,
+                    vx: Math.random() * 4 - 2,
+                    vy: Math.random() * 5 + 2,
+                    color: colors[Math.floor(Math.random() * colors.length)],
+                    size: Math.random() * 8 + 4
+                });
+            }
+
+            let animationId;
+            function animate() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                let active = false;
+                particles.forEach(p => {
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    if (p.y < canvas.height) active = true;
+                    
+                    ctx.fillStyle = p.color;
+                    ctx.fillRect(p.x, p.y, p.size, p.size);
+                });
+
+                if (active) {
+                    animationId = requestAnimationFrame(animate);
+                } else {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                }
+            }
+            animate();
+            
+            // Stop after 2 seconds to save resources
+            setTimeout(() => cancelAnimationFrame(animationId), 2000);
+        }
+
+        // Initialize
+        window.onload = initQuiz;
+
+    </script>
+</body>
+</html>

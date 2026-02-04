@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exercise 11: Present Simple vs Simple Future - Ms Mai An ULIS</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Nunito -->
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <!-- Confetti Library -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    
+    <style>
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: #f0fdfa; /* Teal-50 */
+            background-image: radial-gradient(#ccfbf1 2px, transparent 2px);
+            background-size: 30px 30px;
+        }
+
+        /* 3D Button Styles */
+        .btn-3d {
+            transition: all 0.1s;
+            border-bottom-width: 6px;
+            position: relative;
+            top: 0px;
+        }
+        
+        .btn-3d:active {
+            border-bottom-width: 0px;
+            top: 6px;
+        }
+
+        /* Colors for 3D buttons */
+        .btn-default {
+            background-color: white;
+            color: #4b5563;
+            border-color: #e5e7eb;
+            border-bottom-color: #d1d5db;
+        }
+        .btn-default:hover {
+            background-color: #f9fafb;
+            transform: translateY(-2px);
+            border-bottom-width: 8px;
+            top: -2px;
+        }
+        .btn-default:active {
+            transform: translateY(4px);
+            border-bottom-width: 0px;
+            top: 4px;
+        }
+
+        .btn-correct {
+            background-color: #00D26A !important;
+            color: white !important;
+            border-color: #00b85c !important;
+            border-bottom-color: #008f47 !important;
+            pointer-events: none;
+        }
+
+        .btn-wrong {
+            background-color: #FF4757 !important;
+            color: white !important;
+            border-color: #ff2e40 !important;
+            border-bottom-color: #cc1e2e !important;
+            animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+            pointer-events: none;
+        }
+
+        /* Animations */
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-1px, 0, 0); }
+            20%, 80% { transform: translate3d(2px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+            40%, 60% { transform: translate3d(4px, 0, 0); }
+        }
+
+        .fade-in-up {
+            animation: fadeInUp 0.5s ease-out forwards;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Custom Scrollbar for Explanation */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f1f1; 
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #c4b5fd; 
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #a78bfa; 
+        }
+
+        .primary-gradient-text {
+            background: linear-gradient(to right, #8854C0, #00C9A7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-center p-4">
+
+    <!-- Header Branding -->
+    <header class="w-full max-w-4xl flex justify-between items-center mb-6">
+        <div class="flex items-center gap-3 bg-white px-4 py-2 rounded-2xl shadow-lg border-b-4 border-purple-200">
+            <div class="w-10 h-10 bg-purple-600 rounded-full flex items-center justify-center text-white font-bold text-xl">M</div>
+            <div>
+                <h1 class="font-bold text-purple-700 leading-tight">Ms Mai An ULIS</h1>
+                <p class="text-xs text-gray-500 font-semibold">Master English Teacher</p>
+            </div>
+        </div>
+        <div class="flex items-center gap-2 bg-white px-4 py-2 rounded-2xl shadow-lg border-b-4 border-teal-200">
+            <span class="text-2xl">🏆</span>
+            <span class="font-bold text-teal-600 text-xl" id="score-display">0/0</span>
+        </div>
+    </header>
+
+    <!-- Main Quiz Container -->
+    <main id="quiz-container" class="w-full max-w-3xl relative perspective-1000">
+        
+        <!-- Progress Bar -->
+        <div class="w-full bg-gray-200 rounded-full h-4 mb-6 border-2 border-white shadow-sm overflow-hidden">
+            <div id="progress-bar" class="bg-gradient-to-r from-purple-500 to-teal-400 h-full rounded-full transition-all duration-500 ease-out" style="width: 0%"></div>
+        </div>
+
+        <!-- Question Card -->
+        <div id="card-content" class="bg-white rounded-3xl shadow-2xl border-4 border-indigo-100 p-6 md:p-8 relative overflow-hidden min-h-[400px]">
+            
+            <!-- Question Header -->
+            <div class="flex justify-between items-start mb-4">
+                <span class="bg-purple-100 text-purple-700 px-3 py-1 rounded-lg font-bold text-sm uppercase tracking-wide">Question <span id="q-number">1</span>/20</span>
+                <button onclick="toggleHint()" class="text-yellow-500 hover:text-yellow-600 transition-colors" title="Xem gợi ý">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Question Text -->
+            <h2 id="question-text" class="text-xl md:text-2xl font-extrabold text-gray-800 mb-8 leading-relaxed">
+                Loading...
+            </h2>
+
+            <!-- Options Grid -->
+            <div id="options-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <!-- Options will be injected here -->
+            </div>
+
+            <!-- Hint Box (Hidden) -->
+            <div id="hint-box" class="hidden absolute top-16 right-6 bg-yellow-100 border-l-4 border-yellow-500 p-4 rounded-r shadow-lg max-w-xs z-20 fade-in-up">
+                <p class="font-bold text-yellow-800 text-sm">💡 Gợi ý:</p>
+                <p id="hint-text" class="text-yellow-900 text-sm mt-1">...</p>
+            </div>
+
+            <!-- Explanation Box (Hidden initially) -->
+            <div id="explanation-box" class="hidden mt-6 bg-indigo-50 border-2 border-indigo-200 rounded-xl p-5 fade-in-up">
+                <div class="flex items-center gap-2 mb-3">
+                    <span class="text-2xl">👩‍🏫</span>
+                    <h3 class="font-bold text-indigo-700 text-lg">Cô Mai An giải thích chi tiết:</h3>
+                </div>
+                <div id="explanation-content" class="text-gray-700 text-base leading-relaxed whitespace-pre-line custom-scrollbar max-h-60 overflow-y-auto pr-2">
+                    <!-- Content goes here -->
+                </div>
+            </div>
+
+            <!-- Controls -->
+            <div class="mt-8 flex justify-end">
+                <button id="next-btn" onclick="nextQuestion()" class="hidden btn-3d bg-teal-500 hover:bg-teal-400 text-white font-bold py-3 px-8 rounded-xl text-lg shadow-lg border-b-4 border-teal-700 active:border-b-0 active:translate-y-1">
+                    Câu tiếp theo ➜
+                </button>
+                <button id="finish-btn" onclick="finishQuiz()" class="hidden btn-3d bg-purple-600 hover:bg-purple-500 text-white font-bold py-3 px-8 rounded-xl text-lg shadow-lg border-b-4 border-purple-800 active:border-b-0 active:translate-y-1">
+                    Nộp bài & Xem điểm 🏁
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <!-- Result Modal -->
+    <div id="result-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl p-8 max-w-md w-full text-center shadow-2xl transform scale-100 animate-bounce-in relative overflow-hidden">
+            <div class="absolute top-0 left-0 w-full h-4 bg-gradient-to-r from-purple-500 to-teal-400"></div>
+            
+            <div class="text-6xl mb-4">🎉</div>
+            <h2 class="text-3xl font-extrabold text-gray-800 mb-2">Hoàn thành!</h2>
+            <p class="text-gray-500 mb-6">Bạn đã làm rất tốt bài kiểm tra này.</p>
+            
+            <div class="bg-gray-100 rounded-2xl p-6 mb-6">
+                <p class="text-sm text-gray-500 uppercase font-bold tracking-wider">Tổng điểm</p>
+                <p id="final-score" class="text-5xl font-black primary-gradient-text mt-2">0/20</p>
+            </div>
+
+            <p id="feedback-text" class="text-lg font-bold text-indigo-600 mb-8">Xuất sắc quá đi! 🌟</p>
+
+            <button onclick="location.reload()" class="w-full btn-3d bg-purple-600 hover:bg-purple-500 text-white font-bold py-4 rounded-xl text-xl border-b-4 border-purple-800">
+                Làm lại bài này 🔄
+            </button>
+        </div>
+    </div>
+
+    <!-- Audio Elements (Generated via JS to avoid external links) -->
+    <!-- We will use Web Audio API for cleaner implementation without external dependencies -->
+
+    <script>
+        // DATA SOURCE
+        const quizData = {
+  "questions": [
+    {
+      "questionNumber": 1,
+      "question": "Our flight ______________ (arrive) at 9:30.",
+      "answerOptions": [
+        { "text": "arrives", "rationale": "✅ Chính xác!\n\n1. Phân tích:\n- arrives (Present Simple): đến (lịch trình)\n- will arrive (Future Simple): sẽ đến\n\n2. Giải thích: Giờ máy bay hạ cánh (flight) là lịch trình cố định (timetable) -> Dùng Hiện tại đơn.\n\n3. Dịch câu: Chuyến bay của chúng tôi hạ cánh lúc 9:30.", "isCorrect": true },
+        { "text": "will arrive", "rationale": "❌ Không dùng 'will' cho lịch trình tàu xe.", "isCorrect": false },
+        { "text": "is arriving", "rationale": "❌ Dùng tiếp diễn (đang đến/sắp đến) cũng có thể đúng trong giao tiếp nhưng với giờ giấc cụ thể (9:30) trong bài tập ngữ pháp, Hiện tại đơn là đáp án chuẩn nhất.", "isCorrect": false },
+        { "text": "arrived", "rationale": "❌ Quá khứ.", "isCorrect": false }
+      ],
+      "hint": "Lịch trình máy bay cố định."
+    },
+    {
+      "questionNumber": 2,
+      "question": "The fashion show ______________ (begin) at 7:30 p.m, so we ______________ (have) time for dinner first.",
+      "answerOptions": [
+        { "text": "begins / will have", "rationale": "✅ Chính xác!\n\n1. Phân tích:\n- Vế 1: Show diễn thời trang có giờ cố định -> Hiện tại đơn (begins).\n- Vế 2: Suy luận/dự đoán kết quả -> Tương lai đơn (will have).\n\n2. Dịch câu: Buổi trình diễn thời trang bắt đầu lúc 7:30 tối, vì vậy chúng ta sẽ có thời gian ăn tối trước.", "isCorrect": true },
+        { "text": "will begin / have", "rationale": "❌ Sai thì vế 1 (lịch trình không dùng will).", "isCorrect": false },
+        { "text": "begins / have", "rationale": "❌ Sai thì vế 2 (đây là kết quả dự kiến trong tương lai, dùng will have hay hơn).", "isCorrect": false },
+        { "text": "will begin / will have", "rationale": "❌ Sai thì vế 1.", "isCorrect": false }
+      ],
+      "hint": "Vế 1 là lịch trình. Vế 2 là kết quả trong tương lai."
+    },
+    {
+      "questionNumber": 3,
+      "question": "George says he ______________ (help) us with the decoration.",
+      "answerOptions": [
+        { "text": "will help", "rationale": "✅ Chính xác!\n\n1. Phân tích:\n- will help (Future Simple): sẽ giúp\n- helps (Present Simple): giúp (thói quen)\n\n2. Giải thích: Đây là một lời hứa hoặc thông báo về ý định trong tương lai (George says...) -> Dùng Tương lai đơn.\n\n3. Dịch câu: George nói anh ấy sẽ giúp chúng tôi phần trang trí.", "isCorrect": true },
+        { "text": "helps", "rationale": "❌ Sai. Không phải thói quen hay lịch trình.", "isCorrect": false },
+        { "text": "is helping", "rationale": "❌ Hiện tại tiếp diễn (kế hoạch đã định sẵn) cũng có thể dùng, nhưng Tương lai đơn phổ biến hơn với động từ 'say' để tường thuật ý định.", "isCorrect": false },
+        { "text": "help", "rationale": "❌ Sai chia động từ (He số ít).", "isCorrect": false }
+      ],
+      "hint": "Lời hứa hoặc ý định giúp đỡ."
+    },
+    {
+      "questionNumber": 4,
+      "question": "The train ______________ (arrive) at 6:30 in the morning.",
+      "answerOptions": [
+        { "text": "arrives", "rationale": "✅ Chính xác!\n\n1. Phân tích:\n- arrives (Present Simple)\n- will arrive (Future Simple)\n\n2. Giải thích: Lịch tàu chạy (timetable) -> Dùng Hiện tại đơn.\n\n3. Dịch câu: Tàu đến lúc 6:30 sáng.", "isCorrect": true },
+        { "text": "will arrive", "rationale": "❌ Sai quy tắc lịch trình.", "isCorrect": false },
+        { "text": "arrive", "rationale": "❌ Sai chia động từ (Train số ít).", "isCorrect": false },
+        { "text": "arrived", "rationale": "❌ Quá khứ.", "isCorrect": false }
+      ],
+      "hint": "Lịch tàu xe cố định."
+    },
+    {
+      "questionNumber": 5,
+      "question": "If you are busy today, I ______________ (see) you tomorrow.",
+      "answerOptions": [
+        { "text": "will see", "rationale": "✅ Chính xác!\n\n1. Phân tích:\n- will see (Future Simple): sẽ gặp\n- see (Present Simple): gặp\n\n2. Giải thích: Câu điều kiện loại 1 (If + Hiện tại đơn, S + Will + V). Diễn tả quyết định hoặc khả năng trong tương lai.\n\n3. Dịch câu: Nếu hôm nay bạn bận, tôi sẽ gặp bạn vào ngày mai.", "isCorrect": true },
+        { "text": "see", "rationale": "❌ Sai cấu trúc câu điều kiện loại 1.", "isCorrect": false },
+        { "text": "am seeing", "rationale": "❌ Ít dùng trong ngữ cảnh câu điều kiện này.", "isCorrect": false },
+        { "text": "saw", "rationale": "❌ Quá khứ.", "isCorrect": false }
+      ],
+      "hint": "Câu điều kiện loại 1."
+    },
+    {
+      "questionNumber": 6,
+      "question": "What time _____________________ (the movie, start) tonight?",
+      "answerOptions": [
+        { "text": "does the movie start", "rationale": "✅ Chính xác!\n\n1. Phân tích:\n- Does ... start (Present Simple)\n- Will ... start (Future Simple)\n\n2. Giải thích: Hỏi giờ chiếu phim (lịch trình) -> Dùng Hiện tại đơn.\n\n3. Dịch câu: Bộ phim bắt đầu lúc mấy giờ tối nay?", "isCorrect": true },
+        { "text": "will the movie start", "rationale": "❌ Không dùng will cho lịch trình.", "isCorrect": false },
+        { "text": "the movie starts", "rationale": "❌ Sai cấu trúc câu hỏi (thiếu trợ từ đảo ngữ).", "isCorrect": false },
+        { "text": "is the movie starting", "rationale": "❌ Hiện tại tiếp diễn cũng có thể dùng cho tương lai gần, nhưng khi hỏi giờ giấc cụ thể (timetable), hiện tại đơn chuẩn xác hơn.", "isCorrect": false }
+      ],
+      "hint": "Câu hỏi về lịch chiếu phim."
+    },
+    {
+      "questionNumber": 7,
+      "question": "I think Vietnam ______________ (win) the AFF Cup again.",
+      "answerOptions": [
+        { "text": "will win", "rationale": "✅ Chính xác!\n\n1. Phân tích:\n- will win (Future Simple): sẽ thắng\n- wins (Present Simple): thắng\n\n2. Giải thích: \"I think\" (tôi nghĩ) diễn tả dự đoán chủ quan -> Dùng Tương lai đơn.\n\n3. Dịch câu: Tôi nghĩ Việt Nam sẽ lại vô địch AFF Cup.", "isCorrect": true },
+        { "text": "wins", "rationale": "❌ Sai. Chiến thắng giải đấu không phải là lịch trình cố định.", "isCorrect": false },
+        { "text": "is winning", "rationale": "❌ Đang thắng (tại thời điểm nói), không dùng cho dự đoán tổng quát tương lai.", "isCorrect": false },
+        { "text": "won", "rationale": "❌ Quá khứ.", "isCorrect": false }
+      ],
+      "hint": "Dự đoán chủ quan (I think)."
+    },
+    {
+      "questionNumber": 8,
+      "question": "The exhibition ______________ (open) at 8:00, so I ______________ (meet) you outside at about 7:45.",
+      "answerOptions": [
+        { "text": "opens / will meet", "rationale": "✅ Chính xác!\n\n1. Phân tích:\n- Vế 1: Giờ mở cửa triển lãm là lịch trình -> Hiện tại đơn (opens).\n- Vế 2: Quyết định hẹn gặp (đưa ra lời hẹn) -> Tương lai đơn (will meet).\n\n2. Dịch câu: Triển lãm mở cửa lúc 8:00, vì vậy tôi sẽ gặp bạn bên ngoài lúc khoảng 7:45.", "isCorrect": true },
+        { "text": "will open / meet", "rationale": "❌ Sai vế 1 (lịch trình không dùng will).", "isCorrect": false },
+        { "text": "opens / meet", "rationale": "❌ Sai vế 2 (cần ý nghĩa tương lai cho cuộc hẹn).", "isCorrect": false },
+        { "text": "will open / will meet", "rationale": "❌ Sai vế 1.", "isCorrect": false }
+      ],
+      "hint": "Vế 1: Lịch trình. Vế 2: Lời hẹn/Quyết định."
+    },
+    {
+      "questionNumber": 9,
+      "question": "It ______________ (be) my birthday tomorrow.",
+      "answerOptions": [
+        { "text": "will be", "rationale": "✅ Chính xác!\n\n1. Phân tích:\n- will be (Future Simple): sẽ là\n- is (Present Simple): là\n\n2. Giải thích: Diễn tả một sự việc hiển nhiên sẽ xảy ra trong tương lai (Future Fact) thường dùng 'will be'.\n\n3. Dịch câu: Ngày mai sẽ là sinh nhật tôi.", "isCorrect": true },
+        { "text": "is", "rationale": "⚠️ Chấp nhận được (coi như lịch cố định), nhưng 'will be' nhấn mạnh tính chất sự kiện tương lai tốt hơn.", "isCorrect": false },
+        { "text": "was", "rationale": "❌ Quá khứ.", "isCorrect": false },
+        { "text": "be", "rationale": "❌ Sai ngữ pháp.", "isCorrect": false }
+      ],
+      "hint": "Sự thật trong tương lai."
+    },
+    {
+      "questionNumber": 10,
+      "question": "I'm sure you ______________ (enjoy) the film very much.",
+      "answerOptions": [
+        { "text": "will enjoy", "rationale": "✅ Chính xác!\n\n1. Phân tích:\n- will enjoy (Future Simple): sẽ thích\n- enjoy (Present Simple): thích\n\n2. Giải thích: \"I'm sure\" (tôi chắc chắn) là cụm từ chỉ dự đoán -> Dùng Tương lai đơn.\n\n3. Dịch câu: Tôi chắc chắn rằng bạn sẽ rất thích bộ phim này.", "isCorrect": true },
+        { "text": "enjoy", "rationale": "❌ Sai.", "isCorrect": false },
+        { "text": "are enjoying", "rationale": "❌ Sai.", "isCorrect": false },
+        { "text": "enjoyed", "rationale": "❌ Quá khứ.", "isCorrect": false }
+      ],
+      "hint": "Dự đoán (I'm sure)."
+    },
+    {
+      "questionNumber": 11,
+      "question": "The yoga course ______________ (begin) on 7th July.",
+      "answerOptions": [
+        { "text": "begins", "rationale": "✅ Chính xác!\n\n1. Phân tích:\n- begins (Present Simple)\n- will begin (Future Simple)\n\n2. Giải thích: Lịch học (course schedule) cố định -> Dùng Hiện tại đơn.\n\n3. Dịch câu: Khóa học yoga bắt đầu vào ngày 7 tháng 7.", "isCorrect": true },
+        { "text": "will begin", "rationale": "❌ Lịch trình cố định dùng hiện tại đơn hay hơn.", "isCorrect": false },
+        { "text": "begin", "rationale": "❌ Sai chia động từ (Course số ít).", "isCorrect": false },
+        { "text": "began", "rationale": "❌ Quá khứ.", "isCorrect": false }
+      ],
+      "hint": "Lịch khai giảng khóa học."
+    },
+    {
+      "questionNumber": 12,
+      "question": "I think she ______________ (visit) her grandparents tomorrow.",
+      "answerOptions": [
+        { "text": "will visit", "rationale": "✅ Chính xác!\n\n1. Phân tích:\n- will visit (Future Simple): sẽ thăm\n- visits (Present Simple): thăm\n\n2. Giải thích: \"I think\" (tôi nghĩ) là dự đoán -> Dùng Tương lai đơn.\n\n3. Dịch câu: Tôi nghĩ cô ấy sẽ đi thăm ông bà vào ngày mai.", "isCorrect": true },
+        { "text": "visits", "rationale": "❌ Sai. Đây không phải lịch trình cố định.", "isCorrect": false },
+        { "text": "visiting", "rationale": "❌ Sai ngữ pháp (thiếu to be).", "isCorrect": false },
+        { "text": "visit", "rationale": "❌ Sai ngữ pháp.", "isCorrect": false }
+      ],
+      "hint": "Dự đoán (I think)."
+    },
+    {
+      "questionNumber": 13,
+      "question": "The train ______________ (depart) from platform 5 at 11.30.",
+      "answerOptions": [
+        { "text": "departs", "rationale": "✅ Chính xác!\n\n1. Phân tích:\n- departs (Present Simple)\n- will depart (Future Simple)\n\n2. Giải thích: Lịch tàu chạy (timetable) -> Dùng Hiện tại đơn.\n\n3. Dịch câu: Tàu khởi hành từ sân ga số 5 lúc 11:30.", "isCorrect": true },
+        { "text": "will depart", "rationale": "❌ Sai quy tắc lịch trình.", "isCorrect": false },
+        { "text": "depart", "rationale": "❌ Sai chia động từ (Train số ít).", "isCorrect": false },
+        { "text": "is departing", "rationale": "❌ Ít dùng hơn so với departs cho lịch cố định.", "isCorrect": false }
+      ],
+      "hint": "Lịch tàu chạy."
+    },
+    {
+      "questionNumber": 14,
+      "question": "When ______________ the art exhibition ______________? (end)",
+      "answerOptions": [
+        { "text": "does ... end", "rationale": "✅ Chính xác!\n\n1. Phân tích:\n- Does ... end (Present Simple)\n- Will ... end (Future Simple)\n\n2. Giải thích: Hỏi về giờ kết thúc của triển lãm (lịch trình) -> Dùng Hiện tại đơn.\n\n3. Dịch câu: Khi nào thì triển lãm nghệ thuật kết thúc?", "isCorrect": true },
+        { "text": "will ... end", "rationale": "❌ Không dùng will cho lịch trình.", "isCorrect": false },
+        { "text": "is ... ending", "rationale": "❌ Không chuẩn bằng hiện tại đơn.", "isCorrect": false },
+        { "text": "did ... end", "rationale": "❌ Quá khứ.", "isCorrect": false }
+      ],
+      "hint": "Câu hỏi về lịch trình sự kiện."
+    },
+    {
+      "questionNumber": 15,
+      "question": "My daughter ______________ (be) fifteen next week.",
+      "answerOptions": [
+        { "text": "will be", "rationale": "✅ Chính xác!\n\n1. Phân tích:\n- will be (Future Simple): sẽ (chỉ tuổi tác)\n- is (Present Simple): là\n\n2. Giải thích: Nói về tuổi tác trong tương lai (Future Fact) luôn dùng \"will be\".\n\n3. Dịch câu: Con gái tôi sẽ tròn mười lăm tuổi vào tuần tới.", "isCorrect": true },
+        { "text": "is", "rationale": "❌ Sai. Tuổi tác tương lai không dùng hiện tại đơn.", "isCorrect": false },
+        { "text": "is being", "rationale": "❌ Sai.", "isCorrect": false },
+        { "text": "be", "rationale": "❌ Sai.",
+        "isCorrect": false }
+      ],
+      "hint": "Tuổi tác trong tương lai luôn dùng Will."
+    },
+    {
+      "questionNumber": 16,
+      "question": "______________ (the plane /take) off at l0 p.m. as usual?",
+      "answerOptions": [
+        { "text": "Does the plane take", "rationale": "✅ Chính xác!\n\n1. Phân tích:\n- Does ... take (Present Simple)\n- Will ... take (Future Simple)\n\n2. Giải thích: Cụm từ \"as usual\" (như thường lệ) và lịch trình máy bay -> Dùng Hiện tại đơn.\n\n3. Dịch câu: Máy bay có cất cánh lúc 10 giờ tối như thường lệ không?", "isCorrect": true },
+        { "text": "Will the plane take", "rationale": "❌ Sai quy tắc lịch trình.", "isCorrect": false },
+        { "text": "Is the plane taking", "rationale": "❌ Sai.", "isCorrect": false },
+        { "text": "Did the plane take", "rationale": "❌ Quá khứ.", "isCorrect": false }
+      ],
+      "hint": "Lịch trình máy bay."
+    },
+    {
+      "questionNumber": 17,
+      "question": "______________ (you/ open) the door for me, please?",
+      "answerOptions": [
+        { "text": "Will you open", "rationale": "✅ Chính xác!\n\n1. Phân tích:\n- Will you open: Bạn sẽ mở... (Câu yêu cầu/nhờ vả)\n- Do you open: Bạn có mở... (Hỏi thói quen)\n\n2. Giải thích: Dùng \"Will you...\" để đưa ra lời yêu cầu hoặc nhờ vả lịch sự.\n\n3. Dịch câu: Bạn vui lòng mở cửa giúp tôi được không?", "isCorrect": true },
+        { "text": "Do you open", "rationale": "❌ Sai. Đây là hỏi thói quen, không phải lời nhờ vả.", "isCorrect": false },
+        { "text": "Are you opening", "rationale": "❌ Sai.", "isCorrect": false },
+        { "text": "Did you open", "rationale": "❌ Quá khứ.", "isCorrect": false }
+      ],
+      "hint": "Câu đề nghị/nhờ vả dùng Will."
+    },
+    {
+      "questionNumber": 18,
+      "question": "I don't think the new shopping mall ______________ (open) tomorrow.",
+      "answerOptions": [
+        { "text": "will open", "rationale": "✅ Chính xác!\n\n1. Phân tích:\n- will open (Future Simple)\n- opens (Present Simple)\n\n2. Giải thích: \"I don't think\" (Tôi không nghĩ) là dự đoán chủ quan về việc xảy ra sự kiện -> Dùng Tương lai đơn.\n\n3. Dịch câu: Tôi không nghĩ trung tâm mua sắm mới sẽ mở cửa vào ngày mai.", "isCorrect": true },
+        { "text": "opens", "rationale": "⚠️ Nếu coi đây là lịch trình đã công bố thì 'opens' đúng, nhưng với cụm 'I don't think' thì người nói đang dự đoán về khả năng xảy ra hơn là nói về lịch trình.", "isCorrect": false },
+        { "text": "open", "rationale": "❌ Sai chia động từ (Mall số ít).", "isCorrect": false },
+        { "text": "opened", "rationale": "❌ Quá khứ.", "isCorrect": false }
+      ],
+      "hint": "Dự đoán (I don't think)."
+    },
+    {
+      "questionNumber": 19,
+      "question": "There's no need to hurry. The concert ______________ (begin) at 7 o'clock.",
+      "answerOptions": [
+        { "text": "begins", "rationale": "✅ Chính xác!\n\n1. Phân tích:\n- begins (Present Simple)\n- will begin (Future Simple)\n\n2. Giải thích: Giờ hòa nhạc (Concert) là lịch trình cố định -> Dùng Hiện tại đơn.\n\n3. Dịch câu: Không cần phải vội đâu. Buổi hòa nhạc bắt đầu lúc 7 giờ.", "isCorrect": true },
+        { "text": "will begin", "rationale": "❌ Sai quy tắc lịch trình.", "isCorrect": false },
+        { "text": "begin", "rationale": "❌ Sai chia động từ (Concert số ít).", "isCorrect": false },
+        { "text": "is beginning", "rationale": "❌ Sai.", "isCorrect": false }
+      ],
+      "hint": "Lịch biểu diễn cố định."
+    },
+    {
+      "questionNumber": 20,
+      "question": "The train ______________ (not leave) at 10.15. It ______________ (arrive) at 10.15.",
+      "answerOptions": [
+        { "text": "doesn't leave / arrives", "rationale": "✅ Chính xác!\n\n1. Phân tích:\n- Lịch tàu (timetable) -> Dùng Hiện tại đơn.\n- Phủ định số ít: doesn't leave.\n- Khẳng định số ít: arrives.\n\n2. Giải thích: Cả hai vế đều nói về lịch trình tàu chạy.\n\n3. Dịch câu: Tàu không rời đi lúc 10:15. Nó đến lúc 10:15.", "isCorrect": true },
+        { "text": "won't leave / will arrive", "rationale": "❌ Sai quy tắc lịch trình.", "isCorrect": false },
+        { "text": "not leaves / arrives", "rationale": "❌ Sai ngữ pháp phủ định (thiếu trợ từ does).", "isCorrect": false },
+        { "text": "don't leave / arrive", "rationale": "❌ Sai chia động từ (Train số ít).", "isCorrect": false }
+      ],
+      "hint": "Lịch trình tàu xe dùng Hiện tại đơn."
+    }
+  ]
+};
+
+        // APP LOGIC
+        let currentQuestionIndex = 0;
+        let score = 0;
+        const totalQuestions = quizData.questions.length;
+        let answered = false;
+
+        // Sound Synthesis (No external files)
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        function playSound(type) {
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+
+            if (type === 'correct') {
+                // "Ding" sound - High pitch sine wave
+                oscillator.type = 'sine';
+                oscillator.frequency.setValueAtTime(500, audioCtx.currentTime);
+                oscillator.frequency.exponentialRampToValueAtTime(1000, audioCtx.currentTime + 0.1);
+                gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+                oscillator.start();
+                oscillator.stop(audioCtx.currentTime + 0.5);
+            } else {
+                // "Buzz/Funny Fail" sound - Sawtooth wave dropping pitch "Téo tèo tèo"
+                oscillator.type = 'sawtooth';
+                oscillator.frequency.setValueAtTime(300, audioCtx.currentTime);
+                oscillator.frequency.linearRampToValueAtTime(200, audioCtx.currentTime + 0.15);
+                oscillator.frequency.linearRampToValueAtTime(150, audioCtx.currentTime + 0.3);
+                
+                gainNode.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                gainNode.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+                
+                oscillator.start();
+                oscillator.stop(audioCtx.currentTime + 0.5);
+            }
+        }
+
+        // Render Question
+        function renderQuestion(index) {
+            answered = false;
+            const q = quizData.questions[index];
+            
+            // Update Text
+            document.getElementById('q-number').textContent = index + 1;
+            document.getElementById('question-text').textContent = q.question;
+            document.getElementById('hint-text').textContent = q.hint;
+            document.getElementById('hint-box').classList.add('hidden');
+            
+            // Update Progress
+            const progress = ((index) / totalQuestions) * 100;
+            document.getElementById('progress-bar').style.width = `${progress}%`;
+
+            // Reset UI
+            document.getElementById('explanation-box').classList.add('hidden');
+            document.getElementById('next-btn').classList.add('hidden');
+            document.getElementById('finish-btn').classList.add('hidden');
+            
+            // Shuffle Options (Optional: Currently keeping original order for logic)
+            const optionsDiv = document.getElementById('options-grid');
+            optionsDiv.innerHTML = '';
+
+            q.answerOptions.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.className = `btn-3d btn-default w-full p-4 rounded-xl text-lg font-bold text-gray-700 flex items-center justify-between group`;
+                btn.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <span class="w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center text-sm border-2 border-indigo-200 group-hover:bg-indigo-200 transition-colors">
+                            ${String.fromCharCode(65 + idx)}
+                        </span>
+                        <span>${opt.text}</span>
+                    </div>
+                `;
+                btn.onclick = () => checkAnswer(btn, opt, q);
+                optionsDiv.appendChild(btn);
+            });
+        }
+
+        // Check Answer
+        function checkAnswer(btn, option, questionData) {
+            if (answered) return;
+            answered = true;
+
+            // Find all buttons
+            const allBtns = document.querySelectorAll('#options-grid button');
+
+            if (option.isCorrect) {
+                // CORRECT
+                score++;
+                document.getElementById('score-display').textContent = `${score}/${totalQuestions}`;
+                btn.classList.remove('btn-default');
+                btn.classList.add('btn-correct');
+                playSound('correct');
+                confetti({
+                    particleCount: 100,
+                    spread: 70,
+                    origin: { y: 0.6 }
+                });
+            } else {
+                // WRONG
+                btn.classList.remove('btn-default');
+                btn.classList.add('btn-wrong');
+                playSound('wrong');
+                
+                // Highlight correct one
+                questionData.answerOptions.forEach((opt, idx) => {
+                    if (opt.isCorrect) {
+                        allBtns[idx].classList.remove('btn-default');
+                        allBtns[idx].classList.add('btn-correct');
+                        allBtns[idx].style.opacity = "0.7"; // Dim the correct one slightly if user picked wrong, to focus on the error first
+                    }
+                });
+            }
+
+            // Disable all buttons
+            allBtns.forEach(b => b.disabled = true);
+
+            // Show Explanation immediately (Crucial Requirement)
+            showExplanation(questionData.answerOptions.find(o => o.isCorrect).rationale);
+
+            // Show Next/Finish button
+            if (currentQuestionIndex < totalQuestions - 1) {
+                document.getElementById('next-btn').classList.remove('hidden');
+            } else {
+                document.getElementById('finish-btn').classList.remove('hidden');
+                document.getElementById('progress-bar').style.width = '100%';
+            }
+        }
+
+        function showExplanation(rationaleText) {
+            const expBox = document.getElementById('explanation-box');
+            const expContent = document.getElementById('explanation-content');
+            
+            // Format existing rationale (add bolding to keywords)
+            let formattedText = rationaleText
+                .replace(/✅/g, '<span class="text-green-600 font-bold text-lg">✅</span>')
+                .replace(/❌/g, '<span class="text-red-500 font-bold">❌</span>')
+                .replace(/(\d+\. )/g, '<br><strong class="text-indigo-600">$1</strong>');
+            
+            // Add custom spacing for "Dịch câu" if needed based on input format
+            
+            expContent.innerHTML = formattedText;
+            expBox.classList.remove('hidden');
+        }
+
+        function toggleHint() {
+            document.getElementById('hint-box').classList.toggle('hidden');
+        }
+
+        function nextQuestion() {
+            currentQuestionIndex++;
+            renderQuestion(currentQuestionIndex);
+        }
+
+        function finishQuiz() {
+            const modal = document.getElementById('result-modal');
+            const finalScoreEl = document.getElementById('final-score');
+            const feedbackEl = document.getElementById('feedback-text');
+
+            finalScoreEl.textContent = `${score}/${totalQuestions}`;
+            
+            const percentage = (score / totalQuestions) * 100;
+            if (percentage === 100) {
+                feedbackEl.textContent = "Tuyệt đỉnh! Không sai câu nào! 🌟👽";
+                confetti({ particleCount: 200, spread: 100, origin: { y: 0.6 } });
+            } else if (percentage >= 80) {
+                feedbackEl.textContent = "Làm tốt lắm! Em rất thông minh! 🚀";
+            } else if (percentage >= 50) {
+                feedbackEl.textContent = "Cố gắng thêm chút nữa nhé! 💪";
+            } else {
+                feedbackEl.textContent = "Hãy ôn tập lại ngữ pháp nhé! 📚";
+            }
+
+            modal.classList.remove('hidden');
+        }
+
+        // Initialize
+        renderQuestion(0);
+        document.getElementById('score-display').textContent = `0/${totalQuestions}`;
+
+    </script>
+</body>
+</html>

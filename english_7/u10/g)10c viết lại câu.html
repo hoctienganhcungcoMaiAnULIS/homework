@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ms. Mai An ULIS - Sentence Building Game</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #8854C0;   /* Tím Pastel */
+            --secondary: #00C9A7; /* Xanh ngọc */
+            --correct: #00D26A;   /* Xanh lá tươi */
+            --wrong: #FF4757;     /* Đỏ cam */
+            --bg-color: #f0f3f8;
+            --card-bg: #ffffff;
+            --text-color: #2f3542;
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: var(--bg-color);
+            background-image: radial-gradient(#dcdde1 15%, transparent 16%), radial-gradient(#dcdde1 15%, transparent 16%);
+            background-size: 20px 20px;
+            background-position: 0 0, 10px 10px;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: var(--text-color);
+        }
+
+        .game-container {
+            width: 100%;
+            max-width: 800px;
+            background: var(--card-bg);
+            border-radius: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            overflow: hidden;
+            position: relative;
+            padding-bottom: 20px;
+        }
+
+        /* Header */
+        .header {
+            background: var(--primary);
+            padding: 15px 20px;
+            text-align: center;
+            color: white;
+            font-family: 'Quicksand', sans-serif;
+            position: relative;
+            border-bottom: 5px solid rgba(0,0,0,0.1);
+        }
+
+        .teacher-name {
+            font-size: 0.9rem;
+            opacity: 0.9;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 700;
+        }
+
+        .lesson-title {
+            font-size: 1.5rem;
+            font-weight: 800;
+            margin: 5px 0 0 0;
+            text-shadow: 2px 2px 0px rgba(0,0,0,0.1);
+        }
+
+        /* Progress Bar */
+        .progress-container {
+            background: #dfe6e9;
+            height: 10px;
+            width: 100%;
+        }
+
+        .progress-bar {
+            background: var(--secondary);
+            height: 100%;
+            width: 0%;
+            transition: width 0.5s ease;
+            border-radius: 0 5px 5px 0;
+        }
+
+        /* Question Area */
+        .question-box {
+            padding: 30px 20px;
+            text-align: center;
+        }
+
+        .question-number {
+            display: inline-block;
+            background: var(--secondary);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: 800;
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 0 rgba(0,0,0,0.1);
+        }
+
+        .question-text {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #2d3436;
+            line-height: 1.5;
+        }
+
+        /* Options Area */
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+            padding: 0 30px;
+        }
+
+        .option-btn {
+            background: white;
+            border: 2px solid #dfe6e9;
+            padding: 15px 20px;
+            border-radius: 15px;
+            font-family: 'Nunito', sans-serif;
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-color);
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+            box-shadow: 0 5px 0 #dfe6e9;
+            text-align: left;
+            display: flex;
+            align-items: center;
+        }
+
+        .option-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .option-btn:active:not(:disabled) {
+            transform: translateY(2px);
+            box-shadow: 0 0 0 #dfe6e9;
+        }
+
+        .option-btn.correct {
+            background: var(--correct);
+            border-color: var(--correct);
+            color: white;
+            box-shadow: 0 5px 0 #00b894;
+        }
+
+        .option-btn.wrong {
+            background: var(--wrong);
+            border-color: var(--wrong);
+            color: white;
+            box-shadow: 0 5px 0 #e17055;
+            animation: shake 0.5s;
+        }
+
+        .option-marker {
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            width: 30px;
+            height: 30px;
+            background: rgba(0,0,0,0.05);
+            border-radius: 50%;
+            margin-right: 15px;
+            font-weight: 800;
+            flex-shrink: 0;
+        }
+
+        /* Explanation Area */
+        .explanation-box {
+            margin: 20px 30px;
+            background: #fff4e6;
+            border: 2px solid #ffeaa7;
+            border-radius: 15px;
+            padding: 20px;
+            display: none; /* Hidden by default */
+            animation: slideIn 0.5s ease;
+        }
+
+        .explanation-header {
+            font-weight: 800;
+            color: #d63031;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .explanation-content {
+            font-size: 0.95rem;
+            line-height: 1.6;
+            white-space: pre-wrap; /* Preserves newlines */
+            color: #2d3436;
+        }
+        
+        .explanation-content strong {
+            color: var(--primary);
+        }
+
+        /* Controls */
+        .controls {
+            padding: 20px 30px;
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .next-btn {
+            background: var(--secondary);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: 800;
+            cursor: pointer;
+            box-shadow: 0 5px 0 #00b894;
+            transition: all 0.2s;
+            display: none; /* Hidden until answered */
+            font-family: 'Quicksand', sans-serif;
+        }
+
+        .next-btn:hover {
+            transform: translateY(-2px);
+            filter: brightness(1.1);
+        }
+        
+        .next-btn:active {
+            transform: translateY(2px);
+            box-shadow: none;
+        }
+
+        /* Result Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background: white;
+            padding: 40px;
+            border-radius: 25px;
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            animation: zoomIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+        }
+
+        .score-display {
+            font-size: 4rem;
+            font-weight: 900;
+            color: var(--primary);
+            margin: 10px 0;
+        }
+
+        .score-text {
+            font-size: 1.2rem;
+            color: #636e72;
+            margin-bottom: 20px;
+        }
+
+        .restart-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: 800;
+            cursor: pointer;
+            box-shadow: 0 5px 0 #6c429c;
+            width: 100%;
+        }
+
+        /* Animations */
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            50% { transform: translateX(10px); }
+            75% { transform: translateX(-10px); }
+            100% { transform: translateX(0); }
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes zoomIn {
+            from { transform: scale(0.5); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        /* Canvas for Confetti */
+        #confetti-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 999;
+        }
+
+        @media (max-width: 600px) {
+            .game-container {
+                border-radius: 15px;
+            }
+            .question-text {
+                font-size: 1.1rem;
+            }
+            .option-btn {
+                padding: 12px 15px;
+                font-size: 0.95rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="game-container">
+        <div class="header">
+            <div class="teacher-name">Giáo viên tạo: Ms Mai An ULIS</div>
+            <h1 class="lesson-title">Unit 10: Sentence Building</h1>
+        </div>
+
+        <div class="progress-container">
+            <div class="progress-bar" id="progress-bar"></div>
+        </div>
+
+        <div id="quiz-area">
+            <div class="question-box">
+                <div class="question-number">Question <span id="current-q-num">1</span>/10</div>
+                <div class="question-text" id="question-text">Loading...</div>
+            </div>
+
+            <div class="options-grid" id="options-container">
+                <!-- Options will be injected here -->
+            </div>
+
+            <div class="explanation-box" id="explanation-box">
+                <div class="explanation-header">
+                    <span>💡 GIẢI THÍCH CHI TIẾT CỦA CÔ MAI AN:</span>
+                </div>
+                <div class="explanation-content" id="explanation-content">
+                    <!-- Explanation content goes here -->
+                </div>
+            </div>
+
+            <div class="controls">
+                <button class="next-btn" id="next-btn" onclick="nextQuestion()">Câu tiếp theo ➜</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Result Modal -->
+    <div class="modal-overlay" id="result-modal">
+        <div class="modal-content">
+            <h2>🎉 HOÀN THÀNH! 🎉</h2>
+            <div class="score-display" id="final-score">0/10</div>
+            <p class="score-text" id="final-msg">Bạn làm rất tốt!</p>
+            <button class="restart-btn" onclick="restartQuiz()">Làm lại bài thi</button>
+        </div>
+    </div>
+
+    <canvas id="confetti-canvas"></canvas>
+
+    <script>
+        // Data from the provided file
+        const quizData = [
+            {
+                "questionNumber": 1,
+                "question": "Use cues to write: Almost all our energy/ come/ oil/ gas/ natural gas.",
+                "answerOptions": [
+                    { "text": "Almost all our energy comes from oil, gas, and natural gas.", "isCorrect": true },
+                    { "text": "Almost all our energy come from oil, gas, and natural gas.", "isCorrect": false },
+                    { "text": "Almost all our energy comes of oil, gas, and natural gas.", "isCorrect": false },
+                    { "text": "Almost all our energy is coming oil, gas, and natural gas.", "isCorrect": false }
+                ],
+                "explanation": "1. Phân tích cấu trúc:\n- Subject: Almost all our energy (Hầu hết năng lượng của chúng ta - Danh từ không đếm được -> Động từ chia số ít).\n- Verb: come from (đến từ/có nguồn gốc từ). Chia hiện tại đơn: comes from.\n- Object: oil, gas, and natural gas.\n\n2. Dịch nghĩa: \"Hầu hết năng lượng của chúng ta đến từ dầu, khí đốt và khí tự nhiên.\"\n\n3. Tại sao chọn đáp án này?\n- Cấu trúc đúng: Energy (số ít) + comes + from (nguồn gốc)."
+            },
+            {
+                "questionNumber": 2,
+                "question": "Use cues to write: The earth’s fossil fuels/ running out.",
+                "answerOptions": [
+                    { "text": "The earth’s fossil fuels are running out.", "isCorrect": true },
+                    { "text": "The earth’s fossil fuels is running out.", "isCorrect": false },
+                    { "text": "The earth’s fossil fuels running out.", "isCorrect": false },
+                    { "text": "The earth’s fossil fuels run out.", "isCorrect": false }
+                ],
+                "explanation": "1. Phân tích cấu trúc:\n- Subject: The earth’s fossil fuels (Nhiên liệu hóa thạch của trái đất - Số nhiều).\n- Verb phrase: run out (cạn kiệt). Dùng thì hiện tại tiếp diễn để chỉ xu hướng đang xảy ra: are running out.\n\n2. Dịch nghĩa: \"Các nhiên liệu hóa thạch của trái đất đang cạn kiệt.\"\n\n3. Tại sao chọn đáp án này?\n- Chủ ngữ số nhiều 'fuels' -> tobe 'are'."
+            },
+            {
+                "questionNumber": 3,
+                "question": "Use cues to write: Scientists/try/find/other alternative sources/energy.",
+                "answerOptions": [
+                    { "text": "Scientists are trying to find other alternative sources of energy.", "isCorrect": true },
+                    { "text": "Scientists try finding other alternative sources of energy.", "isCorrect": false },
+                    { "text": "Scientists are trying find other alternative sources for energy.", "isCorrect": false },
+                    { "text": "Scientists try to find other alternative sources energy.", "isCorrect": false }
+                ],
+                "explanation": "1. Phân tích cấu trúc:\n- Subject: Scientists (Các nhà khoa học).\n- Verb: are trying (đang cố gắng - Hiện tại tiếp diễn).\n- Pattern: try + to V (cố gắng làm gì).\n- Noun phrase: sources of energy (nguồn năng lượng).\n\n2. Dịch nghĩa: \"Các nhà khoa học đang cố gắng tìm kiếm các nguồn năng lượng thay thế khác.\"\n\n3. Tại sao chọn đáp án này?\n- Đầy đủ ngữ pháp: Tobe + V-ing + to V + of."
+            },
+            {
+                "questionNumber": 4,
+                "question": "Use cues to write: We/ use energy/ the sun, the wind, and the water.",
+                "answerOptions": [
+                    { "text": "We can use energy from the sun, the wind, and the water.", "isCorrect": true },
+                    { "text": "We use energy of the sun, the wind, and the water.", "isCorrect": false },
+                    { "text": "We use energy the sun, the wind, and the water.", "isCorrect": false },
+                    { "text": "We are using energy to the sun, the wind, and the water.", "isCorrect": false }
+                ],
+                "explanation": "1. Phân tích cấu trúc:\n- Subject: We.\n- Verb: can use (có thể sử dụng - thêm modal verb cho tự nhiên) hoặc use.\n- Preposition: from (từ - chỉ nguồn gốc).\n\n2. Dịch nghĩa: \"Chúng ta có thể sử dụng năng lượng từ mặt trời, gió và nước.\"\n\n3. Tại sao chọn đáp án này?\n- Cần giới từ 'from' để chỉ nguồn năng lượng lấy 'từ' đâu."
+            },
+            {
+                "questionNumber": 5,
+                "question": "Use cues to write: The sun/ supply/ all the energy/ used/ grow plants.",
+                "answerOptions": [
+                    { "text": "The sun supplies all the energy used to grow plants.", "isCorrect": true },
+                    { "text": "The sun supply all the energy used grow plants.", "isCorrect": false },
+                    { "text": "The sun supplies all the energy using to grow plants.", "isCorrect": false },
+                    { "text": "The sun supplies all the energy use to grow plants.", "isCorrect": false }
+                ],
+                "explanation": "1. Phân tích cấu trúc:\n- Subject: The sun (số ít) -> supplies (thêm es).\n- Participle phrase (Mệnh đề rút gọn): energy (which is) used to grow plants (năng lượng được dùng để trồng cây).\n- Pattern: be used to V (được dùng để làm gì).\n\n2. Dịch nghĩa: \"Mặt trời cung cấp tất cả năng lượng được sử dụng để trồng cây.\"\n\n3. Tại sao chọn đáp án này?\n- Chia động từ 'supplies' đúng và dùng cấu trúc chỉ mục đích 'used to grow'."
+            },
+            {
+                "questionNumber": 6,
+                "question": "Use cues to write: If we/ able/ collect solar energy/we/ be sure/ have enough power.",
+                "answerOptions": [
+                    { "text": "If we are able to collect solar energy, we will be sure to have enough power.", "isCorrect": true },
+                    { "text": "If we able to collect solar energy, we are sure to have enough power.", "isCorrect": false },
+                    { "text": "If we are able collect solar energy, we will be sure have enough power.", "isCorrect": false },
+                    { "text": "If we were able to collect solar energy, we would be sure to have enough power.", "isCorrect": false }
+                ],
+                "explanation": "1. Phân tích cấu trúc:\n- Conditional Type 1 (Câu điều kiện loại 1): If + S + V(hiện tại), S + will + V.\n- Be able to V: có thể làm gì.\n- Be sure to V: chắc chắn làm gì.\n\n2. Dịch nghĩa: \"Nếu chúng ta có thể thu thập năng lượng mặt trời, chúng ta chắc chắn sẽ có đủ năng lượng.\"\n\n3. Tại sao chọn đáp án này?\n- Đúng cấu trúc câu điều kiện loại 1 và các cụm từ cố định."
+            },
+            {
+                "questionNumber": 7,
+                "question": "Use cues to write: Energy/ wind/ use/ centuries/ move ships, and pump water.",
+                "answerOptions": [
+                    { "text": "Energy from the wind has been used for centuries to move ships and pump water.", "isCorrect": true },
+                    { "text": "Energy of wind is used for centuries to move ships and pump water.", "isCorrect": false },
+                    { "text": "Energy from the wind was used for centuries move ships and pump water.", "isCorrect": false },
+                    { "text": "Energy from the wind has used for centuries to move ships and pump water.", "isCorrect": false }
+                ],
+                "explanation": "1. Phân tích cấu trúc:\n- Subject: Energy from the wind.\n- Tense: for centuries (trong nhiều thế kỷ) -> Hiện tại hoàn thành (Present Perfect).\n- Voice: Passive (Bị động) -> has been used.\n- Purpose: to move... and pump...\n\n2. Dịch nghĩa: \"Năng lượng từ gió đã được sử dụng trong nhiều thế kỷ để di chuyển tàu bè và bơm nước.\"\n\n3. Tại sao chọn đáp án này?\n- Đúng thì hiện tại hoàn thành bị động."
+            },
+            {
+                "questionNumber": 8,
+                "question": "Use cues to write: Recently/ wind/ use / generate electricity.",
+                "answerOptions": [
+                    { "text": "Recently, wind has been used to generate electricity.", "isCorrect": true },
+                    { "text": "Recently, wind is used to generate electricity.", "isCorrect": false },
+                    { "text": "Recently, wind was used to generate electricity.", "isCorrect": false },
+                    { "text": "Recently, wind uses to generate electricity.", "isCorrect": false }
+                ],
+                "explanation": "1. Phân tích cấu trúc:\n- Adverb: Recently (Gần đây) -> Thường dùng thì Hiện tại hoàn thành.\n- Voice: Passive (Bị động) -> has been used (gió được dùng).\n\n2. Dịch nghĩa: \"Gần đây, gió đã được sử dụng để phát điện.\"\n\n3. Tại sao chọn đáp án này?\n- Kết hợp đúng 'Recently' + Bị động hiện tại hoàn thành."
+            },
+            {
+                "questionNumber": 9,
+                "question": "Use cues to write: For a long time/ people/ use water/ power machines.",
+                "answerOptions": [
+                    { "text": "For a long time, people have used water to power machines.", "isCorrect": true },
+                    { "text": "For a long time, people use water to power machines.", "isCorrect": false },
+                    { "text": "For a long time, people are used water to power machines.", "isCorrect": false },
+                    { "text": "For a long time, people have used water powering machines.", "isCorrect": false }
+                ],
+                "explanation": "1. Phân tích cấu trúc:\n- Time: For a long time (Trong một thời gian dài) -> Hiện tại hoàn thành.\n- Subject: People (người - chủ động).\n- Verb: have used.\n- Purpose: to power (để chạy máy).\n\n2. Dịch nghĩa: \"Trong một thời gian dài, con người đã sử dụng nước để vận hành máy móc.\"\n\n3. Tại sao chọn đáp án này?\n- Dùng thì hiện tại hoàn thành chủ động."
+            },
+            {
+                "questionNumber": 10,
+                "question": "Use cues to write: Today, / water power/ mostly/ use/ generate electricity.",
+                "answerOptions": [
+                    { "text": "Today, water power is mostly used to generate electricity.", "isCorrect": true },
+                    { "text": "Today, water power mostly uses to generate electricity.", "isCorrect": false },
+                    { "text": "Today, water power is used mostly to generate electricity.", "isCorrect": false },
+                    { "text": "Today, water power has mostly used to generate electricity.", "isCorrect": false }
+                ],
+                "explanation": "1. Phân tích cấu trúc:\n- Time: Today (Ngày nay) -> Hiện tại đơn.\n- Subject: water power (năng lượng nước).\n- Voice: Passive (Bị động) -> is used.\n- Adverb: mostly (chủ yếu) -> đứng giữa tobe và V3.\n\n2. Dịch nghĩa: \"Ngày nay, năng lượng nước chủ yếu được sử dụng để phát điện.\"\n\n3. Tại sao chọn đáp án này?\n- Đúng thì hiện tại đơn bị động và vị trí trạng từ 'mostly'."
+            }
+        ];
+
+        let currentQuestion = 0;
+        let score = 0;
+        let isAnswered = false;
+
+        // Sound effects (Synthesized using AudioContext to be standalone)
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        
+        function playSound(type) {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+
+            if (type === 'correct') {
+                // High pitch Ding
+                oscillator.type = 'sine';
+                oscillator.frequency.setValueAtTime(523.25, audioCtx.currentTime); // C5
+                oscillator.frequency.exponentialRampToValueAtTime(1046.5, audioCtx.currentTime + 0.1); // C6
+                gainNode.gain.setValueAtTime(0.5, audioCtx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+                oscillator.start();
+                oscillator.stop(audioCtx.currentTime + 0.5);
+            } else {
+                // Low pitch Buzz
+                oscillator.type = 'sawtooth';
+                oscillator.frequency.setValueAtTime(150, audioCtx.currentTime);
+                oscillator.frequency.linearRampToValueAtTime(100, audioCtx.currentTime + 0.3);
+                gainNode.gain.setValueAtTime(0.5, audioCtx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+                oscillator.start();
+                oscillator.stop(audioCtx.currentTime + 0.3);
+            }
+        }
+
+        function loadQuestion() {
+            isAnswered = false;
+            const data = quizData[currentQuestion];
+            document.getElementById('current-q-num').innerText = currentQuestion + 1;
+            document.getElementById('question-text').innerText = data.question;
+            document.getElementById('progress-bar').style.width = `${((currentQuestion) / quizData.length) * 100}%`;
+            
+            // Hide previous state
+            document.getElementById('explanation-box').style.display = 'none';
+            document.getElementById('next-btn').style.display = 'none';
+
+            const optionsContainer = document.getElementById('options-container');
+            optionsContainer.innerHTML = '';
+
+            // Shuffle options slightly to prevent pattern guessing if needed, 
+            // but for sentence building usually order matters less. keeping original order for consistency with rationale.
+            // Using labels A, B, C, D
+            const labels = ['A', 'B', 'C', 'D'];
+            
+            data.answerOptions.forEach((opt, index) => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.innerHTML = `<span class="option-marker">${labels[index]}</span> ${opt.text}`;
+                btn.onclick = () => checkAnswer(index, btn);
+                optionsContainer.appendChild(btn);
+            });
+        }
+
+        function checkAnswer(selectedIndex, btnElement) {
+            if (isAnswered) return;
+            isAnswered = true;
+
+            const data = quizData[currentQuestion];
+            const options = document.querySelectorAll('.option-btn');
+            const correctIndex = data.answerOptions.findIndex(o => o.isCorrect);
+
+            if (data.answerOptions[selectedIndex].isCorrect) {
+                // Correct
+                btnElement.classList.add('correct');
+                score++;
+                playSound('correct');
+                triggerConfetti();
+            } else {
+                // Wrong
+                btnElement.classList.add('wrong');
+                options[correctIndex].classList.add('correct'); // Show correct one
+                playSound('wrong');
+            }
+
+            // Disable all buttons
+            options.forEach(btn => btn.disabled = true);
+
+            // Show explanation
+            const expBox = document.getElementById('explanation-box');
+            const expContent = document.getElementById('explanation-content');
+            expContent.innerHTML = data.explanation.replace(/\n/g, '<br>');
+            expBox.style.display = 'block';
+
+            // Show Next button
+            document.getElementById('next-btn').style.display = 'inline-block';
+            
+            // If last question, change Next button text
+            if (currentQuestion === quizData.length - 1) {
+                document.getElementById('next-btn').innerText = "Xem Kết Quả 🏆";
+            }
+        }
+
+        function nextQuestion() {
+            if (currentQuestion < quizData.length - 1) {
+                currentQuestion++;
+                loadQuestion();
+            } else {
+                showResult();
+            }
+        }
+
+        function showResult() {
+            document.getElementById('result-modal').style.display = 'flex';
+            document.getElementById('final-score').innerText = `${score}/${quizData.length}`;
+            
+            const msg = document.getElementById('final-msg');
+            if (score === quizData.length) {
+                msg.innerText = "Xuất sắc! Bạn là thiên tài ngữ pháp! 🌟";
+                triggerConfetti();
+            } else if (score >= quizData.length * 0.7) {
+                msg.innerText = "Làm tốt lắm! Chỉ còn một chút nữa thôi! 💪";
+            } else {
+                msg.innerText = "Cố gắng hơn nữa nhé! Hãy xem lại giải thích chi tiết. 📚";
+            }
+        }
+
+        function restartQuiz() {
+            currentQuestion = 0;
+            score = 0;
+            document.getElementById('result-modal').style.display = 'none';
+            document.getElementById('next-btn').innerText = "Câu tiếp theo ➜";
+            loadQuestion();
+        }
+
+        // Confetti Effect
+        const canvas = document.getElementById("confetti-canvas");
+        const ctx = canvas.getContext("2d");
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        let confetti = [];
+
+        function triggerConfetti() {
+            confetti = [];
+            for (let i = 0; i < 100; i++) {
+                confetti.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height - canvas.height,
+                    color: `hsl(${Math.random() * 360}, 100%, 50%)`,
+                    size: Math.random() * 10 + 5,
+                    speedY: Math.random() * 5 + 2,
+                    speedX: Math.random() * 4 - 2
+                });
+            }
+            animateConfetti();
+        }
+
+        function animateConfetti() {
+            if (confetti.length === 0) return;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            confetti.forEach((p, index) => {
+                p.y += p.speedY;
+                p.x += p.speedX;
+                ctx.fillStyle = p.color;
+                ctx.fillRect(p.x, p.y, p.size, p.size);
+
+                if (p.y > canvas.height) confetti.splice(index, 1);
+            });
+
+            requestAnimationFrame(animateConfetti);
+        }
+
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+
+        // Initialize
+        loadQuestion();
+
+    </script>
+</body>
+</html>

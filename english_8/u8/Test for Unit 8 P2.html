@@ -1,0 +1,1043 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shopping Unit Challenge - Ms Mai An ULIS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
+    <!-- Confetti Library -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        :root {
+            --primary: #8854C0; /* Tím Pastel */
+            --primary-dark: #6c429c;
+            --secondary: #00C9A7; /* Xanh ngọc */
+            --secondary-dark: #009e82;
+            --correct: #00D26A; /* Xanh lá */
+            --correct-dark: #00a855;
+            --wrong: #FF4757; /* Đỏ cam */
+            --wrong-dark: #d6303e;
+            --bg-color: #f0f4f8;
+            --text-color: #2d3436;
+            --card-bg: #ffffff;
+            --shadow-color: rgba(0, 0, 0, 0.15);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: var(--bg-color);
+            background-image: radial-gradient(var(--primary) 1px, transparent 1px), radial-gradient(var(--secondary) 1px, transparent 1px);
+            background-size: 20px 20px;
+            background-position: 0 0, 10px 10px;
+            color: var(--text-color);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+            background: white;
+            padding: 15px 30px;
+            border-radius: 20px;
+            box-shadow: 0 8px 0 rgba(0,0,0,0.1);
+            border: 2px solid var(--primary);
+            max-width: 800px;
+            width: 100%;
+        }
+
+        h1 {
+            color: var(--primary);
+            font-weight: 800;
+            font-size: 1.8rem;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .subtitle {
+            font-family: 'Quicksand', sans-serif;
+            color: #636e72;
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        /* Progress Bar */
+        .progress-container {
+            width: 100%;
+            max-width: 800px;
+            height: 20px;
+            background-color: #dfe6e9;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            overflow: hidden;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+            position: relative;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background-color: var(--secondary);
+            width: 0%;
+            transition: width 0.5s cubic-bezier(0.1, 0.7, 1.0, 0.1);
+            border-radius: 10px;
+        }
+        
+        .progress-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: #2d3436;
+        }
+
+        /* Quiz Container (Single Card Style) */
+        #quiz-container {
+            width: 100%;
+            max-width: 800px;
+            position: relative;
+        }
+
+        .question-card {
+            background: var(--card-bg);
+            border-radius: 25px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 0 #dfe6e9, 0 10px 20px rgba(0,0,0,0.1);
+            border: 2px solid #fff;
+            animation: slideIn 0.5s ease-out;
+            display: none; /* Hidden by default */
+        }
+
+        .question-card.active {
+            display: block;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .question-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .q-number {
+            background: var(--primary);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 15px;
+            font-weight: 800;
+            font-size: 0.9rem;
+        }
+
+        .question-text {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #2d3436;
+            margin-bottom: 25px;
+            line-height: 1.5;
+        }
+
+        /* Options Grid */
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+        }
+
+        @media (min-width: 600px) {
+            .options-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        .option-btn {
+            background: white;
+            border: 2px solid #e0e0e0;
+            padding: 15px 20px;
+            border-radius: 15px;
+            font-family: 'Nunito', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #636e72;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px 0 #b2bec3;
+            text-align: left;
+            position: relative;
+            outline: none;
+        }
+
+        .option-btn:hover:not(.disabled) {
+            transform: translateY(-2px);
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .option-btn:active:not(.disabled) {
+            transform: translateY(4px);
+            box-shadow: 0 0 0 #b2bec3;
+        }
+
+        /* Feedback States */
+        .option-btn.correct {
+            background-color: var(--correct);
+            border-color: var(--correct-dark);
+            color: white;
+            box-shadow: 0 4px 0 var(--correct-dark);
+            animation: pop 0.3s;
+        }
+
+        .option-btn.wrong {
+            background-color: var(--wrong);
+            border-color: var(--wrong-dark);
+            color: white;
+            box-shadow: 0 4px 0 var(--wrong-dark);
+            animation: shake 0.5s;
+        }
+
+        .option-btn.disabled {
+            cursor: default;
+            opacity: 0.7;
+            pointer-events: none;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px) rotate(-2deg); }
+            75% { transform: translateX(5px) rotate(2deg); }
+        }
+
+        @keyframes pop {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        /* Explanation Box */
+        .explanation-box {
+            background: #fff8e1;
+            border: 2px solid #ffeaa7;
+            border-left: 5px solid var(--primary);
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 25px;
+            display: none; /* Hidden initially */
+            animation: fadeIn 0.5s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; margin-top: 10px; }
+            to { opacity: 1; margin-top: 25px; }
+        }
+
+        .teacher-label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 800;
+            color: var(--primary);
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+            border-bottom: 1px dashed rgba(0,0,0,0.1);
+            padding-bottom: 5px;
+        }
+
+        .teacher-avatar {
+            width: 40px;
+            height: 40px;
+            background-color: var(--primary);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.2rem;
+        }
+
+        .explanation-content {
+            font-family: 'Quicksand', sans-serif;
+            font-size: 1rem;
+            line-height: 1.6;
+            color: #2d3436;
+            white-space: pre-line; /* Keeps line breaks from JSON */
+        }
+
+        .explanation-content strong {
+            color: var(--secondary-dark);
+        }
+
+        /* Navigation Buttons */
+        .nav-controls {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+
+        .next-btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 5px 0 var(--primary-dark);
+            transition: all 0.2s;
+            display: none; /* Hidden until answered */
+            font-family: 'Nunito', sans-serif;
+        }
+
+        .next-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .next-btn:active {
+            transform: translateY(4px);
+            box-shadow: 0 0 0 var(--primary-dark);
+        }
+
+        /* Modal Score */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 40px;
+            border-radius: 30px;
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 20px 0 rgba(0,0,0,0.1);
+            animation: popUp 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        @keyframes popUp {
+            from { transform: scale(0.5); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .score-circle {
+            width: 120px;
+            height: 120px;
+            background: var(--secondary);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin: 0 auto 20px;
+            box-shadow: 0 10px 0 var(--secondary-dark);
+        }
+
+        .modal-title {
+            color: var(--primary);
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 10px;
+        }
+
+        .modal-message {
+            font-size: 1.2rem;
+            color: #636e72;
+            margin-bottom: 30px;
+        }
+
+        .restart-btn {
+            background-color: var(--wrong);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 6px 0 var(--wrong-dark);
+            font-family: 'Nunito', sans-serif;
+        }
+
+        .restart-btn:active {
+            transform: translateY(6px);
+            box-shadow: none;
+        }
+
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Bài Tập Tiếng Anh: Shopping</h1>
+        <div class="subtitle">Giáo viên: Ms Mai An (ULIS) - Chuyên đề Từ vựng & Ngữ pháp</div>
+    </header>
+
+    <div class="progress-container">
+        <div class="progress-bar" id="progress-bar"></div>
+        <div class="progress-text" id="progress-text">0/42</div>
+    </div>
+
+    <div id="quiz-container">
+        <!-- Questions will be injected here via JS -->
+    </div>
+
+    <!-- Modal Result -->
+    <div class="modal-overlay" id="result-modal">
+        <div class="modal-content">
+            <div class="score-circle" id="final-score">0</div>
+            <div class="modal-title">Hoàn Thành!</div>
+            <p class="modal-message" id="final-message">Bạn đã làm rất tốt!</p>
+            <button class="restart-btn" onclick="location.reload()">Làm lại bài thi</button>
+        </div>
+    </div>
+
+    <script>
+        // === 1. DỮ LIỆU CÂU HỎI (DATA) ===
+        const quizData = {
+            "questions": [
+                {
+                "questionNumber": 1,
+                "question": "Most of the sellers ______ this open-air market are from ethnic minority groups.",
+                "answerOptions": [
+                    { "text": "at", "rationale": "Dịch nghĩa: Hầu hết những người bán hàng **tại** khu chợ trời này đều đến từ các nhóm dân tộc thiểu số.\n\nPhân tích:\n- at (prep): tại (dùng cho một địa điểm cụ thể, một điểm dừng).\n- on (prep): trên (bề mặt).\n- in (prep): trong (không gian kín, thành phố, đất nước).\n- as (prep/conj): như là.\n\nGiải thích: 'Open-air market' (chợ trời) được xem là một địa điểm cụ thể (a point/location), nên ta dùng giới từ 'at'.", "isCorrect": true },
+                    { "text": "on", "isCorrect": false, "rationale": "Sai. 'On' thường dùng cho tên đường hoặc bề mặt." },
+                    { "text": "in", "isCorrect": false, "rationale": "Sai. 'In' thường dùng cho không gian bao quanh lớn hơn, tuy nhiên 'at the market' là cụm từ cố định phổ biến hơn." },
+                    { "text": "as", "isCorrect": false, "rationale": "Sai nghĩa." }
+                ]
+                },
+                {
+                "questionNumber": 2,
+                "question": "Let’s go to Vincom Center on Black Friday. A lot of items will be ______ sale.",
+                "answerOptions": [
+                    { "text": "on", "rationale": "Dịch nghĩa: Hãy đến Vincom Center vào ngày Black Friday. Rất nhiều mặt hàng sẽ được **giảm giá**.\n\nPhân tích:\n- on sale (idiom): đang giảm giá, bày bán.\n- for sale (idiom): để bán (nhưng chưa chắc giảm giá).\n\nGiải thích: Cụm từ cố định 'on sale' thường được dùng với nghĩa là hàng hóa đang trong đợt giảm giá khuyến mãi.", "isCorrect": true },
+                    { "text": "for", "isCorrect": false, "rationale": "Sai. 'For sale' chỉ có nghĩa là món đồ đó đang cần bán (ví dụ: House for sale), không nhấn mạnh vào việc giảm giá sự kiện." },
+                    { "text": "in", "isCorrect": false, "rationale": "Sai giới từ." },
+                    { "text": "at", "isCorrect": false, "rationale": "Sai giới từ." }
+                ]
+                },
+                {
+                "questionNumber": 3,
+                "question": "The customer is not ______ with the quality of the suitcase.",
+                "answerOptions": [
+                    { "text": "happy", "rationale": "Dịch nghĩa: Khách hàng không **hài lòng** với chất lượng của chiếc vali.\n\nPhân tích:\n- angry (adj): tức giận (thường đi với 'with' ai đó, 'about' cái gì đó).\n- excited (adj): hào hứng (đi với 'about').\n- happy (adj): vui vẻ, hài lòng (đi với 'with').\n- interested (adj): quan tâm (đi với 'in').\n\nGiải thích: Cấu trúc 'to be happy with sth' đồng nghĩa với 'satisfied with sth' (hài lòng với cái gì).", "isCorrect": true },
+                    { "text": "angry", "isCorrect": false, "rationale": "Sai. 'Angry with' thường dùng cho người. Nếu dùng cho vật thì ngữ cảnh 'quality' thường dùng 'satisfied/happy'." },
+                    { "text": "excited", "isCorrect": false, "rationale": "Sai. 'Excited' đi với giới từ 'about'." },
+                    { "text": "interested", "isCorrect": false, "rationale": "Sai. 'Interested' đi với giới từ 'in'." }
+                ]
+                },
+                {
+                "questionNumber": 4,
+                "question": "Carol buys everything online. She ______ goes to the shops, just once or twice a year.",
+                "answerOptions": [
+                    { "text": "rarely", "rationale": "Dịch nghĩa: Carol mua mọi thứ trực tuyến. Cô ấy **hiếm khi** đến các cửa hàng, chỉ một hoặc hai lần một năm.\n\nPhân tích:\n- usually (adv): thường xuyên.\n- never (adv): không bao giờ.\n- always (adv): luôn luôn.\n- rarely (adv): hiếm khi.\n\nGiải thích: Dựa vào vế sau 'just once or twice a year' (chỉ 1-2 lần/năm), ta thấy tần suất rất thấp nhưng không phải là không bao giờ. 'Rarely' là đáp án chính xác.", "isCorrect": true },
+                    { "text": "usually", "isCorrect": false, "rationale": "Sai nghĩa (tần suất cao)." },
+                    { "text": "never", "isCorrect": false, "rationale": "Sai nghĩa. Cô ấy vẫn đi 1-2 lần, nên không thể là 'không bao giờ'." },
+                    { "text": "always", "isCorrect": false, "rationale": "Sai nghĩa (tần suất liên tục)." }
+                ]
+                },
+                {
+                "questionNumber": 5,
+                "question": "If she keeps spending all her money on shopping, she’ll become a ______.",
+                "answerOptions": [
+                    { "text": "shopaholic", "rationale": "Dịch nghĩa: Nếu cô ấy cứ tiêu hết tiền vào việc mua sắm, cô ấy sẽ trở thành một **người nghiện mua sắm**.\n\nPhân tích:\n- shopper (n): người đi mua sắm (bình thường).\n- shopaholic (n): người nghiện mua sắm.\n- shop assistant (n): nhân viên bán hàng.\n- shopkeeper (n): chủ cửa hàng.\n\nGiải thích: Ngữ cảnh 'spending all her money' ám chỉ việc mua sắm quá độ, tiêu cực -> Shopaholic.", "isCorrect": true },
+                    { "text": "shopper", "isCorrect": false, "rationale": "Sai. Shopper chỉ là người mua hàng bình thường." },
+                    { "text": "shop assistant", "isCorrect": false, "rationale": "Sai nghĩa." },
+                    { "text": "shopkeeper", "isCorrect": false, "rationale": "Sai nghĩa." }
+                ]
+                },
+                {
+                "questionNumber": 6,
+                "question": "That souvenir shop sells a lot of items, ______ they are all overpriced.",
+                "answerOptions": [
+                    { "text": "but", "rationale": "Dịch nghĩa: Cửa hàng lưu niệm đó bán rất nhiều mặt hàng, **nhưng** tất cả chúng đều quá đắt.\n\nPhân tích:\n- but (conj): nhưng (chỉ sự tương phản).\n- and (conj): và (bổ sung ý).\n- or (conj): hoặc (lựa chọn).\n- so (conj): vì vậy (kết quả).\n\nGiải thích: Vế đầu 'bán nhiều đồ' (tích cực/trung tính) tương phản với vế sau 'quá đắt' (tiêu cực).", "isCorrect": true },
+                    { "text": "and", "isCorrect": false, "rationale": "Sai. Không dùng để nối hai ý tương phản." },
+                    { "text": "or", "isCorrect": false, "rationale": "Sai nghĩa." },
+                    { "text": "so", "isCorrect": false, "rationale": "Sai nghĩa." }
+                ]
+                },
+                {
+                "questionNumber": 7,
+                "question": "Strong Internet ______ will allow you to order online more easily.",
+                "answerOptions": [
+                    { "text": "access", "rationale": "Dịch nghĩa: **Sự truy cập** Internet mạnh sẽ cho phép bạn đặt hàng trực tuyến dễ dàng hơn.\n\nPhân tích:\n- website (n): trang web.\n- access (n): sự truy cập, đường truyền.\n- link (n): đường dẫn.\n- platform (n): nền tảng.\n\nGiải thích: Cụm từ 'Internet access' (truy cập Internet/kết nối Internet) là cụm danh từ phổ biến và hợp nghĩa nhất.", "isCorrect": true },
+                    { "text": "website", "isCorrect": false, "rationale": "Sai. Không ai nói 'Strong Internet website'." },
+                    { "text": "link", "isCorrect": false, "rationale": "Sai. Link là đường dẫn cụ thể." },
+                    { "text": "platform", "isCorrect": false, "rationale": "Sai. Platform là nền tảng (như Shopee), không đi với tính từ 'Strong Internet' theo cách này." }
+                ]
+                },
+                {
+                "questionNumber": 8,
+                "question": "______ online shopping platform do you prefer, Shopee or Lazada?",
+                "answerOptions": [
+                    { "text": "Which", "rationale": "Dịch nghĩa: Nền tảng mua sắm trực tuyến **nào** bạn thích hơn, Shopee hay Lazada?\n\nPhân tích:\n- Which: cái nào (lựa chọn trong một nhóm giới hạn).\n- What: cái gì (hỏi chung chung).\n- How: như thế nào.\n- Who: ai.\n\nGiải thích: Vì câu hỏi đưa ra sự lựa chọn cụ thể 'Shopee or Lazada', ta phải dùng 'Which'.", "isCorrect": true },
+                    { "text": "What", "isCorrect": false, "rationale": "Sai. Dùng 'What' khi không có sự lựa chọn cụ thể được nêu ra ngay sau đó." },
+                    { "text": "How", "isCorrect": false, "rationale": "Sai nghĩa." },
+                    { "text": "Who", "isCorrect": false, "rationale": "Sai nghĩa." }
+                ]
+                },
+                {
+                "questionNumber": 9,
+                "question": "That luxury shop doesn’t allow customers ______ on clothes. That’s annoying!",
+                "answerOptions": [
+                    { "text": "to try", "rationale": "Dịch nghĩa: Cửa hàng sang trọng đó không cho phép khách hàng **thử** quần áo. Thật phiền phức!\n\nPhân tích:\n- Cấu trúc: allow sb to do sth (cho phép ai làm gì).\n- Cấu trúc: allow doing sth (cho phép việc gì - không có tân ngữ chỉ người).\n\nGiải thích: Ở đây có tân ngữ 'customers', nên ta dùng 'to try'.", "isCorrect": true },
+                    { "text": "trying", "isCorrect": false, "rationale": "Sai. Chỉ dùng 'trying' nếu không có 'customers' (e.g., doesn't allow trying on clothes)." },
+                    { "text": "to trying", "isCorrect": false, "rationale": "Sai ngữ pháp." },
+                    { "text": "try", "isCorrect": false, "rationale": "Sai ngữ pháp." }
+                ]
+                },
+                {
+                "questionNumber": 10,
+                "question": "‘How awful! Your shop delivered expired milk to me!’ ‘ ______ We’ll give you a refund.’",
+                "answerOptions": [
+                    { "text": "We’re sorry about that.", "rationale": "Dịch nghĩa: 'Thật kinh khủng! Cửa hàng của bạn đã giao sữa hết hạn cho tôi!' - '**Chúng tôi rất xin lỗi về điều đó.** Chúng tôi sẽ hoàn tiền cho bạn.'\n\nPhân tích:\n- How inconvenient!: Thật bất tiện làm sao! (Câu cảm thán của khách).\n- Of course it is: Tất nhiên là thế rồi (Thô lỗ).\n- What a bad order!: Đơn hàng tệ thật! (Đồng tình kiểu cảm thán).\n- We’re sorry about that: Chúng tôi xin lỗi về điều đó (Lời xin lỗi của shop).\n\nGiải thích: Đây là tình huống khiếu nại, nhân viên cần xin lỗi và đưa ra giải pháp (refund).", "isCorrect": true },
+                    { "text": "How inconvenient!", "isCorrect": false, "rationale": "Sai. Đây là câu khách hàng nói, không phải nhân viên." },
+                    { "text": "Of course it is.", "isCorrect": false, "rationale": "Sai. Rất thô lỗ." },
+                    { "text": "What a bad order!", "isCorrect": false, "rationale": "Sai. Nhân viên không nên cảm thán chê bai đơn hàng của mình." }
+                ]
+                },
+                {
+                "questionNumber": 11,
+                "question": "Choose the underlined part that needs correction:<br>Could you meet us at the airport tomorrow afternoon? Our flight <u>will land</u> at 4 o’clock.",
+                "answerOptions": [
+                    { "text": "will land", "rationale": "Dịch nghĩa: Bạn có thể đón chúng tôi ở sân bay chiều mai không? Chuyến bay của chúng tôi **hạ cánh** lúc 4 giờ.\n\nGiải thích: Lịch trình tàu xe, máy bay (timetables) trong tương lai luôn dùng **Thì hiện tại đơn (Present Simple)**.\n-> Sửa thành: **lands**.", "isCorrect": true },
+                    { "text": "Could you", "isCorrect": false, "rationale": "Đúng. Câu đề nghị lịch sự." },
+                    { "text": "at the airport", "isCorrect": false, "rationale": "Đúng giới từ." },
+                    { "text": "at 4 o’clock", "isCorrect": false, "rationale": "Đúng giới từ chỉ giờ." }
+                ]
+                },
+                {
+                "questionNumber": 12,
+                "question": "Choose the underlined part that needs correction:<br>My mom <u>bargains always</u> when she shops at the local market.",
+                "answerOptions": [
+                    { "text": "bargains always", "rationale": "Dịch nghĩa: Mẹ tôi **luôn luôn mặc cả** khi bà ấy mua sắm ở chợ địa phương.\n\nGiải thích: Trạng từ chỉ tần suất (always, usually, often...) phải đứng **trước** động từ thường.\n-> Sửa thành: **always bargains**.", "isCorrect": true },
+                    { "text": "shops", "isCorrect": false, "rationale": "Đúng (chia ngôi thứ 3 số ít)." },
+                    { "text": "at", "isCorrect": false, "rationale": "Đúng giới từ." },
+                    { "text": "local market", "isCorrect": false, "rationale": "Đúng danh từ." }
+                ]
+                },
+                {
+                "questionNumber": 13,
+                "question": "Choose the underlined part that needs correction:<br>That shopping centre has <u>approximate</u> a thousand retail outlets.",
+                "answerOptions": [
+                    { "text": "approximate", "rationale": "Dịch nghĩa: Trung tâm mua sắm đó có **xấp xỉ** một nghìn cửa hàng bán lẻ.\n\nGiải thích: Ở đây ta cần một Trạng từ (Adverb) để bổ nghĩa cho số lượng 'a thousand', không phải tính từ.\n-> Sửa thành: **approximately**.", "isCorrect": true },
+                    { "text": "shopping centre", "isCorrect": false, "rationale": "Đúng." },
+                    { "text": "a thousand", "isCorrect": false, "rationale": "Đúng." },
+                    { "text": "retail outlets", "isCorrect": false, "rationale": "Đúng." }
+                ]
+                },
+                {
+                "questionNumber": 14,
+                "question": "Choose the underlined part that needs correction:<br>Let’s go to Iconsiam! That’s Bangkok’s second <u>large</u> shopping mall in size.",
+                "answerOptions": [
+                    { "text": "large", "rationale": "Dịch nghĩa: Hãy đến Iconsiam! Đó là trung tâm mua sắm **lớn thứ hai** của Bangkok về quy mô.\n\nGiải thích: Khi so sánh nhất hoặc xếp hạng (thứ nhất, thứ hai...), ta phải dùng tính từ so sánh nhất (Superlative).\n-> Sửa thành: **largest**.", "isCorrect": true },
+                    { "text": "Iconsiam", "isCorrect": false, "rationale": "Đúng (Tên riêng)." },
+                    { "text": "Bangkok’s", "isCorrect": false, "rationale": "Đúng (Sở hữu cách)." },
+                    { "text": "in size", "isCorrect": false, "rationale": "Đúng." }
+                ]
+                },
+                {
+                "questionNumber": 15,
+                "question": "Choose the underlined part that needs correction:<br>About 33.3 <u>percents</u> of the world’s population chooses to buy things online.",
+                "answerOptions": [
+                    { "text": "percents", "rationale": "Dịch nghĩa: Khoảng 33,3 **phần trăm** dân số thế giới chọn mua hàng trực tuyến.\n\nGiải thích: Từ 'percent' khi đi sau một con số cụ thể thì không bao giờ thêm 's' (số nhiều).\n-> Sửa thành: **percent**.", "isCorrect": true },
+                    { "text": "world’s", "isCorrect": false, "rationale": "Đúng." },
+                    { "text": "chooses", "isCorrect": false, "rationale": "Đúng (chia theo 'population' - danh từ tập hợp số ít)." },
+                    { "text": "online", "isCorrect": false, "rationale": "Đúng." }
+                ]
+                },
+                {
+                "questionNumber": 16,
+                "question": "Choose the underlined part that needs correction:<br><u>How usually</u> do you go to the supermarket to buy your groceries?",
+                "answerOptions": [
+                    { "text": "How usually", "rationale": "Dịch nghĩa: Bạn **có thường xuyên** đi siêu thị mua thực phẩm không?\n\nGiải thích: Để hỏi về tần suất, ta dùng từ để hỏi 'How often', không dùng 'How usually'.\n-> Sửa thành: **How often**.", "isCorrect": true },
+                    { "text": "supermarket", "isCorrect": false, "rationale": "Đúng." },
+                    { "text": "to buy", "isCorrect": false, "rationale": "Đúng (chỉ mục đích)." },
+                    { "text": "groceries", "isCorrect": false, "rationale": "Đúng." }
+                ]
+                },
+                {
+                "questionNumber": 17,
+                "question": "Choose the underlined part that needs correction:<br>The flash sale <u>is beginning</u> at 3 p.m. and ends at 5 p.m. tomorrow.",
+                "answerOptions": [
+                    { "text": "is beginning", "rationale": "Dịch nghĩa: Đợt giảm giá chớp nhoáng **bắt đầu** lúc 3 giờ chiều và kết thúc lúc 5 giờ chiều ngày mai.\n\nGiải thích: Tương tự câu 11, đây là lịch trình cố định (timetable) nên cả hai động từ đều phải ở thì Hiện tại đơn để đảm bảo cấu trúc song song và đúng ngữ pháp.\n-> Sửa thành: **begins** (hoặc starts).", "isCorrect": true },
+                    { "text": "ends", "isCorrect": false, "rationale": "Đúng (Hiện tại đơn)." },
+                    { "text": "at", "isCorrect": false, "rationale": "Đúng." },
+                    { "text": "tomorrow", "isCorrect": false, "rationale": "Đúng." }
+                ]
+                },
+                {
+                "questionNumber": 18,
+                "question": "Choose the underlined part that needs correction:<br>I find <u>it’s</u> difficult to bargain with the sellers for cheaper prices because I’m shy.",
+                "answerOptions": [
+                    { "text": "it’s", "rationale": "Dịch nghĩa: Tôi thấy **việc** mặc cả giá rẻ hơn với người bán thật khó vì tôi hay ngại.\n\nGiải thích: Cấu trúc: Find + Object (tân ngữ giả 'it') + Adjective + to V. Không dùng 'it is' (it's) ở vị trí tân ngữ này.\n-> Sửa thành: **it**.", "isCorrect": true },
+                    { "text": "to bargain", "isCorrect": false, "rationale": "Đúng." },
+                    { "text": "for", "isCorrect": false, "rationale": "Đúng (bargain for sth)." },
+                    { "text": "because", "isCorrect": false, "rationale": "Đúng." }
+                ]
+                },
+                {
+                "questionNumber": 19,
+                "question": "Choose the underlined part that needs correction:<br>It’s too hot outside, so we <u>don’t go</u> shopping at the discount shop later.",
+                "answerOptions": [
+                    { "text": "don’t go", "rationale": "Dịch nghĩa: Bên ngoài trời quá nóng, vì vậy chúng ta **sẽ không/đừng** đi mua sắm ở cửa hàng giảm giá lát nữa nhé.\n\nGiải thích: Từ 'later' (lát nữa) chỉ tương lai. 'Don't go' là hiện tại đơn (thói quen). Ngữ cảnh này là một lời đề nghị hoặc kế hoạch. Có thể sửa thành 'won't go' (sẽ không đi) hoặc cấu trúc đề nghị 'let's not go'.\n-> Lỗi sai nằm ở thì của động từ so với trạng từ thời gian.", "isCorrect": true },
+                    { "text": "too", "isCorrect": false, "rationale": "Đúng." },
+                    { "text": "so", "isCorrect": false, "rationale": "Đúng." },
+                    { "text": "at", "isCorrect": false, "rationale": "Đúng." }
+                ]
+                },
+                {
+                "questionNumber": 20,
+                "question": "Choose the underlined part that needs correction:<br>Visitors to Dubai Mall can spend endless hours <u>to explore</u> its shops and restaurants.",
+                "answerOptions": [
+                    { "text": "to explore", "rationale": "Dịch nghĩa: Du khách đến Dubai Mall có thể dành hàng giờ bất tận để **khám phá** các cửa hàng và nhà hàng ở đó.\n\nGiải thích: Cấu trúc: Spend time + V-ing (Dành thời gian làm gì).\n-> Sửa thành: **exploring**.", "isCorrect": true },
+                    { "text": "to", "isCorrect": false, "rationale": "Đúng (Visitors to somewhere)." },
+                    { "text": "endless", "isCorrect": false, "rationale": "Đúng." },
+                    { "text": "shops and restaurants", "isCorrect": false, "rationale": "Đúng." }
+                ]
+                },
+                {
+                "questionNumber": 21,
+                "question": "Supply the correct tense: Carlos ______ (apply) for the shop assistant position last month.",
+                "answerOptions": [
+                    { "text": "applied", "rationale": "Dịch: Carlos **đã nộp đơn** cho vị trí nhân viên bán hàng tháng trước.\n\nGiải thích: Dấu hiệu 'last month' (tháng trước) -> Quá khứ đơn (Past Simple).", "isCorrect": true },
+                    { "text": "applies", "isCorrect": false, "rationale": "Sai thì hiện tại." },
+                    { "text": "has applied", "isCorrect": false, "rationale": "Sai thì hiện tại hoàn thành." },
+                    { "text": "applying", "isCorrect": false, "rationale": "Sai dạng V-ing." }
+                ]
+                },
+                {
+                "questionNumber": 22,
+                "question": "Supply the correct tense: Minh usually ______ (shop) at the supermarket because it ______ (be) convenient.",
+                "answerOptions": [
+                    { "text": "shops / is", "rationale": "Dịch: Minh thường **mua sắm** tại siêu thị vì nó **thì** tiện lợi.\n\nGiải thích:\n1. 'Usually' -> Hiện tại đơn, Minh là số ít -> shops.\n2. Sự thật hiển nhiên -> Hiện tại đơn -> is.", "isCorrect": true },
+                    { "text": "shop / is", "isCorrect": false, "rationale": "Sai. 'Minh' là ngôi thứ 3 số ít, động từ phải thêm s." },
+                    { "text": "shopped / was", "isCorrect": false, "rationale": "Sai thì quá khứ." },
+                    { "text": "is shopping / is", "isCorrect": false, "rationale": "Sai. 'Usually' không dùng với tiếp diễn." }
+                ]
+                },
+                {
+                "questionNumber": 23,
+                "question": "Supply the correct tense: We ______ (visit) Marina Bay Sands if we go to Singapore.",
+                "answerOptions": [
+                    { "text": "will visit", "rationale": "Dịch: Chúng tôi **sẽ ghé thăm** Marina Bay Sands nếu chúng tôi đi Singapore.\n\nGiải thích: Câu điều kiện loại 1 (If + S + V(htđ), S + will + V).", "isCorrect": true },
+                    { "text": "visit", "isCorrect": false, "rationale": "Sai cấu trúc câu điều kiện loại 1." },
+                    { "text": "visited", "isCorrect": false, "rationale": "Sai thì." },
+                    { "text": "would visit", "isCorrect": false, "rationale": "Sai (đây là vế của câu điều kiện loại 2)." }
+                ]
+                },
+                {
+                "questionNumber": 24,
+                "question": "Supply the correct tense: What time ______ the monthly sale on Shopee ______ (start)?",
+                "answerOptions": [
+                    { "text": "does ... start", "rationale": "Dịch: Đợt giảm giá hàng tháng trên Shopee **bắt đầu** lúc mấy giờ?\n\nGiải thích: Hỏi về lịch trình cố định -> Hiện tại đơn. Chủ ngữ 'the monthly sale' số ít -> trợ động từ 'does'.", "isCorrect": true },
+                    { "text": "do ... start", "isCorrect": false, "rationale": "Sai trợ động từ (sale là số ít)." },
+                    { "text": "is ... starting", "isCorrect": false, "rationale": "Không chuẩn bằng hiện tại đơn cho lịch trình." },
+                    { "text": "will ... start", "isCorrect": false, "rationale": "Không dùng thì tương lai cho lịch trình cố định." }
+                ]
+                },
+                {
+                "questionNumber": 25,
+                "question": "Supply the correct tense: They ______ (build) a new shopping mall in our neighbourhood at present.",
+                "answerOptions": [
+                    { "text": "are building", "rationale": "Dịch: Họ **đang xây** một trung tâm mua sắm mới trong khu phố của chúng tôi ngay lúc này.\n\nGiải thích: Dấu hiệu 'at present' (hiện tại) -> Hiện tại tiếp diễn (Present Continuous).", "isCorrect": true },
+                    { "text": "build", "isCorrect": false, "rationale": "Sai thì." },
+                    { "text": "built", "isCorrect": false, "rationale": "Sai thì quá khứ." },
+                    { "text": "have built", "isCorrect": false, "rationale": "Sai thì hoàn thành." }
+                ]
+                },
+                {
+                "questionNumber": 26,
+                "question": "Supply the correct tense: Many tourists ______ (choose) Chatuchak market to buy food and souvenirs in Bangkok.",
+                "answerOptions": [
+                    { "text": "choose", "rationale": "Dịch: Nhiều du khách **lựa chọn** chợ Chatuchak để mua đồ ăn và quà lưu niệm ở Bangkok.\n\nGiải thích: Diễn tả một sự thật, thói quen chung của du khách -> Hiện tại đơn.", "isCorrect": true },
+                    { "text": "chooses", "isCorrect": false, "rationale": "Sai. 'Tourists' là số nhiều, giữ nguyên động từ." },
+                    { "text": "chose", "isCorrect": false, "rationale": "Sai thì quá khứ." },
+                    { "text": "are choosing", "isCorrect": false, "rationale": "Sai thì tiếp diễn (đây là sự thật tổng quát)." }
+                ]
+                },
+                {
+                "questionNumber": 27,
+                "question": "Supply the correct tense: If it ______ (not rain), we’ll go window shopping along Fifth Avenue.",
+                "answerOptions": [
+                    { "text": "doesn't rain", "rationale": "Dịch: Nếu trời **không mưa**, chúng ta sẽ đi ngắm đồ dọc Đại lộ số 5.\n\nGiải thích: Câu điều kiện loại 1. Vế 'If' dùng hiện tại đơn. Chủ ngữ 'it' số ít -> doesn't rain.", "isCorrect": true },
+                    { "text": "don't rain", "isCorrect": false, "rationale": "Sai trợ động từ." },
+                    { "text": "won't rain", "isCorrect": false, "rationale": "Sai. Mệnh đề If không dùng 'will'." },
+                    { "text": "didn't rain", "isCorrect": false, "rationale": "Sai thì." }
+                ]
+                },
+                {
+                "questionNumber": 28,
+                "question": "Supply the correct tense: Black Friday ______ (take place) on the Friday after Thanksgiving.",
+                "answerOptions": [
+                    { "text": "takes place", "rationale": "Dịch: Black Friday **diễn ra** vào ngày thứ Sáu sau lễ Tạ Ơn.\n\nGiải thích: Sự thật hiển nhiên, sự kiện định kỳ -> Hiện tại đơn. Black Friday (số ít) -> takes.", "isCorrect": true },
+                    { "text": "take place", "isCorrect": false, "rationale": "Sai chia động từ." },
+                    { "text": "took place", "isCorrect": false, "rationale": "Sai thì." },
+                    { "text": "is taking place", "isCorrect": false, "rationale": "Sai thì." }
+                ]
+                },
+                {
+                "questionNumber": 29,
+                "question": "Supply the correct tense: We don’t need to run. The train ______ (not leave) until 11 a.m.",
+                "answerOptions": [
+                    { "text": "doesn't leave", "rationale": "Dịch: Chúng ta không cần chạy đâu. Tàu **sẽ không rời đi** cho đến 11 giờ trưa.\n\nGiải thích: Lịch trình tàu xe -> Hiện tại đơn.", "isCorrect": true },
+                    { "text": "don't leave", "isCorrect": false, "rationale": "Sai trợ động từ (Train số ít)." },
+                    { "text": "won't leave", "isCorrect": false, "rationale": "Không chuẩn bằng hiện tại đơn cho lịch trình." },
+                    { "text": "isn't leaving", "isCorrect": false, "rationale": "Không chuẩn bằng hiện tại đơn." }
+                ]
+                },
+                {
+                "questionNumber": 30,
+                "question": "Supply the correct tense: Look at those people! They ______ (queue) up to get in that shoes store.",
+                "answerOptions": [
+                    { "text": "are queuing", "rationale": "Dịch: Nhìn những người kia kìa! Họ **đang xếp hàng** để vào cửa hàng giày đó.\n\nGiải thích: Dấu hiệu câu mệnh lệnh 'Look at...!' -> Hành động đang xảy ra -> Hiện tại tiếp diễn.", "isCorrect": true },
+                    { "text": "queue", "isCorrect": false, "rationale": "Sai thì." },
+                    { "text": "queued", "isCorrect": false, "rationale": "Sai thì." },
+                    { "text": "have queued", "isCorrect": false, "rationale": "Sai thì." }
+                ]
+                },
+                {
+                "questionNumber": 31,
+                "question": "Supply the correct verb form: Do you have difficulty ______ (order) things online?",
+                "answerOptions": [
+                    { "text": "ordering", "rationale": "Dịch: Bạn có gặp khó khăn khi **đặt hàng** trực tuyến không?\n\nGiải thích: Cấu trúc: Have difficulty (in) + V-ing.", "isCorrect": true },
+                    { "text": "to order", "isCorrect": false, "rationale": "Sai cấu trúc." },
+                    { "text": "order", "isCorrect": false, "rationale": "Sai cấu trúc." },
+                    { "text": "ordered", "isCorrect": false, "rationale": "Sai cấu trúc." }
+                ]
+                },
+                {
+                "questionNumber": 32,
+                "question": "Supply the correct verb form: Let’s ______ (take) a look at the goods at that speciality shop.",
+                "answerOptions": [
+                    { "text": "take", "rationale": "Dịch: Hãy cùng **xem** qua các mặt hàng tại cửa hàng đặc sản đó nhé.\n\nGiải thích: Cấu trúc: Let's + V (nguyên mẫu không to).", "isCorrect": true },
+                    { "text": "to take", "isCorrect": false, "rationale": "Sai." },
+                    { "text": "taking", "isCorrect": false, "rationale": "Sai." },
+                    { "text": "takes", "isCorrect": false, "rationale": "Sai." }
+                ]
+                },
+                {
+                "questionNumber": 33,
+                "question": "Word form: Tourists are the main ______ for the traditional handicrafts in this village. (buy)",
+                "answerOptions": [
+                    { "text": "buyers", "rationale": "Dịch: Khách du lịch là những **người mua** chính các sản phẩm thủ công truyền thống ở ngôi làng này.\n\nGiải thích: Sau 'the main' cần một danh từ. 'Tourists' là số nhiều -> danh từ chỉ người 'buyers' (những người mua).", "isCorrect": true },
+                    { "text": "buying", "isCorrect": false, "rationale": "Sai từ loại (V-ing)." },
+                    { "text": "bought", "isCorrect": false, "rationale": "Sai từ loại (V-ed)." },
+                    { "text": "buyer", "isCorrect": false, "rationale": "Sai số ít (Are -> số nhiều)." }
+                ]
+                },
+                {
+                "questionNumber": 34,
+                "question": "Word form: Are there any ______ between local markets and supermarkets? (similar)",
+                "answerOptions": [
+                    { "text": "similarities", "rationale": "Dịch: Có bất kỳ **điểm tương đồng** nào giữa chợ địa phương và siêu thị không?\n\nGiải thích: Sau 'Are there any' cần danh từ số nhiều đếm được -> similarities.", "isCorrect": true },
+                    { "text": "similarly", "isCorrect": false, "rationale": "Sai từ loại (Adv)." },
+                    { "text": "similarity", "isCorrect": false, "rationale": "Sai số ít." },
+                    { "text": "similar", "isCorrect": false, "rationale": "Sai từ loại (Adj)." }
+                ]
+                },
+                {
+                "questionNumber": 35,
+                "question": "Word form: Online shops offer better discount and more ______ prices. (reason)",
+                "answerOptions": [
+                    { "text": "reasonable", "rationale": "Dịch: Các cửa hàng trực tuyến cung cấp chiết khấu tốt hơn và giá cả **hợp lý** hơn.\n\nGiải thích: Cần một tính từ (Adjective) để bổ nghĩa cho danh từ 'prices'. Reasonable prices = Giá cả phải chăng.", "isCorrect": true },
+                    { "text": "reasoning", "isCorrect": false, "rationale": "Sai nghĩa." },
+                    { "text": "reasonably", "isCorrect": false, "rationale": "Sai từ loại (Adv)." },
+                    { "text": "reasoned", "isCorrect": false, "rationale": "Sai nghĩa." }
+                ]
+                },
+                {
+                "questionNumber": 36,
+                "question": "Word form: The children were ______ to go to tiNiWorld at Landmark 81. (excite)",
+                "answerOptions": [
+                    { "text": "excited", "rationale": "Dịch: Lũ trẻ đã rất **hào hứng** khi được đi tiNiWorld ở Landmark 81.\n\nGiải thích: Tính từ đuôi -ed dùng để chỉ cảm xúc của người. (Excited - cảm thấy hào hứng).", "isCorrect": true },
+                    { "text": "exciting", "isCorrect": false, "rationale": "Sai. Exciting dùng cho tính chất sự vật/sự việc." },
+                    { "text": "excitement", "isCorrect": false, "rationale": "Sai từ loại (Noun)." },
+                    { "text": "excitedly", "isCorrect": false, "rationale": "Sai từ loại (Adv)." }
+                ]
+                },
+                {
+                "questionNumber": 37,
+                "question": "Word form: We made a ______ to spend our second day in Seoul shopping for clothes. (decide)",
+                "answerOptions": [
+                    { "text": "decision", "rationale": "Dịch: Chúng tôi đã đưa ra **quyết định** dành ngày thứ hai ở Seoul để mua quần áo.\n\nGiải thích: Cụm từ 'make a decision' (đưa ra quyết định). Cần danh từ sau mạo từ 'a'.", "isCorrect": true },
+                    { "text": "decisive", "isCorrect": false, "rationale": "Sai từ loại (Adj)." },
+                    { "text": "decidedly", "isCorrect": false, "rationale": "Sai từ loại (Adv)." },
+                    { "text": "decider", "isCorrect": false, "rationale": "Sai nghĩa (trận quyết đấu/người quyết định)." }
+                ]
+                },
+                {
+                "questionNumber": 38,
+                "question": "Word form: Night markets always gain widespread ______ among young people. (popular)",
+                "answerOptions": [
+                    { "text": "popularity", "rationale": "Dịch: Chợ đêm luôn đạt được **sự phổ biến** rộng rãi trong giới trẻ.\n\nGiải thích: Sau tính từ 'widespread' cần một danh từ -> popularity.", "isCorrect": true },
+                    { "text": "popularly", "isCorrect": false, "rationale": "Sai từ loại (Adv)." },
+                    { "text": "popularize", "isCorrect": false, "rationale": "Sai từ loại (Verb)." },
+                    { "text": "population", "isCorrect": false, "rationale": "Sai nghĩa (dân số)." }
+                ]
+                },
+                {
+                "questionNumber": 39,
+                "question": "Word form: I don’t ______ buy things at the open-air market as I don’t know how to bargain. (usual)",
+                "answerOptions": [
+                    { "text": "usually", "rationale": "Dịch: Tôi **thường** không mua đồ ở chợ trời vì tôi không biết mặc cả.\n\nGiải thích: Cần một trạng từ chỉ tần suất đứng trước động từ thường 'buy'.", "isCorrect": true },
+                    { "text": "usual", "isCorrect": false, "rationale": "Sai từ loại (Adj)." },
+                    { "text": "unusual", "isCorrect": false, "rationale": "Sai từ loại (Adj)." },
+                    { "text": "unusually", "isCorrect": false, "rationale": "Sai nghĩa (bất thường)." }
+                ]
+                },
+                {
+                "questionNumber": 40,
+                "question": "Word form: Their products are ______, but they’re worth every penny. (price)",
+                "answerOptions": [
+                    { "text": "pricey", "rationale": "Dịch: Sản phẩm của họ **đắt tiền**, nhưng chúng đáng giá từng xu.\n\nGiải thích: Cấu trúc '..., but they're worth every penny' (nhưng đáng đồng tiền) ngụ ý rằng giá cả cao. Ta cần tính từ nghĩa là đắt đỏ -> pricey (hoặc expensive).", "isCorrect": true },
+                    { "text": "priceless", "isCorrect": false, "rationale": "Sai nghĩa. Priceless là 'vô giá' (quý đến mức không định giá được), không hợp ngữ cảnh mua bán thông thường." },
+                    { "text": "priced", "isCorrect": false, "rationale": "Sai nghĩa." },
+                    { "text": "prices", "isCorrect": false, "rationale": "Sai từ loại (Noun)." }
+                ]
+                },
+                {
+                "questionNumber": 41,
+                "question": "Word form: Some modern shopping centres have very ______ architecture. (attract)",
+                "answerOptions": [
+                    { "text": "attractive", "rationale": "Dịch: Một số trung tâm mua sắm hiện đại có kiến trúc rất **thu hút/hấp dẫn**.\n\nGiải thích: Cần một tính từ (Adjective) để bổ nghĩa cho danh từ 'architecture'.", "isCorrect": true },
+                    { "text": "attraction", "isCorrect": false, "rationale": "Sai từ loại (Noun)." },
+                    { "text": "attractively", "isCorrect": false, "rationale": "Sai từ loại (Adv)." },
+                    { "text": "attracted", "isCorrect": false, "rationale": "Sai nghĩa (bị thu hút)." }
+                ]
+                },
+                {
+                "questionNumber": 42,
+                "question": "Word form: The Jacksons use to have a small convenience store but they ______ it last year. (sale)",
+                "answerOptions": [
+                    { "text": "sold", "rationale": "Dịch: Gia đình Jackson từng có một cửa hàng tiện lợi nhỏ nhưng họ đã **bán** nó vào năm ngoái.\n\nGiải thích: Cần động từ ở thì quá khứ đơn (vì có 'last year') của danh từ 'sale'. Động từ là 'sell', quá khứ là 'sold'.", "isCorrect": true },
+                    { "text": "sell", "isCorrect": false, "rationale": "Sai thì." },
+                    { "text": "selling", "isCorrect": false, "rationale": "Sai ngữ pháp." },
+                    { "text": "sales", "isCorrect": false, "rationale": "Sai từ loại (Noun)." }
+                ]
+                }
+            ]
+        };
+
+        // Audio Base64 (Short beep sounds to make file portable)
+        const correctSound = new Audio("data:audio/wav;base64,UklGRl9vT1BXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YU"); // Placeholder
+        // Replacing with real short tone generation via AudioContext for better quality without huge strings
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        const audioCtx = new AudioContext();
+
+        function playSound(type) {
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+
+            if (type === 'correct') {
+                oscillator.type = 'sine';
+                oscillator.frequency.setValueAtTime(500, audioCtx.currentTime);
+                oscillator.frequency.exponentialRampToValueAtTime(1000, audioCtx.currentTime + 0.1);
+                gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+                oscillator.start();
+                oscillator.stop(audioCtx.currentTime + 0.3);
+            } else {
+                oscillator.type = 'sawtooth';
+                oscillator.frequency.setValueAtTime(150, audioCtx.currentTime);
+                oscillator.frequency.linearRampToValueAtTime(100, audioCtx.currentTime + 0.3);
+                gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+                oscillator.start();
+                oscillator.stop(audioCtx.currentTime + 0.3);
+            }
+        }
+
+        // === 2. QUẢN LÝ TRẠNG THÁI ===
+        let currentQuestionIndex = 0;
+        let score = 0;
+        const totalQuestions = quizData.questions.length;
+
+        // === 3. RENDER GIAO DIỆN ===
+        function initQuiz() {
+            const container = document.getElementById('quiz-container');
+            
+            quizData.questions.forEach((q, index) => {
+                const card = document.createElement('div');
+                card.className = `question-card ${index === 0 ? 'active' : ''}`;
+                card.id = `q-${index}`;
+                
+                // Shuffle options for randomness if desired, but teacher mode usually keeps order A B C D. 
+                // Let's keep order but layout them nicely.
+                
+                let optionsHtml = '';
+                q.answerOptions.forEach((opt, i) => {
+                    optionsHtml += `<button class="option-btn" onclick="checkAnswer(${index}, ${i}, this)">${opt.text}</button>`;
+                });
+
+                // Correct Answer Rationale (Teacher Explains)
+                // We find the correct answer to display in rationale or highlight it
+                const correctOpt = q.answerOptions.find(o => o.isCorrect);
+                
+                card.innerHTML = `
+                    <div class="question-header">
+                        <span class="q-number">Câu ${q.questionNumber}/${totalQuestions}</span>
+                    </div>
+                    <div class="question-text">${q.question}</div>
+                    <div class="options-grid">
+                        ${optionsHtml}
+                    </div>
+                    
+                    <div class="explanation-box" id="explain-${index}">
+                        <div class="teacher-label">
+                            <div class="teacher-avatar">Ms</div>
+                            Cô Mai An giải thích chi tiết:
+                        </div>
+                        <div class="explanation-content" id="explain-content-${index}">
+                            <!-- Explanation injected on click -->
+                        </div>
+                    </div>
+
+                    <div class="nav-controls">
+                        <button class="next-btn" id="next-${index}" onclick="nextQuestion()">Câu Tiếp Theo ➜</button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // === 4. XỬ LÝ TƯƠNG TÁC ===
+        function checkAnswer(qIndex, optIndex, btnElement) {
+            const qData = quizData.questions[qIndex];
+            const selectedOpt = qData.answerOptions[optIndex];
+            const card = document.getElementById(`q-${qIndex}`);
+            const buttons = card.querySelectorAll('.option-btn');
+            
+            // Disable all buttons
+            buttons.forEach(btn => btn.classList.add('disabled'));
+
+            // Show explanation box immediately
+            const explainBox = document.getElementById(`explain-${qIndex}`);
+            const explainContent = document.getElementById(`explain-content-${qIndex}`);
+            explainBox.style.display = 'block';
+
+            // Populate Explanation
+            // We use the rationale from the selected option (or the correct one if they differ significantly in design, 
+            // but the prompt says show detail explanation). The dataset has 'rationale' in the correct option usually full.
+            // Let's check if the wrong option has specific rationale.
+            // In the provided data, even wrong options have rationales like "Sai. ...".
+            // We will combine them: First show the rationale of what they clicked, then the full correct rationale.
+            
+            let explanationText = "";
+            
+            // Format explanation nicely
+            if (selectedOpt.isCorrect) {
+                // Correct
+                btnElement.classList.add('correct');
+                playSound('correct');
+                confetti({
+                    particleCount: 100,
+                    spread: 70,
+                    origin: { y: 0.6 }
+                });
+                score++;
+                explanationText = selectedOpt.rationale; // The correct option usually has the full breakdown in this dataset
+            } else {
+                // Wrong
+                btnElement.classList.add('wrong');
+                playSound('wrong');
+                // Highlight the correct one
+                qData.answerOptions.forEach((opt, i) => {
+                    if (opt.isCorrect) {
+                        buttons[i].classList.add('correct');
+                        // If selected option rationale is short ("Sai."), append the Correct one's main analysis
+                        explanationText = `❌ **Bạn chọn:** ${selectedOpt.text} - ${selectedOpt.rationale}\n\n✅ **Đáp án đúng:** ${opt.text}\n${opt.rationale}`;
+                    }
+                });
+            }
+
+            // Convert Markdown-like syntax to HTML for the explanation
+            explanationText = explanationText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            explanationText = explanationText.replace(/\n/g, '<br>');
+            explainContent.innerHTML = explanationText;
+
+            // Show Next Button
+            const nextBtn = document.getElementById(`next-${qIndex}`);
+            if (qIndex < totalQuestions - 1) {
+                nextBtn.style.display = 'block';
+            } else {
+                nextBtn.textContent = "Xem Kết Quả";
+                nextBtn.style.display = 'block';
+                nextBtn.onclick = showResult;
+            }
+
+            // Update Progress
+            updateProgress(qIndex + 1);
+        }
+
+        function nextQuestion() {
+            const currentCard = document.getElementById(`q-${currentQuestionIndex}`);
+            currentCard.classList.remove('active');
+            
+            currentQuestionIndex++;
+            const nextCard = document.getElementById(`q-${currentQuestionIndex}`);
+            nextCard.classList.add('active');
+        }
+
+        function updateProgress(completed) {
+            const percent = (completed / totalQuestions) * 100;
+            document.getElementById('progress-bar').style.width = `${percent}%`;
+            document.getElementById('progress-text').textContent = `${completed}/${totalQuestions}`;
+        }
+
+        function showResult() {
+            document.getElementById('result-modal').style.display = 'flex';
+            document.getElementById('final-score').textContent = `${score}/${totalQuestions}`;
+            
+            const msg = document.getElementById('final-message');
+            const ratio = score / totalQuestions;
+            if (ratio === 1) msg.textContent = "Tuyệt vời! Bạn là thiên tài mua sắm! 🏆";
+            else if (ratio >= 0.8) msg.textContent = "Làm tốt lắm! Kiến thức rất vững! 🌟";
+            else if (ratio >= 0.5) msg.textContent = "Khá tốt, nhưng cần ôn thêm chút nhé! 📚";
+            else msg.textContent = "Đừng buồn, hãy xem lại giải thích và thử lại nhé! 💪";
+            
+            playSound('correct');
+            confetti({
+                particleCount: 200,
+                spread: 100,
+                origin: { y: 0.6 }
+            });
+        }
+
+        // Start
+        initQuiz();
+
+    </script>
+</body>
+</html>

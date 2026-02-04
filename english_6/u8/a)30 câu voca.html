@@ -1,0 +1,966 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trắc nghiệm Từ vựng Thể thao - Ms. Mai An ULIS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
+    <!-- Thư viện Confetti cho hiệu ứng pháo giấy -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        :root {
+            --primary: #8854C0; /* Tím hồng */
+            --secondary: #00C9A7; /* Xanh ngọc */
+            --accent: #FF9F43; /* Cam nhạt */
+            --success: #00D26A; /* Xanh lá */
+            --error: #FF4757; /* Đỏ cam */
+            --background: #F0F3F9;
+            --card-bg: #FFFFFF;
+            --text-main: #2F3542;
+            --text-light: #57606f;
+            --shadow-color: rgba(0, 0, 0, 0.15);
+            --btn-shadow: 0px 6px 0px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none; /* Chống bôi đen để trải nghiệm giống App */
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: #E0E6ED;
+            /* Họa tiết Zigzag mờ */
+            background-image:  linear-gradient(135deg, #fdfbfb 25%, transparent 25%), 
+                               linear-gradient(225deg, #fdfbfb 25%, transparent 25%), 
+                               linear-gradient(45deg, #fdfbfb 25%, transparent 25%), 
+                               linear-gradient(315deg, #fdfbfb 25%, #e5e5f7 25%);
+            background-position:  10px 0, 10px 0, 0 0, 0 0;
+            background-size: 20px 20px;
+            background-repeat: repeat;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: var(--text-main);
+            padding: 20px;
+        }
+
+        /* Container chính dạng thẻ bài */
+        .quiz-container {
+            background: var(--card-bg);
+            width: 100%;
+            max-width: 800px;
+            border-radius: 25px;
+            box-shadow: 0 10px 30px rgba(136, 84, 192, 0.2);
+            padding: 30px;
+            position: relative;
+            overflow: hidden;
+            border: 4px solid #fff;
+        }
+
+        /* Header nhỏ gọn */
+        .header-teacher {
+            text-align: center;
+            margin-bottom: 20px;
+            color: var(--primary);
+            font-family: 'Quicksand', sans-serif;
+            font-weight: 800;
+            font-size: 1.2rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            background: #F3E5F5;
+            display: inline-block;
+            padding: 8px 20px;
+            border-radius: 50px;
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            white-space: nowrap;
+        }
+
+        /* Thanh tiến trình */
+        .progress-container {
+            margin-top: 40px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .progress-bar-bg {
+            flex-grow: 1;
+            height: 16px;
+            background-color: #eee;
+            border-radius: 20px;
+            overflow: hidden;
+            border: 2px solid #ddd;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            width: 0%;
+            background-color: var(--secondary);
+            border-radius: 20px;
+            transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+
+        /* Hiệu ứng bóng láng trên thanh progress */
+        .progress-bar-fill::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; bottom: 0; right: 0;
+            background-image: linear-gradient(
+                -45deg, 
+                rgba(255, 255, 255, 0.2) 25%, 
+                transparent 25%, 
+                transparent 50%, 
+                rgba(255, 255, 255, 0.2) 50%, 
+                rgba(255, 255, 255, 0.2) 75%, 
+                transparent 75%, 
+                transparent
+            );
+            background-size: 50px 50px;
+            animation: move-bg 2s linear infinite;
+        }
+
+        @keyframes move-bg {
+            0% { background-position: 0 0; }
+            100% { background-position: 50px 50px; }
+        }
+
+        .score-badge {
+            font-weight: 800;
+            color: var(--primary);
+            font-size: 1.1rem;
+            background: #fff;
+            padding: 5px 15px;
+            border-radius: 15px;
+            border: 2px solid var(--primary);
+            box-shadow: 2px 2px 0 var(--primary);
+        }
+
+        /* Nội dung câu hỏi */
+        .question-box {
+            margin-bottom: 25px;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .question-text {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--text-main);
+            line-height: 1.5;
+            margin-bottom: 10px;
+        }
+
+        .hint-text {
+            font-size: 0.95rem;
+            color: #7f8fa6;
+            font-style: italic;
+            margin-top: 5px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .hint-text::before {
+            content: '💡';
+        }
+
+        /* Lưới đáp án */
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 600px) {
+            .options-grid {
+                grid-template-columns: 1fr;
+            }
+            .question-text {
+                font-size: 1.2rem;
+            }
+            .quiz-container {
+                padding: 15px;
+            }
+        }
+
+        /* Nút đáp án 3D */
+        .option-btn {
+            background-color: #FFFFFF;
+            border: 2px solid #E1E1E1;
+            border-radius: 18px;
+            padding: 15px 20px;
+            font-family: 'Nunito', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text-main);
+            cursor: pointer;
+            transition: all 0.1s ease;
+            box-shadow: 0px 5px 0px #dcdcdc;
+            position: relative;
+            text-align: left;
+            display: flex;
+            align-items: center;
+        }
+
+        .option-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0px 7px 0px #dcdcdc;
+            border-color: var(--primary);
+        }
+
+        .option-btn:active:not(:disabled) {
+            transform: translateY(4px);
+            box-shadow: 0px 0px 0px #dcdcdc;
+        }
+
+        .option-label {
+            width: 30px;
+            height: 30px;
+            background: #f1f2f6;
+            border-radius: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-right: 15px;
+            font-size: 0.9rem;
+            color: #747d8c;
+            font-weight: 800;
+        }
+
+        /* Trạng thái Đúng/Sai */
+        .option-btn.correct {
+            background-color: var(--success);
+            border-color: #00b85c;
+            color: white;
+            box-shadow: 0px 5px 0px #008f47;
+        }
+        .option-btn.correct .option-label {
+            background-color: rgba(255,255,255,0.3);
+            color: white;
+        }
+
+        .option-btn.wrong {
+            background-color: var(--error);
+            border-color: #e63b49;
+            color: white;
+            box-shadow: 0px 5px 0px #c22533;
+            animation: shake 0.5s;
+        }
+        .option-btn.wrong .option-label {
+            background-color: rgba(255,255,255,0.3);
+            color: white;
+        }
+
+        /* Hiệu ứng rung lắc */
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-5px) rotate(-2deg); }
+            50% { transform: translateX(5px) rotate(2deg); }
+            75% { transform: translateX(-5px) rotate(-2deg); }
+            100% { transform: translateX(0); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Khung giải thích */
+        .explanation-box {
+            background-color: #F8F0FC; /* Tím rất nhạt */
+            border: 2px dashed var(--primary);
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 20px;
+            display: none; /* Ẩn mặc định */
+            animation: fadeIn 0.4s ease-in-out;
+        }
+
+        .explanation-box.show {
+            display: block;
+        }
+
+        .explanation-title {
+            color: var(--primary);
+            font-weight: 800;
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .explanation-title::before {
+            content: '👩‍🏫';
+            font-size: 1.5rem;
+        }
+
+        .explanation-content {
+            font-size: 1rem;
+            color: #4b4b4b;
+            line-height: 1.6;
+            white-space: pre-line; /* Giữ nguyên xuống dòng */
+        }
+        
+        .explanation-content strong {
+            color: #2c3e50;
+        }
+
+        /* Nút tiếp theo */
+        .next-btn {
+            display: none; /* Hiện khi đã chọn đáp án */
+            width: 100%;
+            margin-top: 20px;
+            padding: 15px;
+            border: none;
+            border-radius: 15px;
+            background-color: var(--secondary);
+            color: white;
+            font-size: 1.2rem;
+            font-weight: 800;
+            cursor: pointer;
+            box-shadow: 0px 6px 0px #009e82;
+            transition: all 0.2s;
+            text-transform: uppercase;
+        }
+
+        .next-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0px 8px 0px #009e82;
+        }
+
+        .next-btn:active {
+            transform: translateY(4px);
+            box-shadow: 0px 0px 0px #009e82;
+        }
+
+        /* Màn hình kết quả */
+        .result-screen {
+            display: none;
+            text-align: center;
+        }
+        
+        .final-score {
+            font-size: 4rem;
+            font-weight: 900;
+            color: var(--primary);
+            margin: 20px 0;
+            text-shadow: 3px 3px 0px rgba(0,0,0,0.1);
+        }
+
+        .final-message {
+            font-size: 1.5rem;
+            margin-bottom: 30px;
+            color: var(--text-light);
+        }
+
+        .restart-btn {
+            background-color: var(--primary);
+            box-shadow: 0px 6px 0px #6c4299;
+            color: white;
+            padding: 15px 40px;
+            font-size: 1.2rem;
+            border-radius: 15px;
+            border: none;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .restart-btn:active {
+             transform: translateY(4px);
+             box-shadow: 0px 0px 0px #6c4299;
+        }
+
+        /* Utility classes */
+        .hidden { display: none !important; }
+
+    </style>
+</head>
+<body>
+
+<div class="quiz-container">
+    <div class="header-teacher">Giáo viên: Ms. Mai An ULIS</div>
+
+    <!-- Màn hình câu hỏi -->
+    <div id="quiz-screen">
+        <div class="progress-container">
+            <div class="progress-bar-bg">
+                <div class="progress-bar-fill" id="progress-fill"></div>
+            </div>
+            <div class="score-badge">
+                <span id="current-score">0</span>/<span id="total-questions">30</span>
+            </div>
+        </div>
+
+        <div class="question-box">
+            <div class="question-text" id="question-text">Đang tải câu hỏi...</div>
+            <div class="hint-text" id="hint-text">Gợi ý ở đây</div>
+        </div>
+
+        <div class="options-grid" id="options-grid">
+            <!-- Các nút đáp án sẽ được JS chèn vào đây -->
+        </div>
+
+        <div class="explanation-box" id="explanation-box">
+            <div class="explanation-title">Cô Mai An giải thích chi tiết:</div>
+            <div class="explanation-content" id="explanation-content">
+                Nội dung giải thích...
+            </div>
+        </div>
+
+        <button class="next-btn" id="next-btn" onclick="nextQuestion()">Câu tiếp theo ➜</button>
+    </div>
+
+    <!-- Màn hình kết quả -->
+    <div class="result-screen" id="result-screen">
+        <h2 style="color: var(--secondary); font-weight: 800;">HOÀN THÀNH!</h2>
+        <div class="final-score" id="final-score-display">25/30</div>
+        <p class="final-message" id="final-message">Bạn làm rất tốt!</p>
+        <button class="restart-btn" onclick="location.reload()">Làm lại bài thi ↺</button>
+    </div>
+</div>
+
+<script>
+    /* ================= DỮ LIỆU CÂU HỎI (30 Câu) ================= */
+    const quizData = [
+        {
+            "id": 1,
+            "question": "I go to the _______ to use the treadmill and lift weights.",
+            "options": [
+                { "text": "gym", "correct": true },
+                { "text": "park", "correct": false },
+                { "text": "stadium", "correct": false },
+                { "text": "field", "correct": false }
+            ],
+            "hint": "Nơi nào có máy chạy bộ (treadmill) và tạ (weights)?",
+            "explanation": "1. Phân tích từ vựng:\n- A. gym (n): phòng tập thể dục\n- B. park (n): công viên\n- C. stadium (n): sân vận động (có khán đài)\n- D. field (n): cánh đồng, sân cỏ\n\n2. Dịch nghĩa: Tôi đi đến phòng tập thể dục để sử dụng máy chạy bộ và nâng tạ.\n\n3. Giải thích: Các từ khóa 'treadmill' (máy chạy bộ) và 'lift weights' (nâng tạ) là những hoạt động đặc trưng tại phòng gym."
+        },
+        {
+            "id": 2,
+            "question": "Each tennis _______ must wear white clothes at Wimbledon.",
+            "options": [
+                { "text": "viewer", "correct": false },
+                { "text": "student", "correct": false },
+                { "text": "player", "correct": true },
+                { "text": "visitor", "correct": false }
+            ],
+            "hint": "Ai là người trực tiếp thi đấu trên sân?",
+            "explanation": "1. Phân tích từ vựng:\n- A. viewer (n): khán giả xem truyền hình\n- B. student (n): học sinh\n- C. player (n): người chơi, vận động viên\n- D. visitor (n): khách tham quan\n\n2. Dịch nghĩa: Mỗi vận động viên quần vợt phải mặc quần áo trắng tại giải Wimbledon.\n\n3. Giải thích: Trong ngữ cảnh thể thao, 'tennis player' là cụm từ chỉ vận động viên quần vợt, người trực tiếp tham gia thi đấu."
+        },
+        {
+            "id": 3,
+            "question": "We store all the sports _______ in the PE room - balls, rackets, and nets.",
+            "options": [
+                { "text": "uniforms", "correct": false },
+                { "text": "equipment", "correct": true },
+                { "text": "trophies", "correct": false },
+                { "text": "medals", "correct": false }
+            ],
+            "hint": "Từ chung để gọi bóng, vợt, lưới là gì?",
+            "explanation": "1. Phân tích từ vựng:\n- A. uniforms (n): đồng phục\n- B. equipment (n): dụng cụ, thiết bị\n- C. trophies (n): cúp chiến thắng\n- D. medals (n): huy chương\n\n2. Dịch nghĩa: Chúng tôi cất giữ tất cả dụng cụ thể thao trong phòng thể dục - bóng, vợt và lưới.\n\n3. Giải thích: Các vật dụng được liệt kê như 'balls' (bóng), 'rackets' (vợt), 'nets' (lưới) đều thuộc nhóm 'equipment' (dụng cụ)."
+        },
+        {
+            "id": 4,
+            "question": "The football _______ between Real Madrid and Barcelona is tonight.",
+            "options": [
+                { "text": "lesson", "correct": false },
+                { "text": "practice", "correct": false },
+                { "text": "training", "correct": false },
+                { "text": "match", "correct": true }
+            ],
+            "hint": "Cuộc thi đấu giữa hai đội gọi là gì?",
+            "explanation": "1. Phân tích từ vựng:\n- A. lesson (n): bài học\n- B. practice (n): buổi tập luyện\n- C. training (n): sự huấn luyện\n- D. match (n): trận đấu\n\n2. Dịch nghĩa: Trận bóng đá giữa Real Madrid và Barcelona diễn ra tối nay.\n\n3. Giải thích: 'Football match' là cụm từ cố định chỉ trận thi đấu bóng đá giữa hai đội."
+        },
+        {
+            "id": 5,
+            "question": "Children must learn to _______ before they can join the water polo team.",
+            "options": [
+                { "text": "run", "correct": false },
+                { "text": "jump", "correct": false },
+                { "text": "climb", "correct": false },
+                { "text": "swim", "correct": true }
+            ],
+            "hint": "Môn bóng nước (water polo) đòi hỏi kỹ năng gì nhất?",
+            "explanation": "1. Phân tích từ vựng:\n- A. run (v): chạy\n- B. jump (v): nhảy\n- C. climb (v): leo trèo\n- D. swim (v): bơi\n\n2. Dịch nghĩa: Trẻ em phải học bơi trước khi có thể tham gia đội bóng nước.\n\n3. Giải thích: 'Water polo' là môn bóng nước, nên kỹ năng bắt buộc đầu tiên phải là bơi (swim)."
+        },
+        {
+            "id": 6,
+            "question": "In _______, you hit a shuttlecock over a high net.",
+            "options": [
+                { "text": "badminton", "correct": true },
+                { "text": "tennis", "correct": false },
+                { "text": "golf", "correct": false },
+                { "text": "baseball", "correct": false }
+            ],
+            "hint": "Môn thể thao nào sử dụng 'shuttlecock' (quả cầu)?",
+            "explanation": "1. Phân tích từ vựng:\n- A. badminton (n): cầu lông\n- B. tennis (n): quần vợt\n- C. golf (n): môn gôn\n- D. baseball (n): bóng chày\n\n2. Dịch nghĩa: Trong môn cầu lông, bạn đánh quả cầu qua một tấm lưới cao.\n\n3. Giải thích: 'Shuttlecock' (quả cầu) là vật dụng đặc trưng duy nhất của môn cầu lông."
+        },
+        {
+            "id": 7,
+            "question": "I _______ play tennis - about five times every week.",
+            "options": [
+                { "text": "never", "correct": false },
+                { "text": "often", "correct": true },
+                { "text": "seldom", "correct": false },
+                { "text": "rarely", "correct": false }
+            ],
+            "hint": "5 lần một tuần là nhiều hay ít?",
+            "explanation": "1. Phân tích từ vựng:\n- A. never (adv): không bao giờ\n- B. often (adv): thường xuyên\n- C. seldom (adv): hiếm khi\n- D. rarely (adv): hiếm khi\n\n2. Dịch nghĩa: Tôi thường xuyên chơi quần vợt - khoảng năm lần mỗi tuần.\n\n3. Giải thích: Cụm từ 'five times every week' (5 lần mỗi tuần) chỉ tần suất dày đặc -> chọn 'often'."
+        },
+        {
+            "id": 8,
+            "question": "The striker kicked the ball into the net and scored a _______.",
+            "options": [
+                { "text": "point", "correct": false },
+                { "text": "number", "correct": false },
+                { "text": "goal", "correct": true },
+                { "text": "mark", "correct": false }
+            ],
+            "hint": "Đá bóng vào lưới (net) thì được tính là gì?",
+            "explanation": "1. Phân tích từ vựng:\n- A. point (n): điểm số\n- B. number (n): con số\n- C. goal (n): bàn thắng\n- D. mark (n): điểm chấm/dấu vết\n\n2. Dịch nghĩa: Tiền đạo đá bóng vào lưới và ghi một bàn thắng.\n\n3. Giải thích: Cụm từ 'score a goal' là thuật ngữ chuẩn trong bóng đá khi đưa bóng vào lưới."
+        },
+        {
+            "id": 9,
+            "question": "After the marathon, I was completely _______ and couldn't walk.",
+            "options": [
+                { "text": "hungry", "correct": false },
+                { "text": "thirsty", "correct": false },
+                { "text": "exhausted", "correct": true },
+                { "text": "angry", "correct": false }
+            ],
+            "hint": "Chạy đường dài xong thì cơ thể sẽ cảm thấy thế nào đến mức không đi nổi?",
+            "explanation": "1. Phân tích từ vựng:\n- A. hungry (adj): đói\n- B. thirsty (adj): khát\n- C. exhausted (adj): kiệt sức\n- D. angry (adj): tức giận\n\n2. Dịch nghĩa: Sau cuộc chạy marathon, tôi hoàn toàn kiệt sức và không thể đi bộ được nữa.\n\n3. Giải thích: 'Couldn't walk' (không thể đi được) là biểu hiện của sự kiệt sức hoàn toàn (exhausted)."
+        },
+        {
+            "id": 10,
+            "question": "Basketball is a team _______ played with five players on each side.",
+            "options": [
+                { "text": "hobby", "correct": false },
+                { "text": "sport", "correct": true },
+                { "text": "subject", "correct": false },
+                { "text": "lesson", "correct": false }
+            ],
+            "hint": "Bóng rổ, bóng đá được gọi chung là gì?",
+            "explanation": "1. Phân tích từ vựng:\n- A. hobby (n): sở thích\n- B. sport (n): môn thể thao\n- C. subject (n): môn học\n- D. lesson (n): bài học\n\n2. Dịch nghĩa: Bóng rổ là một môn thể thao đồng đội chơi với 5 người mỗi bên.\n\n3. Giải thích: 'Team sport' (môn thể thao đồng đội) là cụm danh từ phổ biến để phân loại các môn như bóng rổ, bóng đá."
+        },
+        {
+            "id": 11,
+            "question": "I ride my _______ because it has two wheels and pedals.",
+            "options": [
+                { "text": "car", "correct": false },
+                { "text": "bicycle", "correct": true },
+                { "text": "boat", "correct": false },
+                { "text": "plane", "correct": false }
+            ],
+            "hint": "Phương tiện nào có 2 bánh (wheels) và bàn đạp (pedals)?",
+            "explanation": "1. Phân tích từ vựng:\n- A. car (n): xe hơi\n- B. bicycle (n): xe đạp\n- C. boat (n): thuyền\n- D. plane (n): máy bay\n\n2. Dịch nghĩa: Tôi đi xe đạp vì nó có hai bánh và bàn đạp.\n\n3. Giải thích: Đặc điểm 'two wheels' (2 bánh) và 'pedals' (bàn đạp) là mô tả chính xác của xe đạp."
+        },
+        {
+            "id": 12,
+            "question": "The final _______ was Germany 2 - Brazil 1.",
+            "options": [
+                { "text": "score", "correct": true },
+                { "text": "price", "correct": false },
+                { "text": "time", "correct": false },
+                { "text": "date", "correct": false }
+            ],
+            "hint": "Con số chỉ kết quả trận đấu gọi là gì?",
+            "explanation": "1. Phân tích từ vựng:\n- A. score (n): tỉ số, điểm số\n- B. price (n): giá cả\n- C. time (n): thời gian\n- D. date (n): ngày tháng\n\n2. Dịch nghĩa: Tỉ số cuối cùng là Đức 2 - Brazil 1.\n\n3. Giải thích: 'Germany 2 - Brazil 1' là kết quả trận đấu, tức là tỉ số (score)."
+        },
+        {
+            "id": 13,
+            "question": "To _______ our chess club, please fill in this form.",
+            "options": [
+                { "text": "watch", "correct": false },
+                { "text": "see", "correct": false },
+                { "text": "join", "correct": true },
+                { "text": "look", "correct": false }
+            ],
+            "hint": "Điền đơn (fill form) là hành động để làm gì với một CLB?",
+            "explanation": "1. Phân tích từ vựng:\n- A. watch (v): xem\n- B. see (v): nhìn thấy\n- C. join (v): tham gia, gia nhập\n- D. look (v): nhìn\n\n2. Dịch nghĩa: Để tham gia câu lạc bộ cờ vua của chúng tôi, vui lòng điền vào đơn này.\n\n3. Giải thích: Cụm từ 'join a club' (gia nhập câu lạc bộ) rất phổ biến và phù hợp ngữ cảnh điền đơn đăng ký."
+        },
+        {
+            "id": 14,
+            "question": "Exercise is _______ for staying healthy and strong.",
+            "options": [
+                { "text": "boring", "correct": false },
+                { "text": "important", "correct": true },
+                { "text": "difficult", "correct": false },
+                { "text": "expensive", "correct": false }
+            ],
+            "hint": "Muốn khỏe mạnh thì tập thể dục có vai trò thế nào?",
+            "explanation": "1. Phân tích từ vựng:\n- A. boring (adj): nhàm chán\n- B. important (adj): quan trọng\n- C. difficult (adj): khó khăn\n- D. expensive (adj): đắt đỏ\n\n2. Dịch nghĩa: Tập thể dục rất quan trọng để giữ gìn sức khỏe và sự dẻo dai.\n\n3. Giải thích: 'Important' hợp lý nhất vì nó nhấn mạnh vai trò thiết yếu của việc tập luyện đối với sức khỏe."
+        },
+        {
+            "id": 15,
+            "question": "Our team needs one more point to _______ the championship.",
+            "options": [
+                { "text": "lose", "correct": false },
+                { "text": "fail", "correct": false },
+                { "text": "miss", "correct": false },
+                { "text": "win", "correct": true }
+            ],
+            "hint": "Khi có đủ điểm thì đội sẽ làm gì được chức vô địch?",
+            "explanation": "1. Phân tích từ vựng:\n- A. lose (v): thua\n- B. fail (v): thất bại\n- C. miss (v): bỏ lỡ\n- D. win (v): thắng, giành được\n\n2. Dịch nghĩa: Đội của chúng tôi cần thêm một điểm nữa để giành chức vô địch.\n\n3. Giải thích: 'Win the championship' là cụm từ chuẩn chỉ việc vô địch."
+        },
+        {
+            "id": 16,
+            "question": "Beach _______ is played on sand with six players per team.",
+            "options": [
+                { "text": "volleyball", "correct": true },
+                { "text": "hockey", "correct": false },
+                { "text": "boxing", "correct": false },
+                { "text": "skiing", "correct": false }
+            ],
+            "hint": "Môn thể thao nào thường gắn liền với bãi biển (beach) và chơi đồng đội?",
+            "explanation": "1. Phân tích từ vựng:\n- A. volleyball (n): bóng chuyền\n- B. hockey (n): khúc côn cầu\n- C. boxing (n): quyền anh\n- D. skiing (n): trượt tuyết\n\n2. Dịch nghĩa: Bóng chuyền bãi biển được chơi trên cát với sáu người chơi mỗi đội.\n\n3. Giải thích: Bóng chuyền (volleyball) là môn phổ biến chơi trên bãi biển và có thể thức 6 người (hoặc 2 người tùy loại)."
+        },
+        {
+            "id": 17,
+            "question": "The swimming _______ has races for children from different schools.",
+            "options": [
+                { "text": "homework", "correct": false },
+                { "text": "competition", "correct": true },
+                { "text": "holiday", "correct": false },
+                { "text": "birthday", "correct": false }
+            ],
+            "hint": "Sự kiện nào mà các trường đua (races) với nhau?",
+            "explanation": "1. Phân tích từ vựng:\n- A. homework (n): bài tập về nhà\n- B. competition (n): cuộc thi đấu\n- C. holiday (n): kỳ nghỉ\n- D. birthday (n): sinh nhật\n\n2. Dịch nghĩa: Cuộc thi bơi lội có các đường đua dành cho trẻ em từ các trường khác nhau.\n\n3. Giải thích: 'Swimming competition' là cuộc thi bơi, nơi diễn ra các cuộc đua tranh tài."
+        },
+        {
+            "id": 18,
+            "question": "Let's _______ at the main entrance before the game starts.",
+            "options": [
+                { "text": "meet", "correct": true },
+                { "text": "cook", "correct": false },
+                { "text": "sleep", "correct": false },
+                { "text": "eat", "correct": false }
+            ],
+            "hint": "Hẹn nhau ở cổng thì dùng từ gì?",
+            "explanation": "1. Phân tích từ vựng:\n- A. meet (v): gặp gỡ\n- B. cook (v): nấu ăn\n- C. sleep (v): ngủ\n- D. eat (v): ăn\n\n2. Dịch nghĩa: Hãy gặp nhau ở cổng chính trước khi trận đấu bắt đầu nhé.\n\n3. Giải thích: Hẹn nhau tại một địa điểm (main entrance) thì hành động phù hợp nhất là 'meet'."
+        },
+        {
+            "id": 19,
+            "question": "Sarah was the _______ - she came first in the 100m race.",
+            "options": [
+                { "text": "loser", "correct": false },
+                { "text": "visitor", "correct": false },
+                { "text": "winner", "correct": true },
+                { "text": "teacher", "correct": false }
+            ],
+            "hint": "Người về nhất (came first) thì gọi là gì?",
+            "explanation": "1. Phân tích từ vựng:\n- A. loser (n): người thua cuộc\n- B. visitor (n): khách tham quan\n- C. winner (n): người chiến thắng\n- D. teacher (n): giáo viên\n\n2. Dịch nghĩa: Sarah là người chiến thắng - cô ấy đã về nhất trong cuộc đua 100m.\n\n3. Giải thích: Vì cô ấy về đích đầu tiên (came first), nên cô ấy là người thắng cuộc."
+        },
+        {
+            "id": 20,
+            "question": "We play _______ with a round ball and try to score goals.",
+            "options": [
+                { "text": "chess", "correct": false },
+                { "text": "football", "correct": true },
+                { "text": "cards", "correct": false },
+                { "text": "piano", "correct": false }
+            ],
+            "hint": "Môn gì dùng bóng tròn (round ball) và ghi bàn (score goals)?",
+            "explanation": "1. Phân tích từ vựng:\n- A. chess (n): cờ vua\n- B. football (n): bóng đá\n- C. cards (n): bài lá\n- D. piano (n): đàn piano\n\n2. Dịch nghĩa: Chúng tôi chơi bóng đá với một quả bóng tròn và cố gắng ghi bàn.\n\n3. Giải thích: Bóng đá sử dụng 'round ball' (bóng tròn) và mục tiêu là 'score goals' (ghi bàn)."
+        },
+        {
+            "id": 21,
+            "question": "The _______ coach always finds the best game strategies.",
+            "options": [
+                { "text": "lazy", "correct": false },
+                { "text": "intelligent", "correct": true },
+                { "text": "tall", "correct": false },
+                { "text": "young", "correct": false }
+            ],
+            "hint": "Người tìm ra chiến thuật hay (best strategies) thì phải có trí óc thế nào?",
+            "explanation": "1. Phân tích từ vựng:\n- A. lazy (adj): lười biếng\n- B. intelligent (adj): thông minh\n- C. tall (adj): cao\n- D. young (adj): trẻ\n\n2. Dịch nghĩa: Người huấn luyện viên thông minh luôn tìm ra những chiến thuật thi đấu tốt nhất.\n\n3. Giải thích: Tính từ 'intelligent' phù hợp nhất để mô tả khả năng tư duy chiến thuật."
+        },
+        {
+            "id": 22,
+            "question": "Athletes need 8-10 hours of _______ every night to recover.",
+            "options": [
+                { "text": "television", "correct": false },
+                { "text": "homework", "correct": false },
+                { "text": "reading", "correct": false },
+                { "text": "sleep", "correct": true }
+            ],
+            "hint": "Hoạt động nào vào ban đêm giúp cơ thể hồi phục (recover)?",
+            "explanation": "1. Phân tích từ vựng:\n- A. television (n): ti vi\n- B. homework (n): bài tập về nhà\n- C. reading (n): việc đọc sách\n- D. sleep (n): giấc ngủ\n\n2. Dịch nghĩa: Các vận động viên cần ngủ 8-10 tiếng mỗi đêm để hồi phục.\n\n3. Giải thích: Ngủ đủ giấc là yếu tố quan trọng nhất để cơ thể phục hồi sau tập luyện."
+        },
+        {
+            "id": 23,
+            "question": "Monopoly and Scrabble are popular board _______. ",
+            "options": [
+                { "text": "books", "correct": false },
+                { "text": "games", "correct": true },
+                { "text": "movies", "correct": false },
+                { "text": "songs", "correct": false }
+            ],
+            "hint": "Monopoly (Cờ tỷ phú) là loại hình giải trí gì?",
+            "explanation": "1. Phân tích từ vựng:\n- A. books (n): sách\n- B. games (n): trò chơi\n- C. movies (n): phim ảnh\n- D. songs (n): bài hát\n\n2. Dịch nghĩa: Cờ tỷ phú và Scrabble là những trò chơi bàn cờ phổ biến.\n\n3. Giải thích: 'Board games' là danh từ ghép chỉ các trò chơi như Cờ tỷ phú, Cờ cá ngựa..."
+        },
+        {
+            "id": 24,
+            "question": "She won the gold medal and became the world _______. ",
+            "options": [
+                { "text": "student", "correct": false },
+                { "text": "champion", "correct": true },
+                { "text": "tourist", "correct": false },
+                { "text": "driver", "correct": false }
+            ],
+            "hint": "Người đạt huy chương vàng (gold medal) được gọi là gì?",
+            "explanation": "1. Phân tích từ vựng:\n- A. student (n): học sinh\n- B. champion (n): nhà vô địch\n- C. tourist (n): du khách\n- D. driver (n): tài xế\n\n2. Dịch nghĩa: Cô ấy đã giành huy chương vàng và trở thành nhà vô địch thế giới.\n\n3. Giải thích: 'World champion' là danh hiệu dành cho người chiến thắng cao nhất ở tầm thế giới."
+        },
+        {
+            "id": 25,
+            "question": "I only have time for sports on Saturday and Sunday - the _______. ",
+            "options": [
+                { "text": "morning", "correct": false },
+                { "text": "afternoon", "correct": false },
+                { "text": "weekend", "correct": true },
+                { "text": "evening", "correct": false }
+            ],
+            "hint": "Thứ 7 và Chủ nhật gọi chung là gì?",
+            "explanation": "1. Phân tích từ vựng:\n- A. morning (n): buổi sáng\n- B. afternoon (n): buổi chiều\n- C. weekend (n): cuối tuần\n- D. evening (n): buổi tối\n\n2. Dịch nghĩa: Tôi chỉ có thời gian chơi thể thao vào thứ Bảy và Chủ Nhật - tức là cuối tuần.\n\n3. Giải thích: 'The weekend' bao gồm Saturday và Sunday."
+        },
+        {
+            "id": 26,
+            "question": "In my _______, I enjoy playing video games and reading.",
+            "options": [
+                { "text": "free time", "correct": true },
+                { "text": "math class", "correct": false },
+                { "text": "bedroom", "correct": false },
+                { "text": "kitchen", "correct": false }
+            ],
+            "hint": "Khi nào bạn được làm những việc mình thích?",
+            "explanation": "1. Phân tích từ vựng:\n- A. free time (n): thời gian rảnh\n- B. math class (n): giờ học toán\n- C. bedroom (n): phòng ngủ\n- D. kitchen (n): nhà bếp\n\n2. Dịch nghĩa: Trong thời gian rảnh, tôi thích chơi trò chơi điện tử và đọc sách.\n\n3. Giải thích: Các hoạt động giải trí như chơi game và đọc sách thường diễn ra vào 'free time'."
+        },
+        {
+            "id": 27,
+            "question": "The Olympic _______ displays medals and uniforms from past games.",
+            "options": [
+                { "text": "hospital", "correct": false },
+                { "text": "museum", "correct": true },
+                { "text": "bank", "correct": false },
+                { "text": "school", "correct": false }
+            ],
+            "hint": "Nơi nào dùng để trưng bày (displays) hiện vật cũ?",
+            "explanation": "1. Phân tích từ vựng:\n- A. hospital (n): bệnh viện\n- B. museum (n): bảo tàng\n- C. bank (n): ngân hàng\n- D. school (n): trường học\n\n2. Dịch nghĩa: Bảo tàng Olympic trưng bày huy chương và đồng phục từ các thế vận hội trước đây.\n\n3. Giải thích: 'Museum' là nơi lưu giữ và trưng bày hiện vật."
+        },
+        {
+            "id": 28,
+            "question": "Our tennis _______ meets every Tuesday for practice.",
+            "options": [
+                { "text": "family", "correct": false },
+                { "text": "club", "correct": true },
+                { "text": "city", "correct": false },
+                { "text": "country", "correct": false }
+            ],
+            "hint": "Tổ chức nào tập hợp những người cùng sở thích chơi tennis?",
+            "explanation": "1. Phân tích từ vựng:\n- A. family (n): gia đình\n- B. club (n): câu lạc bộ\n- C. city (n): thành phố\n- D. country (n): đất nước\n\n2. Dịch nghĩa: Câu lạc bộ quần vợt của chúng tôi gặp nhau mỗi thứ Ba để luyện tập.\n\n3. Giải thích: 'Tennis club' là tổ chức phổ biến nơi các thành viên tham gia tập luyện chung."
+        },
+        {
+            "id": 29,
+            "question": "The team celebrated at a _______ and ordered pizza and drinks.",
+            "options": [
+                { "text": "restaurant", "correct": true },
+                { "text": "library", "correct": false },
+                { "text": "hospital", "correct": false },
+                { "text": "airport", "correct": false }
+            ],
+            "hint": "Nơi nào phục vụ đồ ăn như pizza?",
+            "explanation": "1. Phân tích từ vựng:\n- A. restaurant (n): nhà hàng\n- B. library (n): thư viện\n- C. hospital (n): bệnh viện\n- D. airport (n): sân bay\n\n2. Dịch nghĩa: Cả đội đã ăn mừng tại một nhà hàng và gọi bánh pizza cùng đồ uống.\n\n3. Giải thích: Nơi để 'order pizza and drinks' (gọi pizza và đồ uống) để ăn mừng là nhà hàng."
+        },
+        {
+            "id": 30,
+            "question": "You should do physical _______ for at least 30 minutes daily.",
+            "options": [
+                { "text": "homework", "correct": false },
+                { "text": "exercise", "correct": true },
+                { "text": "shopping", "correct": false },
+                { "text": "cleaning", "correct": false }
+            ],
+            "hint": "Cụm từ nào đi với 'physical' để chỉ việc rèn luyện thân thể?",
+            "explanation": "1. Phân tích từ vựng:\n- A. homework (n): bài tập về nhà\n- B. exercise (n): bài tập thể dục\n- C. shopping (n): mua sắm\n- D. cleaning (n): dọn dẹp\n\n2. Dịch nghĩa: Bạn nên tập thể dục ít nhất 30 phút mỗi ngày.\n\n3. Giải thích: Đi với tính từ 'physical' (thuộc về thể chất) thì 'exercise' là phù hợp nhất."
+        }
+    ];
+
+    /* ================= LOGIC JAVASCRIPT ================= */
+    let currentQuestionIndex = 0;
+    let score = 0;
+    let hasAnswered = false;
+
+    // Âm thanh (Base64 để đảm bảo single-file)
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+    function playSound(type) {
+        if (audioContext.state === 'suspended') {
+            audioContext.resume();
+        }
+        
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+
+        if (type === 'correct') {
+            // Âm "Ding"
+            oscillator.type = 'sine';
+            oscillator.frequency.setValueAtTime(500, audioContext.currentTime);
+            oscillator.frequency.exponentialRampToValueAtTime(1000, audioContext.currentTime + 0.1);
+            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.4);
+            oscillator.start();
+            oscillator.stop(audioContext.currentTime + 0.4);
+        } else if (type === 'wrong') {
+            // Âm "Buzz"
+            oscillator.type = 'sawtooth';
+            oscillator.frequency.setValueAtTime(150, audioContext.currentTime);
+            oscillator.frequency.linearRampToValueAtTime(100, audioContext.currentTime + 0.2);
+            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+            oscillator.start();
+            oscillator.stop(audioContext.currentTime + 0.3);
+        }
+    }
+
+    function renderQuestion() {
+        const questionData = quizData[currentQuestionIndex];
+        hasAnswered = false;
+
+        // Reset UI
+        document.getElementById('next-btn').style.display = 'none';
+        document.getElementById('explanation-box').classList.remove('show');
+        
+        // Cập nhật text
+        document.getElementById('current-score').textContent = score;
+        document.getElementById('question-text').textContent = `${currentQuestionIndex + 1}. ${questionData.question}`;
+        document.getElementById('hint-text').textContent = questionData.hint;
+        
+        // Progress bar
+        const progressPercent = ((currentQuestionIndex) / quizData.length) * 100;
+        document.getElementById('progress-fill').style.width = `${progressPercent}%`;
+
+        // Tạo nút đáp án
+        const optionsGrid = document.getElementById('options-grid');
+        optionsGrid.innerHTML = '';
+        const labels = ['A', 'B', 'C', 'D'];
+
+        questionData.options.forEach((opt, index) => {
+            const btn = document.createElement('button');
+            btn.className = 'option-btn';
+            btn.innerHTML = `
+                <div class="option-label">${labels[index]}</div>
+                ${opt.text}
+            `;
+            btn.onclick = () => checkAnswer(index, btn);
+            optionsGrid.appendChild(btn);
+        });
+
+        // Cập nhật nội dung giải thích (nhưng chưa hiện)
+        document.getElementById('explanation-content').innerHTML = formatExplanation(questionData.explanation);
+    }
+
+    function formatExplanation(text) {
+        // Tự động bôi đậm các từ khóa trong giải thích
+        return text
+            .replace(/(\d\.\s)/g, '<br><strong>$1</strong>') // Bôi đậm số thứ tự
+            .replace(/(A\.|B\.|C\.|D\.)/g, '<br><strong>$1</strong>') // Bôi đậm A. B. C. D.
+            .replace('Đáp án đúng:', '<br><strong style="color:var(--success)">Đáp án đúng:</strong>');
+    }
+
+    function checkAnswer(selectedIndex, btnElement) {
+        if (hasAnswered) return; // Không cho chọn lại
+        hasAnswered = true;
+
+        const currentData = quizData[currentQuestionIndex];
+        const isCorrect = currentData.options[selectedIndex].correct;
+        const allButtons = document.querySelectorAll('.option-btn');
+
+        if (isCorrect) {
+            score++;
+            btnElement.classList.add('correct');
+            playSound('correct');
+            // Hiệu ứng pháo giấy
+            confetti({
+                particleCount: 100,
+                spread: 70,
+                origin: { y: 0.6 },
+                colors: ['#8854C0', '#00C9A7', '#FF9F43']
+            });
+        } else {
+            btnElement.classList.add('wrong');
+            playSound('wrong');
+            // Tìm và highlight đáp án đúng
+            currentData.options.forEach((opt, idx) => {
+                if(opt.correct) {
+                    allButtons[idx].classList.add('correct');
+                }
+            });
+        }
+
+        // Vô hiệu hóa tất cả các nút
+        allButtons.forEach(btn => btn.disabled = true);
+
+        // Cập nhật điểm ngay lập tức
+        document.getElementById('current-score').textContent = score;
+
+        // Hiện giải thích và nút tiếp theo
+        document.getElementById('explanation-box').classList.add('show');
+        document.getElementById('next-btn').style.display = 'block';
+        
+        // Auto scroll xuống phần giải thích (trên mobile)
+        setTimeout(() => {
+            document.getElementById('explanation-box').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }, 100);
+    }
+
+    function nextQuestion() {
+        currentQuestionIndex++;
+        if (currentQuestionIndex < quizData.length) {
+            renderQuestion();
+        } else {
+            finishQuiz();
+        }
+    }
+
+    function finishQuiz() {
+        document.getElementById('quiz-screen').style.display = 'none';
+        document.getElementById('result-screen').style.display = 'block';
+        
+        const finalScoreDisplay = document.getElementById('final-score-display');
+        finalScoreDisplay.textContent = `${score}/${quizData.length}`;
+        
+        const message = document.getElementById('final-message');
+        const percentage = (score / quizData.length) * 100;
+
+        if (percentage === 100) {
+            message.textContent = "Xuất sắc! Bạn là một ngôi sao thể thao thực thụ! 🏆🥇";
+            confetti({ particleCount: 200, spread: 100, origin: { y: 0.6 } });
+        } else if (percentage >= 80) {
+            message.textContent = "Giỏi lắm! Kiến thức của bạn rất vững! 🥈";
+        } else if (percentage >= 50) {
+            message.textContent = "Làm tốt lắm! Cố gắng luyện tập thêm nhé! 🥉";
+        } else {
+            message.textContent = "Đừng nản lòng! Hãy ôn tập lại từ vựng và thử lại nha! 💪";
+        }
+    }
+
+    // Khởi chạy câu hỏi đầu tiên
+    renderQuestion();
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Luyện tập Thì Quá Khứ Tiếp Diễn - Ms Mai An ULIS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
+    <!-- Confetti Library -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #8854C0; /* Tím Pastel */
+            --secondary-color: #00C9A7; /* Xanh Ngọc */
+            --correct-color: #00D26A; /* Xanh lá */
+            --wrong-color: #FF4757; /* Đỏ cam */
+            --bg-color: #F0F4F8;
+            --text-color: #2F3542;
+            --card-bg: #FFFFFF;
+            --shadow-color: rgba(0, 0, 0, 0.15);
+            --btn-shadow: rgba(0, 0, 0, 0.2);
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: #e3f2fd;
+            background-image: radial-gradient(#8854C0 1px, transparent 1px), radial-gradient(#00C9A7 1px, transparent 1px);
+            background-position: 0 0, 25px 25px;
+            background-size: 50px 50px;
+            margin: 0;
+            padding: 20px;
+            color: var(--text-color);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        /* Header */
+        header {
+            text-align: center;
+            background: #fff;
+            padding: 20px;
+            border-radius: 20px;
+            box-shadow: 0 10px 0 rgba(136, 84, 192, 0.2);
+            margin-bottom: 40px;
+            border: 3px solid var(--primary-color);
+            position: relative;
+            overflow: hidden;
+        }
+
+        header h1 {
+            color: var(--primary-color);
+            font-family: 'Quicksand', sans-serif;
+            font-weight: 800;
+            margin: 0;
+            font-size: 2.2rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        header p {
+            color: #747d8c;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+
+        .score-board {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #fff;
+            padding: 10px 20px;
+            border-radius: 50px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            font-weight: 800;
+            color: var(--secondary-color);
+            z-index: 1000;
+            border: 2px solid var(--secondary-color);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.2rem;
+        }
+
+        /* Quiz Card */
+        .quiz-card {
+            background: var(--card-bg);
+            border-radius: 25px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 0 rgba(0,0,0,0.05);
+            border: 2px solid #f1f2f6;
+            transition: transform 0.3s ease;
+            position: relative;
+        }
+
+        .quiz-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .question-number {
+            display: inline-block;
+            background: var(--primary-color);
+            color: #fff;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+            box-shadow: 0 3px 0 rgba(0,0,0,0.2);
+        }
+
+        .question-text {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 25px;
+            line-height: 1.5;
+            color: #2f3542;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        @media (max-width: 600px) {
+            .options-grid {
+                grid-template-columns: 1fr;
+            }
+            header h1 {
+                font-size: 1.5rem;
+            }
+        }
+
+        .option-btn {
+            background: #fff;
+            border: 2px solid #e1e1e1;
+            padding: 15px 20px;
+            border-radius: 15px;
+            font-family: 'Nunito', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-color);
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: left;
+            position: relative;
+            box-shadow: 0 4px 0 #e1e1e1;
+            outline: none;
+        }
+
+        .option-btn:active {
+            transform: translateY(4px);
+            box-shadow: none;
+        }
+
+        .option-btn:hover:not(:disabled) {
+            background-color: #f7f1ff;
+            border-color: var(--primary-color);
+        }
+
+        /* States */
+        .option-btn.correct {
+            background-color: var(--correct-color);
+            color: #fff;
+            border-color: #00b85c;
+            box-shadow: 0 4px 0 #00b85c;
+        }
+
+        .option-btn.wrong {
+            background-color: var(--wrong-color);
+            color: #fff;
+            border-color: #ff2e40;
+            box-shadow: 0 4px 0 #ff2e40;
+            animation: shake 0.5s;
+        }
+
+        .option-btn:disabled {
+            cursor: default;
+            opacity: 0.7;
+        }
+
+        /* Explanation Box */
+        .explanation {
+            margin-top: 25px;
+            padding: 20px;
+            background-color: #f0fff4;
+            border: 2px solid var(--correct-color);
+            border-radius: 15px;
+            display: none; /* Hidden by default */
+            animation: slideDown 0.4s ease-out;
+        }
+
+        .explanation.visible {
+            display: block;
+        }
+
+        .explanation h4 {
+            margin: 0 0 10px 0;
+            color: var(--correct-color);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .explanation-content {
+            font-size: 1rem;
+            line-height: 1.6;
+            white-space: pre-wrap; /* Preserves newlines */
+        }
+
+        .explanation-content strong {
+            color: var(--primary-color);
+        }
+        
+        /* Hint Button */
+        .hint-btn {
+            background: none;
+            border: none;
+            color: #ffa502;
+            cursor: pointer;
+            font-weight: 700;
+            margin-top: 10px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.9rem;
+        }
+        
+        .hint-text {
+            display: none;
+            color: #ffa502;
+            font-style: italic;
+            margin-top: 5px;
+            font-size: 0.9rem;
+        }
+
+        /* Submit Section */
+        .submit-section {
+            text-align: center;
+            margin: 50px 0;
+        }
+
+        .submit-btn {
+            background: var(--secondary-color);
+            color: #fff;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.5rem;
+            border-radius: 50px;
+            font-weight: 800;
+            cursor: pointer;
+            box-shadow: 0 6px 0 #00a388;
+            transition: all 0.2s;
+        }
+
+        .submit-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .submit-btn:active {
+            transform: translateY(6px);
+            box-shadow: none;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.6);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background: #fff;
+            padding: 40px;
+            border-radius: 30px;
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+            animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border: 5px solid var(--primary-color);
+        }
+
+        .final-score {
+            font-size: 4rem;
+            color: var(--primary-color);
+            font-weight: 900;
+            margin: 10px 0;
+        }
+
+        .modal-message {
+            font-size: 1.2rem;
+            color: #57606f;
+            margin-bottom: 20px;
+        }
+
+        /* Animations */
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-5px) rotate(-2deg); }
+            50% { transform: translateX(5px) rotate(2deg); }
+            75% { transform: translateX(-5px) rotate(-2deg); }
+            100% { transform: translateX(0); }
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes popIn {
+            from { opacity: 0; transform: scale(0.5); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="score-board">
+        <span>⭐</span> <span id="current-score">0</span>
+    </div>
+
+    <div class="container">
+        <header>
+            <h1>Luyện tập Thì Quá Khứ Tiếp Diễn</h1>
+            <p>Giáo viên: Ms Mai An (ULIS)</p>
+            <p style="font-size: 0.9rem; color: #a4b0be;">Hãy chọn đáp án đúng nhất để xem giải thích chi tiết nhé!</p>
+        </header>
+
+        <div id="quiz-container">
+            <!-- Questions will be rendered here via JavaScript -->
+        </div>
+
+        <div class="submit-section">
+            <button class="submit-btn" onclick="finishQuiz()">NỘP BÀI 🚀</button>
+        </div>
+    </div>
+
+    <!-- Result Modal -->
+    <div id="result-modal" class="modal">
+        <div class="modal-content">
+            <h2>Kết Quả Của Bạn</h2>
+            <div class="final-score" id="final-score-display">0/30</div>
+            <p class="modal-message" id="modal-message">Bạn làm tốt lắm!</p>
+            <button class="submit-btn" onclick="location.reload()" style="font-size: 1.2rem; padding: 10px 30px;">Làm lại bài thi 🔄</button>
+        </div>
+    </div>
+
+    <!-- Audio Elements -->
+    <!-- Using reliable short sounds -->
+    <audio id="sound-correct" src="https://assets.mixkit.co/sfx/preview/mixkit-arcade-game-jump-coin-216.mp3"></audio>
+    <audio id="sound-wrong" src="https://assets.mixkit.co/sfx/preview/mixkit-wrong-answer-fail-notification-946.mp3"></audio>
+
+<script>
+    // DATA TỪ BÀI TẬP CỦA BẠN
+    const quizData = {
+      "questions": [
+        {
+          "questionNumber": 1,
+          "question": "I _____ watching TV at 8 o’clock last night.",
+          "answerOptions": [
+            { "text": "was", "rationale": "Dịch chi tiết:\nA. was (verb): thì/là/ở (dùng cho số ít: I, He, She, It)\nB. were (verb): thì/là/ở (dùng cho số nhiều: You, We, They)\nC. am (verb): thì/là/ở (hiện tại, đi với I)\nD. is (verb): thì/là/ở (hiện tại, số ít)\n\nGiải thích: Chủ ngữ là 'I' (tớ/tôi) nên trong quá khứ ta dùng 'was'.\n\nDịch câu: Tớ đang xem TV lúc 8 giờ tối qua.", "isCorrect": true },
+            { "text": "were", "rationale": "...", "isCorrect": false },
+            { "text": "am", "rationale": "...", "isCorrect": false },
+            { "text": "is", "rationale": "...", "isCorrect": false }
+          ],
+          "hint": "Chủ ngữ 'I' đi với 'was' hay 'were' nhỉ?"
+        },
+        {
+          "questionNumber": 2,
+          "question": "They _____ playing football yesterday afternoon.",
+          "answerOptions": [
+            { "text": "was", "rationale": "...", "isCorrect": false },
+            { "text": "were", "rationale": "Dịch chi tiết:\nA. was (verb): thì/là/ở (số ít)\nB. were (verb): thì/là/ở (số nhiều)\nC. do (verb): làm\nD. are (verb): thì/là/ở (hiện tại)\n\nGiải thích: Chủ ngữ 'They' (họ) là số nhiều nên ta dùng 'were'.\n\nDịch câu: Họ đang chơi bóng đá vào chiều hôm qua.", "isCorrect": true },
+            { "text": "do", "rationale": "...", "isCorrect": false },
+            { "text": "are", "rationale": "...", "isCorrect": false }
+          ],
+          "hint": "Chủ ngữ 'They' là số nhiều hay số ít?"
+        },
+        {
+          "questionNumber": 3,
+          "question": "She _____ cooking dinner when I came.",
+          "answerOptions": [
+            { "text": "was", "rationale": "Dịch chi tiết:\nA. was (verb): thì/là/ở (quá khứ số ít)\nB. were (verb): thì/là/ở (quá khứ số nhiều)\nC. is (verb): thì/là/ở (hiện tại)\nD. are (verb): thì/là/ở (hiện tại)\n\nGiải thích: Chủ ngữ 'She' (cô ấy) là số ít nên đi với 'was'.\n\nDịch câu: Cô ấy đang nấu bữa tối khi tớ đến.", "isCorrect": true },
+            { "text": "were", "rationale": "...", "isCorrect": false },
+            { "text": "is", "rationale": "...", "isCorrect": false },
+            { "text": "are", "rationale": "...", "isCorrect": false }
+          ],
+          "hint": "Một người (She) thì dùng was hay were?"
+        },
+        {
+          "questionNumber": 4,
+          "question": "What _____ you doing at 7 p.m yesterday?",
+          "answerOptions": [
+            { "text": "was", "rationale": "...", "isCorrect": false },
+            { "text": "were", "rationale": "Dịch chi tiết:\nA. was (verb): thì/là/ở\nB. were (verb): thì/là/ở\nC. did (verb): làm (trợ động từ quá khứ đơn)\nD. are (verb): thì/là/ở (hiện tại)\n\nGiải thích: Chủ ngữ 'You' (bạn) luôn đi với 'were' trong câu hỏi quá khứ tiếp diễn.\n\nDịch câu: Bạn đang làm gì lúc 7 giờ tối qua vậy?", "isCorrect": true },
+            { "text": "did", "rationale": "...", "isCorrect": false },
+            { "text": "are", "rationale": "...", "isCorrect": false }
+          ],
+          "hint": "Đi với 'You' thì dùng 'was' hay 'were'?"
+        },
+        {
+          "questionNumber": 5,
+          "question": "He _____ reading a book at this time last Sunday.",
+          "answerOptions": [
+            { "text": "was", "rationale": "Dịch chi tiết:\nA. was (verb): thì/là/ở\nB. were (verb): thì/là/ở\nC. is (verb): thì/là/ở (hiện tại)\nD. are (verb): thì/là/ở (hiện tại)\n\nGiải thích: Chủ ngữ 'He' (anh ấy) là số ít -> dùng 'was'. Cụm 'at this time last Sunday' là dấu hiệu của quá khứ tiếp diễn.\n\nDịch câu: Giờ này Chủ nhật trước anh ấy đang đọc sách.", "isCorrect": true },
+            { "text": "were", "rationale": "...", "isCorrect": false },
+            { "text": "is", "rationale": "...", "isCorrect": false },
+            { "text": "are", "rationale": "...", "isCorrect": false }
+          ],
+          "hint": "He là anh ấy (1 người)."
+        },
+        {
+          "questionNumber": 6,
+          "question": "We _____ sleeping when the phone rang.",
+          "answerOptions": [
+            { "text": "was", "rationale": "...", "isCorrect": false },
+            { "text": "were", "rationale": "Dịch chi tiết:\nA. was (verb): thì/là/ở\nB. were (verb): thì/là/ở\nC. did (verb): làm\nD. are (verb): thì/là/ở\n\nGiải thích: Chủ ngữ 'We' (chúng tớ/chúng tôi) là số nhiều -> dùng 'were'. Đây là hành động dài (đang ngủ) bị chen ngang.\n\nDịch câu: Chúng tớ đang ngủ thì điện thoại reo.", "isCorrect": true },
+            { "text": "did", "rationale": "...", "isCorrect": false },
+            { "text": "are", "rationale": "...", "isCorrect": false }
+          ],
+          "hint": "We là số nhiều (chúng tôi)."
+        },
+        {
+          "questionNumber": 7,
+          "question": "Was she _____ to music?",
+          "answerOptions": [
+            { "text": "listening", "rationale": "Dịch chi tiết:\nA. listening (verb-ing): đang nghe\nB. listened (verb-ed): đã nghe\nC. listen (verb): nghe (nguyên thể)\nD. listens (verb-s): nghe (chia ngôi thứ 3)\n\nGiải thích: Công thức câu hỏi: Was + S + V-ing? Nên động từ phải thêm đuôi -ing.\n\nDịch câu: Cô ấy có đang nghe nhạc không?", "isCorrect": true },
+            { "text": "listened", "rationale": "...", "isCorrect": false },
+            { "text": "listen", "rationale": "...", "isCorrect": false },
+            { "text": "listens", "rationale": "...", "isCorrect": false }
+          ],
+          "hint": "Sau Was/Were động từ phải thêm đuôi gì?"
+        },
+        {
+          "questionNumber": 8,
+          "question": "While my mom was cooking, my dad _____ reading a newspaper.",
+          "answerOptions": [
+            { "text": "was", "rationale": "Dịch chi tiết:\nA. was (verb): thì/là/ở\nB. were (verb): thì/là/ở\nC. is (verb): thì/là/ở\nD. are (verb): thì/là/ở\n\nGiải thích: Chủ ngữ 'my dad' (bố tớ) là 1 người (số ít) -> dùng 'was'. Đây là 2 hành động xảy ra song song.\n\nDịch câu: Trong khi mẹ tớ đang nấu ăn thì bố tớ đang đọc báo.", "isCorrect": true },
+            { "text": "were", "rationale": "...", "isCorrect": false },
+            { "text": "is", "rationale": "...", "isCorrect": false },
+            { "text": "are", "rationale": "...", "isCorrect": false }
+          ],
+          "hint": "Bố (my dad) là số ít hay nhiều?"
+        },
+        {
+          "questionNumber": 9,
+          "question": "It _____ raining at 3 o'clock yesterday.",
+          "answerOptions": [
+            { "text": "was", "rationale": "Dịch chi tiết:\nA. was (verb): thì/là/ở\nB. were (verb): thì/là/ở\nC. is (verb): thì/là/ở\nD. are (verb): thì/là/ở\n\nGiải thích: Chủ ngữ 'It' (trời/nó) là số ít -> dùng 'was'.\n\nDịch câu: Trời đang mưa lúc 3 giờ hôm qua.", "isCorrect": true },
+            { "text": "were", "rationale": "...", "isCorrect": false },
+            { "text": "is", "rationale": "...", "isCorrect": false },
+            { "text": "are", "rationale": "...", "isCorrect": false }
+          ],
+          "hint": "It (số ít) đi với Was hay Were?"
+        },
+        {
+          "questionNumber": 10,
+          "question": "_____ they watching TV when you arrived?",
+          "answerOptions": [
+            { "text": "Were", "rationale": "Dịch chi tiết:\nA. Were (verb): Thì/là/ở (quá khứ)\nB. Was (verb): Thì/là/ở (quá khứ)\nC. Do (verb): Làm (trợ động từ)\nD. Did (verb): Đã làm (trợ động từ)\n\nGiải thích: Câu hỏi với chủ ngữ 'they' (họ - số nhiều) -> Dùng 'Were' đứng đầu câu.\n\nDịch câu: Họ có đang xem TV khi bạn đến không?", "isCorrect": true },
+            { "text": "Was", "rationale": "...", "isCorrect": false },
+            { "text": "Do", "rationale": "...", "isCorrect": false },
+            { "text": "Did", "rationale": "...", "isCorrect": false }
+          ],
+          "hint": "They là số nhiều."
+        },
+        {
+          "questionNumber": 11,
+          "question": "My friends _____ playing games at 4 p.m.",
+          "answerOptions": [
+            { "text": "was", "rationale": "...", "isCorrect": false },
+            { "text": "were", "rationale": "Dịch chi tiết:\nA. was (verb): thì/là/ở\nB. were (verb): thì/là/ở\nC. is (verb): thì/là/ở\nD. are (verb): thì/là/ở\n\nGiải thích: Chủ ngữ 'My friends' là số nhiều -> dùng 'were'.\n\nDịch câu: Bạn bè của tớ đang chơi trò chơi lúc 4 giờ chiều.", "isCorrect": true },
+            { "text": "is", "rationale": "...", "isCorrect": false },
+            { "text": "are", "rationale": "...", "isCorrect": false }
+          ],
+          "hint": "My friends (có s) là số nhiều."
+        },
+        {
+          "questionNumber": 12,
+          "question": "I was _____ homework when he called.",
+          "answerOptions": [
+            { "text": "doing", "rationale": "Dịch chi tiết:\nA. doing (verb-ing): đang làm\nB. do (verb): làm\nC. did (verb): đã làm\nD. does (verb-s): làm\n\nGiải thích: Sau 'was' phải là V-ing (doing homework).\n\nDịch câu: Tớ đang làm bài tập về nhà thì cậu ấy gọi.", "isCorrect": true },
+            { "text": "do", "rationale": "...", "isCorrect": false },
+            { "text": "did", "rationale": "...", "isCorrect": false },
+            { "text": "does", "rationale": "...", "isCorrect": false }
+          ],
+          "hint": "Doing homework hay Do homework?"
+        },
+        {
+          "questionNumber": 13,
+          "question": "_____ you having lunch at 12 o'clock?",
+          "answerOptions": [
+            { "text": "Were", "rationale": "Dịch chi tiết:\nA. Were (verb): Thì/là/ở\nB. Was (verb): Thì/là/ở\nC. Are (verb): Thì/là/ở (hiện tại)\nD. Do (verb): Làm\n\nGiải thích: Đi với 'You' phải dùng 'Were'.\n\nDịch câu: Bạn có đang ăn trưa lúc 12 giờ không?", "isCorrect": true },
+            { "text": "Was", "rationale": "...", "isCorrect": false },
+            { "text": "Are", "rationale": "...", "isCorrect": false },
+            { "text": "Do", "rationale": "...", "isCorrect": false }
+          ],
+          "hint": "You đi với Were hay Was?"
+        },
+        {
+          "questionNumber": 14,
+          "question": "No, they _____.",
+          "answerOptions": [
+            { "text": "weren't", "rationale": "Dịch chi tiết:\nA. weren't (verb): không phải (viết tắt were not)\nB. wasn't (verb): không phải (viết tắt was not)\nC. didn't (verb): không làm (quá khứ đơn)\nD. aren't (verb): không phải (hiện tại)\n\nGiải thích: Câu trả lời ngắn cho câu hỏi 'Were they...?' là 'No, they weren't'.\n\nDịch câu: Không, họ không phải.", "isCorrect": true },
+            { "text": "wasn't", "rationale": "...", "isCorrect": false },
+            { "text": "didn't", "rationale": "...", "isCorrect": false },
+            { "text": "aren't", "rationale": "...", "isCorrect": false }
+          ],
+          "hint": "Câu phủ định của Were they là No, they ...?"
+        },
+        {
+          "questionNumber": 15,
+          "question": "While Tom was reading, Jerry _____ eating.",
+          "answerOptions": [
+            { "text": "was", "rationale": "Dịch chi tiết:\nA. was (verb): thì/là/ở\nB. were (verb): thì/là/ở\nC. is (verb): thì/là/ở\nD. did (verb): làm\n\nGiải thích: Jerry (1 bạn chuột) là số ít -> dùng 'was'. Hành động song song: Tom đọc, Jerry ăn.\n\nDịch câu: Trong khi Tom đang đọc sách thì Jerry đang ăn.", "isCorrect": true },
+            { "text": "were", "rationale": "...", "isCorrect": false },
+            { "text": "is", "rationale": "...", "isCorrect": false },
+            { "text": "did", "rationale": "...", "isCorrect": false }
+          ],
+          "hint": "Jerry (số ít) đi với Was hay Were?"
+        },
+        {
+          "questionNumber": 16,
+          "question": "What was she doing _____ this time yesterday?",
+          "answerOptions": [
+            { "text": "at", "rationale": "Dịch chi tiết:\nA. at (prep): tại/lúc\nB. in (prep): trong\nC. on (prep): trên\nD. for (prep): cho\n\nGiải thích: Cụm từ chỉ thời gian 'at this time' (vào thời điểm này).\n\nDịch câu: Cô ấy đang làm gì vào thời điểm này hôm qua?", "isCorrect": true },
+            { "text": "in", "rationale": "...", "isCorrect": false },
+            { "text": "on", "rationale": "...", "isCorrect": false },
+            { "text": "for", "rationale": "...", "isCorrect": false }
+          ],
+          "hint": "Cụm từ: ... this time (Vào lúc này)."
+        },
+        {
+          "questionNumber": 17,
+          "question": "We weren't _____ games.",
+          "answerOptions": [
+            { "text": "playing", "rationale": "Dịch chi tiết:\nA. playing (verb-ing): đang chơi\nB. play (verb): chơi\nC. played (verb-ed): đã chơi\nD. plays (verb-s): chơi\n\nGiải thích: Câu phủ định quá khứ tiếp diễn: We weren't + V-ing.\n\nDịch câu: Chúng tớ không đang chơi trò chơi.", "isCorrect": true },
+            { "text": "play", "rationale": "...", "isCorrect": false },
+            { "text": "played", "rationale": "...", "isCorrect": false },
+            { "text": "plays", "rationale": "...", "isCorrect": false }
+          ],
+          "hint": "Sau wasn't/weren't động từ phải thêm gì?"
+        },
+        {
+          "questionNumber": 18,
+          "question": "The dog was _____ in the garden.",
+          "answerOptions": [
+            { "text": "running", "rationale": "Dịch chi tiết:\nA. running (verb-ing): đang chạy\nB. run (verb): chạy\nC. ran (verb): đã chạy\nD. runs (verb): chạy\n\nGiải thích: Cấu trúc: Was + V-ing. (Lưu ý: run -> running).\n\nDịch câu: Chú chó đang chạy trong vườn.", "isCorrect": true },
+            { "text": "run", "rationale": "...", "isCorrect": false },
+            { "text": "ran", "rationale": "...", "isCorrect": false },
+            { "text": "runs", "rationale": "...", "isCorrect": false }
+          ],
+          "hint": "Was + V-ing."
+        },
+        {
+          "questionNumber": 19,
+          "question": "He was watching TV _____ I arrived.",
+          "answerOptions": [
+            { "text": "when", "rationale": "Dịch chi tiết:\nA. when (adv): khi\nB. while (conj): trong khi\nC. what (pronoun): cái gì\nD. where (adv): ở đâu\n\nGiải thích: Dùng 'when' để nối hành động dài (đang xem TV) với hành động ngắn chen ngang (tôi đến).\n\nDịch câu: Anh ấy đang xem TV thì tôi đến.", "isCorrect": true },
+            { "text": "while", "rationale": "...", "isCorrect": false },
+            { "text": "what", "rationale": "...", "isCorrect": false },
+            { "text": "where", "rationale": "...", "isCorrect": false }
+          ],
+          "hint": "Hành động ngắn chen vào thì dùng When hay While?"
+        },
+        {
+          "questionNumber": 20,
+          "question": "My parents _____ working at 9 a.m yesterday.",
+          "answerOptions": [
+            { "text": "were", "rationale": "Dịch chi tiết:\nA. were (verb): thì/là/ở\nB. was (verb): thì/là/ở\nC. are (verb): thì/là/ở\nD. do (verb): làm\n\nGiải thích: 'Parents' (bố mẹ) là số nhiều -> dùng 'were'.\n\nDịch câu: Bố mẹ tớ đang làm việc lúc 9 giờ sáng hôm qua.", "isCorrect": true },
+            { "text": "was", "rationale": "...", "isCorrect": false },
+            { "text": "are", "rationale": "...", "isCorrect": false },
+            { "text": "do", "rationale": "...", "isCorrect": false }
+          ],
+          "hint": "Bố mẹ (2 người) là số nhiều."
+        },
+        {
+          "questionNumber": 21,
+          "question": "Was John _____ a bike?",
+          "answerOptions": [
+            { "text": "riding", "rationale": "Dịch chi tiết:\nA. riding (verb-ing): đang lái (xe đạp, ngựa)\nB. driving (verb-ing): đang lái (ô tô)\nC. playing (verb-ing): đang chơi\nD. going (verb-ing): đang đi\n\nGiải thích: Đi xe đạp dùng từ 'ride a bike' -> Chuyển sang tiếp diễn là 'riding'.\n\nDịch câu: John có đang đạp xe không?", "isCorrect": true },
+            { "text": "driving", "rationale": "...", "isCorrect": false },
+            { "text": "playing", "rationale": "...", "isCorrect": false },
+            { "text": "going", "rationale": "...", "isCorrect": false }
+          ],
+          "hint": "Đi xe đạp dùng từ Ride."
+        },
+        {
+          "questionNumber": 22,
+          "question": "I was sleeping when the cat _____ on my bed.",
+          "answerOptions": [
+            { "text": "jumped", "rationale": "Dịch chi tiết:\nA. jumped (verb-ed): đã nhảy (quá khứ đơn)\nB. jumping (verb-ing): đang nhảy\nC. jumps (verb-s): nhảy\nD. jump (verb): nhảy\n\nGiải thích: Hành động ngắn chen ngang (khi con mèo nhảy lên) dùng thì Quá khứ đơn (V-ed). Tớ đang ngủ (dài) thì mèo nhảy lên (ngắn/bất ngờ).\n\nDịch câu: Tớ đang ngủ thì con mèo nhảy lên giường tớ.", "isCorrect": true },
+            { "text": "jumping", "rationale": "...", "isCorrect": false },
+            { "text": "jumps", "rationale": "...", "isCorrect": false },
+            { "text": "jump", "rationale": "...", "isCorrect": false }
+          ],
+          "hint": "Hành động ngắn (mèo nhảy) dùng Quá khứ đơn (thêm ed)."
+        },
+        {
+          "questionNumber": 23,
+          "question": "_____ your sister singing?",
+          "answerOptions": [
+            { "text": "Was", "rationale": "Dịch chi tiết:\nA. Was (verb): Thì/là/ở\nB. Were (verb): Thì/là/ở\nC. Did (verb): Đã làm\nD. Is (verb): Là (hiện tại)\n\nGiải thích: 'Your sister' (chị gái của bạn) là 1 người (số ít) -> Dùng 'Was'.\n\nDịch câu: Chị gái cậu có đang hát không?", "isCorrect": true },
+            { "text": "Were", "rationale": "...", "isCorrect": false },
+            { "text": "Did", "rationale": "...", "isCorrect": false },
+            { "text": "Is", "rationale": "...", "isCorrect": false }
+          ],
+          "hint": "Chị gái (1 người) dùng Was."
+        },
+        {
+          "questionNumber": 24,
+          "question": "Yes, I _____.",
+          "answerOptions": [
+            { "text": "was", "rationale": "Dịch chi tiết:\nA. was (verb): là/thì (quá khứ)\nB. were (verb): là/thì (quá khứ)\nC. am (verb): là/thì (hiện tại)\nD. did (verb): đã làm\n\nGiải thích: Câu trả lời ngắn cho 'Were you...?': Yes, I was.\n\nDịch câu: Vâng, đúng vậy (tớ đang làm).", "isCorrect": true },
+            { "text": "were", "rationale": "...", "isCorrect": false },
+            { "text": "am", "rationale": "...", "isCorrect": false },
+            { "text": "did", "rationale": "...", "isCorrect": false }
+          ],
+          "hint": "Câu trả lời ngắn: Yes, I was."
+        },
+        {
+          "questionNumber": 25,
+          "question": "I was _____ lunch when you came.",
+          "answerOptions": [
+            { "text": "having", "rationale": "Dịch chi tiết:\nA. having (verb-ing): đang ăn/có\nB. have (verb): ăn/có\nC. had (verb): đã ăn/có\nD. has (verb): ăn/có\n\nGiải thích: Was + V-ing. (Have -> Having).\n\nDịch câu: Tớ đang ăn trưa thì cậu đến.", "isCorrect": true },
+            { "text": "have", "rationale": "...", "isCorrect": false },
+            { "text": "had", "rationale": "...", "isCorrect": false },
+            { "text": "has", "rationale": "...", "isCorrect": false }
+          ],
+          "hint": "Ăn trưa là 'have lunch', chuyển sang đang ăn là...?"
+        },
+        {
+          "questionNumber": 26,
+          "question": "We _____ playing chess.",
+          "answerOptions": [
+            { "text": "were", "rationale": "Dịch chi tiết:\nA. were (verb): thì/là/ở\nB. was (verb): thì/là/ở\nC. did (verb): làm\nD. are (verb): thì/là/ở\n\nGiải thích: 'We' đi với 'were'.\n\nDịch câu: Chúng tớ đang chơi cờ vua.", "isCorrect": true },
+            { "text": "was", "rationale": "...", "isCorrect": false },
+            { "text": "did", "rationale": "...", "isCorrect": false },
+            { "text": "are", "rationale": "...", "isCorrect": false }
+          ],
+          "hint": "Chess là cờ vua."
+        },
+        {
+          "questionNumber": 27,
+          "question": "While Linda was drawing, Peter _____ coloring.",
+          "answerOptions": [
+            { "text": "was", "rationale": "Dịch chi tiết:\nA. was (verb): thì/là/ở\nB. were (verb): thì/là/ở\nC. is (verb): thì/là/ở\nD. did (verb): làm\n\nGiải thích: Hai hành động song song: Linda vẽ, Peter tô màu. Peter (1 người) dùng 'was'.\n\nDịch câu: Trong khi Linda đang vẽ thì Peter đang tô màu.", "isCorrect": true },
+            { "text": "were", "rationale": "...", "isCorrect": false },
+            { "text": "is", "rationale": "...", "isCorrect": false },
+            { "text": "did", "rationale": "...", "isCorrect": false }
+          ],
+          "hint": "Peter là số ít."
+        },
+        {
+          "questionNumber": 28,
+          "question": "Was it _____ yesterday?",
+          "answerOptions": [
+            { "text": "raining", "rationale": "Dịch chi tiết:\nA. raining (verb-ing): đang mưa\nB. rain (verb/noun): mưa\nC. rained (verb-ed): đã mưa\nD. rains (verb-s): mưa\n\nGiải thích: Was + It + V-ing? (Cấu trúc câu hỏi).\n\nDịch câu: Hôm qua trời có đang mưa không?", "isCorrect": true },
+            { "text": "rain", "rationale": "...", "isCorrect": false },
+            { "text": "rained", "rationale": "...", "isCorrect": false },
+            { "text": "rains", "rationale": "...", "isCorrect": false }
+          ],
+          "hint": "Was + It + ...ing?"
+        },
+        {
+          "questionNumber": 29,
+          "question": "What _____ you doing when the lights went out?",
+          "answerOptions": [
+            { "text": "were", "rationale": "Dịch chi tiết:\nA. were (verb): thì/là/ở\nB. was (verb): thì/là/ở\nC. are (verb): thì/là/ở\nD. did (verb): làm\n\nGiải thích: Chủ ngữ 'you' đi với 'were'. (The lights went out: Đèn tắt -> hành động ngắn).\n\nDịch câu: Bạn đang làm gì khi đèn tắt?", "isCorrect": true },
+            { "text": "was", "rationale": "...", "isCorrect": false },
+            { "text": "are", "rationale": "...", "isCorrect": false },
+            { "text": "did", "rationale": "...", "isCorrect": false }
+          ],
+          "hint": "You đi với Were."
+        },
+        {
+          "questionNumber": 30,
+          "question": "He wasn't _____ a book.",
+          "answerOptions": [
+            { "text": "reading", "rationale": "Dịch chi tiết:\nA. reading (verb-ing): đang đọc\nB. read (verb): đọc\nC. reads (verb-s): đọc\nD. to read (verb): để đọc\n\nGiải thích: Wasn't + V-ing.\n\nDịch câu: Anh ấy không đang đọc sách.", "isCorrect": true },
+            { "text": "read", "rationale": "...", "isCorrect": false },
+            { "text": "reads", "rationale": "...", "isCorrect": false },
+            { "text": "to read", "rationale": "...", "isCorrect": false }
+          ],
+          "hint": "Wasn't + V-ing."
+        }
+      ]
+    };
+
+    let score = 0;
+    let correctCount = 0;
+
+    function renderQuiz() {
+        const container = document.getElementById('quiz-container');
+        
+        quizData.questions.forEach((q, index) => {
+            const card = document.createElement('div');
+            card.className = 'quiz-card';
+            card.id = `card-${index}`;
+
+            // Tìm correct rationale để hiển thị nếu user chọn sai
+            const correctOption = q.answerOptions.find(opt => opt.isCorrect);
+            const correctRationale = correctOption ? correctOption.rationale : "Giải thích đang cập nhật...";
+
+            // Create buttons HTML
+            let optionsHtml = '';
+            q.answerOptions.forEach((opt, optIndex) => {
+                optionsHtml += `
+                    <button class="option-btn" 
+                            id="btn-${index}-${optIndex}"
+                            onclick="checkAnswer(${index}, ${optIndex}, ${opt.isCorrect})">
+                        ${String.fromCharCode(65 + optIndex)}. ${opt.text}
+                    </button>
+                `;
+            });
+
+            // Store rationales in data attributes to load dynamically
+            const rationaleData = JSON.stringify(q.answerOptions.map(o => o.rationale || correctRationale));
+
+            card.innerHTML = `
+                <div class="question-number">Câu ${q.questionNumber}</div>
+                <div class="question-text">${q.question}</div>
+                <div class="options-grid">
+                    ${optionsHtml}
+                </div>
+                
+                <button class="hint-btn" onclick="toggleHint(${index})">
+                    💡 Xem gợi ý
+                </button>
+                <div id="hint-${index}" class="hint-text">${q.hint}</div>
+
+                <div class="explanation" id="expl-${index}">
+                    <h4><span id="expl-icon-${index}"></span> Ms Mai An giải thích:</h4>
+                    <div class="explanation-content" id="expl-content-${index}"></div>
+                </div>
+                <input type="hidden" id="rationales-${index}" value='${rationaleData.replace(/'/g, "&#39;")}'>
+            `;
+            container.appendChild(card);
+        });
+    }
+
+    function toggleHint(index) {
+        const hintDiv = document.getElementById(`hint-${index}`);
+        if (hintDiv.style.display === 'block') {
+            hintDiv.style.display = 'none';
+        } else {
+            hintDiv.style.display = 'block';
+        }
+    }
+
+    function checkAnswer(questionIndex, optionIndex, isCorrect) {
+        const card = document.getElementById(`card-${questionIndex}`);
+        const btns = card.querySelectorAll('.option-btn');
+        const selectedBtn = document.getElementById(`btn-${questionIndex}-${optionIndex}`);
+        const explBox = document.getElementById(`expl-${questionIndex}`);
+        const explContent = document.getElementById(`expl-content-${questionIndex}`);
+        const explIcon = document.getElementById(`expl-icon-${questionIndex}`);
+
+        // Prevent multiple clicks
+        if (card.classList.contains('answered')) return;
+        card.classList.add('answered');
+
+        // Disable all buttons
+        btns.forEach(btn => btn.disabled = true);
+
+        // Get rationales
+        const rationales = JSON.parse(document.getElementById(`rationales-${questionIndex}`).value);
+        let rationaleText = rationales[optionIndex];
+        
+        // Format newlines
+        if (rationaleText === "...") {
+             // Fallback if specific wrong rationale isn't provided in JSON (using correct one instead)
+             const correctOptIndex = quizData.questions[questionIndex].answerOptions.findIndex(o => o.isCorrect);
+             rationaleText = rationales[correctOptIndex];
+        }
+        
+        explContent.innerHTML = rationaleText.replace(/\n/g, '<br>');
+
+        if (isCorrect) {
+            // Correct Logic
+            selectedBtn.classList.add('correct');
+            document.getElementById('sound-correct').play();
+            explIcon.innerText = "✅";
+            score += 10;
+            correctCount++;
+            document.getElementById('current-score').innerText = score;
+            
+            // Confetti
+            const rect = selectedBtn.getBoundingClientRect();
+            confetti({
+                particleCount: 100,
+                spread: 70,
+                origin: { 
+                    x: (rect.left + rect.width / 2) / window.innerWidth, 
+                    y: (rect.top + rect.height / 2) / window.innerHeight 
+                }
+            });
+
+        } else {
+            // Wrong Logic
+            selectedBtn.classList.add('wrong');
+            document.getElementById('sound-wrong').play();
+            explIcon.innerText = "❌";
+            
+            // Highlight the correct answer
+            quizData.questions[questionIndex].answerOptions.forEach((opt, idx) => {
+                if (opt.isCorrect) {
+                    document.getElementById(`btn-${questionIndex}-${idx}`).classList.add('correct');
+                }
+            });
+        }
+
+        // Show Explanation
+        explBox.classList.add('visible');
+    }
+
+    function finishQuiz() {
+        const total = quizData.questions.length;
+        const modal = document.getElementById('result-modal');
+        const scoreDisplay = document.getElementById('final-score-display');
+        const messageDisplay = document.getElementById('modal-message');
+
+        scoreDisplay.innerText = `${correctCount}/${total}`;
+
+        if (correctCount === total) {
+            messageDisplay.innerText = "Xuất sắc! Em là thiên tài ngữ pháp! 🏆";
+            confetti({ particleCount: 500, spread: 100, origin: { y: 0.6 } });
+        } else if (correctCount >= total * 0.8) {
+            messageDisplay.innerText = "Rất giỏi! Chỉ sai một chút xíu thôi! 🌟";
+        } else if (correctCount >= total * 0.5) {
+            messageDisplay.innerText = "Cố gắng thêm nhé! Xem lại các câu sai để học tốt hơn. 💪";
+        } else {
+            messageDisplay.innerText = "Đừng buồn nhé! Hãy ôn tập lại lý thuyết và thử lại nào. 📚";
+        }
+
+        modal.style.display = 'flex';
+    }
+
+    // Initialize
+    renderQuiz();
+
+</script>
+</body>
+</html>

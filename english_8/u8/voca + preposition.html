@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bài Tập Từ Vựng & Giới Từ - Ms Mai An ULIS</title>
+    <!-- Google Fonts: Nunito & Quicksand -->
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Confetti JS -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Nunito', 'sans-serif'],
+                        display: ['Quicksand', 'sans-serif'],
+                    },
+                    colors: {
+                        primary: '#8854C0',    /* Tím Pastel */
+                        secondary: '#00C9A7',  /* Xanh Ngọc */
+                        accent: '#FFD700',     /* Vàng */
+                        correct: '#00D26A',    /* Xanh lá Blooket */
+                        wrong: '#FF4757',      /* Đỏ cam Blooket */
+                        bgPattern: '#F0F3F9',
+                    },
+                    boxShadow: {
+                        '3d': '0 6px 0px rgba(0,0,0,0.2)',
+                        '3d-hover': '0 4px 0px rgba(0,0,0,0.2)',
+                        '3d-active': '0 0px 0px rgba(0,0,0,0.2)',
+                        'card': '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #8854C0;
+            background-image: radial-gradient(#9B6FD8 2px, transparent 2px), radial-gradient(#9B6FD8 2px, transparent 2px);
+            background-size: 40px 40px;
+            background-position: 0 0, 20px 20px;
+            font-family: 'Nunito', sans-serif;
+            overflow-x: hidden;
+        }
+
+        .card-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 24px;
+            border: 4px solid #fff;
+        }
+
+        /* 3D Button Styles */
+        .btn-option {
+            transition: all 0.1s ease;
+            position: relative;
+            top: 0;
+            cursor: pointer;
+            border-bottom: 6px solid rgba(0,0,0,0.15);
+        }
+
+        .btn-option:hover:not(:disabled) {
+            transform: translateY(-2px);
+            filter: brightness(105%);
+        }
+
+        .btn-option:active:not(:disabled) {
+            transform: translateY(4px);
+            border-bottom-width: 0px;
+            box-shadow: none;
+        }
+
+        /* Status Styles */
+        .status-correct {
+            background-color: #00D26A !important;
+            color: white !important;
+            border-color: #00B25A !important;
+            border-bottom-color: #008f48 !important;
+        }
+
+        .status-wrong {
+            background-color: #FF4757 !important;
+            color: white !important;
+            border-color: #FF2E40 !important;
+            border-bottom-color: #d6303e !important;
+        }
+
+        .status-disabled {
+            opacity: 0.6;
+            cursor: not-allowed !important;
+        }
+
+        /* Animation */
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-5px) rotate(-5deg); }
+            50% { transform: translateX(5px) rotate(5deg); }
+            75% { transform: translateX(-5px) rotate(-5deg); }
+            100% { transform: translateX(0); }
+        }
+
+        .shake-element {
+            animation: shake 0.4s ease-in-out;
+        }
+
+        .explanation-box {
+            display: none;
+            animation: slideDown 0.5s ease-out forwards;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #8854C0;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #6c429c;
+        }
+    </style>
+</head>
+<body class="min-h-screen py-10 px-4 flex flex-col items-center">
+
+    <!-- Header -->
+    <header class="text-center mb-10 relative z-10 w-full max-w-4xl">
+        <div class="bg-white rounded-3xl p-4 shadow-card border-b-8 border-purple-200 inline-block">
+            <h1 class="text-2xl md:text-4xl font-extrabold text-primary font-display uppercase tracking-wider">
+                Bài Tập Từ Vựng & Giới Từ
+            </h1>
+            <p class="text-gray-500 font-bold mt-2 text-lg">Giáo viên: Ms Mai An ULIS 👩‍🏫</p>
+        </div>
+    </header>
+
+    <!-- Progress Bar -->
+    <div class="w-full max-w-4xl mb-6 bg-purple-900/30 rounded-full h-6 p-1 relative overflow-hidden">
+        <div id="progress-bar" class="bg-secondary h-full rounded-full transition-all duration-500 ease-out w-0 relative">
+            <div class="absolute inset-0 bg-white/20 animate-pulse"></div>
+        </div>
+        <p id="progress-text" class="absolute top-0 w-full text-center text-white text-xs font-bold leading-6 drop-shadow-md">0/20 Câu</p>
+    </div>
+
+    <!-- Main Quiz Container -->
+    <main id="quiz-container" class="w-full max-w-4xl flex flex-col gap-8">
+        <!-- Content injected via JS -->
+    </main>
+
+    <!-- Summary Modal (Hidden by default) -->
+    <div id="summary-modal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 hidden backdrop-blur-sm">
+        <div class="bg-white rounded-[30px] p-8 max-w-lg w-full text-center border-b-8 border-gray-200 shadow-2xl transform transition-all scale-100 relative overflow-hidden">
+            <!-- Decorative header -->
+            <div class="absolute top-0 left-0 w-full h-24 bg-primary opacity-10 rounded-t-[30px]"></div>
+            
+            <div class="relative z-10">
+                <div class="w-24 h-24 bg-yellow-400 rounded-full mx-auto mb-6 flex items-center justify-center text-5xl shadow-lg border-4 border-white">
+                    🏆
+                </div>
+                <h2 class="text-4xl font-extrabold text-primary mb-2 font-display">HOÀN THÀNH!</h2>
+                <p class="text-gray-500 font-bold text-lg mb-8">Bạn đã làm rất tốt!</p>
+                
+                <div class="grid grid-cols-2 gap-4 mb-8">
+                    <div class="bg-green-100 p-4 rounded-2xl border-b-4 border-green-200">
+                        <p class="text-green-600 font-bold text-sm uppercase">Đúng</p>
+                        <p id="final-score" class="text-4xl font-black text-green-500">0</p>
+                    </div>
+                    <div class="bg-red-100 p-4 rounded-2xl border-b-4 border-red-200">
+                        <p class="text-red-600 font-bold text-sm uppercase">Sai</p>
+                        <p id="final-wrong" class="text-4xl font-black text-red-500">0</p>
+                    </div>
+                </div>
+
+                <div id="feedback-message" class="text-xl font-bold text-purple-600 mb-8 italic"></div>
+
+                <button onclick="location.reload()" class="w-full bg-secondary text-white font-extrabold text-xl py-4 rounded-2xl shadow-3d hover:translate-y-[-2px] active:translate-y-[4px] active:shadow-none transition-all uppercase tracking-wide">
+                    Làm Lại Bài
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="mt-12 text-center text-white/80 font-bold text-sm">
+        <p>Designed with ❤️ by Ms Mai An</p>
+    </footer>
+
+    <!-- Audio Scripts (Web Audio API for simple sounds) -->
+    <script>
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        function playCorrectSound() {
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            
+            oscillator.type = 'sine';
+            oscillator.frequency.setValueAtTime(500, audioCtx.currentTime);
+            oscillator.frequency.exponentialRampToValueAtTime(1000, audioCtx.currentTime + 0.1);
+            
+            gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+            
+            oscillator.start();
+            oscillator.stop(audioCtx.currentTime + 0.5);
+        }
+
+        function playWrongSound() {
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            
+            oscillator.type = 'sawtooth';
+            oscillator.frequency.setValueAtTime(150, audioCtx.currentTime);
+            oscillator.frequency.linearRampToValueAtTime(100, audioCtx.currentTime + 0.3);
+            
+            gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+            
+            oscillator.start();
+            oscillator.stop(audioCtx.currentTime + 0.4);
+        }
+    </script>
+
+    <!-- Main Logic -->
+    <script>
+        // Data from User
+        const quizData = {
+          "questions": [
+            {
+              "questionNumber": 1,
+              "question": "I ______________ the start of the class because my bus was late.",
+              "answerOptions": [
+                { "text": "lost", "rationale": "❌ Sai. 'Lose' dùng cho mất đồ vật hoặc thua cuộc.", "isCorrect": false },
+                { "text": "missed", "rationale": "✅ Chính xác!\n\n1. Phân tích từ vựng:\n- A. lost (v): làm mất/thua\n- B. missed (v): bỏ lỡ/lỡ (xe, buổi học...)\n- C. passed (v): vượt qua\n- D. failed (v): trượt/thất bại\n\n2. Giải thích: Dùng 'miss' khi nói về việc lỡ một sự kiện, phương tiện giao thông hoặc cơ hội.\n\n3. Dịch câu: Tôi đã bỏ lỡ phần đầu của buổi học vì xe buýt của tôi đến trễ.", "isCorrect": true },
+                { "text": "passed", "rationale": "❌ Sai nghĩa.", "isCorrect": false },
+                { "text": "failed", "rationale": "❌ Sai nghĩa.", "isCorrect": false }
+              ],
+              "hint": "Động từ này nghĩa là 'bỏ lỡ'."
+            },
+            {
+              "questionNumber": 2,
+              "question": "The company is ______________ with growers over the price of coffee.",
+              "answerOptions": [
+                { "text": "bargaining", "rationale": "✅ Chính xác!\n\n1. Phân tích từ vựng:\n- A. bargaining (v): mặc cả/thương lượng\n- B. discussing (v): thảo luận (thường không đi với 'with... over price' theo nghĩa gay gắt mặc cả)\n- C. selling (v): bán\n- D. buying (v): mua\n\n2. Giải thích: 'Bargain with someone over/for something' là cấu trúc thương lượng giá cả.\n\n3. Dịch câu: Công ty đang thương lượng/mặc cả với những người trồng trọt về giá cà phê.", "isCorrect": true },
+                { "text": "discussing", "rationale": "❌ 'Discuss' là ngoại động từ, thường nói 'discuss something', ít khi dùng 'discuss with' trong ngữ cảnh giá cả căng thẳng này.", "isCorrect": false },
+                { "text": "selling", "rationale": "❌ Sai ngữ cảnh.", "isCorrect": false },
+                { "text": "buying", "rationale": "❌ Sai ngữ cảnh.", "isCorrect": false }
+              ],
+              "hint": "Hành động thương lượng để có giá tốt hơn."
+            },
+            {
+              "questionNumber": 3,
+              "question": "______________ a shopping list to prevent buying unnecessary things.",
+              "answerOptions": [
+                { "text": "Do", "rationale": "❌ Sai collocation (cụm từ cố định).", "isCorrect": false },
+                { "text": "Create", "rationale": "❌ Không sai về nghĩa nhưng trong bài tập điền từ này, 'Make' là từ phổ biến nhất đi với 'list'.", "isCorrect": false },
+                { "text": "Make", "rationale": "✅ Chính xác!\n\n1. Phân tích từ vựng:\n- A. Do (v): làm (hành động chung)\n- B. Create (v): tạo ra\n- C. Make (v): làm/tạo ra\n- D. Write (v): viết\n\n2. Giải thích: Cụm từ cố định 'Make a list' (Lập danh sách).\n\n3. Dịch câu: Hãy lập một danh sách mua sắm để tránh mua những thứ không cần thiết.", "isCorrect": true },
+                { "text": "Write", "rationale": "❌ Ít phổ biến hơn 'Make a list'.", "isCorrect": false }
+              ],
+              "hint": "Cụm từ cố định: ... a list."
+            },
+            {
+              "questionNumber": 4,
+              "question": "The trip allows you plenty of time for ______________ around the shops.",
+              "answerOptions": [
+                { "text": "browsing", "rationale": "✅ Chính xác!\n\n1. Phân tích từ vựng:\n- A. browsing (v): xem qua/lướt xem (hàng hóa)\n- B. watching (v): xem (phim/trận đấu)\n- C. seeing (v): nhìn thấy\n- D. looking (v): nhìn (phải có 'at')\n\n2. Giải thích: 'Browse around the shops' nghĩa là đi xem hàng nhưng chưa chắc đã mua (window shopping).\n\n3. Dịch câu: Chuyến đi cho phép bạn có nhiều thời gian để đi xem/lướt qua các cửa hàng.", "isCorrect": true },
+                { "text": "watching", "rationale": "❌ Không dùng 'watch shops'.", "isCorrect": false },
+                { "text": "seeing", "rationale": "❌ Sai nghĩa.", "isCorrect": false },
+                { "text": "looking", "rationale": "❌ Thiếu giới từ (looking at/for).", "isCorrect": false }
+              ],
+              "hint": "Đi xem hàng hóa một cách thong thả."
+            },
+            {
+              "questionNumber": 5,
+              "question": "Some people ______________ their goods on stalls, while others had just put them out on the pavement.",
+              "answerOptions": [
+                { "text": "displayed", "rationale": "✅ Chính xác!\n\n1. Phân tích từ vựng:\n- A. displayed (v): trưng bày\n- B. appeared (v): xuất hiện\n- C. hid (v): giấu\n- D. stored (v): lưu trữ\n\n2. Giải thích: Để bán hàng thì người ta phải 'trưng bày' (display) hàng hóa trên các sạp (stalls).\n\n3. Dịch câu: Một số người trưng bày hàng hóa của họ trên các sạp, trong khi những người khác chỉ đặt chúng ngay trên vỉa hè.", "isCorrect": true },
+                { "text": "appeared", "rationale": "❌ Sai nghĩa.", "isCorrect": false },
+                { "text": "hid", "rationale": "❌ Sai nghĩa (bán hàng thì không giấu đi).", "isCorrect": false },
+                { "text": "stored", "rationale": "❌ Sai nghĩa (cất vào kho).", "isCorrect": false }
+              ],
+              "hint": "Sắp xếp hàng hóa ra để người mua nhìn thấy."
+            },
+            {
+              "questionNumber": 6,
+              "question": "______________ the shoes to see if they fit.",
+              "answerOptions": [
+                { "text": "Wear", "rationale": "❌ 'Wear' là trạng thái đang mặc trên người, không phải hành động thử.", "isCorrect": false },
+                { "text": "Try on", "rationale": "✅ Chính xác!\n\n1. Phân tích từ vựng:\n- A. Wear (v): mặc/đeo\n- B. Try on (v phrase): thử đồ\n- C. Put on (v phrase): mặc vào (nhưng chưa mang nghĩa kiểm tra xem vừa không)\n- D. Dress up (v phrase): ăn diện\n\n2. Giải thích: Để kiểm tra xem có vừa (fit) hay không, ta phải 'thử' (try on).\n\n3. Dịch câu: Hãy thử đôi giày xem chúng có vừa không.", "isCorrect": true },
+                { "text": "Put on", "rationale": "❌ Chưa sát nghĩa bằng 'Try on' (thử để kiểm tra).", "isCorrect": false },
+                { "text": "Dress up", "rationale": "❌ Sai nghĩa (hóa trang/ăn diện).", "isCorrect": false }
+              ],
+              "hint": "Hành động mặc thử quần áo/giày dép."
+            },
+            {
+              "questionNumber": 7,
+              "question": "Haven't you got anything better to do than ______________ with friends at the shopping centre?",
+              "answerOptions": [
+                { "text": "play", "rationale": "❌ 'Play with friends' thường dùng cho trẻ em chơi đùa.", "isCorrect": false },
+                { "text": "go", "rationale": "❌ Sai ngữ pháp/ngữ nghĩa.", "isCorrect": false },
+                { "text": "hang out", "rationale": "✅ Chính xác!\n\n1. Phân tích từ vựng:\n- A. play (v): chơi\n- B. go (v): đi\n- C. hang out (v phrase): tụ tập/la cà\n- D. stay (v): ở lại\n\n2. Giải thích: 'Hang out with friends' là cụm từ rất phổ biến nghĩa là đi chơi/tụ tập bạn bè.\n\n3. Dịch câu: Bạn không có việc gì tốt hơn để làm ngoài việc tụ tập với bạn bè ở trung tâm mua sắm sao?", "isCorrect": true },
+                { "text": "stay", "rationale": "❌ Sai ngữ cảnh.", "isCorrect": false }
+              ],
+              "hint": "Cụm từ lóng: tụ tập, đi chơi."
+            },
+            {
+              "questionNumber": 8,
+              "question": "We spent the morning ______________ around the old part of the city.",
+              "answerOptions": [
+                { "text": "wandering", "rationale": "✅ Chính xác!\n\n1. Phân tích từ vựng:\n- A. wandering (v): đi lang thang/tản bộ (không mục đích cụ thể)\n- B. running (v): chạy\n- C. climbing (v): leo trèo\n- D. waiting (v): chờ đợi\n\n2. Giải thích: 'Wandering around' phù hợp nhất để mô tả việc đi dạo tham quan khu phố cổ.\n\n3. Dịch câu: Chúng tôi đã dành cả buổi sáng để đi dạo quanh khu phố cổ của thành phố.", "isCorrect": true },
+                { "text": "running", "rationale": "❌ Không hợp lý khi tham quan phố cổ.", "isCorrect": false },
+                { "text": "climbing", "rationale": "❌ Sai nghĩa.", "isCorrect": false },
+                { "text": "waiting", "rationale": "❌ Sai nghĩa.", "isCorrect": false }
+              ],
+              "hint": "Đi dạo loanh quanh không có đích đến cụ thể."
+            },
+            {
+              "questionNumber": 9,
+              "question": "The new TV broke so they ______________ it to the shop.",
+              "answerOptions": [
+                { "text": "returned", "rationale": "✅ Chính xác!\n\n1. Phân tích từ vựng:\n- A. returned (v): trả lại\n- B. bought (v): mua\n- C. sold (v): bán\n- D. took (v): cầm/lấy\n\n2. Giải thích: Khi hàng hóa bị hỏng (broke), khách hàng sẽ mang 'trả lại' (return) cửa hàng.\n\n3. Dịch câu: Chiếc TV mới bị hỏng nên họ đã trả nó lại cho cửa hàng.", "isCorrect": true },
+                { "text": "bought", "rationale": "❌ Sai. Đã mua rồi mới hỏng.", "isCorrect": false },
+                { "text": "sold", "rationale": "❌ Sai ngữ cảnh.", "isCorrect": false },
+                { "text": "took", "rationale": "❌ 'Took it to the shop' (mang đến) cũng có lý, nhưng trong ngữ cảnh bài tập từ vựng này, 'returned' (trả hàng) chính xác hơn về mặt thương mại.", "isCorrect": false }
+              ],
+              "hint": "Mang hàng bị lỗi trả lại nơi bán."
+            },
+            {
+              "questionNumber": 10,
+              "question": "The villagers ______________ coffee and maize to sell in the market.",
+              "answerOptions": [
+                { "text": "grow", "rationale": "✅ Chính xác!\n\n1. Phân tích từ vựng:\n- A. grow (v): trồng (cây cối)\n- B. make (v): làm/chế tạo\n- C. build (v): xây dựng\n- D. breed (v): chăn nuôi\n\n2. Giải thích: Với cà phê (coffee) và ngô (maize), động từ phù hợp là 'trồng' (grow).\n\n3. Dịch câu: Dân làng trồng cà phê và ngô để bán ở chợ.", "isCorrect": true },
+                { "text": "make", "rationale": "❌ Không dùng 'make' cho cây trồng.", "isCorrect": false },
+                { "text": "build", "rationale": "❌ Sai nghĩa.", "isCorrect": false },
+                { "text": "breed", "rationale": "❌ 'Breed' dùng cho động vật.", "isCorrect": false }
+              ],
+              "hint": "Động từ dùng cho việc canh tác cây cối."
+            },
+            {
+              "questionNumber": 11,
+              "question": "Exercise 5: When we bought this house, there were many homes ______________ sale.",
+              "answerOptions": [
+                { "text": "for", "rationale": "✅ Chính xác!\n\n1. Phân tích từ vựng:\n- A. for (prep): cho\n- B. on (prep): trên\n- C. in (prep): trong\n- D. at (prep): tại\n\n2. Giải thích: \n- 'For sale': Được rao bán (nhà cửa, xe cộ, đồ cũ của cá nhân...).\n- 'On sale': Đang giảm giá (trong cửa hàng).\nỞ đây nói về mua bán nhà đất -> for sale.\n\n3. Dịch câu: Khi chúng tôi mua ngôi nhà này, có rất nhiều ngôi nhà đang được rao bán.", "isCorrect": true },
+                { "text": "on", "rationale": "❌ 'On sale' thường nghĩa là giảm giá (hàng hóa). Với nhà đất, người ta dùng 'for sale'.", "isCorrect": false },
+                { "text": "in", "rationale": "❌ Sai giới từ.", "isCorrect": false },
+                { "text": "at", "rationale": "❌ Sai giới từ.", "isCorrect": false }
+              ],
+              "hint": "Cụm từ chỉ vật đang được rao bán (đặc biệt là nhà đất)."
+            },
+            {
+              "questionNumber": 12,
+              "question": "Everything goes ______________ sale as soon as the doors open. Today is Black Friday.",
+              "answerOptions": [
+                { "text": "on", "rationale": "✅ Chính xác!\n\n1. Phân tích từ vựng:\n- A. on (prep): trên\n- B. for (prep): cho\n- C. in (prep): trong\n- D. at (prep): tại\n\n2. Giải thích: Ngữ cảnh 'Black Friday' (giảm giá), nên dùng 'go on sale' (được bán giảm giá/được tung ra bán).\n\n3. Dịch câu: Mọi thứ được giảm giá ngay khi cửa mở. Hôm nay là Black Friday.", "isCorrect": true },
+                { "text": "for", "rationale": "❌ 'Go for sale' không phải là cụm từ thông dụng trong ngữ cảnh này.", "isCorrect": false },
+                { "text": "in", "rationale": "❌ Sai giới từ.", "isCorrect": false },
+                { "text": "at", "rationale": "❌ Sai giới từ.", "isCorrect": false }
+              ],
+              "hint": "Cụm từ chỉ việc hàng hóa được giảm giá."
+            },
+            {
+              "questionNumber": 13,
+              "question": "He spent a lot of time listening to DVDs and just hanging out ______________ friends.",
+              "answerOptions": [
+                { "text": "with", "rationale": "✅ Chính xác!\n\n1. Phân tích từ vựng:\n- A. with (prep): với\n- B. to (prep): tới\n- C. for (prep): cho\n- D. about (prep): về\n\n2. Giải thích: Cụm 'hang out with someone' (tụ tập với ai).\n\n3. Dịch câu: Anh ấy dành nhiều thời gian nghe đĩa DVD và chỉ tụ tập với bạn bè.", "isCorrect": true },
+                { "text": "to", "rationale": "❌ Sai giới từ.", "isCorrect": false },
+                { "text": "for", "rationale": "❌ Sai giới từ.", "isCorrect": false },
+                { "text": "about", "rationale": "❌ Sai giới từ.", "isCorrect": false }
+              ],
+              "hint": "Đi chơi VỚI ai đó."
+            },
+            {
+              "questionNumber": 14,
+              "question": "Would you prefer to pay ______________ cash, cheque or credit card?",
+              "answerOptions": [
+                { "text": "in", "rationale": "✅ Chính xác!\n\n1. Phân tích từ vựng:\n- A. in (prep): trong\n- B. on (prep): trên\n- C. at (prep): tại\n- D. for (prep): cho\n\n2. Giải thích: \n- Pay IN cash (trả bằng tiền mặt).\n- Pay BY cheque/credit card (trả bằng séc/thẻ).\nLưu ý: Một số tài liệu cũ dùng 'by cash' nhưng chuẩn ngữ pháp là 'in cash'.\n\n3. Dịch câu: Bạn muốn trả bằng tiền mặt, séc hay thẻ tín dụng?", "isCorrect": true },
+                { "text": "on", "rationale": "❌ Sai giới từ.", "isCorrect": false },
+                { "text": "at", "rationale": "❌ Sai giới từ.", "isCorrect": false },
+                { "text": "for", "rationale": "❌ 'Pay for' là trả tiền cho món hàng, không phải phương thức thanh toán.", "isCorrect": false }
+              ],
+              "hint": "Cụm từ: pay ... cash (trả bằng tiền mặt)."
+            },
+            {
+              "questionNumber": 15,
+              "question": "He chose a shirt ______________ the many in the shop.",
+              "answerOptions": [
+                { "text": "from", "rationale": "✅ Chính xác!\n\n1. Phân tích từ vựng:\n- A. from (prep): từ\n- B. of (prep): của\n- C. in (prep): trong\n- D. on (prep): trên\n\n2. Giải thích: 'Choose from' (lựa chọn từ trong số...).\n\n3. Dịch câu: Anh ấy đã chọn một chiếc áo sơ mi từ rất nhiều chiếc trong cửa hàng.", "isCorrect": true },
+                { "text": "of", "rationale": "❌ Sai giới từ.", "isCorrect": false },
+                { "text": "in", "rationale": "❌ Sai giới từ.", "isCorrect": false },
+                { "text": "on", "rationale": "❌ Sai giới từ.", "isCorrect": false }
+              ],
+              "hint": "Chọn một cái TỪ trong số nhiều cái."
+            },
+            {
+              "questionNumber": 16,
+              "question": "I tried ______________ six pairs of trousers before I found a pair that fitted.",
+              "answerOptions": [
+                { "text": "on", "rationale": "✅ Chính xác!\n\n1. Phân tích từ vựng:\n- A. on (prep): trên\n- B. in (prep): trong\n- C. at (prep): tại\n- D. out (prep): ngoài\n\n2. Giải thích: Cụm động từ 'try on' (mặc thử).\n\n3. Dịch câu: Tôi đã thử sáu chiếc quần dài trước khi tìm được một chiếc vừa vặn.", "isCorrect": true },
+                { "text": "in", "rationale": "❌ Sai.", "isCorrect": false },
+                { "text": "at", "rationale": "❌ Sai.", "isCorrect": false },
+                { "text": "out", "rationale": "❌ 'Try out' nghĩa là thử nghiệm máy móc/phương pháp, không dùng cho quần áo.", "isCorrect": false }
+              ],
+              "hint": "Cụm động từ: Try ... (thử đồ)."
+            },
+            {
+              "questionNumber": 17,
+              "question": "Everything went according ______________ the schedule.",
+              "answerOptions": [
+                { "text": "to", "rationale": "✅ Chính xác!\n\n1. Phân tích từ vựng:\n- A. to (prep): tới\n- B. with (prep): với\n- C. by (prep): bởi\n- D. of (prep): của\n\n2. Giải thích: Cụm từ cố định 'according to' (theo như).\n\n3. Dịch câu: Mọi thứ đã diễn ra theo đúng lịch trình.", "isCorrect": true },
+                { "text": "with", "rationale": "❌ Sai.", "isCorrect": false },
+                { "text": "by", "rationale": "❌ Sai.", "isCorrect": false },
+                { "text": "of", "rationale": "❌ Sai.", "isCorrect": false }
+              ],
+              "hint": "Cụm từ: According ... (theo như)."
+            },
+            {
+              "questionNumber": 18,
+              "question": "______________ reasons of security, the door is always kept locked.",
+              "answerOptions": [
+                { "text": "For", "rationale": "✅ Chính xác!\n\n1. Phân tích từ vựng:\n- A. For (prep): Cho/Vì\n- B. From (prep): Từ\n- C. With (prep): Với\n- D. Because (conj): Bởi vì\n\n2. Giải thích: 'For reasons of...' (Vì lý do...). Lưu ý 'Because' phải cộng với mệnh đề, ở đây là cụm danh từ nên dùng giới từ 'For'.\n\n3. Dịch câu: Vì lý do an ninh, cửa luôn được khóa.", "isCorrect": true },
+                { "text": "From", "rationale": "❌ Sai.", "isCorrect": false },
+                { "text": "With", "rationale": "❌ Sai.", "isCorrect": false },
+                { "text": "Because", "rationale": "❌ Sai ngữ pháp. 'Because' không đi trực tiếp với danh từ nếu không có 'of'. (Phải là 'Because of').", "isCorrect": false }
+              ],
+              "hint": "Giới từ chỉ mục đích/nguyên nhân: ... reasons of."
+            },
+            {
+              "questionNumber": 19,
+              "question": "The restaurant charges high prices ______________ its food.",
+              "answerOptions": [
+                { "text": "for", "rationale": "✅ Chính xác!\n\n1. Phân tích từ vựng:\n- A. for (prep): cho\n- B. to (prep): tới\n- C. on (prep): trên\n- D. with (prep): với\n\n2. Giải thích: 'Charge a price FOR something' (Tính giá cho cái gì).\n\n3. Dịch câu: Nhà hàng tính giá cao cho các món ăn của mình.", "isCorrect": true },
+                { "text": "to", "rationale": "❌ Sai.", "isCorrect": false },
+                { "text": "on", "rationale": "❌ Sai.", "isCorrect": false },
+                { "text": "with", "rationale": "❌ Sai.", "isCorrect": false }
+              ],
+              "hint": "Tính tiền CHO cái gì."
+            },
+            {
+              "questionNumber": 20,
+              "question": "We wandered ______________ the beautifully decorated rooms of the Palace.",
+              "answerOptions": [
+                { "text": "through", "rationale": "✅ Chính xác!\n\n1. Phân tích từ vựng:\n- A. through (prep): xuyên qua/đi qua\n- B. on (prep): trên\n- C. at (prep): tại\n- D. with (prep): với\n\n2. Giải thích: 'Wander through' (đi lang thang qua/khắp) các căn phòng.\n\n3. Dịch câu: Chúng tôi đi dạo qua những căn phòng được trang trí lộng lẫy của Cung điện.", "isCorrect": true },
+                { "text": "on", "rationale": "❌ Sai.", "isCorrect": false },
+                { "text": "at", "rationale": "❌ Sai.", "isCorrect": false },
+                { "text": "with", "rationale": "❌ Sai.", "isCorrect": false }
+              ],
+              "hint": "Giới từ chỉ sự chuyển động qua không gian kín."
+            }
+          ]
+        };
+
+        const container = document.getElementById('quiz-container');
+        const progressBar = document.getElementById('progress-bar');
+        const progressText = document.getElementById('progress-text');
+        
+        let correctCount = 0;
+        let wrongCount = 0;
+        let answeredCount = 0;
+        const totalQuestions = quizData.questions.length;
+
+        // Render Questions
+        function renderQuiz() {
+            quizData.questions.forEach((q, index) => {
+                const card = document.createElement('div');
+                card.className = "card-container p-6 md:p-8 flex flex-col gap-6 relative shadow-card transition-all duration-300";
+                card.id = `card-${index}`;
+
+                // Question Header
+                const headerHtml = `
+                    <div class="flex justify-between items-start">
+                        <span class="bg-gray-200 text-gray-700 px-3 py-1 rounded-full text-sm font-bold shadow-sm">
+                            Câu ${q.questionNumber}
+                        </span>
+                        <div class="text-xs font-semibold text-gray-400 cursor-help" title="Gợi ý">💡 Hint</div>
+                    </div>
+                    <h3 class="text-xl md:text-2xl font-bold text-gray-800 leading-snug">
+                        ${q.question}
+                    </h3>
+                `;
+
+                // Options Grid
+                let optionsHtml = '<div class="grid grid-cols-1 md:grid-cols-2 gap-4">';
+                q.answerOptions.forEach((opt, optIndex) => {
+                    optionsHtml += `
+                        <button 
+                            onclick="checkAnswer(${index}, ${optIndex}, ${opt.isCorrect})" 
+                            class="btn-option bg-white border-2 border-gray-200 text-gray-700 text-lg font-bold py-4 px-6 rounded-2xl w-full text-left"
+                            id="btn-${index}-${optIndex}">
+                            ${String.fromCharCode(65 + optIndex)}. ${opt.text}
+                        </button>
+                    `;
+                });
+                optionsHtml += '</div>';
+
+                // Explanation Box (Hidden)
+                // Note: Formatting rationale text to be HTML safe and styled
+                const explanationText = q.answerOptions.find(o => o.isCorrect).rationale
+                    .replace(/\n/g, '<br>')
+                    .replace(/✅/g, '<span class="text-green-500 text-xl mr-2">✅</span>')
+                    .replace(/❌/g, '<span class="text-red-500 text-xl mr-2">❌</span>');
+
+                const explanationHtml = `
+                    <div id="explanation-${index}" class="explanation-box mt-4 bg-purple-50 rounded-2xl p-6 border-l-8 border-purple-400 shadow-inner">
+                        <div class="flex items-center gap-2 mb-3">
+                            <span class="bg-purple-500 text-white rounded-full p-1">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                  <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+                                </svg>
+                            </span>
+                            <h4 class="font-bold text-purple-700 uppercase tracking-wide">Giải thích chi tiết (Ms Mai An)</h4>
+                        </div>
+                        <div class="text-gray-700 leading-relaxed text-sm md:text-base font-medium">
+                            ${explanationText}
+                        </div>
+                    </div>
+                `;
+
+                card.innerHTML = headerHtml + optionsHtml + explanationHtml;
+                container.appendChild(card);
+            });
+
+            // Add Final Submit Button area (though interaction is immediate, this triggers the modal)
+            const finishBtnArea = document.createElement('div');
+            finishBtnArea.className = "text-center mt-8 pb-12";
+            finishBtnArea.innerHTML = `
+                <button onclick="showSummary()" class="bg-secondary text-white font-extrabold text-2xl py-4 px-12 rounded-full shadow-3d hover:-translate-y-1 active:translate-y-1 active:shadow-none transition-all uppercase tracking-widest border-4 border-white">
+                    Nộp Bài & Xem Điểm
+                </button>
+            `;
+            container.appendChild(finishBtnArea);
+        }
+
+        // Check Answer Logic
+        window.checkAnswer = function(questionIndex, optionIndex, isCorrect) {
+            const currentCard = document.getElementById(`card-${questionIndex}`);
+            
+            // Prevent re-answering
+            if(currentCard.getAttribute('data-answered') === 'true') return;
+            currentCard.setAttribute('data-answered', 'true');
+
+            answeredCount++;
+            updateProgress();
+
+            const selectedBtn = document.getElementById(`btn-${questionIndex}-${optionIndex}`);
+            const allBtns = currentCard.querySelectorAll('button');
+
+            // Disable all buttons in this card
+            allBtns.forEach(btn => {
+                btn.classList.add('status-disabled');
+                btn.disabled = true;
+            });
+
+            // Show explanation
+            document.getElementById(`explanation-${questionIndex}`).style.display = 'block';
+
+            if (isCorrect) {
+                // Correct styling
+                selectedBtn.classList.remove('bg-white', 'text-gray-700', 'border-gray-200');
+                selectedBtn.classList.add('status-correct');
+                selectedBtn.classList.remove('status-disabled'); // Keep opacity full for selected
+                
+                playCorrectSound();
+                triggerConfetti(selectedBtn);
+                correctCount++;
+            } else {
+                // Wrong styling
+                selectedBtn.classList.remove('bg-white', 'text-gray-700', 'border-gray-200');
+                selectedBtn.classList.add('status-wrong');
+                selectedBtn.classList.add('shake-element');
+                selectedBtn.classList.remove('status-disabled');
+
+                // Highlight correct answer automatically
+                const data = quizData.questions[questionIndex];
+                const correctOptIndex = data.answerOptions.findIndex(o => o.isCorrect);
+                const correctBtn = document.getElementById(`btn-${questionIndex}-${correctOptIndex}`);
+                correctBtn.classList.remove('bg-white', 'text-gray-700', 'border-gray-200');
+                correctBtn.classList.add('status-correct');
+                
+                playWrongSound();
+                wrongCount++;
+            }
+        };
+
+        function updateProgress() {
+            const percent = (answeredCount / totalQuestions) * 100;
+            progressBar.style.width = `${percent}%`;
+            progressText.innerText = `${answeredCount}/${totalQuestions} Câu`;
+        }
+
+        // Confetti Effect
+        function triggerConfetti(element) {
+            const rect = element.getBoundingClientRect();
+            // Normalized coordinates (0 to 1)
+            const x = (rect.left + rect.width / 2) / window.innerWidth;
+            const y = (rect.top + rect.height / 2) / window.innerHeight;
+
+            confetti({
+                particleCount: 100,
+                spread: 70,
+                origin: { x: x, y: y },
+                colors: ['#00C9A7', '#8854C0', '#FFD700', '#FF4757'],
+                disableForReducedMotion: true
+            });
+        }
+
+        // Summary Modal
+        window.showSummary = function() {
+            if (answeredCount < totalQuestions) {
+                if(!confirm(`Bạn mới làm ${answeredCount}/${totalQuestions} câu. Bạn có chắc muốn nộp bài không?`)) return;
+            }
+
+            document.getElementById('final-score').innerText = correctCount;
+            document.getElementById('final-wrong').innerText = wrongCount;
+            
+            const percentage = (correctCount / totalQuestions) * 100;
+            let message = "";
+            if (percentage === 100) message = "Tuyệt vời! Em là thiên tài ngữ pháp! 🌟";
+            else if (percentage >= 80) message = "Làm tốt lắm! Em rất nắm chắc kiến thức! 👏";
+            else if (percentage >= 50) message = "Cố gắng lên! Em đang tiến bộ từng ngày! 💪";
+            else message = "Đừng nản chí! Hãy xem kỹ phần giải thích nhé! 📚";
+
+            document.getElementById('feedback-message').innerText = message;
+            document.getElementById('summary-modal').classList.remove('hidden');
+            
+            // Big Confetti
+            if (percentage >= 50) {
+                const duration = 3000;
+                const end = Date.now() + duration;
+
+                (function frame() {
+                confetti({
+                    particleCount: 3,
+                    angle: 60,
+                    spread: 55,
+                    origin: { x: 0 },
+                    colors: ['#00C9A7', '#8854C0']
+                });
+                confetti({
+                    particleCount: 3,
+                    angle: 120,
+                    spread: 55,
+                    origin: { x: 1 },
+                    colors: ['#00C9A7', '#8854C0']
+                });
+
+                if (Date.now() < end) {
+                    requestAnimationFrame(frame);
+                }
+                }());
+            }
+        };
+
+        // Initialize
+        renderQuiz();
+
+    </script>
+</body>
+</html>

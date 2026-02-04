@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thử Thách Thì Quá Khứ - Ms Mai An ULIS</title>
+    <!-- Google Fonts: Nunito for rounded, friendly look -->
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Confetti JS -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <style>
+        :root {
+            --primary: #8854C0; /* Purple */
+            --primary-dark: #6c429c;
+            --secondary: #00C9A7; /* Teal */
+            --secondary-dark: #009e82;
+            --correct: #00D26A; /* Green */
+            --correct-dark: #00a855;
+            --wrong: #FF4757; /* Red/Pink */
+            --wrong-dark: #d6303e;
+            --background: #F0F4F8;
+            --card-bg: #ffffff;
+            --text-main: #2f3542;
+        }
+
+        * {
+            box-sizing: border-box;
+            user-select: none; /* Prevent text selection for game feel */
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: var(--background);
+            background-image: radial-gradient(#dfe4ea 15%, transparent 16%), radial-gradient(#dfe4ea 15%, transparent 16%);
+            background-size: 20px 20px;
+            background-position: 0 0, 10px 10px;
+            color: var(--text-main);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        /* --- Layout & Container --- */
+        #game-container {
+            width: 100%;
+            max-width: 800px;
+            margin: auto;
+            position: relative;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(136, 84, 192, 0.15);
+            padding: 30px;
+            margin-bottom: 20px;
+            border: 2px solid #e1e1e1;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* --- Header --- */
+        .header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .teacher-tag {
+            background: var(--primary);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 50px;
+            font-weight: 800;
+            font-size: 0.9rem;
+            display: inline-block;
+            margin-bottom: 10px;
+            box-shadow: 0 4px 0 var(--primary-dark);
+        }
+
+        h1 {
+            color: var(--primary);
+            font-weight: 800;
+            margin: 0;
+            font-size: 1.8rem;
+            text-shadow: 2px 2px 0px rgba(0,0,0,0.05);
+        }
+
+        /* --- Progress Bar --- */
+        .progress-container {
+            background: #e0e0e0;
+            border-radius: 15px;
+            height: 15px;
+            width: 100%;
+            margin-bottom: 20px;
+            overflow: hidden;
+            border: 2px solid #ccc;
+        }
+
+        .progress-bar {
+            background: var(--secondary);
+            height: 100%;
+            width: 0%;
+            transition: width 0.5s ease;
+            border-radius: 15px;
+        }
+
+        /* --- Question --- */
+        .question-box {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #2f3542;
+            margin-bottom: 25px;
+            line-height: 1.5;
+        }
+
+        /* --- Options Grid --- */
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+        }
+
+        @media (min-width: 600px) {
+            .options-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        /* --- 3D Buttons --- */
+        .option-btn {
+            background: white;
+            border: 2px solid #e1e1e1;
+            border-radius: 15px;
+            padding: 15px 20px;
+            font-family: 'Nunito', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #57606f;
+            cursor: pointer;
+            transition: all 0.1s;
+            box-shadow: 0 5px 0 #d1d1d1;
+            text-align: left;
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .option-btn:active {
+            transform: translateY(4px);
+            box-shadow: 0 1px 0 #d1d1d1;
+        }
+
+        .option-btn:hover:not(:disabled) {
+            border-color: var(--primary);
+            background-color: #f8f0ff;
+        }
+
+        .option-circle {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: #f1f2f6;
+            color: #747d8c;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            font-size: 0.9rem;
+            font-weight: 800;
+            flex-shrink: 0;
+            border: 2px solid #dfe4ea;
+        }
+
+        /* --- States: Correct / Wrong --- */
+        .option-btn.correct {
+            background-color: var(--correct);
+            border-color: var(--correct-dark);
+            color: white;
+            box-shadow: 0 5px 0 var(--correct-dark);
+        }
+        .option-btn.correct:active { box-shadow: 0 1px 0 var(--correct-dark); }
+        .option-btn.correct .option-circle {
+            background: white;
+            color: var(--correct);
+            border-color: white;
+        }
+
+        .option-btn.wrong {
+            background-color: var(--wrong);
+            border-color: var(--wrong-dark);
+            color: white;
+            box-shadow: 0 5px 0 var(--wrong-dark);
+            animation: shake 0.5s;
+        }
+        .option-btn.wrong:active { box-shadow: 0 1px 0 var(--wrong-dark); }
+        .option-btn.wrong .option-circle {
+            background: white;
+            color: var(--wrong);
+            border-color: white;
+        }
+
+        .option-btn:disabled {
+            cursor: default;
+            transform: none !important;
+        }
+
+        /* --- Explanation Box --- */
+        #explanation-area {
+            display: none; /* Hidden by default */
+            margin-top: 25px;
+            background: #f0fdf4; /* Light green bg */
+            border: 2px solid var(--correct);
+            border-radius: 15px;
+            padding: 20px;
+            animation: slideIn 0.4s ease-out;
+        }
+        
+        #explanation-area.incorrect-context {
+            background: #fff5f5;
+            border-color: var(--wrong);
+        }
+
+        .teacher-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            float: left;
+            margin-right: 15px;
+            border: 3px solid white;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+        }
+
+        .exp-title {
+            color: var(--primary);
+            font-weight: 800;
+            margin-bottom: 10px;
+            display: block;
+        }
+
+        .exp-content {
+            font-size: 1rem;
+            line-height: 1.6;
+            color: #2d3436;
+            white-space: pre-line; /* Respect line breaks */
+        }
+
+        /* --- Navigation --- */
+        .nav-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 15px;
+            padding: 15px 30px;
+            font-size: 1.2rem;
+            font-weight: 800;
+            width: 100%;
+            margin-top: 20px;
+            cursor: pointer;
+            box-shadow: 0 6px 0 var(--primary-dark);
+            transition: all 0.1s;
+            display: none; /* Hidden until answered */
+        }
+
+        .nav-btn:active {
+            transform: translateY(4px);
+            box-shadow: 0 2px 0 var(--primary-dark);
+        }
+        
+        .nav-btn:hover {
+            filter: brightness(1.1);
+        }
+
+        /* --- Animations --- */
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-10px) rotate(-5deg); }
+            50% { transform: translateX(10px) rotate(5deg); }
+            75% { transform: translateX(-10px) rotate(-5deg); }
+            100% { transform: translateX(0); }
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* --- Results Screen --- */
+        #result-screen {
+            display: none;
+            text-align: center;
+        }
+
+        .score-circle {
+            width: 150px;
+            height: 150px;
+            background: var(--secondary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            font-size: 3rem;
+            font-weight: 900;
+            color: white;
+            box-shadow: 0 10px 0 var(--secondary-dark);
+            border: 5px solid white;
+        }
+
+        .message {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            color: var(--primary);
+            font-weight: 700;
+        }
+
+        /* --- Footer --- */
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            font-size: 0.9rem;
+            color: #a4b0be;
+        }
+
+        /* Underline style for phonetics */
+        u {
+            text-decoration: underline;
+            text-decoration-thickness: 3px;
+            text-decoration-color: var(--primary);
+            text-underline-offset: 3px;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="game-container">
+        <!-- Start Screen -->
+        <div id="start-screen" class="card" style="text-align: center;">
+            <div class="teacher-tag"><i class="fas fa-graduation-cap"></i> Ms Mai An ULIS</div>
+            <h1 style="margin-bottom: 20px; font-size: 2.5rem;">Thử Thách<br>Thì Quá Khứ</h1>
+            <p style="font-size: 1.2rem; color: #57606f; margin-bottom: 30px;">
+                Chào mừng các em! Hôm nay chúng ta sẽ chinh phục 30 câu hỏi về thì Quá khứ Đơn và Quá khứ Tiếp diễn nhé.<br>
+                <small style="color: #a4b0be;">Hãy bật âm thanh để trải nghiệm tốt nhất!</small>
+            </p>
+            <button class="nav-btn" style="display: block;" onclick="startGame()">Bắt Đầu Ngay <i class="fas fa-play"></i></button>
+        </div>
+
+        <!-- Quiz Screen -->
+        <div id="quiz-screen" style="display: none;">
+            <div class="header">
+                <div class="teacher-tag">Câu hỏi <span id="current-q-num">1</span>/30</div>
+            </div>
+
+            <div class="progress-container">
+                <div class="progress-bar" id="progress-bar"></div>
+            </div>
+
+            <div class="card">
+                <div class="question-box" id="question-text">
+                    Loading question...
+                </div>
+
+                <div class="options-grid" id="options-container">
+                    <!-- Options injected here -->
+                </div>
+
+                <div id="explanation-area">
+                    <div class="teacher-avatar"><i class="fas fa-chalkboard-teacher"></i></div>
+                    <div>
+                        <span class="exp-title">Cô Mai An giải thích:</span>
+                        <div class="exp-content" id="explanation-text"></div>
+                    </div>
+                </div>
+            </div>
+
+            <button class="nav-btn" id="next-btn" onclick="nextQuestion()">Câu Tiếp Theo <i class="fas fa-arrow-right"></i></button>
+            <button class="nav-btn" id="finish-btn" onclick="showResults()" style="background-color: var(--secondary); box-shadow: 0 6px 0 var(--secondary-dark);">Xem Kết Quả <i class="fas fa-trophy"></i></button>
+        </div>
+
+        <!-- Result Screen -->
+        <div id="result-screen" class="card">
+            <h1 style="margin-bottom: 30px;">Tổng Kết Điểm</h1>
+            <div class="score-circle">
+                <span id="final-score">0</span>
+            </div>
+            <div class="message" id="final-message">Làm tốt lắm!</div>
+            <p style="font-size: 1.1rem; color: #57606f;">Số câu đúng: <span id="correct-count">0</span> / 30</p>
+            <button class="nav-btn" style="display: block;" onclick="location.reload()">Làm Lại Bài <i class="fas fa-redo"></i></button>
+        </div>
+
+        <div class="footer">
+            Designed with <i class="fas fa-heart" style="color: var(--wrong);"></i> by Ms Mai An
+        </div>
+    </div>
+
+    <!-- Audio Elements (Base64 for single file portability) -->
+    <!-- Sound effect: Ding (Correct) -->
+    <audio id="sound-correct" src="data:audio/mp3;base64,//NExAAAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//NExAAAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//NExAAAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//NExAAAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//NExAAAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//NExAAAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//NExAAAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//NExAAAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//NExAAAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//NExAAAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//NExAAAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//NExAAAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//NExAAAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//NExAAAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//NExAAAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//NExAAAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq"></audio>
+    
+    <!-- Sound effect: Buzz (Wrong) -->
+    <audio id="sound-wrong" src="data:audio/mp3;base64,//NExAAAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//NExAAAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//NExAAAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//NExAAAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//NExAAAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//NExAAAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//NExAAAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//NExAAAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//NExAAAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//NExAAAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//NExAAAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//NExAAAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//NExAAAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//NExAAAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//NExAAAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//NExAAAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq"></audio>
+
+    <script>
+        // --- DATA SOURCE (From User Context) ---
+        const quizData = [
+            {
+                q: "While I _____ (build) a sandcastle, the waves _____ (hit) it.",
+                options: ["was building / hit", "built / hit", "was building / was hitting", "built / was hitting"],
+                correct: 0,
+                rationale: "Dịch chi tiết:\nA. was building / hit: đang xây / đánh vào (làm hỏng)\nB. built / hit: đã xây / đã đánh\nC. was building / was hitting: đang xây / đang đánh\nD. built / was hitting: đã xây / đang đánh\n\nGiải thích: Xây lâu đài cát là hành động dài (đang làm tỉ mỉ) -> Was building. Sóng biển ập vào (Bùm! Làm hỏng luôn) là hành động ngắn -> Hit (quá khứ vẫn là hit).\n\nDịch câu: Trong khi tớ đang xây lâu đài cát thì những con sóng ập vào đánh sập nó."
+            },
+            {
+                q: "We _____ (have) a picnic when the ants _____ (come).",
+                options: ["were having / came", "had / came", "were having / were coming", "had / were coming"],
+                correct: 0,
+                rationale: "Dịch chi tiết:\nA. were having / came: đang ăn dã ngoại / đến\nB. had / came: đã ăn / đến\nC. were having / were coming: đang ăn / đang đến\nD. had / were coming: đã ăn / đang đến\n\nGiải thích: Cả nhà đang vui vẻ ăn uống (hành động dài) -> Were having. Đàn kiến kéo đến (chen ngang cuộc vui) -> Came.\n\nDịch câu: Chúng tớ đang đi dã ngoại thì đàn kiến kéo đến."
+            },
+            {
+                q: "While the teacher _____ (write) on the board, the students _____ (copy).",
+                options: ["was writing / were copying", "wrote / copied", "was writing / copied", "wrote / were copying"],
+                correct: 0,
+                rationale: "Dịch chi tiết:\nA. was writing / were copying: đang viết / đang chép bài\nB. wrote / copied: đã viết / đã chép\nC. was writing / copied: đang viết / đã chép\nD. wrote / were copying: đã viết / đang chép\n\nGiải thích: Song song: Cô viết bảng, trò chép bài. Cả hai cùng diễn ra. Teacher (số ít) -> was writing. Students (số nhiều) -> were copying.\n\nDịch câu: Trong khi cô giáo đang viết lên bảng thì học sinh đang chép bài."
+            },
+            {
+                q: "I _____ (dream) a nice dream when the alarm clock _____ (ring).",
+                options: ["was dreaming / rang", "dreamed / rang", "was dreaming / was ringing", "dreamed / was ringing"],
+                correct: 0,
+                rationale: "Dịch chi tiết:\nA. was dreaming / rang: đang mơ / reo\nB. dreamed / rang: đã mơ / đã reo\nC. was dreaming / was ringing: đang mơ / đang reo\nD. dreamed / was ringing: đã mơ / đang reo\n\nGiải thích: Mơ đẹp là hành động dài -> Was dreaming. Chuông reo (Bụp!) đánh thức dậy -> Rang.\n\nDịch câu: Tớ đang mơ một giấc mơ đẹp thì đồng hồ báo thức reo."
+            },
+            {
+                q: "My sister _____ (feed) the cat while I _____ (water) the flowers.",
+                options: ["was feeding / was watering", "fed / watered", "was feeding / watered", "fed / was watering"],
+                correct: 0,
+                rationale: "Dịch chi tiết:\nA. was feeding / was watering: đang cho ăn / đang tưới cây\nB. fed / watered: đã cho ăn / đã tưới\nC. was feeding / watered: đang cho ăn / đã tưới\nD. fed / was watering: đã cho ăn / đang tưới\n\nGiải thích: Song song: Chị cho mèo ăn, tớ tưới hoa. Hai việc cùng làm trong vườn. -> Cả hai dùng Was V-ing.\n\nDịch câu: Chị tớ đang cho mèo ăn trong khi tớ đang tưới hoa."
+            },
+            {
+                q: "What _____ (you / do) when the monster _____ (appear) in the movie?",
+                options: ["were you doing / appeared", "did you do / appeared", "were you doing / appears", "do you do / appeared"],
+                correct: 0,
+                rationale: "Dịch chi tiết:\nA. were you doing / appeared: bạn đang làm gì / xuất hiện\nB. did you do / appeared: bạn đã làm gì / xuất hiện\nC. were you doing / appears: bạn đang làm gì / xuất hiện (hiện tại)\nD. do you do / appeared: bạn làm gì / xuất hiện\n\nGiải thích: Hành động 'quái vật xuất hiện' là hành động ngắn, chen ngang cảm xúc. Lúc đó bạn đang làm gì (che mắt, la hét...)? -> Were you doing / appeared.\n\nDịch câu: Bạn đang làm gì khi con quái vật xuất hiện trong phim?"
+            },
+            {
+                q: "I _____ (ride) my bike when I _____ (fall) off.",
+                options: ["was riding / fell", "rode / fell", "was riding / fall", "rode / was falling"],
+                correct: 0,
+                rationale: "Dịch chi tiết:\nA. was riding / fell: đang đạp xe / ngã\nB. rode / fell: đã đạp / đã ngã\nC. was riding / fall: đang đạp / ngã (hiện tại)\nD. rode / was falling: đã đạp / đang ngã\n\nGiải thích: Đạp xe là hành động dài -> Was riding. Bị ngã (Bịch!) là hành động ngắn -> Fell (quá khứ của fall).\n\nDịch câu: Tớ đang đạp xe thì bị ngã."
+            },
+            {
+                q: "While the bird _____ (fly), it _____ (see) a worm.",
+                options: ["was flying / saw", "flew / saw", "was flying / was seeing", "flew / was seeing"],
+                correct: 0,
+                rationale: "Dịch chi tiết:\nA. was flying / saw: đang bay / nhìn thấy\nB. flew / saw: đã bay / đã thấy\nC. was flying / was seeing: đang bay / đang thấy\nD. flew / was seeing: đã bay / đang thấy\n\nGiải thích: Chim đang bay (dài) -> Was flying. Nhìn thấy con sâu (ngắn) -> Saw.\n\nDịch câu: Trong khi chú chim đang bay thì nó nhìn thấy một con sâu."
+            },
+            {
+                q: "_____ it _____ (snow) at 5 o'clock yesterday?",
+                options: ["Was / snowing", "Did / snow", "Were / snowing", "Does / snow"],
+                correct: 0,
+                rationale: "Dịch chi tiết:\nA. Was / snowing: Có đang tuyết rơi không\nB. Did / snow: Đã tuyết rơi phải không\nC. Were / snowing: Có đang tuyết rơi không\nD. Does / snow: Có tuyết rơi không\n\nGiải thích: Giờ cụ thể 5 o'clock yesterday -> Quá khứ tiếp diễn. Chủ ngữ It (số ít) -> Was.\n\nDịch câu: Trời có đang rơi tuyết lúc 5 giờ hôm qua không?"
+            },
+            {
+                q: "The baby _____ (cry) while Mom _____ (make) milk.",
+                options: ["was crying / was making", "cried / made", "was crying / made", "cried / was making"],
+                correct: 0,
+                rationale: "Dịch chi tiết:\nA. was crying / was making: đang khóc / đang pha\nB. cried / made: đã khóc / đã pha\nC. was crying / made: đang khóc / đã pha\nD. cried / was making: đã khóc / đang pha\n\nGiải thích: Song song: Em bé khóc, mẹ pha sữa. Cả hai cùng diễn ra lúc đó. -> Cả hai dùng Was V-ing.\n\nDịch câu: Em bé đang khóc trong khi mẹ đang pha sữa."
+            },
+            {
+                q: "We _____ (clean) the beach when we _____ (find) a big shell.",
+                options: ["were cleaning / found", "cleaned / found", "were cleaning / find", "cleaned / were finding"],
+                correct: 0,
+                rationale: "Dịch chi tiết:\nA. were cleaning / found: đang dọn dẹp / tìm thấy\nB. cleaned / found: đã dọn / đã thấy\nC. were cleaning / find: đang dọn / thấy (hiện tại)\nD. cleaned / were finding: đã dọn / đang tìm\n\nGiải thích: Dọn bãi biển là hành động dài -> Were cleaning. Tìm thấy vỏ ốc (bất ngờ) là hành động ngắn -> Found (quá khứ của find).\n\nDịch câu: Chúng tớ đang dọn dẹp bãi biển thì tìm thấy một cái vỏ ốc lớn."
+            },
+            {
+                q: "I _____ (look) for my bag when I _____ (find) some money.",
+                options: ["was looking / found", "looked / found", "was looking / was finding", "looked / was finding"],
+                correct: 0,
+                rationale: "Dịch chi tiết:\nA. was looking / found: đang tìm / tìm thấy\nB. looked / found: đã tìm / đã thấy\nC. was looking / was finding: đang tìm / đang thấy\nD. looked / was finding: đã tìm / đang thấy\n\nGiải thích: Đang lục lọi tìm cặp (dài) -> Was looking. Thấy tiền (ngắn, may mắn) -> Found.\n\nDịch câu: Tớ đang tìm cặp sách thì thấy ít tiền."
+            },
+            {
+                q: "While they _____ (sing), the teacher _____ (play) the guitar.",
+                options: ["were singing / was playing", "sang / played", "were singing / played", "sang / was playing"],
+                correct: 0,
+                rationale: "Dịch chi tiết:\nA. were singing / was playing: đang hát / đang đàn\nB. sang / played: đã hát / đã đàn\nC. were singing / played: đang hát / đã đàn\nD. sang / was playing: đã hát / đang đàn\n\nGiải thích: Song song: Học sinh hát, thầy đàn. Cả hai hòa nhịp cùng nhau -> Cả hai dùng Was/Were V-ing.\n\nDịch câu: Trong khi họ đang hát thì thầy giáo đang chơi đàn ghi-ta."
+            },
+            {
+                q: "They _____ (skate) in the park at 4 p.m yesterday.",
+                options: ["were skating", "skated", "was skating", "are skating"],
+                correct: 0,
+                rationale: "Dịch chi tiết:\nA. were skating: đang trượt pa-tin\nB. skated: đã trượt\nC. was skating: đang trượt\nD. are skating: đang trượt (hiện tại)\n\nGiải thích: Giờ cụ thể 4 p.m -> Quá khứ tiếp diễn. They (số nhiều) -> Were skating.\n\nDịch câu: Họ đang trượt pa-tin trong công viên lúc 4 giờ chiều hôm qua."
+            },
+            {
+                q: "He _____ (swim) in the pool at 10 a.m last Sunday.",
+                options: ["was swimming", "swam", "were swimming", "swims"],
+                correct: 0,
+                rationale: "Dịch chi tiết:\nA. was swimming: đang bơi\nB. swam: đã bơi\nC. were swimming: đang bơi\nD. swims: bơi\n\nGiải thích: Giờ cụ thể 10 a.m -> Quá khứ tiếp diễn. He (số ít) -> Was swimming.\n\nDịch câu: Cậu ấy đang bơi trong hồ lúc 10 giờ sáng Chủ nhật tuần trước."
+            },
+            {
+                q: "We _____ (make) a snowman when the sun _____ (come) out.",
+                options: ["were making / came", "made / came", "were making / was coming", "made / was coming"],
+                correct: 0,
+                rationale: "Dịch chi tiết:\nA. were making / came: đang làm / hiện ra\nB. made / came: đã làm / hiện ra\nC. were making / was coming: đang làm / đang hiện ra\nD. made / was coming: đã làm / đang hiện ra\n\nGiải thích: Đang đắp người tuyết (dài) -> Were making. Mặt trời hiện ra (ngắn, làm tan tuyết) -> Came out.\n\nDịch câu: Chúng tớ đang đắp người tuyết thì mặt trời hiện ra."
+            },
+            {
+                q: "She _____ (not/wear) a hat when I _____ (meet) her.",
+                options: ["wasn't wearing / met", "didn't wear / met", "wasn't wearing / meet", "didn't wear / was meeting"],
+                correct: 0,
+                rationale: "Dịch chi tiết:\nA. wasn't wearing / met: không đang đội / gặp\nB. didn't wear / met: không đội / gặp\nC. wasn't wearing / meet: không đang đội / gặp (hiện tại)\nD. didn't wear / was meeting: không đội / đang gặp\n\nGiải thích: Mô tả trang phục lúc gặp: Cô ấy đang KHÔNG đội mũ (dài/nền). Gặp (ngắn) -> Met.\n\nDịch câu: Cô ấy không đang đội mũ khi tớ gặp cô ấy."
+            },
+            {
+                q: "_____ you _____ (listen) to music at 9 p.m?",
+                options: ["Were / listening", "Did / listen", "Was / listening", "Do / listen"],
+                correct: 0,
+                rationale: "Dịch chi tiết:\nA. Were / listening: Có đang nghe không\nB. Did / listen: Đã nghe phải không\nC. Was / listening: Có đang nghe không\nD. Do / listen: Có nghe không\n\nGiải thích: Giờ cụ thể 9 p.m -> Were you listening.\n\nDịch câu: Bạn có đang nghe nhạc lúc 9 giờ tối không?"
+            },
+            {
+                q: "The lights _____ (go) out while we _____ (read) stories.",
+                options: ["went / were reading", "was going / read", "went / read", "goes / were reading"],
+                correct: 0,
+                rationale: "Dịch chi tiết:\nA. went / were reading: tắt (mất điện) / đang đọc\nB. was going / read: đang tắt / đã đọc\nC. went / read: tắt / đã đọc\nD. goes / were reading: tắt / đang đọc\n\nGiải thích: Đang đọc truyện (dài) -> Were reading. Đèn tắt (ngắn) -> Went out.\n\nDịch câu: Đèn tắt trong khi chúng tớ đang đọc truyện."
+            },
+            {
+                q: "My brother _____ (break) his toy while he _____ (play).",
+                options: ["broke / was playing", "was breaking / played", "broke / played", "break / was playing"],
+                correct: 0,
+                rationale: "Dịch chi tiết:\nA. broke / was playing: làm gãy / đang chơi\nB. was breaking / played: đang gãy / đã chơi\nC. broke / played: đã gãy / đã chơi\nD. break / was playing: gãy / đang chơi\n\nGiải thích: Đang chơi (dài) -> Was playing. Làm gãy đồ chơi (Rắc! Ngắn) -> Broke.\n\nDịch câu: Em trai tớ làm gãy đồ chơi trong khi đang chơi."
+            },
+            {
+                q: "While I _____ (wait) for the bus, it _____ (start) to rain.",
+                options: ["was waiting / started", "waited / started", "was waiting / was starting", "waited / was starting"],
+                correct: 0,
+                rationale: "Dịch chi tiết:\nA. was waiting / started: đang chờ / bắt đầu\nB. waited / started: đã chờ / bắt đầu\nC. was waiting / was starting: đang chờ / đang bắt đầu\nD. waited / was starting: đã chờ / đang bắt đầu\n\nGiải thích: Đang chờ xe (dài) -> Was waiting. Trời bắt đầu mưa (ngắn) -> Started.\n\nDịch câu: Trong khi tớ đang chờ xe buýt thì trời bắt đầu mưa."
+            },
+            {
+                q: "The monkeys _____ (eat) bananas while the lions _____ (sleep).",
+                options: ["were eating / were sleeping", "ate / slept", "were eating / slept", "ate / were sleeping"],
+                correct: 0,
+                rationale: "Dịch chi tiết:\nA. were eating / were sleeping: đang ăn / đang ngủ\nB. ate / slept: đã ăn / đã ngủ\nC. were eating / slept: đang ăn / đã ngủ\nD. ate / were sleeping: đã ăn / đang ngủ\n\nGiải thích: Song song trong sở thú: Khỉ ăn chuối, Sư tử ngủ. Cả hai đều dùng Were V-ing.\n\nDịch câu: Những chú khỉ đang ăn chuối trong khi những chú sư tử đang ngủ."
+            },
+            {
+                q: "She _____ (cut) her finger while she _____ (cook).",
+                options: ["cut / was cooking", "was cutting / cooked", "cut / cooked", "cuts / was cooking"],
+                correct: 0,
+                rationale: "Dịch chi tiết:\nA. cut / was cooking: đứt tay / đang nấu\nB. was cutting / cooked: đang đứt / đã nấu\nC. cut / cooked: đứt / đã nấu\nD. cuts / was cooking: đứt / đang nấu\n\nGiải thích: Đang nấu ăn (dài) -> Was cooking. Bị đứt tay (đau quá! Ngắn) -> Cut (quá khứ của cut vẫn là cut).\n\nDịch câu: Cô ấy bị đứt tay trong khi đang nấu ăn."
+            },
+            {
+                q: "What _____ (Mom / do) at this time yesterday?",
+                options: ["was Mom doing", "did Mom do", "were Mom doing", "is Mom doing"],
+                correct: 0,
+                rationale: "Dịch chi tiết:\nA. was Mom doing: mẹ đang làm gì\nB. did Mom do: mẹ đã làm gì\nC. were Mom doing: mẹ đang làm gì\nD. is Mom doing: mẹ đang làm gì\n\nGiải thích: Cụm từ 'at this time yesterday' (vào giờ này hôm qua) -> Quá khứ tiếp diễn. Mom (số ít) -> Was Mom doing.\n\nDịch câu: Mẹ đang làm gì vào giờ này hôm qua?"
+            },
+            {
+                q: "Who _____ (you / talk) to when I _____ (see) you?",
+                options: ["were you talking / saw", "did you talk / saw", "were you talking / see", "did you talk / was seeing"],
+                correct: 0,
+                rationale: "Dịch chi tiết:\nA. were you talking / saw: bạn đang nói chuyện / nhìn thấy\nB. did you talk / saw: bạn đã nói chuyện / đã thấy\nC. were you talking / see: bạn đang nói chuyện / thấy (hiện tại)\nD. did you talk / was seeing: bạn đã nói chuyện / đang thấy\n\nGiải thích: Lúc tớ nhìn thấy bạn (ngắn -> saw), bạn đang nói chuyện với ai (dài -> were talking)?\n\nDịch câu: Bạn đang nói chuyện với ai khi tớ nhìn thấy bạn vậy?"
+            },
+            {
+                q: "It _____ (not/rain) when we _____ (leave) school.",
+                options: ["wasn't raining / left", "didn't rain / left", "wasn't raining / leave", "didn't rain / were leaving"],
+                correct: 0,
+                rationale: "Dịch chi tiết:\nA. wasn't raining / left: không đang mưa / rời khỏi\nB. didn't rain / left: không mưa / rời khỏi\nC. wasn't raining / leave: không đang mưa / rời (hiện tại)\nD. didn't rain / were leaving: không mưa / đang rời\n\nGiải thích: Mô tả thời tiết 'không đang mưa' (dài). Rời trường (ngắn) -> Left (quá khứ của leave).\n\nDịch câu: Trời không đang mưa khi chúng tớ rời trường."
+            },
+            {
+                q: "While Santa _____ (climb) down the chimney, he _____ (get) stuck.",
+                options: ["was climbing / got", "climbed / got", "was climbing / was getting", "climbed / was getting"],
+                correct: 0,
+                rationale: "Dịch chi tiết:\nA. was climbing / got: đang leo / bị kẹt\nB. climbed / got: đã leo / đã kẹt\nC. was climbing / was getting: đang leo / đang kẹt\nD. climbed / was getting: đã leo / đang kẹt\n\nGiải thích: Ông già Noel đang leo (dài) -> Was climbing. Bị kẹt lại (ngắn, sự cố) -> Got stuck.\n\nDịch câu: Trong khi ông già Noel đang leo xuống ống khói thì ông bị kẹt."
+            },
+            {
+                q: "I _____ (chase) a butterfly when I _____ (trip).",
+                options: ["was chasing / tripped", "chased / tripped", "was chasing / trip", "chased / was tripping"],
+                correct: 0,
+                rationale: "Dịch chi tiết:\nA. was chasing / tripped: đang đuổi theo / vấp ngã\nB. chased / tripped: đã đuổi / đã vấp\nC. was chasing / trip: đang đuổi / vấp (hiện tại)\nD. chased / was tripping: đã đuổi / đang vấp\n\nGiải thích: Đang mải đuổi theo bướm (dài) -> Was chasing. Vấp chân ngã (ngắn) -> Tripped.\n\nDịch câu: Tớ đang đuổi theo con bướm thì bị vấp ngã."
+            },
+            {
+                q: "I _____ (not/watch) TV when you _____ (arrive).",
+                options: ["wasn't watching / arrived", "didn't watch / arrived", "wasn't watching / arrive", "didn't watch / was arriving"],
+                correct: 0,
+                rationale: "Dịch chi tiết:\nA. wasn't watching / arrived: không đang xem / đến\nB. didn't watch / arrived: không xem / đến\nC. wasn't watching / arrive: không đang xem / đến (hiện tại)\nD. didn't watch / was arriving: không xem / đang đến\n\nGiải thích: Phủ định hành động dài: Tớ KHÔNG đang xem TV lúc đó. Bạn đến (ngắn) -> Arrived.\n\nDịch câu: Tớ không đang xem TV khi bạn đến."
+            },
+            {
+                q: "While the cat _____ (sleep), the dog _____ (bark).",
+                options: ["was sleeping / was barking", "slept / barked", "was sleeping / barked", "slept / was barking"],
+                correct: 0,
+                rationale: "Dịch chi tiết:\nA. was sleeping / was barking: đang ngủ / đang sủa\nB. slept / barked: đã ngủ / đã sủa\nC. was sleeping / barked: đang ngủ / đã sủa\nD. slept / was barking: đã ngủ / đang sủa\n\nGiải thích: Song song: Mèo ngủ, Chó sủa. Hai con vật làm hai việc cùng lúc. -> Cả hai dùng Was V-ing.\n\nDịch câu: Trong khi con mèo đang ngủ thì con chó đang sủa."
+            }
+        ];
+
+        // --- GAME LOGIC ---
+        let currentQuestion = 0;
+        let score = 0;
+        const totalQuestions = quizData.length;
+
+        // Sound effects
+        const soundDing = new Audio("https://actions.google.com/sounds/v1/cartoon/clank_car_crash.ogg"); // Fallback URL, real one is base64 above but let's just reference IDs
+        // Actually, let's just use the elements
+        function playSound(type) {
+            const ding = document.getElementById('sound-correct');
+            // Using a simple beep URL for buzz as base64 is tricky with length limits sometimes, but the injected base64 is robust.
+            // Let's use the Base64 elements.
+            if(type === 'correct') {
+                document.getElementById('sound-correct').currentTime = 0;
+                document.getElementById('sound-correct').play().catch(e => console.log(e));
+            } else {
+                document.getElementById('sound-wrong').currentTime = 0;
+                document.getElementById('sound-wrong').play().catch(e => console.log(e));
+            }
+        }
+
+        function startGame() {
+            document.getElementById('start-screen').style.display = 'none';
+            document.getElementById('quiz-screen').style.display = 'block';
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            const data = quizData[currentQuestion];
+            
+            // Update Header
+            document.getElementById('current-q-num').innerText = currentQuestion + 1;
+            document.getElementById('progress-bar').style.width = ((currentQuestion) / totalQuestions * 100) + "%";
+
+            // Update Text
+            document.getElementById('question-text').innerText = data.q;
+
+            // Generate Options
+            const optionsContainer = document.getElementById('options-container');
+            optionsContainer.innerHTML = '';
+
+            data.options.forEach((opt, index) => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.onclick = () => checkAnswer(index, btn);
+                btn.innerHTML = `
+                    <div class="option-circle">${String.fromCharCode(65 + index)}</div>
+                    <span>${opt}</span>
+                `;
+                optionsContainer.appendChild(btn);
+            });
+
+            // Reset UI
+            document.getElementById('explanation-area').style.display = 'none';
+            document.getElementById('explanation-area').className = ''; // Remove error class
+            document.getElementById('next-btn').style.display = 'none';
+            document.getElementById('finish-btn').style.display = 'none';
+        }
+
+        function checkAnswer(selectedIndex, btnElement) {
+            const data = quizData[currentQuestion];
+            const allBtns = document.querySelectorAll('.option-btn');
+            
+            // Disable all buttons
+            allBtns.forEach(btn => btn.disabled = true);
+
+            if (selectedIndex === data.correct) {
+                // Correct
+                btnElement.classList.add('correct');
+                score++;
+                playSound('correct');
+                triggerConfetti();
+                document.getElementById('explanation-area').classList.remove('incorrect-context');
+            } else {
+                // Wrong
+                btnElement.classList.add('wrong');
+                // Highlight correct one
+                allBtns[data.correct].classList.add('correct');
+                playSound('wrong');
+                document.getElementById('explanation-area').classList.add('incorrect-context');
+            }
+
+            // Show Explanation
+            document.getElementById('explanation-text').innerText = data.rationale;
+            document.getElementById('explanation-area').style.display = 'block';
+
+            // Show Next Button
+            if (currentQuestion < totalQuestions - 1) {
+                document.getElementById('next-btn').style.display = 'block';
+            } else {
+                document.getElementById('finish-btn').style.display = 'block';
+            }
+            
+            // Update progress bar to full for this step
+            document.getElementById('progress-bar').style.width = ((currentQuestion + 1) / totalQuestions * 100) + "%";
+        }
+
+        function nextQuestion() {
+            currentQuestion++;
+            loadQuestion();
+        }
+
+        function showResults() {
+            document.getElementById('quiz-screen').style.display = 'none';
+            document.getElementById('result-screen').style.display = 'block';
+            
+            // Animate Score
+            const scoreEl = document.getElementById('final-score');
+            const maxScore = Math.round((score / totalQuestions) * 100); // 0-100 scale or just raw score? Let's do raw.
+            scoreEl.innerText = score; // Just raw number
+            
+            document.getElementById('correct-count').innerText = score;
+            
+            // Message
+            const msgEl = document.getElementById('final-message');
+            if (score === totalQuestions) {
+                msgEl.innerText = "Tuyệt đỉnh! Đúng hết rồi! 🏆";
+                triggerConfetti();
+            } else if (score >= totalQuestions * 0.8) {
+                msgEl.innerText = "Giỏi lắm! Em làm rất tốt! 🌟";
+            } else if (score >= totalQuestions * 0.5) {
+                msgEl.innerText = "Khá tốt! Cố gắng thêm chút nữa nhé! 💪";
+            } else {
+                msgEl.innerText = "Đừng buồn, hãy ôn lại bài nhé! 📚";
+            }
+        }
+
+        function triggerConfetti() {
+            confetti({
+                particleCount: 100,
+                spread: 70,
+                origin: { y: 0.6 },
+                colors: ['#8854C0', '#00C9A7', '#FF4757']
+            });
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Present Simple Mastery - Ms Mai An ULIS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        :root {
+            --primary: #8854C0;
+            --secondary: #00C9A7;
+            --success: #00D26A;
+            --danger: #FF4757;
+            --bg-light: #F0F4F8;
+            --text-dark: #2D3436;
+            --card-shadow: 0 10px 0 #d1d8e0;
+            --btn-shadow: 0 5px 0 #6c44a3;
+            --correct-shadow: 0 5px 0 #00a352;
+            --wrong-shadow: 0 5px 0 #d63031;
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: 'Nunito', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-light);
+            background-image: radial-gradient(#8854c033 1px, transparent 1px);
+            background-size: 20px 20px;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            color: var(--text-dark);
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        header h2 {
+            margin: 0;
+            color: var(--primary);
+            font-weight: 800;
+            font-size: 1.2rem;
+            text-transform: uppercase;
+        }
+
+        .progress-container {
+            width: 100%;
+            max-width: 600px;
+            height: 15px;
+            background: #dfe6e9;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            overflow: hidden;
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--secondary), #55efc4);
+            transition: width 0.3s ease;
+        }
+
+        .quiz-card {
+            background: white;
+            width: 100%;
+            max-width: 600px;
+            padding: 30px;
+            border-radius: 25px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            position: relative;
+            margin-bottom: 20px;
+            border: 2px solid #eee;
+        }
+
+        .question-text {
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin-bottom: 25px;
+            line-height: 1.5;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+        }
+
+        .option-btn {
+            background: white;
+            border: 2px solid #e2e8f0;
+            padding: 15px 20px;
+            border-radius: 18px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 5px 0 #e2e8f0;
+            display: flex;
+            align-items: center;
+        }
+
+        .option-btn:hover {
+            transform: translateY(-2px);
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .option-btn.correct {
+            background-color: var(--success);
+            color: white !important;
+            border-color: #00a352;
+            box-shadow: 0 5px 0 #007d3f;
+        }
+
+        .option-btn.wrong {
+            background-color: var(--danger);
+            color: white !important;
+            border-color: #d63031;
+            box-shadow: 0 5px 0 #b32d2d;
+            animation: shake 0.5s;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-8px); }
+            50% { transform: translateX(8px); }
+            75% { transform: translateX(-8px); }
+        }
+
+        .explanation-box {
+            margin-top: 25px;
+            padding: 20px;
+            background: #f8f9ff;
+            border-left: 5px solid var(--primary);
+            border-radius: 12px;
+            display: none;
+            animation: slideIn 0.4s ease-out;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .explanation-title {
+            color: var(--primary);
+            font-weight: 800;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .explanation-content {
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
+        .next-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 15px;
+            font-weight: 800;
+            font-size: 1.1rem;
+            cursor: pointer;
+            box-shadow: var(--btn-shadow);
+            margin-top: 20px;
+            display: none;
+            transition: 0.2s;
+        }
+
+        .next-btn:hover {
+            filter: brightness(1.1);
+            transform: translateY(-2px);
+        }
+
+        .next-btn:active {
+            transform: translateY(2px);
+            box-shadow: none;
+        }
+
+        /* Result Popup */
+        #result-popup {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 40px;
+            border-radius: 30px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+            text-align: center;
+            z-index: 1000;
+            width: 90%;
+            max-width: 450px;
+        }
+
+        #result-popup h2 {
+            color: var(--primary);
+            font-size: 2rem;
+            margin-top: 0;
+        }
+
+        .score-circle {
+            width: 120px;
+            height: 120px;
+            border: 8px solid var(--secondary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin: 20px auto;
+            color: var(--secondary);
+        }
+
+        .overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(5px);
+            z-index: 999;
+        }
+
+        .footer-note {
+            margin-top: 30px;
+            font-size: 0.8rem;
+            color: #95a5a6;
+        }
+
+        .alphabet {
+            background: #eee;
+            width: 30px;
+            height: 30px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            margin-right: 12px;
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        /* CSS for special visual questions */
+        .sale-box {
+            border: 4px dashed var(--danger);
+            padding: 15px;
+            background: #fff5f5;
+            text-align: center;
+            margin-bottom: 15px;
+            border-radius: 10px;
+        }
+
+        .phone-frame {
+            border: 12px solid #333;
+            border-radius: 20px;
+            padding: 15px;
+            background: #e5ddd5;
+            max-width: 250px;
+            margin: 0 auto 15px;
+        }
+
+        .chat-bubble {
+            background: white;
+            padding: 8px 12px;
+            border-radius: 10px;
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+            box-shadow: 0 2px 2px rgba(0,0,0,0.1);
+        }
+
+    </style>
+</head>
+<body>
+
+    <header>
+        <h2>Luyện tập toàn diện: Thì Hiện tại đơn</h2>
+        <p style="font-weight: 700; color: #666; font-size: 0.9rem;">Giáo viên tạo: Ms Mai An ULIS</p>
+    </header>
+
+    <div class="progress-container">
+        <div class="progress-bar" id="progress" style="width: 0%"></div>
+    </div>
+
+    <div id="quiz-container">
+        <div class="quiz-card" id="card">
+            <div id="question-area">
+                <!-- Question content injected here -->
+            </div>
+
+            <div class="explanation-box" id="explanation">
+                <div class="explanation-title">✨ Cô Mai An giải thích:</div>
+                <div class="explanation-content" id="explanation-text"></div>
+            </div>
+        </div>
+    </div>
+
+    <button class="next-btn" id="next-btn" onclick="nextQuestion()">Tiếp tục thôi nào! 🚀</button>
+
+    <div class="overlay" id="overlay"></div>
+    <div id="result-popup">
+        <h2 id="praise-title">Tuyệt vời!</h2>
+        <p id="praise-msg">Em đã hoàn thành xuất sắc bài thi.</p>
+        <div class="score-circle" id="final-score">0/30</div>
+        <button class="next-btn" style="display: block; width: 100%;" onclick="location.reload()">Làm lại bài nhé 🔄</button>
+    </div>
+
+    <p class="footer-note">Học tiếng Anh thật vui cùng Ms Mai An ULIS ❤️</p>
+
+    <script>
+        const quizData = [
+    {
+      "question": "I ______ a student.",
+      "options": ["is", "are", "am", "be"],
+      "correct": 2,
+      "expl": {
+        "trans": "Tôi là một học sinh.",
+        "analysis": "A. is (v-tobe): dùng cho He/She/It.\nB. are (v-tobe): dùng cho You/We/They.\nC. am (v-tobe): dùng cho 'I'.\nD. be (v): dạng nguyên mẫu.",
+        "why": "Với chủ ngữ là 'I', động từ tobe ở hiện tại đơn luôn là 'am'.",
+        "wrong": "Is/Are sai vì không tương hợp với chủ ngữ 'I'. Be là dạng chưa chia."
+      }
+    },
+    {
+      "question": "She ______ very beautiful.",
+      "options": ["are", "am", "is", "be"],
+      "correct": 2,
+      "expl": {
+        "trans": "Cô ấy rất xinh đẹp.",
+        "analysis": "A. are: dùng cho số nhiều.\nB. am: dùng cho 'I'.\nC. is: dùng cho ngôi số ít.\nD. be: nguyên mẫu.",
+        "why": "Chủ ngữ 'She' là ngôi thứ 3 số ít nên tobe phải là 'is'.",
+        "wrong": "Am và Are dùng cho các ngôi khác, không dùng cho She."
+      }
+    },
+    {
+      "question": "My brothers ______ at school.",
+      "options": ["isn't", "aren't", "am not", "not are"],
+      "correct": 1,
+      "expl": {
+        "trans": "Các anh trai của tôi không ở trường.",
+        "analysis": "A. isn't: phủ định số ít.\nB. aren't: phủ định số nhiều.\nC. am not: phủ định cho 'I'.\nD. not are: sai cấu trúc.",
+        "why": "'My brothers' là danh từ số nhiều (có s) tương đương 'They' nên dùng 'aren't'.",
+        "wrong": "Isn't chỉ dùng cho 1 người, còn ở đây là 'các anh trai'."
+      }
+    },
+    {
+      "question": "______ they friendly?",
+      "options": ["Is", "Am", "Do", "Are"],
+      "correct": 3,
+      "expl": {
+        "trans": "Họ có thân thiện không?",
+        "analysis": "A. Is: số ít.\nB. Am: dùng cho 'I'.\nC. Do: trợ động từ (đi với động từ thường).\nD. Are: tobe số nhiều.",
+        "why": "'Friendly' là tính từ, chủ ngữ 'they' số nhiều nên mượn Tobe 'Are' đảo lên đầu.",
+        "wrong": "Do chỉ dùng khi có động từ thường, ở đây là tính từ nên phải dùng Tobe."
+      }
+    },
+    {
+      "question": "Is she a nurse? - Yes, she ______.",
+      "options": ["is", "are", "does", "am"],
+      "correct": 0,
+      "expl": {
+        "trans": "Cô ấy có phải y tá không? - Vâng, đúng vậy.",
+        "analysis": "A. is: đúng ngôi.\nB. are: sai ngôi.\nC. does: sai loại từ.\nD. am: sai ngôi.",
+        "why": "Câu hỏi bắt đầu bằng 'Is she' thì câu trả lời ngắn phải là 'Yes, she is'.",
+        "wrong": "Phải giữ nguyên hệ động từ tobe ở câu trả lời, không dùng 'does'."
+      }
+    },
+    {
+      "question": "I ______ to school every morning.",
+      "options": ["walks", "walk", "walking", "is walk"],
+      "correct": 1,
+      "expl": {
+        "trans": "Tôi đi bộ đến trường mỗi sáng.",
+        "analysis": "A. walks: thêm 's' (số ít).\nB. walk: nguyên mẫu.\nC. walking: V-ing.\nD. is walk: sai cấu trúc.",
+        "why": "Chủ ngữ 'I' đi với động từ nguyên mẫu không chia trong thì Hiện tại đơn.",
+        "wrong": "Walks chỉ dùng cho He/She/It. Is walk là cấu trúc sai hoàn toàn."
+      }
+    },
+    {
+      "question": "Nam ______ TV every evening.",
+      "options": ["watch", "watches", "watching", "is watches"],
+      "correct": 1,
+      "expl": {
+        "trans": "Nam xem TV mỗi tối.",
+        "analysis": "A. watch: nguyên mẫu.\nB. watches: chia số ít.\nC. watching: đang xem.\nD. is watches: sai.",
+        "why": "Chủ ngữ 'Nam' (He) số ít, động từ kết thúc bằng 'ch' nên thêm đuôi 'es'.",
+        "wrong": "Watch chưa chia là sai vì Nam là số ít."
+      }
+    },
+    {
+      "question": "She always ______ up early.",
+      "options": ["get", "gets", "getting", "got"],
+      "correct": 1,
+      "expl": {
+        "trans": "Cô ấy luôn thức dậy sớm.",
+        "analysis": "A. get: nguyên mẫu.\nB. gets: thêm 's'.\nC. getting: V-ing.\nD. got: quá khứ.",
+        "why": "Ngôi 'She' cần động từ chia thêm 's'.",
+        "wrong": "Get không chia là lỗi phổ biến, các em nhớ 'She' là phải có 's' nhé."
+      }
+    },
+    {
+      "question": "My parents ______ badminton in the morning.",
+      "options": ["plays", "play", "playing", "are plays"],
+      "correct": 1,
+      "expl": {
+        "trans": "Bố mẹ tôi chơi cầu lông vào buổi sáng.",
+        "analysis": "A. plays: số ít.\nB. play: nguyên mẫu.\nC. playing: V-ing.\nD. are plays: sai.",
+        "why": "'My parents' là số nhiều (2 người) nên động từ giữ nguyên.",
+        "wrong": "Plays chỉ dùng nếu chỉ có 'My father' hoặc 'My mother' thôi."
+      }
+    },
+    {
+      "question": "He ______ to school on Sunday.",
+      "options": ["don't go", "doesn't go", "doesn't goes", "not go"],
+      "correct": 1,
+      "expl": {
+        "trans": "Anh ấy không đi học vào Chủ nhật.",
+        "analysis": "A. don't go: dùng cho số nhiều.\nB. doesn't go: đúng.\nC. doesn't goes: sai (sau trợ động từ V nguyên mẫu).\nD. not go: thiếu trợ động từ.",
+        "why": "Chủ ngữ 'He' mượn trợ động từ 'doesn't', động từ chính 'go' đưa về nguyên mẫu.",
+        "wrong": "Doesn't goes sai vì đã có 'es' ở trợ động từ rồi, không thêm ở 'go' nữa."
+      }
+    },
+    {
+      "question": "They ______ their homework every afternoon.",
+      "options": ["doesn't do", "don't do", "don't does", "not do"],
+      "correct": 1,
+      "expl": {
+        "trans": "Họ không làm bài tập về nhà mỗi chiều.",
+        "analysis": "A. doesn't do: dùng cho số ít.\nB. don't do: đúng.\nC. don't does: sai.\nD. not do: sai.",
+        "why": "They là số nhiều, dùng trợ động từ 'don't' cộng động từ 'do' nguyên mẫu.",
+        "wrong": "Tránh nhầm lẫn 'do' trợ động từ và 'do' động từ chính nhé."
+      }
+    },
+    {
+      "question": "Her grandmother ______ exercise in the park.",
+      "options": ["don't do", "doesn't do", "isn't do", "doesn't does"],
+      "correct": 1,
+      "expl": {
+        "trans": "Bà của cô ấy không tập thể dục trong công viên.",
+        "analysis": "A. don't do: sai ngôi.\nB. doesn't do: đúng.\nC. isn't do: sai hệ động từ.\nD. doesn't does: sai V nguyên mẫu.",
+        "why": "Bà là ngôi số ít (She), dùng 'doesn't' + 'do'.",
+        "wrong": "Không được dùng tobe 'isn't' đi trực tiếp với động từ thường 'do'."
+      }
+    },
+    {
+      "question": "______ you often go to the cinema on weekends?",
+      "options": ["Does", "Do", "Are", "Is"],
+      "correct": 1,
+      "expl": {
+        "trans": "Bạn có thường đi xem phim vào cuối tuần không?",
+        "analysis": "A. Does: số ít.\nB. Do: đúng.\nC. Are: tobe.\nD. Is: tobe.",
+        "why": "Chủ ngữ 'you' đi với trợ động từ 'Do' trong câu hỏi.",
+        "wrong": "Có động từ thường 'go' nên tuyệt đối không dùng Are/Is."
+      }
+    },
+    {
+      "question": "______ he play soccer in the afternoon?",
+      "options": ["Do", "Is", "Does", "Are"],
+      "correct": 2,
+      "expl": {
+        "trans": "Anh ấy có chơi đá bóng vào buổi chiều không?",
+        "analysis": "A. Do: số nhiều.\nB. Is: tobe.\nC. Does: đúng.\nD. Are: tobe.",
+        "why": "He là số ít, mượn trợ động từ 'Does' đảo lên đầu.",
+        "wrong": "Nhiều bạn hay nhầm 'Is he play' - cái này sai vì 'play' là động từ thường."
+      }
+    },
+    {
+      "question": "Do they often go swimming? - Yes, they ______.",
+      "options": ["do", "does", "are", "don't"],
+      "correct": 0,
+      "expl": {
+        "trans": "Họ có thường đi bơi không? - Có, họ có.",
+        "analysis": "A. do: đúng.\nB. does: sai ngôi.\nC. are: sai hệ.\nD. don't: sai nghĩa (Yes không đi với don't).",
+        "why": "Hỏi 'Do they' thì trả lời 'Yes, they do'.",
+        "wrong": "Hỏi gì trả nấy, mượn trợ động từ nào thì trả lời bằng cái đó."
+      }
+    },
+    {
+      "question": "______ is he? - He is my brother.",
+      "options": ["What", "Who", "Where", "Why"],
+      "correct": 1,
+      "expl": {
+        "trans": "Anh ấy là ai? - Anh ấy là anh trai tôi.",
+        "analysis": "A. What: Cái gì.\nB. Who: Ai.\nC. Where: Ở đâu.\nD. Why: Tại sao.",
+        "why": "Câu trả lời là 'my brother' (người) nên dùng 'Who'.",
+        "wrong": "Where hỏi chỗ ở, Why hỏi lý do, không khớp với câu trả lời."
+      }
+    },
+    {
+      "question": "______ are they? - They are in the playground.",
+      "options": ["What", "Who", "Where", "How"],
+      "correct": 2,
+      "expl": {
+        "trans": "Họ ở đâu? - Họ ở trong sân chơi.",
+        "analysis": "A. What: Cái gì.\nB. Who: Ai.\nC. Where: Ở đâu.\nD. How: Thế nào.",
+        "why": "Địa điểm 'in the playground' yêu cầu từ hỏi 'Where'.",
+        "wrong": "Who hỏi người, How hỏi tính chất/cách thức."
+      }
+    },
+    {
+      "question": "What ______ you do? - I am a student.",
+      "options": ["are", "does", "do", "is"],
+      "correct": 2,
+      "expl": {
+        "trans": "Bạn làm nghề gì? - Tôi là học sinh.",
+        "analysis": "A. are: tobe.\nB. does: số ít.\nC. do: trợ động từ.\nD. is: tobe.",
+        "why": "Hỏi nghề nghiệp: What + do/does + S + do? 'You' đi với 'do'.",
+        "wrong": "Dùng 'What are you do' là sai ngữ pháp nặng đấy nhé."
+      }
+    },
+    {
+      "question": "Why ______ he cry? - Because he is sad.",
+      "options": ["is", "do", "does", "are"],
+      "correct": 2,
+      "expl": {
+        "trans": "Tại sao anh ấy khóc? - Vì anh ấy buồn.",
+        "analysis": "A. is: tobe.\nB. do: số nhiều.\nC. does: số ít.\nD. are: tobe.",
+        "why": "'Cry' là động từ thường, chủ ngữ 'he' số ít nên dùng 'does'.",
+        "wrong": "Is he crying thì được, còn 'Is he cry' là sai."
+      }
+    },
+    {
+      "question": "She ______ at home in the evening.",
+      "options": ["usually is", "is usually", "are usually", "usually are"],
+      "correct": 1,
+      "expl": {
+        "trans": "Cô ấy thường xuyên ở nhà vào buổi tối.",
+        "analysis": "A. usually is: sai vị trí.\nB. is usually: đúng.\nC. are usually: sai ngôi.\nD. usually are: sai vị trí và ngôi.",
+        "why": "Trạng từ tần suất (usually) đứng SAU tobe (is) và TRƯỚC động từ thường.",
+        "wrong": "Phải chia tobe 'is' cho 'She' và đặt 'usually' đằng sau."
+      }
+    },
+    {
+      "question": "He ______ goes to school by bus.",
+      "options": ["rarely", "is rarely", "rarely is", "are rarely"],
+      "correct": 0,
+      "expl": {
+        "trans": "Anh ấy hiếm khi đi học bằng xe buýt.",
+        "analysis": "A. rarely: đúng vị trí.\nB. is rarely: dư tobe.\nC. rarely is: dư tobe.\nD. are rarely: dư tobe.",
+        "why": "'Goes' là động từ thường, trạng từ 'rarely' đứng ngay phía trước nó.",
+        "wrong": "Đã có động từ 'goes' thì không cho 'is' vào nữa nhé các em."
+      }
+    },
+    {
+      "question": "I ______ go out with my friends.",
+      "options": ["often don't", "don't often", "not often", "often not"],
+      "correct": 1,
+      "expl": {
+        "trans": "Tôi không thường xuyên đi chơi với bạn bè.",
+        "analysis": "A. often don't: sai vị trí.\nB. don't often: đúng.\nC. not often: thiếu trợ động từ.\nD. often not: sai cấu trúc.",
+        "why": "Trạng từ tần suất đứng sau trợ động từ 'don't' và trước động từ chính.",
+        "wrong": "Quy tắc: Don't/Doesn't + Adverb + V-inf."
+      }
+    },
+    {
+      "question": "He phones home ______.",
+      "options": ["every week", "week every", "always", "rarely"],
+      "correct": 0,
+      "expl": {
+        "trans": "Anh ấy gọi về nhà mỗi tuần.",
+        "analysis": "A. every week: đúng.\nB. week every: sai trật tự.\nC. always: sai vị trí.\nD. rarely: sai vị trí.",
+        "why": "Cụm 'Every week' là cụm trạng ngữ chỉ thời gian, thường đứng ở cuối câu.",
+        "wrong": "Always và Rarely phải đứng trước 'phones' mới đúng ngữ pháp."
+      }
+    },
+    {
+      "question": "They go on holiday to the seaside ______ a year.",
+      "options": ["one", "once", "two", "twice time"],
+      "correct": 1,
+      "expl": {
+        "trans": "Họ đi nghỉ mát ở biển mỗi năm một lần.",
+        "analysis": "A. one: số đếm.\nB. once: một lần.\nC. two: số đếm.\nD. twice time: sai (chỉ dùng twice hoặc two times).",
+        "why": "Once = one time (một lần). Dùng để chỉ tần suất.",
+        "wrong": "Không bao giờ nói 'one a year', phải là 'once a year'."
+      }
+    },
+    {
+      "question": "How many times a week does he practice? - He practices ______ times.",
+      "options": ["four", "fourth", "once", "twice"],
+      "correct": 0,
+      "expl": {
+        "trans": "Anh ấy luyện tập bao nhiêu lần một tuần? - Anh ấy tập 4 lần.",
+        "analysis": "A. four: số đếm.\nB. fourth: số thứ tự.\nC. once: 1 lần.\nD. twice: 2 lần.",
+        "why": "Cấu trúc: Số đếm + times (từ 3 lần trở lên). Có 'times' rồi nên điền số 'four'.",
+        "wrong": "Once và Twice không đi kèm từ 'times' ở đằng sau."
+      }
+    },
+    {
+      "question": "My father ______ TV at the moment; he usually ______ it in the evening.",
+      "options": ["isn't watching / watches", "doesn't watch / watching", "not watch / watches", "don't watch / watch"],
+      "correct": 0,
+      "expl": {
+        "trans": "Bố tôi đang không xem TV lúc này; ông ấy thường xem vào buổi tối.",
+        "analysis": "A. đúng thì.\nB. sai thì.\nC. sai cấu trúc.\nD. sai ngôi.",
+        "why": "'At the moment' dùng HT tiếp diễn. 'Usually' dùng HT đơn. My father là He.",
+        "wrong": "Đây là câu bẫy kết hợp 2 thì, các em chú ý dấu hiệu nhận biết nhé."
+      }
+    },
+    {
+      "question": "Which sentence is correct?",
+      "options": ["He don't like apples.", "She play piano very well.", "They aren't students.", "Does you live here?"],
+      "correct": 2,
+      "expl": {
+        "trans": "Câu nào sau đây là đúng?",
+        "analysis": "A. Sai (He doesn't).\nB. Sai (She plays).\nC. Đúng (They aren't).\nD. Sai (Do you).",
+        "why": "They đi với tobe 'are', phủ định là 'aren't' là hoàn toàn chính xác.",
+        "wrong": "Các câu kia đều sai quy tắc chia động từ theo ngôi số ít/số nhiều."
+      }
+    },
+    {
+      "question": "Miss Lan ______ my teacher.",
+      "options": ["aren't", "isn't", "don't", "doesn't"],
+      "correct": 1,
+      "expl": {
+        "trans": "Cô Lan không phải là giáo viên của tôi.",
+        "analysis": "A. aren't: số nhiều.\nB. isn't: số ít.\nC. don't: trợ động từ.\nD. doesn't: trợ động từ.",
+        "why": "Miss Lan là danh từ số ít, đi với tobe 'is', phủ định 'isn't'.",
+        "wrong": "Ở đây sau chỗ trống là danh từ 'teacher', nên ta cần Tobe chứ không phải trợ động từ Do/Does."
+      }
+    },
+    {
+      "question": "We ______ in the garden.",
+      "options": ["is", "am", "are", "be"],
+      "correct": 2,
+      "expl": {
+        "trans": "Chúng tôi đang ở trong vườn.",
+        "analysis": "A. is: số ít.\nB. am: cho I.\nC. are: cho We.\nD. be: nguyên mẫu.",
+        "why": "Chủ ngữ 'We' là ngôi thứ nhất số nhiều, luôn đi với 'are'.",
+        "wrong": "Is/Am không bao giờ đi với We."
+      }
+    },
+    {
+      "question": "______ your brother ______ his homework?",
+      "options": ["Do / do", "Does / does", "Does / do", "Is / doing"],
+      "correct": 2,
+      "expl": {
+        "trans": "Em trai bạn có làm bài tập về nhà không?",
+        "analysis": "A. Do/do: sai ngôi.\nB. Does/does: sai nguyên mẫu.\nC. Does/do: đúng.\nD. Is/doing: tiếp diễn.",
+        "why": "Brother số ít mượn 'Does'. Động từ chính 'do' phải giữ nguyên mẫu.",
+        "wrong": "Rất nhiều bạn chọn 'Does your brother does' - nhớ nhé, đã có trợ động từ thì động từ chính không chia nữa."
+      }
+    }
+];
+
+        let currentQ = 0;
+        let score = 0;
+        let canClick = true;
+
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        function playSound(type) {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            if (type === 'correct') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(523.25, audioCtx.currentTime); // C5
+                osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.1); // A5
+                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.3);
+            } else {
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+                osc.frequency.linearRampToValueAtTime(50, audioCtx.currentTime + 0.2);
+                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.3);
+            }
+        }
+
+        function loadQuestion() {
+            canClick = true;
+            const data = quizData[currentQ];
+            const qArea = document.getElementById('question-area');
+            const nextBtn = document.getElementById('next-btn');
+            const exp = document.getElementById('explanation');
+            
+            exp.style.display = 'none';
+            nextBtn.style.display = 'none';
+
+            let html = `<div class="question-text">Câu ${currentQ + 1}: ${data.question}</div>`;
+            
+            // Render specific UI for Q29, Q30 if needed (example logic)
+            if(currentQ === 28) { // Q29 logic demo
+                 html = `<div class="question-text">Câu ${currentQ + 1}: ${data.question}</div>
+                         <div class="sale-box">🌳 [Hình ảnh minh họa: Khu vườn xinh xắn] 🌳</div>`;
+            }
+
+            html += `<div class="options-grid">`;
+            data.options.forEach((opt, idx) => {
+                html += `
+                    <button class="option-btn" onclick="checkAnswer(${idx}, this)">
+                        <span class="alphabet">${String.fromCharCode(65 + idx)}</span>
+                        ${opt}
+                    </button>
+                `;
+            });
+            html += `</div>`;
+            
+            qArea.innerHTML = html;
+            document.getElementById('progress').style.width = `${(currentQ / quizData.length) * 100}%`;
+        }
+
+        function checkAnswer(idx, btn) {
+            if (!canClick) return;
+            canClick = false;
+
+            const data = quizData[currentQ];
+            const allBtns = document.querySelectorAll('.option-btn');
+            const exp = document.getElementById('explanation');
+            const expText = document.getElementById('explanation-text');
+            const nextBtn = document.getElementById('next-btn');
+
+            if (idx === data.correct) {
+                btn.classList.add('correct');
+                score++;
+                playSound('correct');
+                confetti({
+                    particleCount: 100,
+                    spread: 70,
+                    origin: { y: 0.6 },
+                    colors: ['#8854C0', '#00C9A7', '#FFD93D']
+                });
+            } else {
+                btn.classList.add('wrong');
+                allBtns[data.correct].classList.add('correct');
+                playSound('wrong');
+            }
+
+            // Populate Explanation
+            expText.innerHTML = `
+                <p><strong>1. Dịch câu:</strong> "${data.expl.trans}"</p>
+                <p><strong>2. Phân tích đáp án:</strong><br>${data.expl.analysis.replace(/\n/g, '<br>')}</p>
+                <p><strong>3. Tại sao chọn ${String.fromCharCode(65 + data.correct)}?</strong><br>${data.expl.why}</p>
+                <p><strong>4. Tại sao các đáp án khác chưa đúng?</strong><br>${data.expl.wrong}</p>
+                <p style="text-align: right; font-style: italic; color: var(--primary); font-weight: bold;">Đáp án đúng: ${String.fromCharCode(65 + data.correct)}</p>
+            `;
+            exp.style.display = 'block';
+            nextBtn.style.display = 'block';
+            
+            // Scroll explanation into view
+            exp.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        function nextQuestion() {
+            currentQ++;
+            if (currentQ < quizData.length) {
+                loadQuestion();
+            } else {
+                showResult();
+            }
+        }
+
+        function showResult() {
+            const popup = document.getElementById('result-popup');
+            const overlay = document.getElementById('overlay');
+            const finalScore = document.getElementById('final-score');
+            const title = document.getElementById('praise-title');
+            const msg = document.getElementById('praise-msg');
+
+            finalScore.innerText = `${score}/${quizData.length}`;
+            
+            const percent = (score / quizData.length) * 100;
+            if (percent >= 90) {
+                title.innerText = "Tuyệt phẩm! 🎉";
+                msg.innerText = "Em thực sự là một cao thủ Hiện tại đơn rồi đấy!";
+            } else if (percent >= 70) {
+                title.innerText = "Rất tốt! 👍";
+                msg.innerText = "Cô rất tự hào về sự tiến bộ của em.";
+            } else {
+                title.innerText = "Cố gắng lên! 💪";
+                msg.innerText = "Chỉ cần ôn tập lại một chút là em sẽ giỏi ngay thôi.";
+            }
+
+            popup.style.display = 'block';
+            overlay.style.display = 'block';
+            
+            confetti({
+                particleCount: 200,
+                spread: 160,
+                origin: { y: 0.6 }
+            });
+        }
+
+        // Start Quiz
+        window.onload = loadQuestion;
+    </script>
+</body>
+</html>

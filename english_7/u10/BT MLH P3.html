@@ -1,0 +1,889 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bài Tập Viết: Sắp Xếp & Biến Đổi Câu (Energy) - Ms Mai An ULIS</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;900&family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
+    <!-- Tailwind CSS (via CDN) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Confetti Library -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <style>
+        :root {
+            --primary-color: #8854C0; /* Tím Pastel */
+            --secondary-color: #00C9A7; /* Xanh Ngọc */
+            --accent-color: #FF9F43; /* Cam */
+            --correct-color: #00D26A; /* Xanh lá */
+            --wrong-color: #FF4757; /* Đỏ hồng */
+            --bg-pattern: #f0f3f8;
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: var(--bg-pattern);
+            background-image: radial-gradient(#d1d8e0 2px, transparent 2px);
+            background-size: 24px 24px;
+            color: #2f3542;
+            padding-bottom: 50px;
+        }
+
+        /* 3D Button Effect */
+        .btn-3d {
+            transition: all 0.1s;
+            border-bottom: 6px solid rgba(0, 0, 0, 0.2);
+            border-radius: 16px;
+            position: relative;
+        }
+
+        .btn-3d:active {
+            transform: translateY(4px);
+            border-bottom: 2px solid rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-option {
+            background-color: white;
+            color: #57606f;
+            border: 2px solid #dfe4ea;
+            border-bottom: 6px solid #dfe4ea;
+            font-weight: 600;
+            text-align: left;
+            padding: 16px;
+            width: 100%;
+            border-radius: 16px;
+            transition: all 0.2s;
+            cursor: pointer;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .btn-option:hover:not(:disabled) {
+            transform: scale(1.02);
+            background-color: #f1f2f6;
+            border-color: #ced6e0;
+        }
+
+        /* Correct State */
+        .btn-option.correct {
+            background-color: var(--correct-color);
+            color: white;
+            border-color: #00b85c;
+            border-bottom: 6px solid #00944a;
+        }
+
+        /* Wrong State */
+        .btn-option.wrong {
+            background-color: var(--wrong-color);
+            color: white;
+            border-color: #ff2e43;
+            border-bottom: 6px solid #d61c30;
+            animation: shake 0.5s;
+        }
+
+        /* Animations */
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            50% { transform: translateX(10px); }
+            75% { transform: translateX(-10px); }
+            100% { transform: translateX(0); }
+        }
+
+        @keyframes popIn {
+            0% { opacity: 0; transform: scale(0.8); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+
+        .card-container {
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+            padding: 24px;
+            margin-bottom: 32px;
+            border: 2px solid #fff;
+            animation: popIn 0.5s ease-out;
+        }
+
+        .question-number {
+            background: var(--primary-color);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 12px;
+            font-weight: 800;
+            font-size: 1rem;
+            display: inline-block;
+            margin-bottom: 12px;
+            box-shadow: 0 4px 0 rgba(0,0,0,0.2);
+        }
+
+        .explanation-box {
+            background-color: #f0fff4;
+            border: 2px solid #bbf7d0;
+            border-radius: 16px;
+            padding: 20px;
+            margin-top: 20px;
+            display: none; /* Hidden by default */
+            animation: popIn 0.3s ease-out;
+        }
+        
+        .explanation-header {
+            color: #166534;
+            font-weight: 800;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .highlight-text {
+            color: var(--primary-color);
+            font-weight: 700;
+        }
+
+        .sticky-header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 4px solid var(--secondary-color);
+            z-index: 50;
+        }
+
+        /* Progress Bar */
+        .progress-container {
+            width: 100%;
+            background-color: #e2e8f0;
+            border-radius: 999px;
+            height: 12px;
+            margin-top: 10px;
+            overflow: hidden;
+        }
+        .progress-bar {
+            height: 100%;
+            background-color: var(--secondary-color);
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 100;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.6);
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-content {
+            background-color: white;
+            padding: 40px;
+            border-radius: 24px;
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+            animation: popIn 0.4s;
+            border-bottom: 8px solid #dfe4ea;
+        }
+
+        .hint-btn {
+            background: #FF9F43;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            box-shadow: 0 2px 0 rgba(0,0,0,0.2);
+            transition: transform 0.1s;
+        }
+        .hint-btn:active { transform: translateY(2px); box-shadow: none; }
+        .hint-content { display: none; color: #e67e22; font-style: italic; margin-top: 5px; font-size: 0.9rem;}
+
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <header class="sticky-header sticky top-0 p-4 shadow-sm">
+        <div class="max-w-4xl mx-auto flex justify-between items-center">
+            <div>
+                <h1 class="text-xl md:text-2xl font-black text-purple-700">Ms Mai An ULIS</h1>
+                <p class="text-sm font-semibold text-gray-500">Bài Tập Viết: Sắp Xếp & Biến Đổi Câu (Energy)</p>
+            </div>
+            <div class="text-right">
+                <div class="text-sm font-bold text-gray-400">Đã làm</div>
+                <div class="text-2xl font-black text-teal-500"><span id="completed-count">0</span>/16</div>
+            </div>
+        </div>
+        <div class="max-w-4xl mx-auto">
+            <div class="progress-container">
+                <div class="progress-bar" id="progress-bar"></div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main id="quiz-container" class="max-w-4xl mx-auto p-4 mt-4">
+        <!-- Questions will be injected here via JS -->
+    </main>
+
+    <!-- Footer Submit -->
+    <div class="max-w-4xl mx-auto p-4 mb-8 text-center">
+        <button onclick="finishQuiz()" class="btn-3d bg-purple-600 hover:bg-purple-700 text-white font-bold py-4 px-12 text-xl rounded-full shadow-lg">
+            NỘP BÀI & XEM ĐIỂM 🚀
+        </button>
+    </div>
+
+    <!-- Result Modal -->
+    <div id="result-modal" class="modal">
+        <div class="modal-content">
+            <h2 class="text-3xl font-black text-purple-600 mb-4">KẾT QUẢ</h2>
+            <div class="text-6xl mb-6">🏆</div>
+            <p class="text-xl text-gray-600 font-bold mb-2">Bạn đã trả lời đúng:</p>
+            <p class="text-5xl font-black text-green-500 mb-6"><span id="final-score">0</span>/16</p>
+            <p id="feedback-text" class="text-lg italic text-gray-500 mb-8">Cố gắng lên nhé!</p>
+            <button onclick="closeModal()" class="btn-3d bg-teal-500 text-white font-bold py-3 px-8 rounded-full">Xem lại bài làm</button>
+        </div>
+    </div>
+
+    <!-- Audio Elements (Base64 for single file portability) -->
+    <!-- Ding (Correct) -->
+    <audio id="sound-correct" src="data:audio/mp3;base64,//NExAAAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//NExAAAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//NExAAAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//NExAAAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//NExAAAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq"></audio>
+    <!-- We will use a simple synth beep for wrong to keep file size small if base64 is too long, but let's assume valid src or just simple JS beep -->
+    
+    <script>
+        // --- DATA ---
+        const quizData = {
+ "questions": [
+  {
+   "questionNumber": 1,
+   "question": "Arrange the words: <br> <span class='text-purple-600 font-bold'>run out/ non-renewable energy/ comes/ that/ from/ sources/ will/ some day.</span>",
+   "answerOptions": [
+    {
+     "text": "A. Non-renewable energy comes from sources that will run out some day.",
+     "rationale": "1. Phân tích cấu trúc:\n- Chủ ngữ (S): Non-renewable energy (Năng lượng không tái tạo).\n- Động từ chính (V): comes from (đến từ).\n- Tân ngữ (O): sources (các nguồn).\n- Mệnh đề quan hệ bổ nghĩa cho 'sources': that will run out some day (thứ mà sẽ cạn kiệt một ngày nào đó).\n\n2. Dịch nghĩa: \"Năng lượng không tái tạo đến từ các nguồn sẽ cạn kiệt vào một ngày nào đó.\"\n\n3. Tại sao đúng?\nThứ tự chuẩn: S + V + O + Relative Clause (Mệnh đề quan hệ).",
+     "isCorrect": true
+    },
+    {
+     "text": "B. Sources comes from non-renewable energy that will run out some day.",
+     "rationale": "1. Phân tích:\n- Câu này đảo ngược ý nghĩa logic: Các nguồn đến từ năng lượng (Sai thực tế).\n\n2. Dịch nghĩa: \"Các nguồn đến từ năng lượng không tái tạo...\"\n\n3. Tại sao sai?\nSai về mặt ngữ nghĩa (Semantics).",
+     "isCorrect": false
+    },
+    {
+     "text": "C. Non-renewable energy comes from that sources will run out some day.",
+     "rationale": "1. Phân tích:\n- Từ 'that' đặt sai vị trí. Trong mệnh đề quan hệ, 'that' phải đứng ngay sau danh từ nó bổ nghĩa (sources).\n\n2. Dịch nghĩa: Câu vô nghĩa về ngữ pháp.\n\n3. Tại sao sai?\nSai cấu trúc mệnh đề quan hệ.",
+     "isCorrect": false
+    },
+    {
+     "text": "D. Some day non-renewable energy will run out that comes from sources.",
+     "rationale": "1. Phân tích:\n- Cấu trúc lộn xộn, mệnh đề 'that comes from...' bị tách rời khỏi chủ ngữ.\n\n2. Dịch nghĩa: Không rõ ràng.\n\n3. Tại sao sai?\nSai trật tự từ.",
+     "isCorrect": false
+    }
+   ],
+   "hint": "Chủ ngữ là 'Non-renewable energy', động từ là 'comes from'."
+  },
+  {
+   "questionNumber": 2,
+   "question": "Arrange the words: <br> <span class='text-purple-600 font-bold'>fossil fuels/ to/ are/ they/ limited/ harmful/ the environment/ and/ are.</span>",
+   "answerOptions": [
+    {
+     "text": "A. Fossil fuels are limited and they are harmful to the environment.",
+     "rationale": "1. Phân tích cấu trúc:\n- Câu ghép đẳng lập với từ nối 'and'.\n- Mệnh đề 1: Fossil fuels (S) + are (V) + limited (Adj).\n- Mệnh đề 2: they (S) + are (V) + harmful to the environment (Adj Phrase).\n\n2. Dịch nghĩa: \"Nhiên liệu hóa thạch thì có hạn và chúng gây hại cho môi trường.\"\n\n3. Tại sao đúng?\nĐảm bảo cấu trúc S + be + Adj cho cả hai vế.",
+     "isCorrect": true
+    },
+    {
+     "text": "B. Fossil fuels are harmful to the environment and they are limited.",
+     "rationale": "1. Phân tích:\n- Về ngữ pháp câu này đúng, nhưng so với đề bài sắp xếp, đáp án A thường được ưu tiên hơn về trật tự logic (nguyên nhân -> kết quả hoặc đặc điểm -> tác động).\n- Tuy nhiên, lỗi sai chính ở đây thường nằm ở việc ghép từ 'harmful' và 'limited'. Hãy nhìn kỹ đáp án đúng A: 'harmful to the environment' là cụm cố định.\n\n*Lưu ý: Trong trắc nghiệm sắp xếp, nếu cả 2 đều đúng ngữ pháp, hãy chọn câu có mạch văn tự nhiên nhất.*",
+     "isCorrect": false
+    },
+    {
+     "text": "C. They are limited and fossil fuels are harmful to the environment.",
+     "rationale": "1. Phân tích:\n- Dùng đại từ 'They' trước danh từ chính 'Fossil fuels' là không tự nhiên. Chúng ta cần giới thiệu danh từ trước rồi mới dùng đại từ thay thế.\n\n2. Tại sao sai?\nLỗi tham chiếu (Reference error).",
+     "isCorrect": false
+    },
+    {
+     "text": "D. Fossil fuels are limited to the environment and they are harmful.",
+     "rationale": "1. Phân tích:\n- 'Limited to the environment' (bị giới hạn đối với môi trường) là vô nghĩa.\n- Cụm đúng phải là 'harmful to'.\n\n2. Tại sao sai?\nGhép sai cụm từ (Collocation).",
+     "isCorrect": false
+    }
+   ],
+   "hint": "Cấu trúc: S + be + adj + AND + S + be + adj + to..."
+  },
+  {
+   "questionNumber": 3,
+   "question": "Arrange the words: <br> <span class='text-purple-600 font-bold'>are/ energy-efficient techniques/ mining companies/ to reduce/ adopting/ carbon footprint/ their</span>",
+   "answerOptions": [
+    {
+     "text": "A. Mining companies are adopting energy-efficient techniques to reduce their carbon footprint.",
+     "rationale": "1. Phân tích cấu trúc:\n- Chủ ngữ (S): Mining companies (Các công ty khai thác).\n- Động từ (V - đang diễn ra): are adopting (đang áp dụng).\n- Tân ngữ (O): energy-efficient techniques (các kỹ thuật tiết kiệm năng lượng).\n- Mục đích (Purpose): to reduce their carbon footprint (để giảm dấu chân carbon của họ).\n\n2. Dịch nghĩa: \"Các công ty khai thác mỏ đang áp dụng các kỹ thuật tiết kiệm năng lượng để giảm lượng khí thải carbon của họ.\"\n\n3. Tại sao đúng?\nTrật tự S + V + O + to V (chỉ mục đích) hoàn toàn chính xác.",
+     "isCorrect": true
+    },
+    {
+     "text": "B. Energy-efficient techniques are adopting mining companies to reduce their carbon footprint.",
+     "rationale": "1. Phân tích:\n- Câu này nói rằng: Kỹ thuật đang 'áp dụng' công ty (Ngược nghĩa).\n\n2. Tại sao sai?\nSai chủ ngữ thực hiện hành động (Active voice logic).",
+     "isCorrect": false
+    },
+    {
+     "text": "C. Mining companies to reduce their carbon footprint are adopting energy-efficient techniques.",
+     "rationale": "1. Phân tích:\n- Cụm 'to reduce...' đặt ngay sau chủ ngữ làm câu bị gượng gạo. Cụm chỉ mục đích thường đứng cuối câu.\n\n2. Tại sao sai?\nTrật tự từ không tự nhiên.",
+     "isCorrect": false
+    },
+    {
+     "text": "D. Their carbon footprint are adopting energy-efficient techniques to reduce mining companies.",
+     "rationale": "1. Phân tích:\n- Hoàn toàn sai nghĩa: Dấu chân carbon đang áp dụng kỹ thuật để giảm công ty.\n\n2. Tại sao sai?\nSai logic hoàn toàn.",
+     "isCorrect": false
+    }
+   ],
+   "hint": "Ai đang thực hiện hành động 'adopting' (áp dụng)?"
+  },
+  {
+   "questionNumber": 4,
+   "question": "Arrange the words: <br> <span class='text-purple-600 font-bold'>cheap/ but/ releases/ a lot of/ when/ coal/ is/ burned/ it/ pollutants.</span>",
+   "answerOptions": [
+    {
+     "text": "A. Coal is cheap but it releases a lot of pollutants when burned.",
+     "rationale": "1. Phân tích cấu trúc:\n- Mệnh đề 1: Coal is cheap (Than thì rẻ).\n- Liên từ: but (nhưng).\n- Mệnh đề 2: it releases a lot of pollutants (nó thải ra nhiều chất ô nhiễm).\n- Mệnh đề trạng ngữ: when burned (khi bị đốt).\n\n2. Dịch nghĩa: \"Than đá thì rẻ nhưng nó thải ra rất nhiều chất ô nhiễm khi bị đốt cháy.\"\n\n3. Tại sao đúng?\nLogic 'Ưu điểm BUT Nhược điểm'.",
+     "isCorrect": true
+    },
+    {
+     "text": "B. It is cheap but coal releases a lot of pollutants when burned.",
+     "rationale": "1. Phân tích:\n- Tương tự câu trước, nên dùng danh từ 'Coal' trước khi dùng đại từ 'It'.\n\n2. Tại sao sai?\nLỗi dùng đại từ trước danh từ (trong cùng một ngữ cảnh giới thiệu).",
+     "isCorrect": false
+    },
+    {
+     "text": "C. Coal releases a lot of pollutants but it is cheap when burned.",
+     "rationale": "1. Phân tích:\n- Vị trí 'when burned' đặt ở cuối làm nghĩa câu bị sai: 'nó rẻ khi bị đốt' (lúc không đốt thì không rẻ?). Điều này không đúng logic.\n\n2. Tại sao sai?\nĐặt sai vị trí mệnh đề trạng ngữ.",
+     "isCorrect": false
+    },
+    {
+     "text": "D. When burned coal is cheap but it releases a lot of pollutants.",
+     "rationale": "1. Phân tích:\n- Sai logic. Than rẻ là đặc tính chung, không phải chỉ khi đốt mới rẻ.\n\n2. Tại sao sai?\nSai ngữ nghĩa.",
+     "isCorrect": false
+    }
+   ],
+   "hint": "Cấu trúc tương phản: Coal is... BUT it releases..."
+  },
+  {
+   "questionNumber": 5,
+   "question": "Arrange the words: <br> <span class='text-purple-600 font-bold'>Vietnam/ its/ heavily/ currently/ relies/ fuels/ for/ on/ fossil/ energy.</span>",
+   "answerOptions": [
+    {
+     "text": "A. Vietnam currently relies heavily on fossil fuels for its energy.",
+     "rationale": "1. Phân tích cấu trúc:\n- Chủ ngữ: Vietnam.\n- Trạng từ chỉ thời gian: currently (hiện nay).\n- Động từ + giới từ: relies on (dựa vào).\n- Trạng từ chỉ mức độ: heavily (nặng nề/nhiều) -> bổ nghĩa cho relies.\n- Tân ngữ: fossil fuels.\n- Mục đích: for its energy.\n\n2. Dịch nghĩa: \"Việt Nam hiện nay dựa rất nhiều vào nhiên liệu hóa thạch cho năng lượng của mình.\"\n\n3. Tại sao đúng?\nCấu trúc 'rely heavily on something' (dựa dẫm nhiều vào cái gì).",
+     "isCorrect": true
+    },
+    {
+     "text": "B. Vietnam relies heavily on its energy for currently fossil fuels.",
+     "rationale": "1. Phân tích:\n- 'rely on its energy' (dựa vào năng lượng) -> sai nghĩa. Phải là dựa vào nhiên liệu để có năng lượng.\n\n2. Tại sao sai?\nSai logic.",
+     "isCorrect": false
+    },
+    {
+     "text": "C. Currently fossil fuels relies heavily on Vietnam for its energy.",
+     "rationale": "1. Phân tích:\n- Nhiên liệu hóa thạch dựa vào Việt Nam -> Ngược nghĩa.\n\n2. Tại sao sai?\nSai chủ ngữ.",
+     "isCorrect": false
+    },
+    {
+     "text": "D. Vietnam currently relies on fossil fuels for its heavily energy.",
+     "rationale": "1. Phân tích:\n- 'heavily' là trạng từ, không thể bổ nghĩa cho danh từ 'energy'. Nó phải đi với động từ 'relies'.\n\n2. Tại sao sai?\nSai ngữ pháp (Tính từ/Trạng từ).",
+     "isCorrect": false
+    }
+   ],
+   "hint": "Cụm động từ: 'rely on' (dựa vào). Trạng từ 'heavily' đứng sau 'relies' hoặc trước 'on'."
+  },
+  {
+   "questionNumber": 6,
+   "question": "Arrange the words: <br> <span class='text-purple-600 font-bold'>solar energy/ renewable/ the/ is/ cleanest/ source/ abundant/ and/ most/ energy.</span>",
+   "answerOptions": [
+    {
+     "text": "A. Solar energy is the cleanest and most abundant renewable energy source.",
+     "rationale": "1. Phân tích cấu trúc:\n- Chủ ngữ: Solar energy.\n- Động từ: is.\n- Cụm danh từ (So sánh nhất): the cleanest (sạch nhất) and most abundant (dồi dào nhất).\n- Danh từ chính: renewable energy source.\n\n2. Dịch nghĩa: \"Năng lượng mặt trời là nguồn năng lượng tái tạo sạch nhất và dồi dào nhất.\"\n\n3. Tại sao đúng?\nĐúng trật tự tính từ trong so sánh nhất: The + adj-est/most adj + Noun.",
+     "isCorrect": true
+    },
+    {
+     "text": "B. Solar energy is the most abundant and cleanest renewable energy source.",
+     "rationale": "1. Phân tích:\n- Về ngữ pháp câu này cũng chấp nhận được. Tuy nhiên, quy tắc 'ngắn trước dài sau' (cleanest ngắn hơn most abundant) thường giúp câu văn cân đối hơn (balance). Trong bài tập sắp xếp, đáp án A thường chuẩn xác hơn với đáp án gốc.\n\n2. Tại sao sai?\nThứ tự ưu tiên sắp xếp tính từ (âm tiết ngắn -> dài).",
+     "isCorrect": false
+    },
+    {
+     "text": "C. The cleanest solar energy is renewable and most abundant energy source.",
+     "rationale": "1. Phân tích:\n- Sai cấu trúc so sánh nhất (thiếu 'the' trước most abundant).\n- Nghĩa bị đổi: 'Năng lượng mặt trời sạch nhất thì...' (Nghe như có loại năng lượng mặt trời bẩn).\n\n2. Tại sao sai?\nSai ngữ nghĩa và ngữ pháp.",
+     "isCorrect": false
+    },
+    {
+     "text": "D. Renewable energy source is the cleanest and most abundant solar energy.",
+     "rationale": "1. Phân tích:\n- Ngược nghĩa: Nguồn năng lượng tái tạo LÀ năng lượng mặt trời (nghĩa là chỉ có mặt trời là tái tạo -> sai, còn gió, nước...).\n\n2. Tại sao sai?\nSai logic tập hợp (Mặt trời thuộc tập con của Tái tạo, không phải ngược lại).",
+     "isCorrect": false
+    }
+   ],
+   "hint": "So sánh nhất kép: 'the cleanest and most abundant'."
+  },
+  {
+   "questionNumber": 7,
+   "question": "Arrange the words: <br> <span class='text-purple-600 font-bold'>should/ provide/ water/ heating/ your/ home/ to/ you/ fit/ solar/ to/ panels/ or/ electricity.</span>",
+   "answerOptions": [
+    {
+     "text": "A. You should fit solar panels to your home to provide electricity or water heating.",
+     "rationale": "1. Phân tích cấu trúc:\n- Chủ ngữ: You.\n- Động từ khuyên: should fit (nên lắp đặt).\n- Tân ngữ: solar panels (tấm pin mặt trời) -> to your home (cho nhà bạn).\n- Mục đích: to provide electricity or water heating (để cung cấp điện hoặc đun nước).\n\n2. Dịch nghĩa: \"Bạn nên lắp các tấm pin mặt trời cho ngôi nhà để cung cấp điện hoặc làm nóng nước.\"\n\n3. Tại sao đúng?\nCấu trúc 'fit something to something' (lắp cái gì vào cái gì) và 'to V' chỉ mục đích.",
+     "isCorrect": true
+    },
+    {
+     "text": "B. You should fit your home to solar panels to provide electricity or water heating.",
+     "rationale": "1. Phân tích:\n- 'fit your home to solar panels' -> Lắp nhà bạn vào tấm pin mặt trời (Vô lý).\n\n2. Tại sao sai?\nSai logic hành động.",
+     "isCorrect": false
+    },
+    {
+     "text": "C. You should provide solar panels to fit your home or water heating to electricity.",
+     "rationale": "1. Phân tích:\n- Cấu trúc lộn xộn, vô nghĩa.\n\n2. Tại sao sai?\nSắp xếp ngẫu nhiên không theo ngữ pháp.",
+     "isCorrect": false
+    },
+    {
+     "text": "D. To provide electricity or water heating you should fit solar panels to your home.",
+     "rationale": "1. Phân tích:\n- Ngữ pháp đúng (đảo mệnh đề chỉ mục đích lên đầu). Tuy nhiên, trong bài tập sắp xếp từ (word ordering), cấu trúc S+V+O cơ bản thường là đáp án chuẩn (key) trừ khi có dấu phẩy trong đề bài gợi ý đảo ngữ. Đáp án A là cấu trúc xuôi tự nhiên nhất.\n\n2. Lưu ý:\nNếu đề bài có dấu phẩy (,) sau 'heating', câu này mới đúng.",
+     "isCorrect": false
+    }
+   ],
+   "hint": "Động từ 'fit' (lắp đặt) đi với 'solar panels'."
+  },
+  {
+   "questionNumber": 8,
+   "question": "Arrange the words: <br> <span class='text-purple-600 font-bold'>and they/ renewable energy sources/ the environment/ are/ won't/ better/ for/ run out.</span>",
+   "answerOptions": [
+    {
+     "text": "A. Renewable energy sources are better for the environment and they won't run out.",
+     "rationale": "1. Phân tích cấu trúc:\n- Vế 1: Renewable energy sources (S) + are better for the environment (tốt hơn cho môi trường).\n- Liên từ: and.\n- Vế 2: they (S) + won't run out (sẽ không cạn kiệt).\n\n2. Dịch nghĩa: \"Các nguồn năng lượng tái tạo tốt hơn cho môi trường và chúng sẽ không bị cạn kiệt.\"\n\n3. Tại sao đúng?\nKết hợp 2 ưu điểm bằng từ nối 'and'.",
+     "isCorrect": true
+    },
+    {
+     "text": "B. They won't run out and renewable energy sources are better for the environment.",
+     "rationale": "1. Phân tích:\n- Lỗi dùng 'They' trước danh từ chính (tương tự câu 2).\n\n2. Tại sao sai?\nLỗi tham chiếu.",
+     "isCorrect": false
+    },
+    {
+     "text": "C. Renewable energy sources won't run out and they are better for the environment.",
+     "rationale": "1. Phân tích:\n- Về ngữ pháp câu này đúng. Tuy nhiên, cụm từ 'better for the environment' thường được nhấn mạnh trước trong ngữ cảnh so sánh với nhiên liệu hóa thạch. Nếu chọn giữa A và C, A thường là đáp án chuẩn sách giáo khoa hơn vì cấu trúc 'be adj... and verb...'. Nhưng về bản chất, cả A và C đều chấp nhận được trong giao tiếp. (Ưu tiên A theo thứ tự từ trong đề bài gợi ý 'and they').\n\n2. Tại sao sai?\nThứ tự ưu tiên thông tin.",
+     "isCorrect": false
+    },
+    {
+     "text": "D. The environment are better for renewable energy sources and they won't run out.",
+     "rationale": "1. Phân tích:\n- 'Môi trường thì tốt hơn cho năng lượng...' -> Ngược nghĩa (Năng lượng phải tốt cho môi trường).\n\n2. Tại sao sai?\nSai chủ ngữ.",
+     "isCorrect": false
+    }
+   ],
+   "hint": "Cấu trúc: Nguồn năng lượng (S) + to be + better... + and + they..."
+  },
+  {
+   "questionNumber": 9,
+   "question": "Rewrite: Natural gas is cheaper and less polluting than coal.<br> <span class='text-purple-600 font-bold'>-> Coal is __________________________________________</span>",
+   "answerOptions": [
+    {
+     "text": "A. Coal is more expensive and more polluting than natural gas.",
+     "rationale": "1. Phân tích biến đổi:\n- Câu gốc: Gas rẻ hơn (cheaper) và ít ô nhiễm hơn (less polluting) than.\n- Câu viết lại: Đảo ngược chủ ngữ 'Coal' lên đầu -> Cần dùng tính từ trái nghĩa hoặc so sánh ngược lại.\n- Cheaper (rẻ hơn) -> More expensive (đắt hơn).\n- Less polluting (ít ô nhiễm hơn) -> More polluting (ô nhiễm hơn).\n\n2. Dịch nghĩa: \"Than đá đắt hơn và gây ô nhiễm nhiều hơn khí tự nhiên.\"\n\n3. Tại sao đúng?\nDùng so sánh hơn với tính từ dài (expensive, polluting).",
+     "isCorrect": true
+    },
+    {
+     "text": "B. Coal is cheaper and less polluting than natural gas.",
+     "rationale": "1. Phân tích:\n- Giữ nguyên tính từ -> Sai nghĩa hoàn toàn (Than không rẻ hơn và sạch hơn gas).\n\n2. Tại sao sai?\nSai thực tế và logic biến đổi câu.",
+     "isCorrect": false
+    },
+    {
+     "text": "C. Coal is not as cheap and polluting as natural gas.",
+     "rationale": "1. Phân tích:\n- Cấu trúc 'not as... as' (không bằng). 'Không rẻ bằng' = đắt hơn (Đúng). Nhưng 'không ô nhiễm bằng' = sạch hơn (Sai, than bẩn hơn).\n\n2. Tại sao sai?\nSai nghĩa vế sau.",
+     "isCorrect": false
+    },
+    {
+     "text": "D. Coal is more cheap and more polluting than natural gas.",
+     "rationale": "1. Phân tích:\n- 'More cheap' là sai ngữ pháp. Cheap là tính từ ngắn -> phải dùng 'cheaper'.\n\n2. Tại sao sai?\nSai ngữ pháp so sánh hơn.",
+     "isCorrect": false
+    }
+   ],
+   "hint": "Đổi 'cheaper' -> 'more expensive'; 'less polluting' -> 'more polluting'."
+  },
+  {
+   "questionNumber": 10,
+   "question": "Rewrite: We are trying to find cheap and clean, and effective sources of energy.<br> <span class='text-purple-600 font-bold'>-> We are looking __________________________________________________</span>",
+   "answerOptions": [
+    {
+     "text": "A. We are looking for cheap, clean, and effective sources of energy.",
+     "rationale": "1. Phân tích biến đổi:\n- Cụm từ: 'try to find' (cố gắng tìm) đồng nghĩa với 'look for' (tìm kiếm).\n- Các phần còn lại giữ nguyên.\n\n2. Dịch nghĩa: \"Chúng tôi đang tìm kiếm các nguồn năng lượng rẻ, sạch và hiệu quả.\"\n\n3. Tại sao đúng?\nThay thế cụm động từ tương đương (Phrasal verb).",
+     "isCorrect": true
+    },
+    {
+     "text": "B. We are looking at cheap, clean, and effective sources of energy.",
+     "rationale": "1. Phân tích:\n- 'Look at' = ngắm nhìn/xem xét. Không sát nghĩa 'tìm kiếm' (find) bằng 'look for'.\n\n2. Tại sao sai?\nSai giới từ.",
+     "isCorrect": false
+    },
+    {
+     "text": "C. We are looking after cheap, clean, and effective sources of energy.",
+     "rationale": "1. Phân tích:\n- 'Look after' = chăm sóc (trẻ em, người ốm). Vô nghĩa trong ngữ cảnh này.\n\n2. Tại sao sai?\nSai cụm động từ.",
+     "isCorrect": false
+    },
+    {
+     "text": "D. We are looking up cheap, clean, and effective sources of energy.",
+     "rationale": "1. Phân tích:\n- 'Look up' = tra cứu (từ điển). Không dùng cho việc tìm nguồn năng lượng nói chung.\n\n2. Tại sao sai?\nSai cụm động từ.",
+     "isCorrect": false
+    }
+   ],
+   "hint": "Cụm động từ 'look ...' có nghĩa là tìm kiếm (find)?"
+  },
+  {
+   "questionNumber": 11,
+   "question": "Rewrite: There are few electric cars in use in Vietnam currently.<br> <span class='text-purple-600 font-bold'>-> There aren't ________________________________________________</span>",
+   "answerOptions": [
+    {
+     "text": "A. There aren't many electric cars in use in Vietnam currently.",
+     "rationale": "1. Phân tích biến đổi:\n- 'Few' (rất ít, hầu như không có) mang nghĩa phủ định.\n- 'There are few...' = 'There aren't many...' (Không có nhiều...).\n- Dùng 'many' vì 'cars' là danh từ đếm được số nhiều.\n\n2. Dịch nghĩa: \"Hiện tại không có nhiều xe điện được sử dụng tại Việt Nam.\"\n\n3. Tại sao đúng?\nChuyển đổi lượng từ tương đương (Few = Not many).",
+     "isCorrect": true
+    },
+    {
+     "text": "B. There aren't much electric cars in use in Vietnam currently.",
+     "rationale": "1. Phân tích:\n- 'Much' dùng cho danh từ không đếm được. 'Cars' đếm được.\n\n2. Tại sao sai?\nSai ngữ pháp lượng từ.",
+     "isCorrect": false
+    },
+    {
+     "text": "C. There aren't some electric cars in use in Vietnam currently.",
+     "rationale": "1. Phân tích:\n- 'Some' thường dùng trong câu khẳng định. Trong câu phủ định dùng 'any' hoặc 'many' để hợp nghĩa.\n\n2. Tại sao sai?\nKhông tự nhiên.",
+     "isCorrect": false
+    },
+    {
+     "text": "D. There aren't little electric cars in use in Vietnam currently.",
+     "rationale": "1. Phân tích:\n- 'Little' dùng cho danh từ không đếm được.\n\n2. Tại sao sai?\nSai ngữ pháp.",
+     "isCorrect": false
+    }
+   ],
+   "hint": "'Few' (ít) dùng cho danh từ đếm được -> Phủ định là 'Not many'."
+  },
+  {
+   "questionNumber": 12,
+   "question": "Rewrite: Is it possible for all vehicles to run on solar energy?<br> <span class='text-purple-600 font-bold'>-> Can all vehicles __________________________________________________</span>",
+   "answerOptions": [
+    {
+     "text": "A. Can all vehicles run on solar energy?",
+     "rationale": "1. Phân tích biến đổi:\n- Cấu trúc: 'Is it possible for S to V?' (Liệu có khả thi để S làm gì?) = 'Can S V?' (S có thể làm gì không?).\n- Rút gọn động từ 'run on' giữ nguyên.\n\n2. Dịch nghĩa: \"Liệu tất cả các phương tiện có thể chạy bằng năng lượng mặt trời không?\"\n\n3. Tại sao đúng?\nDùng Modal verb 'Can' để chỉ khả năng (possibility).",
+     "isCorrect": true
+    },
+    {
+     "text": "B. Can all vehicles to run on solar energy?",
+     "rationale": "1. Phân tích:\n- Sau Modal verb (Can, Could, Should...), động từ phải ở dạng nguyên thể không 'to'.\n\n2. Tại sao sai?\nThừa 'to'.",
+     "isCorrect": false
+    },
+    {
+     "text": "C. Can all vehicles running on solar energy?",
+     "rationale": "1. Phân tích:\n- Sau Can không dùng V-ing.\n\n2. Tại sao sai?\nSai dạng động từ.",
+     "isCorrect": false
+    },
+    {
+     "text": "D. Can all vehicles runs on solar energy?",
+     "rationale": "1. Phân tích:\n- Sau Can không chia động từ (thêm s/es).\n\n2. Tại sao sai?\nSai dạng động từ.",
+     "isCorrect": false
+    }
+   ],
+   "hint": "Sau 'Can' dùng động từ nguyên thể (Bare infinitive)."
+  },
+  {
+   "questionNumber": 13,
+   "question": "Rewrite: It's very important for them to reduce the use of fossil fuels.<br> <span class='text-purple-600 font-bold'>-> They __________________________________________________________</span>",
+   "answerOptions": [
+    {
+     "text": "A. They must reduce the use of fossil fuels.",
+     "rationale": "1. Phân tích biến đổi:\n- 'It is very important...' (Rất quan trọng/cấp bách) -> Thể hiện sự bắt buộc hoặc cần thiết mạnh mẽ.\n- Dùng 'must' (phải) hoặc 'need to' (cần phải).\n\n2. Dịch nghĩa: \"Họ phải giảm việc sử dụng nhiên liệu hóa thạch.\"\n\n3. Tại sao đúng?\n'Must' diễn tả sự cần thiết cấp bách tương đương 'Very important'.",
+     "isCorrect": true
+    },
+    {
+     "text": "B. They can reduce the use of fossil fuels.",
+     "rationale": "1. Phân tích:\n- 'Can' chỉ khả năng (có thể), không mang tính cấp bách 'important'.\n\n2. Tại sao sai?\nSai sắc thái ý nghĩa (Modal meaning).",
+     "isCorrect": false
+    },
+    {
+     "text": "C. They may reduce the use of fossil fuels.",
+     "rationale": "1. Phân tích:\n- 'May' chỉ khả năng xảy ra (có lẽ), không phải yêu cầu.\n\n2. Tại sao sai?\nSai nghĩa.",
+     "isCorrect": false
+    },
+    {
+     "text": "D. They reduce the use of fossil fuels.",
+     "rationale": "1. Phân tích:\n- Câu trần thuật bình thường, mất đi ý nghĩa 'quan trọng/cần thiết' của câu gốc.\n\n2. Tại sao sai?\nThiếu động từ khuyết thiếu.",
+     "isCorrect": false
+    }
+   ],
+   "hint": "Cấu trúc 'It's very important' tương đương với 'Must' hoặc 'Have to'."
+  },
+  {
+   "questionNumber": 14,
+   "question": "Rewrite: It's a good idea to switch off electrical appliances when they are not in use.<br> <span class='text-purple-600 font-bold'>-> You ___________________________________________________________</span>",
+   "answerOptions": [
+    {
+     "text": "A. You should switch off electrical appliances when they are not in use.",
+     "rationale": "1. Phân tích biến đổi:\n- 'It's a good idea...' (Đó là ý kiến hay...) = Lời khuyên.\n- Lời khuyên -> Dùng 'Should' (nên).\n\n2. Dịch nghĩa: \"Bạn nên tắt các thiết bị điện khi không sử dụng.\"\n\n3. Tại sao đúng?\nShould dùng để đưa ra lời khuyên (Advice).",
+     "isCorrect": true
+    },
+    {
+     "text": "B. You have to switch off electrical appliances when they are not in use.",
+     "rationale": "1. Phân tích:\n- 'Have to' là bắt buộc (ngoại cảnh). 'Good idea' nhẹ nhàng hơn, thiên về lời khuyên -> Should chuẩn hơn.\n\n2. Tại sao sai?\nHơi nặng nề so với câu gốc.",
+     "isCorrect": false
+    },
+    {
+     "text": "C. You may switch off electrical appliances when they are not in use.",
+     "rationale": "1. Phân tích:\n- 'May' là sự cho phép. Không phù hợp với 'Good idea'.\n\n2. Tại sao sai?\nSai nghĩa.",
+     "isCorrect": false
+    },
+    {
+     "text": "D. You cannot switch off electrical appliances when they are not in use.",
+     "rationale": "1. Phân tích:\n- 'Cannot' = không thể/cấm. Ngược nghĩa hoàn toàn.\n\n2. Tại sao sai?\nSai nghĩa.",
+     "isCorrect": false
+    }
+   ],
+   "hint": "'It's a good idea' dùng để đưa ra lời khuyên -> dùng 'Should'."
+  },
+  {
+   "questionNumber": 15,
+   "question": "Rewrite: Coal is the most polluting of fossil fuels, but it is still the largest source of energy worldwide.<br> <span class='text-purple-600 font-bold'>-> Although _______________________________________________________</span>",
+   "answerOptions": [
+    {
+     "text": "A. Although coal is the most polluting of fossil fuels, it is still the largest source of energy worldwide.",
+     "rationale": "1. Phân tích biến đổi:\n- Cấu trúc tương phản: 'A, but B' = 'Although A, B'.\n- Mệnh đề A (nguyên nhân/nhượng bộ): coal is the most polluting...\n- Mệnh đề B (kết quả bất ngờ): it is still the largest...\n- Lưu ý: Khi dùng 'Although' thì KHÔNG dùng 'but' nữa.\n\n2. Dịch nghĩa: \"Mặc dù than đá gây ô nhiễm nhất, nó vẫn là nguồn năng lượng lớn nhất.\"\n\n3. Tại sao đúng?\nĐúng cấu trúc nhượng bộ.",
+     "isCorrect": true
+    },
+    {
+     "text": "B. Although coal is the most polluting of fossil fuels, but it is still the largest source of energy worldwide.",
+     "rationale": "1. Phân tích:\n- Lỗi kinh điển của người Việt học tiếng Anh: Dùng cả 'Although' và 'But' trong một câu.\n- Quy tắc: Có Although thì bỏ But (và ngược lại).\n\n2. Tại sao sai?\nThừa từ 'but'.",
+     "isCorrect": false
+    },
+    {
+     "text": "C. Although coal is the largest source of energy worldwide, it is the most polluting of fossil fuels.",
+     "rationale": "1. Phân tích:\n- Đảo vị trí hai mệnh đề làm thay đổi sắc thái ý nghĩa. Câu gốc nhấn mạnh vào vế sau (vẫn được dùng nhiều dù bẩn). Câu này nhấn mạnh vế sau (nó bẩn dù được dùng nhiều). Câu A giữ đúng logic câu gốc hơn.\n\n2. Tại sao sai?\nKhông sát nghĩa gốc bằng câu A.",
+     "isCorrect": false
+    },
+    {
+     "text": "D. Although it is still the largest source of energy worldwide, coal is the most polluting of fossil fuels.",
+     "rationale": "1. Phân tích:\n- Tương tự câu C, đảo ngược logic nhượng bộ.\n\n2. Tại sao sai?\nLogic sai.",
+     "isCorrect": false
+    }
+   ],
+   "hint": "Cấu trúc: Although + Mệnh đề 1, Mệnh đề 2. (Tuyệt đối không dùng 'but')."
+  },
+  {
+   "questionNumber": 16,
+   "question": "Rewrite: You should replace halogen bulbs with LED light bulbs to save your energy costs.<br> <span class='text-purple-600 font-bold'>-> Why don't ______________________________________________________</span>",
+   "answerOptions": [
+    {
+     "text": "A. Why don't you replace halogen bulbs with LED light bulbs to save your energy costs?",
+     "rationale": "1. Phân tích biến đổi:\n- 'You should...' (Bạn nên...) = 'Why don't you...?' (Tại sao bạn không...?).\n- Đây là cấu trúc câu gợi ý (Suggestion).\n- Động từ sau 'Why don't you' để nguyên thể: replace.\n\n2. Dịch nghĩa: \"Tại sao bạn không thay bóng halogen bằng bóng LED để tiết kiệm chi phí năng lượng nhỉ?\"\n\n3. Tại sao đúng?\nCấu trúc gợi ý tương đương.",
+     "isCorrect": true
+    },
+    {
+     "text": "B. Why don't you replacing halogen bulbs with LED light bulbs?",
+     "rationale": "1. Phân tích:\n- Sau trợ động từ 'don't', động từ chính phải nguyên thể.\n\n2. Tại sao sai?\nSai dạng động từ (V-ing).",
+     "isCorrect": false
+    },
+    {
+     "text": "C. Why don't you to replace halogen bulbs with LED light bulbs?",
+     "rationale": "1. Phân tích:\n- Không dùng 'to' sau 'don't you'.\n\n2. Tại sao sai?\nThừa 'to'.",
+     "isCorrect": false
+    },
+    {
+     "text": "D. Why don't you replaced halogen bulbs with LED light bulbs?",
+     "rationale": "1. Phân tích:\n- Không dùng quá khứ sau 'don't'.\n\n2. Tại sao sai?\nSai thì.",
+     "isCorrect": false
+    }
+   ],
+   "hint": "Cấu trúc gợi ý: Why don't you + V-inf...?"
+  }
+ ]
+};
+
+        // --- STATE & LOGIC ---
+        let userAnswers = {}; // { qNum: {isCorrect: bool, selectedIndex: int} }
+        let correctCount = 0;
+
+        // Sounds
+        const audioCorrect = document.getElementById('sound-correct');
+        const audioWrong = new Audio('https://assets.mixkit.co/active_storage/sfx/2573/2573-preview.mp3'); // Fallback URL or use simple beep logic if offline
+        // For self-contained file without external dependecies (except CSS/JS CDN), AudioContext is best, but <audio> is simpler.
+        // Let's rely on the base64 Correct sound and a generated beep for wrong.
+        
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        
+        function playWrongSound() {
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            oscillator.type = 'sawtooth';
+            oscillator.frequency.value = 150;
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            oscillator.start();
+            gainNode.gain.exponentialRampToValueAtTime(0.00001, audioContext.currentTime + 0.5);
+            oscillator.stop(audioContext.currentTime + 0.5);
+        }
+
+        function playCorrectSound() {
+            // Try playing the element first
+            audioCorrect.play().catch(e => {
+                // Fallback synth
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                oscillator.type = 'sine';
+                oscillator.frequency.value = 600;
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                oscillator.start();
+                oscillator.frequency.exponentialRampToValueAtTime(1200, audioContext.currentTime + 0.1);
+                gainNode.gain.exponentialRampToValueAtTime(0.00001, audioContext.currentTime + 0.5);
+                oscillator.stop(audioContext.currentTime + 0.5);
+            });
+        }
+
+        // --- RENDER ---
+        function renderQuiz() {
+            const container = document.getElementById('quiz-container');
+            
+            quizData.questions.forEach((q, index) => {
+                const card = document.createElement('div');
+                card.className = 'card-container';
+                card.id = `q-card-${q.questionNumber}`;
+
+                // Header
+                let html = `
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="question-number">Câu ${q.questionNumber}</div>
+                        ${q.hint ? `<button onclick="toggleHint(${q.questionNumber})" class="hint-btn">💡 Gợi ý</button>` : ''}
+                    </div>
+                    <div id="hint-${q.questionNumber}" class="hint-content mb-4">${q.hint}</div>
+                    <h3 class="text-xl font-bold text-gray-800 mb-6 leading-relaxed border-b-2 border-dashed border-gray-200 pb-4">
+                        ${q.question}
+                    </h3>
+                    
+                    <div class="grid grid-cols-1 gap-4 mb-4">
+                `;
+
+                // Options
+                q.answerOptions.forEach((opt, optIndex) => {
+                    html += `
+                        <button id="btn-${q.questionNumber}-${optIndex}" 
+                                onclick="checkAnswer(${q.questionNumber}, ${optIndex}, ${opt.isCorrect})"
+                                class="btn-option btn-3d group">
+                            <span class="w-8 h-8 rounded-full bg-gray-100 text-gray-500 flex items-center justify-center font-bold mr-3 group-hover:bg-purple-100 group-hover:text-purple-600 transition">
+                                ${String.fromCharCode(65 + optIndex)}
+                            </span>
+                            <span class="flex-1">${opt.text}</span>
+                        </button>
+                    `;
+                });
+
+                html += `</div>`;
+
+                // Explanation Box
+                // Format rationale: Convert \n to <br>
+                const formattedRationale = q.answerOptions.find(o => o.isCorrect).rationale.replace(/\n/g, '<br>');
+                
+                html += `
+                    <div id="explain-${q.questionNumber}" class="explanation-box">
+                        <div class="explanation-header">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            GIẢI THÍCH CHI TIẾT TỪ CÔ MAI AN
+                        </div>
+                        <div class="text-gray-700 leading-relaxed text-sm md:text-base">
+                           ${formattedRationale}
+                        </div>
+                    </div>
+                `;
+
+                card.innerHTML = html;
+                container.appendChild(card);
+            });
+        }
+
+        // --- LOGIC ---
+        function checkAnswer(qNum, optIndex, isCorrect) {
+            // Prevent changing answer
+            if (userAnswers[qNum]) return;
+
+            userAnswers[qNum] = { isCorrect, selectedIndex: optIndex };
+            
+            const btn = document.getElementById(`btn-${qNum}-${optIndex}`);
+            const explainBox = document.getElementById(`explain-${qNum}`);
+            
+            // Show Explanation
+            explainBox.style.display = 'block';
+
+            if (isCorrect) {
+                btn.classList.add('correct');
+                playCorrectSound();
+                confetti({
+                    particleCount: 100,
+                    spread: 70,
+                    origin: { y: 0.6 },
+                    colors: ['#00D26A', '#00C9A7', '#8854C0']
+                });
+                correctCount++;
+            } else {
+                btn.classList.add('wrong');
+                playWrongSound();
+                // Highlight the correct answer automatically
+                const questionData = quizData.questions.find(q => q.questionNumber === qNum);
+                const correctIndex = questionData.answerOptions.findIndex(o => o.isCorrect);
+                document.getElementById(`btn-${qNum}-${correctIndex}`).classList.add('correct');
+            }
+
+            // Disable all buttons for this question
+            const questionData = quizData.questions.find(q => q.questionNumber === qNum);
+            questionData.answerOptions.forEach((_, idx) => {
+                 document.getElementById(`btn-${qNum}-${idx}`).disabled = true;
+                 document.getElementById(`btn-${qNum}-${idx}`).style.cursor = 'default';
+            });
+
+            updateHeader();
+        }
+
+        function toggleHint(qNum) {
+            const hintDiv = document.getElementById(`hint-${qNum}`);
+            hintDiv.style.display = hintDiv.style.display === 'block' ? 'none' : 'block';
+        }
+
+        function updateHeader() {
+            const total = quizData.questions.length;
+            const answered = Object.keys(userAnswers).length;
+            document.getElementById('completed-count').innerText = answered;
+            document.getElementById('progress-bar').style.width = `${(answered / total) * 100}%`;
+        }
+
+        function finishQuiz() {
+            const modal = document.getElementById('result-modal');
+            const scoreDisplay = document.getElementById('final-score');
+            const feedback = document.getElementById('feedback-text');
+
+            scoreDisplay.innerText = correctCount;
+
+            const percentage = (correctCount / quizData.questions.length) * 100;
+            if (percentage === 100) {
+                feedback.innerText = "Xuất sắc! Cô Mai An rất tự hào về em! 🌟";
+                confetti({ particleCount: 300, spread: 100, startVelocity: 60 });
+            } else if (percentage >= 80) {
+                feedback.innerText = "Giỏi lắm! Chỉ cần cẩn thận hơn một chút thôi! 💪";
+            } else if (percentage >= 50) {
+                feedback.innerText = "Khá tốt! Hãy đọc kỹ giải thích để làm tốt hơn nhé! 👍";
+            } else {
+                feedback.innerText = "Cố lên! Hãy ôn lại bài và thử lại nhé! 🔥";
+            }
+
+            modal.style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('result-modal').style.display = 'none';
+            // Scroll to top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // --- INIT ---
+        window.onload = function() {
+            renderQuiz();
+        };
+
+    </script>
+</body>
+</html>

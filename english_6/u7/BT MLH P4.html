@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>English Quiz - Ms Mai An ULIS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+    <style>
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: #f0f2f5;
+            background-image: radial-gradient(#8854C0 0.5px, transparent 0.5px), radial-gradient(#8854C0 0.5px, #f0f2f5 0.5px);
+            background-size: 20px 20px;
+            background-position: 0 0, 10px 10px;
+            color: #2d3436;
+        }
+
+        .primary-color { color: #8854C0; }
+        .secondary-color { color: #00C9A7; }
+        .bg-primary { background-color: #8854C0; }
+        .bg-secondary { background-color: #00C9A7; }
+
+        .quiz-card {
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 10px 0 #dfe6e9;
+            transition: transform 0.2s;
+        }
+
+        .option-btn {
+            border: 2px solid #dfe6e9;
+            border-bottom: 5px solid #dfe6e9;
+            border-radius: 18px;
+            transition: all 0.1s ease;
+            text-align: left;
+            padding: 15px 20px;
+            cursor: pointer;
+            background: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .option-btn:hover {
+            transform: scale(1.02);
+            background-color: #f9f9f9;
+        }
+
+        .option-btn:active {
+            transform: translateY(3px);
+            border-bottom-width: 2px;
+        }
+
+        .option-correct {
+            background-color: #d1fae5 !important;
+            border-color: #00D26A !important;
+            border-bottom-color: #00a854 !important;
+            color: #065f46;
+        }
+
+        .option-wrong {
+            background-color: #fee2e2 !important;
+            border-color: #FF4757 !important;
+            border-bottom-color: #d63031 !important;
+            color: #991b1b;
+        }
+
+        .explanation-box {
+            display: none;
+            animation: slideIn 0.4s ease-out forwards;
+            border-left: 6px solid #8854C0;
+            background-color: #f3f0ff;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-8px); }
+            75% { transform: translateX(8px); }
+        }
+
+        .shake { animation: shake 0.3s ease-in-out; }
+
+        .progress-bar {
+            height: 12px;
+            border-radius: 6px;
+            background: #e2e8f0;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #8854C0, #00C9A7);
+            transition: width 0.5s ease;
+        }
+
+        .glossary-table th { background-color: #8854C0; color: white; }
+        .glossary-table tr:nth-child(even) { background-color: #f8f4ff; }
+
+        /* Custom Popup */
+        #result-modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.6);
+            align-items: center;
+            justify-content: center;
+            z-index: 50;
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+
+    <!-- Header -->
+    <header class="text-center mb-8">
+        <h1 class="text-4xl md:text-5xl font-extrabold primary-color mb-2">BÀI TẬP TIẾNG ANH: SẮP XẾP & VIẾT LẠI CÂU</h1>
+        <p class="text-lg font-bold text-gray-500">Giáo viên tạo: <span class="text-pink-500">Ms Mai An ULIS</span></p>
+    </header>
+
+    <main class="max-w-4xl mx-auto">
+        <!-- Progress -->
+        <div class="mb-6">
+            <div class="flex justify-between items-center mb-2 font-bold text-gray-600">
+                <span id="progress-text">Câu hỏi: 1/16</span>
+                <span id="score-text">Đúng: 0</span>
+            </div>
+            <div class="progress-bar">
+                <div id="progress-fill" class="progress-fill" style="width: 6.25%"></div>
+            </div>
+        </div>
+
+        <!-- Quiz Container -->
+        <div id="quiz-container">
+            <!-- Questions will be injected here -->
+        </div>
+
+        <!-- Glossary Section -->
+        <div class="mt-12 bg-white p-6 rounded-3xl shadow-lg border-2 border-dashed border-purple-200">
+            <h3 class="text-2xl font-bold primary-color mb-4 flex items-center">
+                <span class="mr-2">📚</span> Bảng Từ Vựng Nâng Cao (Glossary)
+            </h3>
+            <div class="overflow-x-auto">
+                <table class="w-full glossary-table text-left border-collapse rounded-xl overflow-hidden">
+                    <thead>
+                        <tr>
+                            <th class="p-3">Từ vựng (Word)</th>
+                            <th class="p-3">Loại từ</th>
+                            <th class="p-3">Nghĩa tiếng Việt</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td class="p-3 font-bold">Television programme</td><td class="p-3">Noun phrase</td><td class="p-3">Chương trình truyền hình</td></tr>
+                        <tr><td class="p-3 font-bold">MC (Master of Ceremonies)</td><td class="p-3">Noun</td><td class="p-3">Người dẫn chương trình</td></tr>
+                        <tr><td class="p-3 font-bold">Spend (time)</td><td class="p-3">Verb</td><td class="p-3">Dành (thời gian)</td></tr>
+                        <tr><td class="p-3 font-bold">Cartoon</td><td class="p-3">Noun</td><td class="p-3">Phim hoạt hình</td></tr>
+                        <tr><td class="p-3 font-bold">Favourite</td><td class="p-3">Adjective</td><td class="p-3">Được yêu thích nhất</td></tr>
+                        <tr><td class="p-3 font-bold">Fond of</td><td class="p-3">Adjective phrase</td><td class="p-3">Thích thú, ham thích</td></tr>
+                        <tr><td class="p-3 font-bold">Novel</td><td class="p-3">Noun</td><td class="p-3">Tiểu thuyết</td></tr>
+                        <tr><td class="p-3 font-bold">Friendly</td><td class="p-3">Adjective</td><td class="p-3">Thân thiện</td></tr>
+                        <tr><td class="p-3 font-bold">Interesting</td><td class="p-3">Adjective</td><td class="p-3">Thú vị</td></tr>
+                        <tr><td class="p-3 font-bold">Tonight</td><td class="p-3">Adverb</td><td class="p-3">Tối nay</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Controls -->
+        <div class="flex justify-between mt-8">
+            <button id="prev-btn" onclick="changeQuestion(-1)" class="bg-gray-400 text-white px-6 py-3 rounded-2xl font-bold opacity-50 cursor-not-allowed">Quay lại</button>
+            <button id="next-btn" onclick="changeQuestion(1)" class="bg-secondary text-white px-8 py-3 rounded-2xl font-bold shadow-lg hover:opacity-90">Tiếp theo</button>
+        </div>
+
+        <div class="text-center mt-10">
+            <button onclick="finishQuiz()" class="bg-primary text-white text-xl px-12 py-4 rounded-full font-black shadow-xl hover:scale-105 transition-transform">NỘP BÀI CHẤM ĐIỂM</button>
+        </div>
+    </main>
+
+    <!-- Result Modal -->
+    <div id="result-modal">
+        <div class="bg-white p-8 rounded-3xl max-w-sm w-full text-center shadow-2xl m-4">
+            <div id="result-icon" class="text-6xl mb-4">🎉</div>
+            <h2 class="text-3xl font-black primary-color mb-2">KẾT QUẢ</h2>
+            <p id="result-score" class="text-5xl font-bold mb-4">0/16</p>
+            <p id="result-comment" class="text-gray-600 italic mb-6">"Tuyệt vời! Con đã rất cố gắng!"</p>
+            <button onclick="location.reload()" class="w-full bg-secondary text-white font-bold py-3 rounded-2xl shadow-lg">LÀM LẠI</button>
+        </div>
+    </div>
+
+    <!-- Audio (Virtual Synth) -->
+    <script>
+        const quizData = [
+            {
+                q: "Arrange the words to make a sentence: <b>on / what / tonight / television / is?</b>",
+                options: ["What is on television tonight?", "What is television on tonight?", "What on television is tonight?", "Tonight what is on television?"],
+                correct: 0,
+                explanation: {
+                    vocab: [
+                        "A. What is on television tonight? (Câu đúng)",
+                        "B. What is television on tonight? (Sai: nghĩa là Tivi đang nằm trên cái gì)",
+                        "C. What on television is tonight? (Sai trật tự ngữ pháp)",
+                        "D. Tonight what is on television? (Sai: Từ để hỏi phải đứng đầu)"
+                    ],
+                    meaning: "Dịch nghĩa: Tối nay trên tivi có gì thế?",
+                    analysis: "Cô Mai An giải thích: Trong câu hỏi Wh-, ta dùng cấu trúc <b>Wh-word + is + prepositional phrase + time?</b>. Cụm 'on television' chỉ trạng thái phát sóng."
+                }
+            },
+            {
+                q: "Arrange the words to make a sentence: <b>favourite / MC / your / who / is / television?</b>",
+                options: ["Who is your television favourite MC?", "Who is your favourite television MC?", "Who your favourite television MC is?", "Who is MC television your favourite?"],
+                correct: 1,
+                explanation: {
+                    vocab: [
+                        "A. ...television favourite MC: Sai trật tự tính từ.",
+                        "B. ...favourite television MC: Câu đúng.",
+                        "C. ...MC is?: Sai cấu trúc câu hỏi (thiếu đảo ngữ).",
+                        "D. ...MC television your favourite: Sai hoàn toàn."
+                    ],
+                    meaning: "Dịch nghĩa: Ai là MC truyền hình yêu thích của bạn?",
+                    analysis: "Cô Mai An giải thích: Cấu trúc câu hỏi với Who: <b>Who + is + Noun Phrase?</b>. Cụm danh từ 'favourite television MC' sắp xếp theo thứ tự: Tính từ sở thích + danh từ ghép."
+                }
+            },
+            {
+                q: "Arrange the words to make a sentence: <b>Tina / time / television / does / how much / spend / watching?</b>",
+                options: ["How much does Tina spend time watching television?", "How much time Tina does spend watching television?", "How much time does Tina spend watching television?", "Does Tina spend how much time watching television?"],
+                correct: 2,
+                explanation: {
+                    vocab: [
+                        "A. How much does Tina...: Sai vì thiếu danh từ 'time' sau 'How much'.",
+                        "B. ...Tina does spend...: Sai vì chưa đảo trợ động từ.",
+                        "C. How much time does Tina spend...: Câu đúng.",
+                        "D. Does Tina spend...: Sai vì từ để hỏi phải đứng đầu."
+                    ],
+                    meaning: "Dịch nghĩa: Tina dành bao nhiêu thời gian để xem tivi?",
+                    analysis: "Cô Mai An giải thích: Cấu trúc <b>How much + Noun (không đếm được) + trợ động từ + S + V?</b>. Nhớ là spend + time + V-ing nhé!"
+                }
+            },
+            {
+                q: "Arrange the words to make a sentence: <b>they / like / do / why / cartoons / to watch?</b>",
+                options: ["Why do they like to watch cartoons?", "Why they do like to watch cartoons?", "Why do they like watch to cartoons?", "Why do they like cartoons to watch?"],
+                correct: 0,
+                explanation: {
+                    vocab: [
+                        "A. Why do they like to watch cartoons?: Câu đúng.",
+                        "B. Why they do like...: Sai vì thiếu đảo ngữ 'do'.",
+                        "C. ...like watch to...: Sai cấu trúc 'like to V'.",
+                        "D. ...cartoons to watch: Sai trật tự từ."
+                    ],
+                    meaning: "Dịch nghĩa: Tại sao họ lại thích xem phim hoạt hình?",
+                    analysis: "Cô Mai An giải thích: Cấu trúc câu hỏi <b>Why + do/does + S + V?</b>. Sau 'like' ta có thể dùng 'to watch' hoặc 'watching'."
+                }
+            },
+            {
+                q: "Arrange the words to make a sentence: <b>best / television / like / what / do / you / programme?</b>",
+                options: ["What do you like television programme best?", "What television programme do you like?", "What best television programme do you like?", "What television programme do you like best?"],
+                correct: 3,
+                explanation: {
+                    vocab: [
+                        "A. ...like television programme best: Sai vị trí tân ngữ.",
+                        "B. ...do you like?: Thiếu từ 'best'.",
+                        "C. ...best television programme: Sai trật tự.",
+                        "D. What television programme do you like best?: Câu đúng."
+                    ],
+                    meaning: "Dịch nghĩa: Bạn thích chương trình truyền hình nào nhất?",
+                    analysis: "Cô Mai An giải thích: 'What' đi kèm với danh từ tạo thành cụm từ để hỏi 'What television programme'. 'Best' là trạng từ đứng cuối để bổ nghĩa cho 'like'."
+                }
+            },
+            {
+                q: "Arrange the words to make a sentence: <b>start / the / game show / what time / does?</b>",
+                options: ["What time does the game show start?", "What time the game show does start?", "Does the game show start what time?", "What does the game show start time?"],
+                correct: 0,
+                explanation: {
+                    vocab: [
+                        "A. What time does the game show start?: Câu đúng.",
+                        "B. ...the game show does start: Sai đảo ngữ.",
+                        "C. Does the game show start...: Sai vị trí Wh-.",
+                        "D. ...start time?: Sai ngữ pháp."
+                    ],
+                    meaning: "Dịch nghĩa: Chương trình trò chơi bắt đầu lúc mấy giờ?",
+                    analysis: "Cô Mai An giải thích: Cấu trúc hỏi giờ giấc: <b>What time + do/does + S + V-inf?</b>."
+                }
+            },
+            {
+                q: "Arrange the words to make a sentence: <b>Liz / go to / how often / does / the cinema?</b>",
+                options: ["How often Liz does go to the cinema?", "Does Liz go to the cinema how often?", "How often does Liz go to the cinema?", "How often does Liz go the cinema to?"],
+                correct: 2,
+                explanation: {
+                    vocab: [
+                        "A. ...Liz does go...: Sai đảo ngữ.",
+                        "B. Does Liz go...: Sai vị trí Wh-.",
+                        "C. How often does Liz go to the cinema?: Câu đúng.",
+                        "D. ...go the cinema to: Sai vị trí giới từ 'to'."
+                    ],
+                    meaning: "Dịch nghĩa: Liz đi xem phim thường xuyên như thế nào?",
+                    analysis: "Cô Mai An giải thích: Hỏi tần suất dùng 'How often'. Cụm cố định là 'go to the cinema'."
+                }
+            },
+            {
+                q: "Arrange the words to make a sentence: <b>you / watch / do / television / usually / when?</b>",
+                options: ["When do you usually watch television?", "When you usually do watch television?", "When do usually you watch television?", "Usually when do you watch television?"],
+                correct: 0,
+                explanation: {
+                    vocab: [
+                        "A. When do you usually watch television?: Câu đúng.",
+                        "B. ...you usually do...: Sai trật tự.",
+                        "C. ...do usually you...: Trạng từ tần suất phải đứng sau chủ ngữ trong câu hỏi.",
+                        "D. Usually when...: Sai vị trí Wh-."
+                    ],
+                    meaning: "Dịch nghĩa: Bạn thường xem tivi khi nào?",
+                    analysis: "Cô Mai An giải thích: Trạng từ tần suất (usually) đứng giữa chủ ngữ và động từ chính trong câu hỏi nghi vấn có trợ động từ."
+                }
+            },
+            {
+                q: "Complete: <b>What programme do you like best?</b> => What’s _______________?",
+                options: ["...your favourite programme?", "...programme do you like best?", "...you like best programme?", "...your best programme?"],
+                correct: 0,
+                explanation: {
+                    vocab: [
+                        "A. ...your favourite programme?: Câu đúng.",
+                        "B. ...programme do you like best?: Sai vì dư 'What's' (What is).",
+                        "C. ...you like best...: Sai ngữ pháp.",
+                        "D. ...your best programme?: Sai nghĩa (chương trình tốt nhất # chương trình yêu thích)."
+                    ],
+                    meaning: "Dịch nghĩa: Chương trình yêu thích của bạn là gì?",
+                    analysis: "Cô Mai An giải thích: Cấu trúc 'Like something best' tương đương với 'Something is my favourite'."
+                }
+            },
+            {
+                q: "Complete: <b>It’s not good for children to spend too much time watching television.</b> => Children _______________",
+                options: ["...must spend too much time...", "...should not spend too much time watching television.", "...should spend too much time...", "...cannot spend too much time..."],
+                correct: 1,
+                explanation: {
+                    vocab: [
+                        "A. must: phải (sai nghĩa).",
+                        "B. should not: không nên (Câu đúng).",
+                        "C. should: nên (sai nghĩa).",
+                        "D. cannot: không thể (sai sắc thái)."
+                    ],
+                    meaning: "Dịch nghĩa: Trẻ em không nên dành quá nhiều thời gian xem tivi.",
+                    analysis: "Cô Mai An giải thích: 'It's not good to do sth' là một lời khuyên, tương đương với 'Should not do sth'."
+                }
+            },
+            {
+                q: "Complete: <b>Jim loves animals, so he likes to watch Animal programme.</b> => Jim likes to watch Animal programme _______________",
+                options: ["...because he loves animals.", "...so he loves animals.", "...although he loves animals.", "...but he loves animals."],
+                correct: 0,
+                explanation: {
+                    vocab: [
+                        "A. because: bởi vì (Câu đúng).",
+                        "B. so: vì vậy (sai logic).",
+                        "C. although: mặc dù (sai logic).",
+                        "D. but: nhưng (sai logic)."
+                    ],
+                    meaning: "Dịch nghĩa: Jim thích xem chương trình Động vật vì cậu ấy yêu động vật.",
+                    analysis: "Cô Mai An giải thích: 'So' chỉ kết quả, 'Because' chỉ nguyên nhân. Ta đảo mệnh đề nguyên nhân ra sau thì dùng 'because'."
+                }
+            },
+            {
+                q: "Complete: <b>My sister likes to watch cartoons.</b> => My sister is fond _______________",
+                options: ["...in watching cartoons.", "...with watching cartoons.", "...of watching cartoons.", "...about watching cartoons."],
+                correct: 2,
+                explanation: {
+                    vocab: [
+                        "A. in: sai giới từ (dùng cho interested).",
+                        "B. with: sai giới từ.",
+                        "C. of watching cartoons: Câu đúng.",
+                        "D. about: sai giới từ (dùng cho crazy)."
+                    ],
+                    meaning: "Dịch nghĩa: Chị gái tôi thích xem phim hoạt hình.",
+                    analysis: "Cô Mai An giải thích: Cấu trúc <b>To be fond of + V-ing</b> đồng nghĩa với 'To like/love + V-ing'."
+                }
+            },
+            {
+                q: "Complete: <b>How much time do you spend watching television?</b> => How many _______________",
+                options: ["...times do you spend...?", "...time do you spend...?", "...hours do you spend watching television?", "...long do you spend...?"],
+                correct: 2,
+                explanation: {
+                    vocab: [
+                        "A. times: số lần (sai nghĩa).",
+                        "B. many time: sai ngữ pháp (Time không đếm được).",
+                        "C. hours: số giờ (Câu đúng).",
+                        "D. long: sai cấu trúc."
+                    ],
+                    meaning: "Dịch nghĩa: Bạn dành bao nhiêu tiếng để xem tivi?",
+                    analysis: "Cô Mai An giải thích: 'How much time' hỏi về lượng thời gian. Khi chuyển sang 'How many' ta phải dùng danh từ đếm được như 'hours'."
+                }
+            },
+            {
+                q: "Complete: <b>How about going to the cinema tonight?</b> => Shall _______________",
+                options: ["...we going to the cinema tonight?", "...we go to the cinema tonight?", "...we to go to the cinema tonight?", "...us go to the cinema tonight?"],
+                correct: 1,
+                explanation: {
+                    vocab: [
+                        "A. ...we going...: Sai (Shall + V-inf).",
+                        "B. ...we go to the cinema tonight?: Câu đúng.",
+                        "C. ...we to go...: Sai cấu trúc.",
+                        "D. ...us go...: Sai chủ ngữ."
+                    ],
+                    meaning: "Dịch nghĩa: Chúng ta đi xem phim tối nay nhé?",
+                    analysis: "Cô Mai An giải thích: 'How about + V-ing' và 'Shall we + V-inf' đều là các cấu trúc đưa ra lời gợi ý."
+                }
+            },
+            {
+                q: "Complete: <b>The film is not as interesting as the novel was.</b> => The novel was much _______________",
+                options: ["...more interesting than the film.", "...interesting than the film.", "...as interesting as the film.", "...most interesting than the film."],
+                correct: 0,
+                explanation: {
+                    vocab: [
+                        "A. more interesting than: thú vị hơn (Câu đúng).",
+                        "B. interesting than: thiếu 'more'.",
+                        "C. as interesting as: thú vị bằng (sai nghĩa gốc).",
+                        "D. most interesting: so sánh nhất (sai cấu trúc)."
+                    ],
+                    meaning: "Dịch nghĩa: Cuốn tiểu thuyết hay hơn bộ phim nhiều.",
+                    analysis: "Cô Mai An giải thích: Phim không hay bằng truyện -> Truyện hay hơn phim. Ta dùng 'much' để nhấn mạnh mức độ so sánh hơn."
+                }
+            },
+            {
+                q: "Complete: <b>Although he seemed a friendly person, I didn’t like him.</b> => He seemed _______________",
+                options: ["...a friendly person, so I didn’t like him.", "...a friendly person, but I didn’t like him.", "...a friendly person, and I didn’t like him.", "...a friendly person, because I didn’t like him."],
+                correct: 1,
+                explanation: {
+                    vocab: [
+                        "A. so: vì vậy (sai logic).",
+                        "B. but: nhưng (Câu đúng).",
+                        "C. and: và (không chỉ sự tương phản).",
+                        "D. because: bởi vì (sai logic)."
+                    ],
+                    meaning: "Dịch nghĩa: Anh ấy có vẻ thân thiện, nhưng tôi không thích anh ấy.",
+                    analysis: "Cô Mai An giải thích: 'Although' đứng đầu câu tương đương với việc dùng 'but' ở giữa hai mệnh đề để chỉ sự đối lập."
+                }
+            }
+        ];
+
+        let currentQ = 0;
+        let score = 0;
+        let answered = new Array(quizData.length).fill(null);
+
+        function initAudio() {
+            window.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+
+        function playSound(type) {
+            if (!window.audioCtx) initAudio();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            if (type === 'correct') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(523.25, audioCtx.currentTime); // C5
+                osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.1);
+                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.3);
+            } else {
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+                osc.frequency.linearRampToValueAtTime(100, audioCtx.currentTime + 0.2);
+                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.3);
+            }
+        }
+
+        function renderQuestion() {
+            const q = quizData[currentQ];
+            const container = document.getElementById('quiz-container');
+            
+            let optionsHTML = q.options.map((opt, i) => `
+                <button class="option-btn w-full mb-3 text-lg font-semibold ${answered[currentQ] !== null ? (i === q.correct ? 'option-correct' : (i === answered[currentQ] ? 'option-wrong' : '')) : ''}" 
+                        onclick="checkAnswer(${i})" 
+                        ${answered[currentQ] !== null ? 'disabled' : ''}>
+                    <span class="inline-block w-8 h-8 rounded-full bg-gray-100 text-center leading-8 mr-3 font-bold">${String.fromCharCode(65+i)}</span>
+                    ${opt}
+                </button>
+            `).join('');
+
+            container.innerHTML = `
+                <div class="quiz-card p-6 md:p-8" id="card-${currentQ}">
+                    <div class="text-sm font-bold uppercase tracking-widest text-gray-400 mb-2">Question ${currentQ + 1}</div>
+                    <h2 class="text-xl md:text-2xl font-bold mb-6">${q.q}</h2>
+                    <div class="space-y-2">
+                        ${optionsHTML}
+                    </div>
+                    
+                    <div id="explanation-${currentQ}" class="explanation-box mt-6 p-6 rounded-2xl overflow-hidden" style="${answered[currentQ] !== null ? 'display: block' : ''}">
+                        <h4 class="font-black text-purple-700 mb-3 flex items-center"><span class="mr-2">💡</span> GIẢI THÍCH CHI TIẾT</h4>
+                        <div class="space-y-4 text-gray-700 leading-relaxed">
+                            <p class="font-bold text-blue-600">${q.explanation.meaning}</p>
+                            <div>
+                                <p class="font-bold mb-1">1. Phân tích 4 đáp án:</p>
+                                <ul class="list-disc ml-5 space-y-1">
+                                    ${q.explanation.vocab.map(v => `<li>${v}</li>`).join('')}
+                                </ul>
+                            </div>
+                            <div>
+                                <p class="font-bold mb-1">2. Tại sao chọn đáp án này?</p>
+                                <p class="bg-white p-3 rounded-xl italic">${q.explanation.analysis}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            updateProgress();
+        }
+
+        function checkAnswer(index) {
+            if (answered[currentQ] !== null) return;
+            
+            const q = quizData[currentQ];
+            answered[currentQ] = index;
+            
+            const btns = document.querySelectorAll('.option-btn');
+            const card = document.getElementById(`card-${currentQ}`);
+
+            if (index === q.correct) {
+                btns[index].classList.add('option-correct');
+                score++;
+                playSound('correct');
+                confetti({
+                    particleCount: 100,
+                    spread: 70,
+                    origin: { y: 0.6 },
+                    colors: ['#8854C0', '#00C9A7', '#FFD700']
+                });
+            } else {
+                btns[index].classList.add('option-wrong');
+                btns[q.correct].classList.add('option-correct');
+                card.classList.add('shake');
+                playSound('wrong');
+                setTimeout(() => card.classList.remove('shake'), 500);
+            }
+
+            document.getElementById(`explanation-${currentQ}`).style.display = 'block';
+            updateProgress();
+        }
+
+        function updateProgress() {
+            const progress = ((currentQ + 1) / quizData.length) * 100;
+            document.getElementById('progress-fill').style.width = `${progress}%`;
+            document.getElementById('progress-text').innerText = `Câu hỏi: ${currentQ + 1}/${quizData.length}`;
+            document.getElementById('score-text').innerText = `Đúng: ${score}`;
+
+            const prevBtn = document.getElementById('prev-btn');
+            if (currentQ === 0) {
+                prevBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                prevBtn.disabled = true;
+            } else {
+                prevBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                prevBtn.disabled = false;
+            }
+        }
+
+        function changeQuestion(step) {
+            const nextQ = currentQ + step;
+            if (nextQ >= 0 && nextQ < quizData.length) {
+                currentQ = nextQ;
+                renderQuestion();
+            }
+        }
+
+        function finishQuiz() {
+            const total = quizData.length;
+            const modal = document.getElementById('result-modal');
+            const scoreDisplay = document.getElementById('result-score');
+            const comment = document.getElementById('result-comment');
+            const icon = document.getElementById('result-icon');
+
+            scoreDisplay.innerText = `${score}/${total}`;
+            modal.style.display = 'flex';
+
+            if (score === total) {
+                icon.innerText = "👑";
+                comment.innerText = "Tuyệt đỉnh! Con là thiên tài Tiếng Anh!";
+                confetti({ particleCount: 200, spread: 100 });
+            } else if (score >= total * 0.8) {
+                icon.innerText = "🌟";
+                comment.innerText = "Giỏi lắm! Chỉ thiếu một chút nữa là hoàn hảo rồi!";
+            } else if (score >= total * 0.5) {
+                icon.innerText = "👍";
+                comment.innerText = "Khá tốt! Con hãy đọc kỹ phần giải thích của cô An nhé!";
+            } else {
+                icon.innerText = "💪";
+                comment.innerText = "Cố gắng lên nào! Xem lại bài và làm lại nhé con!";
+            }
+        }
+
+        // Initialize
+        window.onload = () => {
+            renderQuestion();
+        };
+    </script>
+</body>
+</html>

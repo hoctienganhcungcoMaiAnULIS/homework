@@ -1,0 +1,982 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ôn tập Tiếng Anh Tổng Hợp - Ms Mai An ULIS</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #8854C0; /* Tím Pastel */
+            --secondary-color: #00C9A7; /* Xanh ngọc */
+            --correct-color: #00D26A; /* Xanh lá */
+            --wrong-color: #FF4757; /* Đỏ cam */
+            --bg-color: #F0F3F8;
+            --card-bg: #FFFFFF;
+            --text-color: #2F3542;
+            --shadow-color: rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: var(--bg-color);
+            background-image: radial-gradient(#d4c3e9 1px, transparent 1px), radial-gradient(#d4c3e9 1px, transparent 1px);
+            background-size: 20px 20px;
+            background-position: 0 0, 10px 10px;
+            margin: 0;
+            padding: 20px;
+            color: var(--text-color);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        /* Header Styles */
+        .quiz-header {
+            text-align: center;
+            margin-bottom: 30px;
+            background: linear-gradient(135deg, var(--primary-color), #A29BFE);
+            padding: 20px;
+            border-radius: 20px;
+            color: white;
+            box-shadow: 0 10px 20px rgba(136, 84, 192, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .quiz-header h1 {
+            margin: 0;
+            font-family: 'Quicksand', sans-serif;
+            font-weight: 800;
+            font-size: 1.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .quiz-header h2 {
+            margin: 10px 0 0;
+            font-size: 1.2rem;
+            font-weight: 600;
+            opacity: 0.9;
+        }
+
+        .progress-container {
+            background-color: #dfe6e9;
+            border-radius: 15px;
+            height: 15px;
+            width: 100%;
+            margin-top: 15px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-bar {
+            background-color: #FDcb6E;
+            height: 100%;
+            width: 0%;
+            transition: width 0.5s ease;
+            border-radius: 15px;
+        }
+
+        /* Question Card */
+        .question-card {
+            background: var(--card-bg);
+            border-radius: 25px;
+            padding: 30px;
+            box-shadow: 0 15px 30px var(--shadow-color);
+            position: relative;
+            margin-bottom: 30px;
+            border: 2px solid #fff;
+        }
+
+        .question-number {
+            display: inline-block;
+            background: var(--secondary-color);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: 800;
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 0 rgba(0,0,0,0.1);
+        }
+
+        .question-text {
+            font-size: 1.3rem;
+            font-weight: 700;
+            line-height: 1.5;
+            margin-bottom: 25px;
+            color: #2d3436;
+        }
+
+        .hint-text {
+            font-size: 0.95rem;
+            color: #636e72;
+            font-style: italic;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .hint-text::before {
+            content: '💡';
+        }
+
+        /* Options Grid */
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+        }
+
+        @media (min-width: 600px) {
+            .options-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        .option-btn {
+            background-color: white;
+            border: 2px solid #dfe6e9;
+            border-bottom: 6px solid #dfe6e9;
+            border-radius: 15px;
+            padding: 15px 20px;
+            font-family: 'Nunito', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text-color);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: left;
+            position: relative;
+            outline: none;
+        }
+
+        .option-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            border-color: #b2bec3;
+            border-bottom-color: #b2bec3;
+            background-color: #f7f9fc;
+        }
+
+        .option-btn:active:not(:disabled) {
+            transform: translateY(4px);
+            border-bottom-width: 2px;
+            margin-top: 4px;
+        }
+
+        /* States */
+        .option-btn.correct {
+            background-color: var(--correct-color);
+            border-color: #00B85C;
+            border-bottom-color: #008C46;
+            color: white;
+        }
+
+        .option-btn.wrong {
+            background-color: var(--wrong-color);
+            border-color: #FF2E43;
+            border-bottom-color: #D61B2E;
+            color: white;
+            animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+        }
+
+        .option-btn:disabled {
+            cursor: default;
+            opacity: 0.7;
+        }
+
+        /* Explanation Area */
+        .explanation-box {
+            margin-top: 25px;
+            background-color: #eefbf5;
+            border: 2px solid #c3e6cb;
+            border-radius: 15px;
+            padding: 20px;
+            display: none; /* Hidden by default */
+            animation: slideIn 0.4s ease-out;
+        }
+
+        .explanation-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 800;
+            color: #155724;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+            border-bottom: 1px dashed #c3e6cb;
+            padding-bottom: 10px;
+        }
+
+        .explanation-avatar {
+            width: 40px;
+            height: 40px;
+            background-color: #fff;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 20px;
+            border: 2px solid #155724;
+        }
+
+        .explanation-content {
+            font-size: 1rem;
+            line-height: 1.6;
+            color: #2f3542;
+            white-space: pre-wrap; /* Preserve line breaks */
+        }
+        
+        .explanation-content strong {
+            color: var(--primary-color);
+        }
+
+        /* Navigation */
+        .nav-buttons {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+
+        .next-btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-bottom: 5px solid #6c429c;
+            padding: 12px 30px;
+            font-size: 1.1rem;
+            font-weight: 800;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: none; /* Hidden until answered */
+        }
+
+        .next-btn:hover {
+            transform: translateY(-2px);
+            filter: brightness(1.1);
+        }
+
+        .next-btn:active {
+            transform: translateY(4px);
+            border-bottom-width: 1px;
+        }
+
+        /* Animations */
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-1px, 0, 0); }
+            20%, 80% { transform: translate3d(2px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+            40%, 60% { transform: translate3d(4px, 0, 0); }
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Result Modal */
+        .result-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+        }
+
+        .result-content {
+            background: white;
+            padding: 40px;
+            border-radius: 30px;
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+            animation: slideIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .score-circle {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background: conic-gradient(var(--correct-color) 0%, #dfe6e9 0%);
+            margin: 0 auto 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--text-color);
+            position: relative;
+        }
+
+        .score-circle::before {
+            content: '';
+            position: absolute;
+            width: 130px;
+            height: 130px;
+            background: white;
+            border-radius: 50%;
+        }
+        
+        .score-text {
+            position: relative;
+            z-index: 1;
+        }
+
+        .praise-text {
+            font-size: 1.5rem;
+            color: var(--primary-color);
+            margin-bottom: 20px;
+            font-weight: 700;
+        }
+
+        .restart-btn {
+            background-color: var(--secondary-color);
+            color: white;
+            border: none;
+            border-bottom: 5px solid #009e83;
+            padding: 15px 40px;
+            font-size: 1.2rem;
+            font-weight: 800;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- Header -->
+        <div class="quiz-header">
+            <h2>Giáo viên: Ms Mai An (ULIS)</h2>
+            <h1>Ôn Tập Tổng Hợp: Word Form - Error Correction - Writing</h1>
+            <div class="progress-container">
+                <div class="progress-bar" id="progressBar"></div>
+            </div>
+            <div style="margin-top: 10px; font-size: 0.9rem;">
+                Câu <span id="currentQuestionNum">1</span> / <span id="totalQuestions">0</span>
+            </div>
+        </div>
+
+        <!-- Question Card -->
+        <div class="question-card" id="quizContainer">
+            <div class="question-number">Question <span id="qNumDisplay">1</span></div>
+            <div class="question-text" id="questionText">
+                Loading...
+            </div>
+            <div class="hint-text" id="hintText">
+                <!-- Hint goes here -->
+            </div>
+
+            <!-- Options -->
+            <div class="options-grid" id="optionsGrid">
+                <!-- Buttons generated by JS -->
+            </div>
+
+            <!-- Explanation -->
+            <div class="explanation-box" id="explanationBox">
+                <div class="explanation-header">
+                    <div class="explanation-avatar">👩‍🏫</div>
+                    <div>Ms Mai An giải thích chi tiết:</div>
+                </div>
+                <div class="explanation-content" id="explanationContent">
+                    <!-- Explanation content goes here -->
+                </div>
+            </div>
+
+            <!-- Navigation -->
+            <div class="nav-buttons">
+                <button class="next-btn" id="nextBtn" onclick="nextQuestion()">Câu Tiếp Theo ➜</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Result Modal -->
+    <div class="result-modal" id="resultModal">
+        <div class="result-content">
+            <h2 style="color: var(--text-color);">Kết Quả Của Bạn</h2>
+            <div class="score-circle" id="scoreCircle">
+                <span class="score-text" id="finalScore">0/0</span>
+            </div>
+            <div class="praise-text" id="praiseText">Xuất sắc!</div>
+            <button class="restart-btn" onclick="location.reload()">Làm Lại Bài</button>
+        </div>
+    </div>
+
+    <script>
+        // DATA TỪ BÀI QUIZ GỐC (Được nhúng trực tiếp để đảm bảo Single File)
+        const quizData = {
+          "questions": [
+            {
+              "questionNumber": 1,
+              "question": "VI. _______ from all around the world display their ice artwork at Snow & Ice Festival. (art)",
+              "answerOptions": [
+                { "text": "Artists", "rationale": "1. Phân tích từ vựng:\n- Artists (n - số nhiều): Các nghệ sĩ.\n- Art (n): Nghệ thuật.\n- Artistic (adj): Thuộc về nghệ thuật.\n- Artistically (adv): Một cách nghệ thuật.\n2. Dịch nghĩa: \"Các nghệ sĩ từ khắp nơi trên thế giới trưng bày các tác phẩm băng nghệ thuật của họ tại Lễ hội Băng tuyết.\"\n3. Giải thích: Chỗ trống đứng đầu câu làm chủ ngữ cho động từ \"display\" (trưng bày). Cần danh từ chỉ người thực hiện hành động này. Dùng số nhiều vì \"display\" không chia số ít.", "isCorrect": true },
+                { "text": "Art", "rationale": "...", "isCorrect": false },
+                { "text": "Artistic", "rationale": "...", "isCorrect": false },
+                { "text": "Artistically", "rationale": "...", "isCorrect": false }
+              ],
+              "hint": "Cần một danh từ chỉ người (số nhiều) để làm chủ ngữ."
+            },
+            {
+              "questionNumber": 2,
+              "question": "He has such an _______ lifestyle - smoking, drinking, eating too much. (health)",
+              "answerOptions": [
+                { "text": "healthy", "rationale": "...", "isCorrect": false },
+                { "text": "unhealthy", "rationale": "1. Phân tích từ vựng:\n- healthy (adj): lành mạnh.\n- unhealthy (adj): không lành mạnh.\n- healthily (adv): một cách lành mạnh.\n- health (n): sức khỏe.\n2. Dịch nghĩa: \"Anh ấy có một lối sống không lành mạnh - hút thuốc, uống rượu, ăn quá nhiều.\"\n3. Giải thích: Cần tính từ bổ nghĩa cho \"lifestyle\". Dựa vào ngữ cảnh tiêu cực phía sau -> dùng \"unhealthy\".", "isCorrect": true },
+                { "text": "healthily", "rationale": "...", "isCorrect": false },
+                { "text": "health", "rationale": "...", "isCorrect": false }
+              ],
+              "hint": "Hút thuốc và uống rượu là thói quen tốt hay xấu?"
+            },
+            {
+              "questionNumber": 3,
+              "question": "The films provide great _______ value for kids. (entertain)",
+              "answerOptions": [
+                { "text": "entertaining", "rationale": "...", "isCorrect": false },
+                { "text": "entertainment", "rationale": "1. Phân tích từ vựng:\n- entertaining (adj): có tính giải trí.\n- entertainment (n): sự giải trí.\n- entertainer (n): người làm giải trí.\n- entertains (v): giải trí.\n2. Dịch nghĩa: \"Các bộ phim mang lại giá trị giải trí tuyệt vời cho trẻ em.\"\n3. Giải thích: Ta cần một danh từ để tạo thành danh từ ghép với \"value\". Cụm \"entertainment value\" rất phổ biến.", "isCorrect": true },
+                { "text": "entertainer", "rationale": "...", "isCorrect": false },
+                { "text": "entertains", "rationale": "...", "isCorrect": false }
+              ],
+              "hint": "Cụm danh từ ghép: _______ value."
+            },
+            {
+              "questionNumber": 4,
+              "question": "You should always look _______ when you cross the street. (careful)",
+              "answerOptions": [
+                { "text": "carefully", "rationale": "1. Phân tích từ vựng:\n- carefully (adv): một cách cẩn thận.\n- careful (adj): cẩn thận.\n- careless (adj): bất cẩn.\n- carelessly (adv): một cách bất cẩn.\n2. Dịch nghĩa: \"Bạn nên luôn quan sát cẩn thận khi băng qua đường.\"\n3. Giải thích: Động từ \"look\" ở đây mang nghĩa hành động (quan sát/nhìn), không phải linking verb (trông có vẻ). Do đó cần Trạng từ (Adv) để bổ nghĩa.", "isCorrect": true },
+                { "text": "careful", "rationale": "...", "isCorrect": false },
+                { "text": "careless", "rationale": "...", "isCorrect": false },
+                { "text": "carelessly", "rationale": "...", "isCorrect": false }
+              ],
+              "hint": "Động từ 'look' (quan sát) cần một trạng từ đi kèm."
+            },
+            {
+              "questionNumber": 5,
+              "question": "It's important to obey traffic rules when you are a road _______. (use)",
+              "answerOptions": [
+                { "text": "user", "rationale": "1. Phân tích từ vựng:\n- user (n): người dùng.\n- users (n - số nhiều): những người dùng.\n- useful (adj): hữu ích.\n- useless (adj): vô dụng.\n2. Dịch nghĩa: \"Việc tuân thủ luật giao thông là quan trọng khi bạn là một người tham gia giao thông.\"\n3. Giải thích: Có mạo từ \"a\" phía trước -> Cần danh từ số ít chỉ người.", "isCorrect": true },
+                { "text": "users", "rationale": "...", "isCorrect": false },
+                { "text": "useful", "rationale": "...", "isCorrect": false },
+                { "text": "useless", "rationale": "...", "isCorrect": false }
+              ],
+              "hint": "Cụm từ 'road user' nghĩa là người tham gia giao thông. Chú ý mạo từ 'a'."
+            },
+            {
+              "questionNumber": 6,
+              "question": "Is it _______ to drive through a red traffic light? (legal)",
+              "answerOptions": [
+                { "text": "illegal", "rationale": "1. Phân tích từ vựng:\n- illegal (adj): bất hợp pháp/phạm luật.\n- legal (adj): hợp pháp.\n- legally (adv): một cách hợp pháp.\n- legality (n): tính hợp pháp.\n2. Dịch nghĩa: \"Vượt đèn đỏ có phải là phạm luật không?\"\n3. Giải thích: Vượt đèn đỏ là hành vi sai trái, nên cần tính từ mang nghĩa phủ định \"illegal\". Cấu trúc: Is it + adj + to V?", "isCorrect": true },
+                { "text": "legal", "rationale": "...", "isCorrect": false },
+                { "text": "legally", "rationale": "...", "isCorrect": false },
+                { "text": "legality", "rationale": "...", "isCorrect": false }
+              ],
+              "hint": "Vượt đèn đỏ là đúng luật hay trái luật? Cần thêm tiền tố phủ định 'il-'."
+            },
+            {
+              "questionNumber": 7,
+              "question": "Annette's _______ as Eliza Doolittle in \"Pygmalion\" was truly memorable. (perform)",
+              "answerOptions": [
+                { "text": "performance", "rationale": "1. Phân tích từ vựng:\n- performance (n): màn trình diễn/diễn xuất.\n- performer (n): người biểu diễn.\n- performing (v-ing): đang biểu diễn.\n- performed (v-ed): đã biểu diễn.\n2. Dịch nghĩa: \"Màn trình diễn của Annette trong vai Eliza Doolittle vở 'Pygmalion' thực sự đáng nhớ.\"\n3. Giải thích: Sau sở hữu cách \"Annette's\" cần một danh từ. Ngữ cảnh khen ngợi diễn xuất -> performance.", "isCorrect": true },
+                { "text": "performer", "rationale": "...", "isCorrect": false },
+                { "text": "performing", "rationale": "...", "isCorrect": false },
+                { "text": "performed", "rationale": "...", "isCorrect": false }
+              ],
+              "hint": "Cần danh từ chỉ 'màn trình diễn' sau sở hữu cách."
+            },
+            {
+              "questionNumber": 8,
+              "question": "People flew down streets to join in _______ activities on New Year's Eve. (celebrate)",
+              "answerOptions": [
+                { "text": "celebratory", "rationale": "1. Phân tích từ vựng:\n- celebratory (adj): mang tính ăn mừng/chúc mừng.\n- celebration (n): sự ăn mừng.\n- celebrity (n): người nổi tiếng.\n- celebrated (adj): nổi tiếng/được ca tụng.\n2. Dịch nghĩa: \"Mọi người đổ ra đường để tham gia các hoạt động chào mừng vào đêm Giao thừa.\"\n3. Giải thích: Cần tính từ bổ nghĩa cho danh từ \"activities\". \"Celebratory activities\" = các hoạt động mang tính ăn mừng.", "isCorrect": true },
+                { "text": "celebration", "rationale": "...", "isCorrect": false },
+                { "text": "celebrity", "rationale": "...", "isCorrect": false },
+                { "text": "celebrated", "rationale": "...", "isCorrect": false }
+              ],
+              "hint": "Cần một tính từ bổ nghĩa cho 'activities'."
+            },
+            {
+              "questionNumber": 9,
+              "question": "VII. Find the mistake: \"The bands parade through the streets, play traditional samba music.\"",
+              "answerOptions": [
+                { "text": "play -> playing", "rationale": "1. Phân tích lỗi:\n- Lỗi nằm ở động từ \"play\".\n- Câu có động từ chính là \"parade\". Phần sau dấu phẩy là mệnh đề quan hệ rút gọn hoặc cụm phân từ chỉ hành động diễn ra song song.\n2. Dịch nghĩa: \"Các ban nhạc diễu hành qua các con phố, chơi nhạc samba truyền thống.\"\n3. Giải thích: Phải dùng V-ing (playing) để chỉ hành động chủ động đi kèm.", "isCorrect": true },
+                { "text": "parade -> parading", "rationale": "...", "isCorrect": false },
+                { "text": "through -> on", "rationale": "...", "isCorrect": false },
+                { "text": "traditional -> tradition", "rationale": "...", "isCorrect": false }
+              ],
+              "hint": "Hai hành động diễn ra cùng lúc, hành động thứ hai sau dấu phẩy phải dùng V-ing."
+            },
+            {
+              "questionNumber": 10,
+              "question": "VII. Find the mistake: \"Traffic jams happen nearly every day, but drivers have to spend a lot of time on the road.\"",
+              "answerOptions": [
+                { "text": "but -> so", "rationale": "1. Phân tích lỗi:\n- Lỗi ở liên từ \"but\" (nhưng).\n2. Dịch nghĩa: \"Tắc đường xảy ra gần như mỗi ngày, vì vậy các tài xế phải dành rất nhiều thời gian trên đường.\"\n3. Giải thích: Mối quan hệ giữa hai vế là Nguyên nhân - Kết quả (Tắc đường -> Mất thời gian). Phải dùng \"so\" (vì vậy), không dùng \"but\" (tương phản).", "isCorrect": true },
+                { "text": "happen -> happens", "rationale": "...", "isCorrect": false },
+                { "text": "nearly -> near", "rationale": "...", "isCorrect": false },
+                { "text": "spend -> spending", "rationale": "...", "isCorrect": false }
+              ],
+              "hint": "Xem xét mối quan hệ logic giữa hai vế: Tương phản hay Nhân quả?"
+            },
+            {
+              "questionNumber": 11,
+              "question": "VII. Find the mistake: \"The film I saw last night was so scared that I couldn't sleep all night.\"",
+              "answerOptions": [
+                { "text": "scared -> scary", "rationale": "1. Phân tích lỗi:\n- Lỗi dùng tính từ \"scared\" (bị sợ) thay vì \"scary\" (đáng sợ).\n2. Dịch nghĩa: \"Bộ phim tôi xem tối qua đáng sợ đến nỗi tôi không thể ngủ cả đêm.\"\n3. Giải thích: Tính từ đuôi -ed (scared) chỉ cảm xúc của người. Tính từ đuôi -ing/y (scary) chỉ tính chất của vật/sự việc. Phim thì phải là \"scary\".", "isCorrect": true },
+                { "text": "saw -> seen", "rationale": "...", "isCorrect": false },
+                { "text": "so -> too", "rationale": "...", "isCorrect": false },
+                { "text": "couldn't -> can't", "rationale": "...", "isCorrect": false }
+              ],
+              "hint": "Phim làm người ta sợ (scary) hay phim biết sợ (scared)?"
+            },
+            {
+              "questionNumber": 12,
+              "question": "VII. Find the mistake: \"Glastonbury Festival is a five-days music festival that takes place in Somerset, England.\"",
+              "answerOptions": [
+                { "text": "five-days -> five-day", "rationale": "1. Phân tích lỗi:\n- Lỗi ở danh từ ghép \"five-days\".\n2. Dịch nghĩa: \"Glastonbury Festival là một lễ hội âm nhạc kéo dài 5 ngày diễn ra tại Somerset, Anh.\"\n3. Giải thích: Trong cụm tính từ ghép chỉ số lượng (number-noun adjective), danh từ luôn ở dạng số ít. Ví dụ: a five-day trip, a ten-year-old boy. -> Sửa thành \"five-day\".", "isCorrect": true },
+                { "text": "is -> are", "rationale": "...", "isCorrect": false },
+                { "text": "takes place -> take place", "rationale": "...", "isCorrect": false },
+                { "text": "music -> musical", "rationale": "...", "isCorrect": false }
+              ],
+              "hint": "Tính từ ghép chỉ thời gian/số lượng không có 's' (Ví dụ: a two-year-old boy)."
+            },
+            {
+              "questionNumber": 13,
+              "question": "VII. Find the mistake: \"Does popcorn and other snacks in the cinema very expensive?\"",
+              "answerOptions": [
+                { "text": "Does -> Are", "rationale": "1. Phân tích lỗi:\n- Lỗi ở trợ động từ \"Does\".\n2. Dịch nghĩa: \"Bỏng ngô và các đồ ăn vặt khác trong rạp chiếu phim có đắt lắm không?\"\n3. Giải thích: Câu này hỏi về tính chất (expensive - tính từ), nên cần động từ To Be, không dùng trợ động từ \"Does\". Hơn nữa chủ ngữ \"popcorn and snacks\" là số nhiều -> Dùng \"Are\".", "isCorrect": true },
+                { "text": "other -> others", "rationale": "...", "isCorrect": false },
+                { "text": "in -> at", "rationale": "...", "isCorrect": false },
+                { "text": "very -> too", "rationale": "...", "isCorrect": false }
+              ],
+              "hint": "Câu hỏi với tính từ (expensive) dùng động từ 'To Be' hay 'Do/Does'?"
+            },
+            {
+              "questionNumber": 14,
+              "question": "VII. Find the mistake: \"It about 3 kilometres from my house to the nearest bus stop.\"",
+              "answerOptions": [
+                { "text": "It -> It is / It's", "rationale": "1. Phân tích lỗi:\n- Câu thiếu động từ chính.\n2. Dịch nghĩa: \"Khoảng 3km từ nhà tôi đến trạm xe buýt gần nhất.\"\n3. Giải thích: Câu này thiếu động từ To Be. Cấu trúc chỉ khoảng cách: \"It is + distance + from... to...\".", "isCorrect": true },
+                { "text": "about -> nearly", "rationale": "...", "isCorrect": false },
+                { "text": "nearest -> near", "rationale": "...", "isCorrect": false },
+                { "text": "to -> till", "rationale": "...", "isCorrect": false }
+              ],
+              "hint": "Câu này chưa có động từ. (It ... about 3km)."
+            },
+            {
+              "questionNumber": 15,
+              "question": "VII. Find the mistake: \"Despite of the good directing and good acting, the movie was very boring.\"",
+              "answerOptions": [
+                { "text": "Despite of -> Despite / In spite of", "rationale": "1. Phân tích lỗi:\n- Lỗi thừa giới từ \"of\" sau \"Despite\".\n2. Dịch nghĩa: \"Mặc dù đạo diễn giỏi và diễn xuất tốt, bộ phim vẫn rất chán.\"\n3. Giải thích: Ta có 2 cấu trúc đồng nghĩa:\n- Despite + Noun/V-ing\n- In spite of + Noun/V-ing\nKhông bao giờ dùng \"Despite of\".", "isCorrect": true },
+                { "text": "directing -> director", "rationale": "...", "isCorrect": false },
+                { "text": "was -> is", "rationale": "...", "isCorrect": false },
+                { "text": "boring -> bored", "rationale": "...", "isCorrect": false }
+              ],
+              "hint": "Dùng 'Despite' hoặc 'In spite of', không trộn lẫn."
+            },
+            {
+              "questionNumber": 16,
+              "question": "VII. Find the mistake: \"How much does it take you to walk to school? ~ About 15 minutes.\"",
+              "answerOptions": [
+                { "text": "How much -> How long", "rationale": "1. Phân tích lỗi:\n- Lỗi dùng từ để hỏi \"How much\".\n2. Dịch nghĩa: \"Bạn mất bao lâu để đi bộ đến trường? ~ Khoảng 15 phút.\"\n3. Giải thích: Hỏi về khoảng thời gian (duration) phải dùng \"How long\". \"How much\" dùng hỏi giá tiền hoặc lượng không đếm được.", "isCorrect": true },
+                { "text": "does -> is", "rationale": "...", "isCorrect": false },
+                { "text": "take -> took", "rationale": "...", "isCorrect": false },
+                { "text": "walk -> walking", "rationale": "...", "isCorrect": false }
+              ],
+              "hint": "Hỏi về thời gian (15 phút) dùng 'How long' hay 'How much'?"
+            },
+            {
+              "questionNumber": 17,
+              "question": "VIII. Match: Which do you prefer, Burning Man or Rock in Rio?",
+              "answerOptions": [
+                { "text": "I like Rock in Rio better.", "rationale": "Câu hỏi lựa chọn (Which... or...) -> Trả lời bằng sự lựa chọn (Rock in Rio).", "isCorrect": true },
+                { "text": "Thriller", "rationale": "...", "isCorrect": false },
+                { "text": "In Harbin, China.", "rationale": "...", "isCorrect": false },
+                { "text": "The last weekend in June.", "rationale": "...", "isCorrect": false }
+              ],
+              "hint": "Câu hỏi bắt chọn 1 trong 2."
+            },
+            {
+              "questionNumber": 18,
+              "question": "VIII. Match: Where is Snow & Ice Festival held?",
+              "answerOptions": [
+                { "text": "In Harbin, China.", "rationale": "Câu hỏi \"Where\" (Ở đâu) -> Trả lời bằng địa điểm (Harbin, China).", "isCorrect": true },
+                { "text": "To reduce traffic congestion.", "rationale": "...", "isCorrect": false },
+                { "text": "Leonardo DiCaprio", "rationale": "...", "isCorrect": false },
+                { "text": "Every year.", "rationale": "...", "isCorrect": false }
+              ],
+              "hint": "Tìm địa điểm."
+            },
+            {
+              "questionNumber": 19,
+              "question": "VIII. Match: Who plays the artist in Titanic?",
+              "answerOptions": [
+                { "text": "Leonardo DiCaprio", "rationale": "Câu hỏi \"Who\" (Ai) -> Trả lời bằng tên người (Leonardo DiCaprio).", "isCorrect": true },
+                { "text": "I like Rock in Rio better.", "rationale": "...", "isCorrect": false },
+                { "text": "Thriller", "rationale": "...", "isCorrect": false },
+                { "text": "I took a bus.", "rationale": "...", "isCorrect": false }
+              ],
+              "hint": "Tìm tên diễn viên."
+            },
+            {
+              "questionNumber": 20,
+              "question": "VIII. Match: What type of film is The Sixth Sense?",
+              "answerOptions": [
+                { "text": "Thriller", "rationale": "Câu hỏi \"What type of film\" (Thể loại phim gì) -> Trả lời bằng thể loại (Thriller - Kinh dị/Giật gân).", "isCorrect": true },
+                { "text": "Leonardo DiCaprio", "rationale": "...", "isCorrect": false },
+                { "text": "To reduce traffic congestion.", "rationale": "...", "isCorrect": false },
+                { "text": "Every year.", "rationale": "...", "isCorrect": false }
+              ],
+              "hint": "Tìm thể loại phim."
+            },
+            {
+              "questionNumber": 21,
+              "question": "VIII. Match: Why should we use public transport?",
+              "answerOptions": [
+                { "text": "To reduce traffic congestion and air pollution.", "rationale": "Câu hỏi \"Why\" (Tại sao) -> Trả lời bằng lý do/mục đích (To reduce... - Để giảm...).", "isCorrect": true },
+                { "text": "I took a bus, sometimes I drove.", "rationale": "...", "isCorrect": false },
+                { "text": "In Harbin, China.", "rationale": "...", "isCorrect": false },
+                { "text": "The last weekend in June.", "rationale": "...", "isCorrect": false }
+              ],
+              "hint": "Tìm lý do (để giảm tắc đường...)."
+            },
+            {
+              "questionNumber": 22,
+              "question": "VIII. Match: How did you use to travel to work?",
+              "answerOptions": [
+                { "text": "I took a bus, sometimes I drove.", "rationale": "Câu hỏi \"How... use to travel\" (Từng đi làm bằng phương tiện gì) -> Trả lời bằng phương tiện/hành động quá khứ (took a bus, drove).", "isCorrect": true },
+                { "text": "To reduce traffic congestion.", "rationale": "...", "isCorrect": false },
+                { "text": "Every year.", "rationale": "...", "isCorrect": false },
+                { "text": "In Harbin, China.", "rationale": "...", "isCorrect": false }
+              ],
+              "hint": "Tìm phương tiện đi lại."
+            },
+            {
+              "questionNumber": 23,
+              "question": "VIII. Match: When can I attend Glastonbury Festival?",
+              "answerOptions": [
+                { "text": "The last weekend in June.", "rationale": "Câu hỏi \"When\" (Khi nào) -> Trả lời bằng mốc thời gian cụ thể (Cuối tuần cuối cùng tháng 6).", "isCorrect": true },
+                { "text": "Every year, on the 15th day...", "rationale": "...", "isCorrect": false },
+                { "text": "In Harbin, China.", "rationale": "...", "isCorrect": false },
+                { "text": "I like Rock in Rio better.", "rationale": "...", "isCorrect": false }
+              ],
+              "hint": "Tìm mốc thời gian (tháng 6)."
+            },
+            {
+              "questionNumber": 24,
+              "question": "VIII. Match: How often is the Mid-Autumn Festival celebrated?",
+              "answerOptions": [
+                { "text": "Every year, on the 15th day of the eighth lunar month.", "rationale": "Câu hỏi \"How often\" (Bao lâu một lần/Khi nào theo định kỳ) và \"Mid-Autumn\" (Trung Thu) -> Rằm tháng 8 âm lịch.", "isCorrect": true },
+                { "text": "The last weekend in June.", "rationale": "...", "isCorrect": false },
+                { "text": "Thriller", "rationale": "...", "isCorrect": false },
+                { "text": "To reduce traffic congestion.", "rationale": "...", "isCorrect": false }
+              ],
+              "hint": "Trung thu diễn ra vào ngày nào âm lịch?"
+            },
+            {
+              "questionNumber": 25,
+              "question": "XI. Rewrite: Mr. Ricardo is a dangerous driver.\n=> Mr. Ricardo __________________________",
+              "answerOptions": [
+                { "text": "drives dangerously.", "rationale": "1. Cấu trúc: S + be + a/an + Adj + N (người lái xe nguy hiểm).\n2. Viết lại: S + V (thường) + Adv (lái xe một cách nguy hiểm).\nDangerous (adj) -> Dangerously (adv).", "isCorrect": true },
+                { "text": "drives dangerous.", "rationale": "Sai. Động từ thường 'drives' cần trạng từ bổ nghĩa.", "isCorrect": false },
+                { "text": "is driving dangerous.", "rationale": "Sai ngữ pháp.", "isCorrect": false },
+                { "text": "drives careful.", "rationale": "Sai nghĩa.", "isCorrect": false }
+              ],
+              "hint": "Chuyển tính từ 'dangerous' thành trạng từ."
+            },
+            {
+              "questionNumber": 26,
+              "question": "XI. Rewrite: What is the distance between your house and the nearest supermarket?\n=> How __________________________",
+              "answerOptions": [
+                { "text": "far is it from your house to the nearest supermarket?", "rationale": "1. Cấu trúc hỏi khoảng cách:\n- What is the distance between A and B?\n- How far is it from A to B?", "isCorrect": true },
+                { "text": "far is your house to the nearest supermarket?", "rationale": "Thiếu chủ ngữ giả 'it'.", "isCorrect": false },
+                { "text": "long is it from your house to the nearest supermarket?", "rationale": "How long hỏi về thời gian/chiều dài vật thể, không dùng hỏi khoảng cách địa lý theo cách này.", "isCorrect": false },
+                { "text": "far does it take from your house to the nearest supermarket?", "rationale": "Sai cấu trúc. 'Take' dùng cho thời gian.", "isCorrect": false }
+              ],
+              "hint": "Cấu trúc: How far is it from... to...?"
+            },
+            {
+              "questionNumber": 27,
+              "question": "XI. Rewrite: It is prohibited to cross the road until the light goes green.\n=> You must __________________________",
+              "answerOptions": [
+                { "text": "not cross the road until the light goes green.", "rationale": "1. It is prohibited (Bị cấm) = You must not (Bạn không được phép).\n2. Dịch: Bạn không được qua đường cho đến khi đèn xanh.", "isCorrect": true },
+                { "text": "cross the road until the light goes green.", "rationale": "Thiếu 'not'. Câu này thành 'Bạn PHẢI qua đường...', sai nghĩa cấm.", "isCorrect": false },
+                { "text": "not crossing the road until the light goes green.", "rationale": "Sau 'must' là động từ nguyên thể, không dùng V-ing.", "isCorrect": false },
+                { "text": "wait the road until the light goes green.", "rationale": "Sai cụm từ.", "isCorrect": false }
+              ],
+              "hint": "Prohibited (cấm) tương đương với 'must not'."
+            },
+            {
+              "questionNumber": 28,
+              "question": "XI. Rewrite: Buy the tickets soon, or we can't watch this film.\n=> If we don't __________________________",
+              "answerOptions": [
+                { "text": "buy the tickets soon, we can't watch this film.", "rationale": "1. Cấu trúc: V + or + Clause (Làm đi, nếu không thì...).\n2. Viết lại bằng câu điều kiện loại 1: If + S + don't + V, S + can't/won't + V.\n3. Dịch: Nếu chúng ta không mua vé sớm, chúng ta không thể xem phim.", "isCorrect": true },
+                { "text": "buy the tickets soon, we can watch this film.", "rationale": "Sai nghĩa. Không mua vé sao xem được?", "isCorrect": false },
+                { "text": "bought the tickets soon, we couldn't watch this film.", "rationale": "Sai thì. Đây là điều kiện có thể xảy ra ở hiện tại/tương lai (Loại 1).", "isCorrect": false },
+                { "text": "buying the tickets soon, we can't watch this film.", "rationale": "Sai ngữ pháp.", "isCorrect": false }
+              ],
+              "hint": "Chuyển câu mệnh lệnh có 'or' thành câu điều kiện 'If don't'."
+            },
+            {
+              "questionNumber": 29,
+              "question": "XI. Rewrite: Susan went to work yesterday in spite of her sickness.\n=> Although Susan __________________________",
+              "answerOptions": [
+                { "text": "was sick, she went to work yesterday.", "rationale": "1. Cấu trúc: In spite of + Noun (her sickness).\n2. Viết lại: Although + Clause (S + V).\n3. 'Sickness' (danh từ) -> 'was sick' (mệnh đề tính từ).", "isCorrect": true },
+                { "text": "is sick, she went to work yesterday.", "rationale": "Sai thì (went là quá khứ -> is phải đổi thành was).", "isCorrect": false },
+                { "text": "sickness, she went to work yesterday.", "rationale": "Sau Although phải là mệnh đề, không được dùng danh từ.", "isCorrect": false },
+                { "text": "had sickness, she went to work yesterday.", "rationale": "Không tự nhiên. Người Anh dùng 'be sick' hoặc 'have an illness'.", "isCorrect": false }
+              ],
+              "hint": "Đổi cụm danh từ 'her sickness' thành mệnh đề 'she was sick'."
+            },
+            {
+              "questionNumber": 30,
+              "question": "XI. Rewrite: My favourite type of film is romantic comedy.\n=> I __________________________",
+              "answerOptions": [
+                { "text": "like romantic comedy the most.", "rationale": "1. My favourite... is... (Cái yêu thích của tôi là...).\n2. I like... the most / best (Tôi thích... nhất).", "isCorrect": true },
+                { "text": "like romantic comedy.", "rationale": "Thiếu mức độ so sánh nhất (favourite = thích nhất).", "isCorrect": false },
+                { "text": "am romantic comedy.", "rationale": "Sai nghĩa hoàn toàn.", "isCorrect": false },
+                { "text": "hate romantic comedy.", "rationale": "Sai nghĩa.", "isCorrect": false }
+              ],
+              "hint": "Favourite = like... best / like... the most."
+            },
+            {
+              "questionNumber": 31,
+              "question": "XI. Rewrite: The film wasn't as good as I thought it would be.\n=> The film was __________________________",
+              "answerOptions": [
+                { "text": "worse than I thought.", "rationale": "1. Not as good as (Không tốt bằng) = Worse than (Tệ hơn).\n2. Dịch: Phim tệ hơn tôi tưởng.", "isCorrect": true },
+                { "text": "better than I thought.", "rationale": "Ngược nghĩa.", "isCorrect": false },
+                { "text": "bad as I thought.", "rationale": "Sai cấu trúc so sánh.", "isCorrect": false },
+                { "text": "good than I thought.", "rationale": "Sai dạng so sánh hơn của good (phải là better).", "isCorrect": false }
+              ],
+              "hint": "Không tốt bằng = Tệ hơn (Worse)."
+            },
+            {
+              "questionNumber": 32,
+              "question": "XI. Rewrite: I get to school in half an hour.\n=> It __________________________",
+              "answerOptions": [
+                { "text": "takes me half an hour to get to school.", "rationale": "1. Cấu trúc chỉ thời gian: It takes + [Person] + [Time] + to V.\n2. Dịch: Tôi mất nửa tiếng để đến trường.", "isCorrect": true },
+                { "text": "took me half an hour to get to school.", "rationale": "Câu gốc 'get' là hiện tại, nên viết lại phải dùng 'takes'.", "isCorrect": false },
+                { "text": "is half an hour to get to school.", "rationale": "Thiếu cấu trúc 'take'.", "isCorrect": false },
+                { "text": "takes half an hour getting to school.", "rationale": "Sau 'takes time' là 'to V', không phải 'V-ing'. (Spend time + V-ing).", "isCorrect": false }
+              ],
+              "hint": "Cấu trúc: It takes me + thời gian + to V."
+            },
+            {
+              "questionNumber": 33,
+              "question": "XI. Rewrite: Can you tell me the way to Nguyen Hue Pedestrian Street, please?\n=> Would you mind __________________________",
+              "answerOptions": [
+                { "text": "telling me the way to Nguyen Hue Pedestrian Street?", "rationale": "1. Cấu trúc lịch sự: Would you mind + V-ing...?\n2. Can you tell -> Would you mind telling.", "isCorrect": true },
+                { "text": "tell me the way to Nguyen Hue Pedestrian Street?", "rationale": "Sai cấu trúc (sau Mind phải là V-ing).", "isCorrect": false },
+                { "text": "to tell me the way to Nguyen Hue Pedestrian Street?", "rationale": "Sai cấu trúc.", "isCorrect": false },
+                { "text": "telling me the way to Nguyen Hue Pedestrian Street, please?", "rationale": "Cũng đúng, nhưng thường 'Would you mind' đã đủ lịch sự nên ít khi thêm 'please' ở cuối, đáp án A gọn hơn, nhưng nếu chọn A hay D đều chấp nhận được. Trong bài kiểm tra trắc nghiệm, ưu tiên A hoặc câu nào đúng ngữ pháp nhất.", "isCorrect": true }
+              ],
+              "hint": "Sau 'Would you mind' động từ phải thêm đuôi -ing."
+            },
+            {
+              "questionNumber": 34,
+              "question": "XI. Rewrite: She found the last scene of the film extremely frightening.\n=> She was __________________________",
+              "answerOptions": [
+                { "text": "extremely frightened by the last scene of the film.", "rationale": "1. Active: Find something + adj (Thấy cái gì đó như thế nào).\n2. Passive meaning: Be + adj (frightened) + by something (Bị làm cho sợ hãi bởi cái gì).\n3. Frightening (tính chất vật) -> Frightened (cảm xúc người).", "isCorrect": true },
+                { "text": "extremely frightening by the last scene of the film.", "rationale": "Sai tính từ (người phải dùng đuôi -ed).", "isCorrect": false },
+                { "text": "extreme frightened by the last scene of the film.", "rationale": "Thiếu 'ly' (trạng từ bổ nghĩa cho tính từ).", "isCorrect": false },
+                { "text": "frightened of the last scene of the film.", "rationale": "Frightened of = sợ cái gì đó. Frightened by = bị làm cho sợ bởi cái gì đó (sát nghĩa với câu gốc 'cảnh phim làm cô ấy sợ' hơn). Tuy nhiên, 'frightened of' cũng phổ biến, nhưng đáp án A đầy đủ thành phần trạng ngữ 'extremely' nhất.", "isCorrect": false }
+              ],
+              "hint": "Người bị làm cho sợ hãi -> Dùng tính từ đuôi -ed."
+            }
+          ]
+        };
+
+        // --- GAME LOGIC ---
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let answered = false;
+
+        // Elements
+        const totalQuestionsSpan = document.getElementById('totalQuestions');
+        const currentQuestionNumSpan = document.getElementById('currentQuestionNum');
+        const progressBar = document.getElementById('progressBar');
+        const questionText = document.getElementById('questionText');
+        const hintText = document.getElementById('hintText');
+        const qNumDisplay = document.getElementById('qNumDisplay');
+        const optionsGrid = document.getElementById('optionsGrid');
+        const explanationBox = document.getElementById('explanationBox');
+        const explanationContent = document.getElementById('explanationContent');
+        const nextBtn = document.getElementById('nextBtn');
+        const resultModal = document.getElementById('resultModal');
+        const finalScore = document.getElementById('finalScore');
+        const scoreCircle = document.getElementById('scoreCircle');
+        const praiseText = document.getElementById('praiseText');
+
+        // Initialize
+        totalQuestionsSpan.textContent = quizData.questions.length;
+
+        function loadQuestion() {
+            const currentQ = quizData.questions[currentQuestionIndex];
+            
+            // Reset state
+            answered = false;
+            explanationBox.style.display = 'none';
+            nextBtn.style.display = 'none';
+            optionsGrid.innerHTML = '';
+            
+            // Render text
+            currentQuestionNumSpan.textContent = currentQuestionIndex + 1;
+            qNumDisplay.textContent = currentQ.questionNumber;
+            questionText.textContent = currentQ.question;
+            hintText.innerHTML = currentQ.hint ? `Tip: ${currentQ.hint}` : '';
+            
+            // Update Progress
+            const progress = ((currentQuestionIndex) / quizData.questions.length) * 100;
+            progressBar.style.width = `${progress}%`;
+
+            // Render Options
+            currentQ.answerOptions.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.textContent = `${String.fromCharCode(65 + idx)}. ${opt.text}`;
+                btn.onclick = () => checkAnswer(idx);
+                optionsGrid.appendChild(btn);
+            });
+        }
+
+        function checkAnswer(selectedIndex) {
+            if (answered) return;
+            answered = true;
+
+            const currentQ = quizData.questions[currentQuestionIndex];
+            const options = document.querySelectorAll('.option-btn');
+            
+            // Correct answer index
+            const correctIndex = currentQ.answerOptions.findIndex(o => o.isCorrect);
+
+            if (selectedIndex === correctIndex) {
+                // Correct
+                score++;
+                options[selectedIndex].classList.add('correct');
+                playAudio('correct');
+                confetti({
+                    particleCount: 100,
+                    spread: 70,
+                    origin: { y: 0.6 }
+                });
+            } else {
+                // Wrong
+                options[selectedIndex].classList.add('wrong');
+                options[correctIndex].classList.add('correct'); // Show correct one
+                playAudio('wrong');
+            }
+
+            // Disable all buttons
+            options.forEach(btn => btn.disabled = true);
+
+            // Show Explanation
+            let rationale = currentQ.answerOptions[correctIndex].rationale || "Đang cập nhật giải thích...";
+            // Simple formatting for cleaner text if needed, or rely on pre-wrap
+            if (rationale === "...") {
+                rationale = "Đáp án sai không có giải thích chi tiết trong dữ liệu nguồn. Hãy xem giải thích của đáp án đúng.";
+                // Try to find the detailed one if current selected was wrong but had explanation
+                const detailedOpt = currentQ.answerOptions.find(o => o.rationale && o.rationale.length > 20);
+                if (detailedOpt) rationale = detailedOpt.rationale;
+            }
+            
+            explanationContent.innerHTML = rationale.replace(/\n/g, '<br>').replace(/- /g, '• ');
+            explanationBox.style.display = 'block';
+
+            // Show Next Button
+            nextBtn.style.display = 'inline-block';
+            
+            // If last question, change text
+            if (currentQuestionIndex === quizData.questions.length - 1) {
+                nextBtn.textContent = "Xem Kết Quả 🏆";
+            } else {
+                nextBtn.textContent = "Câu Tiếp Theo ➜";
+            }
+        }
+
+        function nextQuestion() {
+            if (currentQuestionIndex < quizData.questions.length - 1) {
+                currentQuestionIndex++;
+                loadQuestion();
+            } else {
+                showResults();
+            }
+        }
+
+        function showResults() {
+            const percentage = Math.round((score / quizData.questions.length) * 100);
+            
+            finalScore.textContent = `${score}/${quizData.questions.length}`;
+            scoreCircle.style.background = `conic-gradient(#00D26A ${percentage}%, #dfe6e9 0%)`;
+            
+            let message = "";
+            if (percentage === 100) message = "Tuyệt đỉnh! Con là thiên tài! 🌟";
+            else if (percentage >= 80) message = "Làm tốt lắm! Cô rất tự hào! 🎉";
+            else if (percentage >= 50) message = "Cố gắng thêm chút nữa nhé! 💪";
+            else message = "Lần sau sẽ tốt hơn thôi! Cố lên! 🌱";
+            
+            praiseText.textContent = message;
+            resultModal.style.display = 'flex';
+            
+            // Audio for result
+            if (percentage >= 50) playAudio('correct');
+        }
+
+        // Web Audio API for simple sounds without external files
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        function playAudio(type) {
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+
+            if (type === 'correct') {
+                // High Ding
+                oscillator.type = 'sine';
+                oscillator.frequency.setValueAtTime(500, audioCtx.currentTime);
+                oscillator.frequency.exponentialRampToValueAtTime(1000, audioCtx.currentTime + 0.1);
+                gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+                oscillator.start();
+                oscillator.stop(audioCtx.currentTime + 0.5);
+            } else {
+                // Low Buzz
+                oscillator.type = 'sawtooth';
+                oscillator.frequency.setValueAtTime(150, audioCtx.currentTime);
+                oscillator.frequency.linearRampToValueAtTime(100, audioCtx.currentTime + 0.3);
+                gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                gainNode.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+                oscillator.start();
+                oscillator.stop(audioCtx.currentTime + 0.3);
+            }
+        }
+
+        // Start
+        loadQuestion();
+
+    </script>
+</body>
+</html>

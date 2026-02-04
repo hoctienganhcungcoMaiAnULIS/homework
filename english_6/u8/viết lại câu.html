@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ms Mai An ULIS - Tiếng Anh Tương Tác</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        :root {
+            --primary: #8854C0;
+            --secondary: #00C9A7;
+            --correct: #00D26A;
+            --wrong: #FF4757;
+            --bg-color: #F0F2F5;
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: var(--bg-color);
+            background-image: radial-gradient(#d1d5db 1px, transparent 1px);
+            background-size: 20px 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-x: hidden;
+        }
+
+        .header-small {
+            font-size: 0.9rem;
+            color: var(--primary);
+            font-weight: 700;
+            margin-top: 10px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .game-card {
+            background: white;
+            border-radius: 25px;
+            box-shadow: 0 10px 0 rgba(0,0,0,0.1);
+            width: 90%;
+            max-width: 650px;
+            padding: 30px;
+            margin: 20px 0;
+            position: relative;
+            transition: transform 0.3s;
+        }
+
+        .option-btn {
+            width: 100%;
+            padding: 18px;
+            margin-bottom: 15px;
+            border: 2px solid #e5e7eb;
+            border-radius: 18px;
+            background: white;
+            font-weight: 700;
+            color: #4b5563;
+            text-align: left;
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 5px 0 #e5e7eb;
+            cursor: pointer;
+            position: relative;
+            font-size: 1.1rem;
+        }
+
+        .option-btn:hover {
+            transform: scale(1.02);
+            border-color: var(--primary);
+            color: var(--primary);
+            box-shadow: 0 5px 0 var(--primary);
+        }
+
+        .option-btn.correct {
+            background-color: var(--correct) !important;
+            color: white !important;
+            border-color: #00b35a !important;
+            box-shadow: 0 5px 0 #00994d !important;
+        }
+
+        .option-btn.wrong {
+            background-color: var(--wrong) !important;
+            color: white !important;
+            border-color: #e03e4d !important;
+            box-shadow: 0 5px 0 #c03542 !important;
+        }
+
+        .explanation-box {
+            display: none;
+            margin-top: 20px;
+            padding: 20px;
+            background: #fdf2f8;
+            border-radius: 15px;
+            border-left: 6px solid var(--primary);
+            animation: slideIn 0.4s ease-out;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .shake {
+            animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+        }
+
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-1px, 0, 0); }
+            20%, 80% { transform: translate3d(2px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+            40%, 60% { transform: translate3d(4px, 0, 0); }
+        }
+
+        .progress-container {
+            width: 90%;
+            max-width: 600px;
+            height: 12px;
+            background: #e5e7eb;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
+        .ms-an-tag {
+            background: var(--primary);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            margin-bottom: 5px;
+            display: inline-block;
+        }
+
+        .score-popup {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 40px;
+            border-radius: 30px;
+            box-shadow: 0 0 100px rgba(0,0,0,0.3);
+            z-index: 100;
+            text-align: center;
+            width: 80%;
+            max-width: 400px;
+        }
+
+        .overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 99;
+        }
+
+        .glossary-table {
+            width: 100%;
+            margin-top: 15px;
+            border-collapse: collapse;
+            border-radius: 10px;
+            overflow: hidden;
+            font-size: 0.9rem;
+        }
+
+        .glossary-table th {
+            background: var(--secondary);
+            color: white;
+            padding: 8px;
+        }
+
+        .glossary-table td {
+            background: #f0fff4;
+            padding: 8px;
+            border: 1px solid #c6f6d5;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header-small">Giáo viên tạo: Ms Mai An ULIS</div>
+    <h1 class="text-3xl font-extrabold text-[#8854C0] my-4 text-center px-4">Sentence Transformation Challenge</h1>
+
+    <div class="progress-container">
+        <div class="progress-bar" id="progressBar"></div>
+    </div>
+
+    <div id="gameContainer">
+        <!-- Question cards will be injected here -->
+    </div>
+
+    <button id="submitBtn" onclick="showFinalResult()" class="hidden mb-10 px-10 py-4 bg-[#00C9A7] text-white font-extrabold rounded-2xl shadow-[0_6px_0_#00a88b] hover:translate-y-1 hover:shadow-[0_2px_0_#00a88b] transition-all">
+        NỘP BÀI TỔNG KẾT
+    </button>
+
+    <div class="overlay" id="overlay"></div>
+    <div class="score-popup" id="scorePopup">
+        <h2 class="text-3xl font-black mb-4" id="scoreTitle">Tuyệt vời!</h2>
+        <p class="text-lg mb-6" id="scoreText"></p>
+        <button onclick="location.reload()" class="px-8 py-3 bg-[#8854C0] text-white font-bold rounded-xl">LÀM LẠI BÀI</button>
+    </div>
+
+    <script>
+        const questionsData = [
+            {
+                id: 1,
+                q: "Exercise 18 - Q1: Tom plays football better than his brother. <br>→ Tom's brother doesn't ___________________________________ Tom. (WELL)",
+                options: [
+                    { text: "play football as well as", isCorrect: true },
+                    { text: "play football better than", isCorrect: false },
+                    { text: "play football as good as", isCorrect: false },
+                    { text: "plays football as well as", isCorrect: false }
+                ],
+                explanation: `
+                    <strong>Cô Mai An giải thích:</strong><br>
+                    1. <strong>Dịch câu:</strong> "Tom chơi bóng đá giỏi hơn anh trai cậu ấy."<br>
+                    2. <strong>Phân tích 4 đáp án:</strong><br>
+                    - A. play football as well as (adv): chơi bóng đá giỏi bằng.<br>
+                    - B. play football better than (adv): chơi bóng đá giỏi hơn.<br>
+                    - C. play football as good as: Sai ngữ pháp (play là động từ thường nên dùng trạng từ 'well').<br>
+                    - D. plays football as well as: Sai ngữ pháp (sau trợ động từ 'doesn't' phải là V nguyên mẫu).<br>
+                    3. <strong>Tại sao chọn A?</strong> Chuyển từ so sánh hơn (better than) sang phủ định của so sánh bằng (not as well as) để giữ nguyên nghĩa của câu.<br>
+                    4. <strong>Tại sao loại B, C, D?</strong> B sai nghĩa, C sai loại từ (good là adj), D sai chia động từ.
+                `
+            },
+            {
+                id: 2,
+                q: "Exercise 18 - Q2: I find swimming more interesting than running. <br>→ I think running ___________________________________ swimming. (BORING)",
+                options: [
+                    { text: "is more boring than", isCorrect: true },
+                    { text: "is as boring as", isCorrect: false },
+                    { text: "more boring than", isCorrect: false },
+                    { text: "is boring than", isCorrect: false }
+                ],
+                explanation: `
+                    <strong>Cô Mai An giải thích:</strong><br>
+                    1. <strong>Dịch câu:</strong> "Tôi thấy bơi lội thú vị hơn chạy bộ."<br>
+                    2. <strong>Phân tích 4 đáp án:</strong><br>
+                    - A. is more boring than (adj): nhàm chán hơn.<br>
+                    - B. is as boring as (adj): nhàm chán bằng.<br>
+                    - C. more boring than: Thiếu động từ to-be 'is'.<br>
+                    - D. is boring than: Sai cấu trúc so sánh hơn (thiếu 'more').<br>
+                    3. <strong>Tại sao chọn A?</strong> "Interesting" (thú vị) ngược nghĩa với "Boring" (nhàm chán). Nếu bơi thú vị hơn chạy, thì chạy nhàm chán hơn bơi.<br>
+                    4. <strong>Tại sao loại B, C, D?</strong> B sai nghĩa, C và D lỗi cấu trúc ngữ pháp.
+                `
+            },
+            {
+                id: 3,
+                q: "Exercise 18 - Q3: Our team has fifteen players. <br>→ There ___________________________________ our team. (ARE)",
+                options: [
+                    { text: "are fifteen players in", isCorrect: true },
+                    { text: "are fifteen players on", isCorrect: false },
+                    { text: "are fifteen player in", isCorrect: false },
+                    { text: "is fifteen players in", isCorrect: false }
+                ],
+                explanation: `
+                    <strong>Cô Mai An giải thích:</strong><br>
+                    1. <strong>Dịch câu:</strong> "Đội của chúng tôi có 15 cầu thủ."<br>
+                    2. <strong>Phân tích 4 đáp án:</strong><br>
+                    - A. are fifteen players in: Có 15 người trong (đúng ngữ pháp).<br>
+                    - B. are fifteen players on: Giới từ 'on' ít dùng trong ngữ cảnh này bằng 'in'.<br>
+                    - C. are fifteen player in: Sai vì 'fifteen' đi với danh từ số nhiều (players).<br>
+                    - D. is fifteen players in: Sai vì 'players' số nhiều dùng 'are'.<br>
+                    3. <strong>Tại sao chọn A?</strong> Cấu trúc "There are + danh từ số nhiều + in..." dùng để chỉ sự tồn tại.<br>
+                    4. <strong>Tại sao loại B, C, D?</strong> C lỗi danh từ số ít/nhiều, D lỗi chia động từ.
+                `
+            },
+            {
+                id: 4,
+                q: "Exercise 18 - Q4: She started playing tennis when she was eight. <br>→ She has ___________________________________ she was eight. (SINCE)",
+                options: [
+                    { text: "played tennis since", isCorrect: true },
+                    { text: "played tennis when", isCorrect: false },
+                    { text: "start playing tennis since", isCorrect: false },
+                    { text: "been playing tennis when", isCorrect: false }
+                ],
+                explanation: `
+                    <strong>Cô Mai An giải thích:</strong><br>
+                    1. <strong>Dịch câu:</strong> "Cô ấy bắt đầu chơi tennis khi lên 8 tuổi."<br>
+                    2. <strong>Phân tích 4 đáp án:</strong><br>
+                    - A. played tennis since: đã chơi tennis kể từ khi (đúng thì HTHT).<br>
+                    - B. played tennis when: khi (HTHT không đi với when để chỉ mốc bắt đầu).<br>
+                    - C. start playing tennis since: Sai cấu trúc (sau 'has' là V3/ed).<br>
+                    - D. been playing tennis when: Sai từ nối.<br>
+                    3. <strong>Tại sao chọn A?</strong> Chuyển từ QKĐ (started + Ving) sang HTHT (Has + V3/ed) dùng 'since' cho mốc thời gian.<br>
+                    4. <strong>Tại sao loại B, C, D?</strong> Lỗi dùng từ nối và chia thì.
+                `
+            },
+            {
+                id: 5,
+                q: "Exercise 18 - Q5: It's not good to play video games for too long. <br>→ You ___________________________________ video games for too long. (SHOULDN'T)",
+                options: [
+                    { text: "shouldn't play", isCorrect: true },
+                    { text: "shouldn't to play", isCorrect: false },
+                    { text: "shouldn't playing", isCorrect: false },
+                    { text: "shouldn't played", isCorrect: false }
+                ],
+                explanation: `
+                    <strong>Cô Mai An giải thích:</strong><br>
+                    1. <strong>Dịch câu:</strong> "Thật không tốt khi chơi điện tử quá lâu."<br>
+                    2. <strong>Phân tích 4 đáp án:</strong><br>
+                    - A. shouldn't play: không nên chơi (đúng cấu trúc Modal Verb).<br>
+                    - B. shouldn't to play: Sai (Shouldn't + V-inf, không có 'to').<br>
+                    - C. shouldn't playing: Sai (không dùng V-ing sau should).<br>
+                    - D. shouldn't played: Sai (không dùng V-ed sau should).<br>
+                    3. <strong>Tại sao chọn A?</strong> "It's not good to" là lời khuyên mang tính phủ định, tương đương với "Shouldn't + V nguyên mẫu".
+                `
+            }
+        ];
+
+        let currentQuestion = 0;
+        let score = 0;
+        const totalQuestions = questionsData.length;
+
+        function renderQuestions() {
+            const container = document.getElementById('gameContainer');
+            questionsData.forEach((q, index) => {
+                const card = document.createElement('div');
+                card.className = 'game-card';
+                card.id = `card-${index}`;
+                card.innerHTML = `
+                    <div class="ms-an-tag">Ms Mai An ULIS</div>
+                    <p class="text-xl font-bold mb-6 text-gray-800">${q.q}</p>
+                    <div id="options-${index}">
+                        ${q.options.map((opt, i) => `
+                            <button class="option-btn" onclick="checkAnswer(${index}, ${i}, this)">
+                                ${opt.text}
+                            </button>
+                        `).join('')}
+                    </div>
+                    <div class="explanation-box" id="explanation-${index}">
+                        ${q.explanation}
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        const ding = new Audio('https://assets.mixkit.co/active_storage/sfx/2000/2000-preview.mp3');
+        const buzz = new Audio('https://assets.mixkit.co/active_storage/sfx/2013/2013-preview.mp3');
+
+        function checkAnswer(qIdx, optIdx, btn) {
+            const question = questionsData[qIdx];
+            const optionsDiv = document.getElementById(`options-${qIdx}`);
+            const explanation = document.getElementById(`explanation-${qIdx}`);
+            const card = document.getElementById(`card-${qIdx}`);
+
+            // Disable all buttons in this question
+            const buttons = optionsDiv.getElementsByTagName('button');
+            for (let b of buttons) b.disabled = true;
+
+            const isCorrect = question.options[optIdx].isCorrect;
+
+            if (isCorrect) {
+                btn.classList.add('correct');
+                ding.play();
+                score++;
+                confetti({
+                    particleCount: 100,
+                    spread: 70,
+                    origin: { y: 0.6 },
+                    colors: ['#8854C0', '#00C9A7', '#00D26A']
+                });
+            } else {
+                btn.classList.add('wrong');
+                card.classList.add('shake');
+                buzz.play();
+                // Highlight the correct one
+                const correctIdx = question.options.findIndex(o => o.isCorrect);
+                buttons[correctIdx].classList.add('correct');
+            }
+
+            explanation.style.display = 'block';
+            updateProgress();
+            
+            // Show submit button if last question answered
+            const answeredCount = document.querySelectorAll('.option-btn.correct, .option-btn.wrong').length / 1; 
+            // Note: calculation above is simplified. Let's use a better tracker.
+        }
+
+        let answeredIndices = new Set();
+        function updateProgress() {
+            const answeredCount = document.querySelectorAll('.explanation-box[style*="display: block"]').length;
+            const percentage = (answeredCount / totalQuestions) * 100;
+            document.getElementById('progressBar').style.width = percentage + '%';
+            
+            if (answeredCount === totalQuestions) {
+                document.getElementById('submitBtn').classList.remove('hidden');
+            }
+        }
+
+        function showFinalResult() {
+            const popup = document.getElementById('scorePopup');
+            const overlay = document.getElementById('overlay');
+            const scoreText = document.getElementById('scoreText');
+            const scoreTitle = document.getElementById('scoreTitle');
+
+            popup.style.display = 'block';
+            overlay.style.display = 'block';
+
+            let comment = "";
+            if (score === totalQuestions) {
+                scoreTitle.innerText = "🌟 XUẤT SẮC!";
+                comment = "Bạn thực sự là một cao thủ ngữ pháp! Ms Mai An rất tự hào về bạn!";
+            } else if (score >= totalQuestions / 2) {
+                scoreTitle.innerText = "👍 KHÁ TỐT!";
+                comment = "Bạn đã làm rất tốt, chỉ cần chú ý kỹ một chút các bẫy nhỏ nữa thôi.";
+            } else {
+                scoreTitle.innerText = "💪 CỐ GẮNG LÊN!";
+                comment = "Đừng nản chí nhé, hãy đọc kỹ phần giải thích của Ms Mai An và thử lại nha!";
+            }
+
+            scoreText.innerHTML = `Bạn đã đúng <b>${score}/${totalQuestions}</b> câu.<br><br>${comment}`;
+        }
+
+        window.onload = renderQuestions;
+    </script>
+</body>
+</html>

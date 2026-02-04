@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>English Sport Quiz - Ms Mai An ULIS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root {
+            --primary: #8854C0;
+            --secondary: #00C9A7;
+            --correct: #00D26A;
+            --wrong: #FF4757;
+            --bg-light: #FDF2F8;
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: var(--bg-light);
+            background-image: radial-gradient(#8854c022 2px, transparent 2px);
+            background-size: 30px 30px;
+            color: #2D3436;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .author-tag {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .quiz-container {
+            width: 100%;
+            max-width: 800px;
+            perspective: 1000px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 25px;
+            padding: 30px;
+            box-shadow: 0 15px 0px rgba(136, 84, 192, 0.2);
+            border: 4px solid #F0E6FF;
+            margin-bottom: 40px;
+            transition: transform 0.3s ease;
+        }
+
+        .btn-option {
+            width: 100%;
+            text-align: left;
+            padding: 15px 25px;
+            margin-bottom: 12px;
+            border-radius: 20px;
+            background: white;
+            border: 3px solid #E0E0E0;
+            box-shadow: 0 6px 0px #E0E0E0;
+            font-weight: 700;
+            transition: all 0.2s;
+            position: relative;
+            cursor: pointer;
+            outline: none;
+        }
+
+        .btn-option:hover {
+            transform: translateY(-3px);
+            border-color: var(--primary);
+            box-shadow: 0 9px 0px var(--primary);
+            background-color: #F8F4FF;
+        }
+
+        .btn-option:active {
+            transform: translateY(3px);
+            box-shadow: 0 2px 0px var(--primary);
+        }
+
+        .btn-option.correct {
+            background-color: var(--correct) !important;
+            color: white !important;
+            border-color: #00A654 !important;
+            box-shadow: 0 6px 0px #00A654 !important;
+        }
+
+        .btn-option.wrong {
+            background-color: var(--wrong) !important;
+            color: white !important;
+            border-color: #D63031 !important;
+            box-shadow: 0 6px 0px #D63031 !important;
+        }
+
+        .explanation {
+            background-color: #F0F9FF;
+            border-left: 8px solid #3498DB;
+            padding: 20px;
+            border-radius: 15px;
+            margin-top: 20px;
+            display: none;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .shake {
+            animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+        }
+
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-1px, 0, 0); }
+            20%, 80% { transform: translate3d(2px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+            40%, 60% { transform: translate3d(4px, 0, 0); }
+        }
+
+        .progress-bar-container {
+            width: 100%;
+            height: 15px;
+            background: #E0E0E0;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--secondary), #55efc4);
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
+        .glossary-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            border-radius: 15px;
+            overflow: hidden;
+            margin: 20px 0;
+            border: 2px solid #E0E0E0;
+        }
+
+        .glossary-table th {
+            background-color: var(--primary);
+            color: white;
+            padding: 12px;
+        }
+
+        .glossary-table td {
+            padding: 12px;
+            border-bottom: 1px solid #E0E0E0;
+            background: #FFF;
+        }
+
+        .submit-btn {
+            background: var(--secondary);
+            color: white;
+            padding: 15px 40px;
+            border-radius: 50px;
+            font-size: 1.2rem;
+            font-weight: 900;
+            border: none;
+            box-shadow: 0 8px 0px #00A88B;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 30px;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 0px #00A88B;
+        }
+
+        .submit-btn:active {
+            transform: translateY(4px);
+            box-shadow: 0 2px 0px #00A88B;
+        }
+
+        #result-popup {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 40px;
+            border-radius: 30px;
+            box-shadow: 0 0 100px rgba(0,0,0,0.3);
+            z-index: 1000;
+            text-align: center;
+            width: 90%;
+            max-width: 500px;
+        }
+
+        .overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 999;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="author-tag">Giáo viên tạo: Ms Mai An ULIS</div>
+    <h1 class="text-4xl font-black text-center mb-6 text-[#8854C0]">SPORT CHALLENGE 🏆</h1>
+
+    <div class="quiz-container">
+        <div class="progress-bar-container">
+            <div id="progress-fill" class="progress-fill"></div>
+        </div>
+
+        <div id="quiz-area">
+            <!-- Questions will be injected here -->
+        </div>
+
+        <div class="text-center">
+            <button onclick="calculateFinalScore()" class="submit-btn">NỘP BÀI XEM KẾT QUẢ</button>
+        </div>
+    </div>
+
+    <div id="overlay" class="overlay"></div>
+    <div id="result-popup">
+        <h2 class="text-3xl font-black text-purple-600 mb-4">KẾT QUẢ CỦA BẠN</h2>
+        <div id="score-text" class="text-5xl font-bold mb-4">0/34</div>
+        <p id="praise-text" class="text-xl italic text-gray-600 mb-6"></p>
+        <button onclick="location.reload()" class="submit-btn" style="background: var(--primary); box-shadow: 0 8px 0px #6C449E;">LÀM LẠI NÀO!</button>
+    </div>
+
+    <!-- Audio assets simulated via web audio or URLs -->
+    <audio id="sound-correct" src="https://assets.mixkit.co/active_storage/sfx/2013/2013-preview.mp3"></audio>
+    <audio id="sound-wrong" src="https://assets.mixkit.co/active_storage/sfx/2105/2105-preview.mp3"></audio>
+
+    <script>
+        const quizData = [
+            {
+                number: 1,
+                question: "II.1. Complete the second sentence so it has a similar meaning to the first:<br>'What sport do you like best?'<br>=> What is ________________?",
+                options: ["your favorite sport", "your best sport", "the sport you like", "sport you like best"],
+                correct: 0,
+                explanation: `
+                    <div class='font-bold text-blue-800 mb-2'>Cô Mai An giải thích:</div>
+                    <p><b>1. Dịch câu hỏi:</b> Môn thể thao nào bạn thích nhất?</p>
+                    <p><b>2. Phân tích đáp án:</b><br>
+                    - A. your favorite sport (np): môn thể thao yêu thích nhất.<br>
+                    - B. your best sport: môn bạn chơi giỏi nhất (sai nghĩa).<br>
+                    - C. the sport you like: thiếu ý so sánh nhất.<br>
+                    - D. sport you like best: sai ngữ pháp (thiếu sở hữu/mạo từ).</p>
+                    <p><b>3. Tại sao đúng:</b> "Like best" tương đương với "Favorite". Cấu trúc hỏi sở thích phổ biến: What is your favorite + N?</p>
+                `
+            },
+            {
+                number: 2,
+                question: "II.2. Rewrite:<br>'Mark plays football better than Tim.'<br>=> Tim doesn’t ________________.",
+                options: ["play football as well as Mark", "play football as good as Mark", "play football better than Mark", "plays football so well as Mark"],
+                correct: 0,
+                explanation: `
+                    <div class='font-bold text-blue-800 mb-2'>Cô Mai An giải thích:</div>
+                    <p><b>1. Dịch câu:</b> Mark đá bóng giỏi hơn Tim.</p>
+                    <p><b>2. Phân tích:</b><br>
+                    - A. play... as well as: không giỏi bằng (ĐÚNG).<br>
+                    - B. as good as: Sai vì "play" là động từ thường cần trạng từ "well".<br>
+                    - C. better than: Sai nghĩa.<br>
+                    - D. plays...: Sau "doesn't" động từ phải nguyên mẫu.</p>
+                `
+            },
+            {
+                number: 3,
+                question: "II.3. Rewrite:<br>'Beckham was a very good football player.'<br>=> Beckham played ________________.",
+                options: ["football very well", "football very good", "very well football", "a football very well"],
+                correct: 0,
+                explanation: `
+                    <div class='font-bold text-blue-800 mb-2'>Cô Mai An giải thích:</div>
+                    <p><b>1. Dịch:</b> Beckham là một cầu thủ bóng đá rất giỏi.</p>
+                    <p><b>2. Cấu trúc:</b> S + be + adj + N = S + V + adv. <br> "Good" (adj) chuyển sang "Well" (adv). </p>
+                    <p><b>3. Lưu ý:</b> Trạng từ thường đứng sau tân ngữ (played football well).</p>
+                `
+            },
+            {
+                number: 4,
+                question: "II.4. Rewrite:<br>'How long have you played basketball?'<br>=> When ________________?",
+                options: ["did you start playing basketball", "have you played basketball", "do you play basketball", "did you played basketball"],
+                correct: 0,
+                explanation: `
+                    <div class='font-bold text-blue-800 mb-2'>Cô Mai An giải thích:</div>
+                    <p><b>1. Dịch:</b> Bạn đã chơi bóng rổ được bao lâu rồi?</p>
+                    <p><b>2. Phân tích:</b> Cấu trúc "How long + hiện tại hoàn thành" tương đương "When + quá khứ đơn + start + Ving".</p>
+                    <p><b>3. Tại sao chọn A:</b> Hỏi về mốc thời gian bắt đầu hành động trong quá khứ.</p>
+                `
+            },
+            {
+                number: 5,
+                question: "II.5. Rewrite:<br>'Shall we play badminton this weekend?'<br>=> How about ________________?",
+                options: ["playing badminton this weekend", "to play badminton this weekend", "play badminton this weekend", "we play badminton this weekend"],
+                correct: 0,
+                explanation: `
+                    <div class='font-bold text-blue-800 mb-2'>Cô Mai An giải thích:</div>
+                    <p><b>1. Dịch:</b> Chúng ta chơi cầu lông cuối tuần này nhé?</p>
+                    <p><b>2. Cấu trúc gợi ý:</b> <br> - Shall we + V(bare)? <br> - How about + V-ing? (ĐÚNG)</p>
+                `
+            },
+            {
+                number: 6,
+                question: "II.6. Rewrite:<br>'No sport in Britain Is as popular as football.'<br>=> Football ________________.",
+                options: ["is the most popular sport in Britain", "is more popular sport in Britain", "is the popularist sport in Britain", "is as popular as other sports"],
+                correct: 0,
+                explanation: `
+                    <div class='font-bold text-blue-800 mb-2'>Cô Mai An giải thích:</div>
+                    <p><b>1. Dịch:</b> Không môn thể thao nào ở Anh phổ biến bằng bóng đá.</p>
+                    <p><b>2. Logic:</b> Không cái nào bằng => Nó là nhất (Superlative).</p>
+                    <p><b>3. Phân tích:</b> Popular là tính từ dài => The most popular.</p>
+                `
+            },
+            {
+                number: 7,
+                question: "II.7. Rewrite:<br>'My brother is not so interested in basketball as I am.'<br>=> I ________________.",
+                options: ["am more interested in basketball than my brother", "am as interested in basketball as my brother", "am not interested in basketball as my brother", "am less interested in basketball than my brother"],
+                correct: 0,
+                explanation: `
+                    <div class='font-bold text-blue-800 mb-2'>Cô Mai An giải thích:</div>
+                    <p><b>1. Dịch:</b> Anh trai tôi không hứng thú với bóng rổ bằng tôi.</p>
+                    <p><b>2. Logic:</b> Anh không bằng tôi => Tôi hơn anh. <br> So sánh hơn với tính từ dài: more + adj + than.</p>
+                `
+            },
+            {
+                number: 8,
+                question: "II.8. Rewrite:<br>'It’s good for you to do morning exercise regularly.'<br>=> You ________________.",
+                options: ["should do morning exercise regularly", "can do morning exercise regularly", "may do morning exercise regularly", "would do morning exercise regularly"],
+                correct: 0,
+                explanation: `
+                    <div class='font-bold text-blue-800 mb-2'>Cô Mai An giải thích:</div>
+                    <p><b>1. Dịch:</b> Thật tốt nếu bạn tập thể dục sáng đều đặn.</p>
+                    <p><b>2. Cấu trúc:</b> "It's good to do..." là một lời khuyên, tương đương với động từ khuyết thiếu "Should" (nên).</p>
+                `
+            },
+            {
+                number: 9,
+                question: "III.1. Keywords: bike, helmet, ride, race. What is the sport?",
+                options: ["Cycling", "Motorbiking", "Running", "Horse racing"],
+                correct: 0,
+                explanation: "<p>Dựa trên từ khóa 'bike' (xe đạp) và 'helmet' (mũ bảo hiểm), đây là môn Đạp xe.</p>"
+            },
+            {
+                number: 10,
+                question: "III.2. Keywords: ball, goal, kick, penalty. What is the sport?",
+                options: ["Football", "Basketball", "Volleyball", "Tennis"],
+                correct: 0,
+                explanation: "<p>Từ khóa 'kick' (đá) và 'goal' (khung thành) chỉ có ở môn Bóng đá.</p>"
+            },
+            {
+                number: 11,
+                question: "III.3. Keywords: ring, gloves, punch, mouth guard. What is the sport?",
+                options: ["Boxing", "Wrestling", "Karate", "Fencing"],
+                correct: 0,
+                explanation: "<p>'Punch' (đấm) và 'ring' (võ đài) là đặc trưng của Boxing (Quyền Anh).</p>"
+            },
+            {
+                number: 12,
+                question: "III.4. Keywords: racket, net, shuttlecock, serve. What is the sport?",
+                options: ["Badminton", "Tennis", "Table tennis", "Volleyball"],
+                correct: 0,
+                explanation: "<p>'Shuttlecock' chính là quả cầu lông, dụng cụ không thể thiếu của môn Cầu lông.</p>"
+            },
+            {
+                number: 13,
+                question: "III.5. Keywords: goggles, snow, skis, poles. What is the sport?",
+                options: ["Skiing", "Snowboarding", "Ice skating", "Hiking"],
+                correct: 0,
+                explanation: "<p>'Skis' là ván trượt tuyết và 'poles' là gậy chống trong môn Trượt tuyết.</p>"
+            },
+            {
+                number: 14,
+                question: "III.6. Keywords: court, racket, rubber ball, net, set. What is the sport?",
+                options: ["Tennis", "Badminton", "Basketball", "Football"],
+                correct: 0,
+                explanation: "<p>Tennis dùng 'rubber ball' (bóng cao su bọc nỉ) và thi đấu theo 'set' (hiệp).</p>"
+            },
+            {
+                number: 15,
+                question: "III.7. Keywords: ball, table, paddle, serve. What is the sport?",
+                options: ["Table tennis", "Tennis", "Billiards", "Badminton"],
+                correct: 0,
+                explanation: "<p>'Table' (bàn) và 'paddle' (vợt gỗ nhỏ) là dụng cụ của môn Bóng bàn.</p>"
+            },
+            {
+                number: 16,
+                question: "III.8. Keywords: basket, ball, court, throw, points. What is the sport?",
+                options: ["Basketball", "Volleyball", "Netball", "Football"],
+                correct: 0,
+                explanation: "<p>'Basket' (rổ) và 'throw' (ném) là hành động ghi điểm trong môn Bóng rổ.</p>"
+            },
+            {
+                number: 17,
+                question: "IV.1. My friend Mark is very good ________ volleyball.",
+                options: ["at", "in", "on", "with"],
+                correct: 0,
+                explanation: "<p>Cấu trúc cố định: To be good AT something (Giỏi về cái gì).</p>"
+            },
+            {
+                number: 18,
+                question: "IV.2. We often go swimming ________ Sunday morning.",
+                options: ["on", "in", "at", "for"],
+                correct: 0,
+                explanation: "<p>Dùng giới từ 'ON' cho các ngày trong tuần (Sunday).</p>"
+            },
+            {
+                number: 19,
+                question: "IV.3. Football is an example of a ________ sport where you play with several other people.",
+                options: ["team", "individual", "indoor", "dangerous"],
+                correct: 0,
+                explanation: "<p>Team sport: môn thể thao đồng đội (có nhiều người chơi cùng nhau).</p>"
+            },
+            {
+                number: 20,
+                question: "IV.4. We were very upset when our favourite team didn’t ________ even one goal.",
+                options: ["score", "play", "kick", "point"],
+                correct: 0,
+                explanation: "<p>Collocation: Score a goal (ghi bàn thắng).</p>"
+            },
+            {
+                number: 21,
+                question: "IV.5. Badminton requires only a net, a racket, and a birdie or ________.",
+                options: ["shuttlecock", "ball", "ski", "goggles"],
+                correct: 0,
+                explanation: "<p>'Birdie' là tên gọi thân mật của 'shuttlecock' (quả cầu lông).</p>"
+            },
+            {
+                number: 22,
+                question: "IV.6. The person who makes sure that a game is played according to the rules is a ________.",
+                options: ["referee", "coach", "judge", "player"],
+                correct: 0,
+                explanation: "<p>Referee: Trọng tài (người điều khiển luật chơi trên sân).</p>"
+            },
+            {
+                number: 23,
+                question: "IV.7. ________ up the tree! You’ll fall down.",
+                options: ["Don’t climb", "Climb", "Climbing", "Not to climb"],
+                correct: 0,
+                explanation: "<p>Câu mệnh lệnh phủ định (Negative Imperative): Don't + V (để cảnh báo).</p>"
+            },
+            {
+                number: 24,
+                question: "IV.8. ________ spectator sports in Britain are cricket and football.",
+                options: ["The most popular", "More popular", "Most popular", "The more popular"],
+                correct: 0,
+                explanation: "<p>So sánh nhất với tính từ dài: The most + popular.</p>"
+            },
+            {
+                number: 25,
+                question: "IV.9. ________ are the Olympic Games held? - Every four years.",
+                options: ["How often", "When", "Where", "How long"],
+                correct: 0,
+                explanation: "<p>'Every four years' chỉ tần suất, nên dùng 'How often' (bao lâu một lần).</p>"
+            },
+            {
+                number: 26,
+                question: "IV.10. Which sport happens in a ring?",
+                options: ["Boxing", "Basketball", "Aerobics", "Swimming"],
+                correct: 0,
+                explanation: "<p>Boxing ring: võ đài quyền anh.</p>"
+            },
+            {
+                number: 27,
+                question: "V.1. Sarah ______________ gymnastics on Saturday evenings.",
+                options: ["does", "is doing", "plays", "goes"],
+                correct: 0,
+                explanation: "<p>'Gymnastics' luôn đi với động từ 'DO'. 'On Saturday evenings' chỉ thói quen nên chia hiện tại đơn (Sarah số ít -> does).</p>"
+            },
+            {
+                number: 28,
+                question: "V.2. Mark ______________ badminton with his friends at the moment.",
+                options: ["is playing", "plays", "does", "goes"],
+                correct: 0,
+                explanation: "<p>'At the moment' (ngay bây giờ) cần thì hiện tại tiếp diễn. Badminton dùng 'PLAY'.</p>"
+            },
+            {
+                number: 29,
+                question: "V.3. My friends and I ______________ climbing yesterday.",
+                options: ["went", "played", "did", "go"],
+                correct: 0,
+                explanation: "<p>Các môn có đuôi -ing thường đi với 'GO'. Quá khứ của go là 'WENT' (vì có yesterday).</p>"
+            },
+            {
+                number: 30,
+                question: "V.4. _________ you __________ table tennis last Sunday?",
+                options: ["Did / play", "Do / play", "Did / played", "Were / play"],
+                correct: 0,
+                explanation: "<p>Câu hỏi quá khứ đơn (last Sunday) với động từ thường: Did + S + V(nguyên thể).</p>"
+            },
+            {
+                number: 31,
+                question: "V.5. Jim ______________ basketball because he wasn’t tall enough.",
+                options: ["didn't play", "doesn't play", "wasn't playing", "didn't do"],
+                correct: 0,
+                explanation: "<p>Lý do ở quá khứ (wasn't), nên hành động chơi cũng ở quá khứ (didn't play).</p>"
+            },
+            {
+                number: 32,
+                question: "V.6. We ______________ sports together when we were kids.",
+                options: ["played", "play", "went", "did"],
+                correct: 0,
+                explanation: "<p>'When we were kids' (khi còn bé) chia quá khứ đơn. Play sports: chơi thể thao.</p>"
+            },
+            {
+                number: 33,
+                question: "V.7. People often ______________ jogging in the park.",
+                options: ["go", "went", "play", "do"],
+                correct: 0,
+                explanation: "<p>Go jogging: đi chạy bộ.</p>"
+            },
+            {
+                number: 34,
+                question: "V.8. I ______________ judo now and I love it!",
+                options: ["am doing", "do", "play", "go"],
+                correct: 0,
+                explanation: "<p>Do judo (tập judo). 'Now' nhấn mạnh sự việc đang diễn ra nên dùng hiện tại tiếp diễn.</p>"
+            }
+        ];
+
+        let currentScore = 0;
+        let answeredCount = 0;
+
+        function initQuiz() {
+            const quizArea = document.getElementById('quiz-area');
+            quizData.forEach((q, index) => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.id = `q-card-${index}`;
+                card.innerHTML = `
+                    <div class="text-gray-400 font-bold mb-2">CÂU HỎI ${index + 1}</div>
+                    <div class="text-xl font-black mb-6">${q.question}</div>
+                    <div class="options-grid">
+                        ${q.options.map((opt, i) => `
+                            <button class="btn-option" onclick="checkAnswer(${index}, ${i}, this)">
+                                ${String.fromCharCode(65 + i)}. ${opt}
+                            </button>
+                        `).join('')}
+                    </div>
+                    <div id="exp-${index}" class="explanation">
+                        ${q.explanation}
+                    </div>
+                `;
+                quizArea.appendChild(card);
+            });
+        }
+
+        function checkAnswer(qIdx, optIdx, btn) {
+            const card = document.getElementById(`q-card-${qIdx}`);
+            const buttons = card.querySelectorAll('.btn-option');
+            const exp = document.getElementById(`exp-${qIdx}`);
+            const isCorrect = optIdx === quizData[qIdx].correct;
+
+            // Disable further clicks on this question
+            buttons.forEach(b => b.onclick = null);
+
+            if (isCorrect) {
+                btn.classList.add('correct');
+                currentScore++;
+                playDing();
+                confetti({
+                    particleCount: 50,
+                    spread: 40,
+                    origin: { y: 0.7 }
+                });
+            } else {
+                btn.classList.add('wrong');
+                buttons[quizData[qIdx].correct].classList.add('correct');
+                card.classList.add('shake');
+                playFail();
+                setTimeout(() => card.classList.remove('shake'), 500);
+            }
+
+            exp.style.display = 'block';
+            answeredCount++;
+            updateProgress();
+        }
+
+        function updateProgress() {
+            const percent = (answeredCount / quizData.length) * 100;
+            document.getElementById('progress-fill').style.width = percent + '%';
+        }
+
+        function playDing() {
+            const sound = document.getElementById('sound-correct');
+            sound.currentTime = 0;
+            sound.play();
+        }
+
+        function playFail() {
+            const sound = document.getElementById('sound-wrong');
+            sound.currentTime = 0;
+            sound.play();
+        }
+
+        function calculateFinalScore() {
+            if (answeredCount < quizData.length) {
+                if(!confirm("Bạn chưa làm hết các câu, vẫn muốn nộp bài chứ?")) return;
+            }
+
+            const popup = document.getElementById('result-popup');
+            const overlay = document.getElementById('overlay');
+            const scoreText = document.getElementById('score-text');
+            const praiseText = document.getElementById('praise-text');
+
+            scoreText.innerText = `${currentScore}/${quizData.length}`;
+            
+            let message = "";
+            const ratio = currentScore / quizData.length;
+            if (ratio === 1) message = "XUẤT SẮC! Bạn là một vận động viên tiếng Anh thực thụ! 🏅";
+            else if (ratio >= 0.8) message = "Tuyệt vời! Cô Mai An rất tự hào về bạn! 🌟";
+            else if (ratio >= 0.5) message = "Khá lắm! Cố gắng luyện tập thêm chút nữa nhé! 💪";
+            else message = "Đừng nản chí! Hãy xem kỹ phần giải thích của cô và làm lại nhé! ❤️";
+
+            praiseText.innerText = message;
+            
+            popup.style.display = 'block';
+            overlay.style.display = 'block';
+
+            if (ratio >= 0.7) {
+                confetti({
+                    particleCount: 200,
+                    spread: 70,
+                    origin: { y: 0.6 }
+                });
+            }
+        }
+
+        window.onload = initQuiz;
+    </script>
+</body>
+</html>

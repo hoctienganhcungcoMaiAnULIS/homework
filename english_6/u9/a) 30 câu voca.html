@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>English Review Challenge - Ms Mai An ULIS</title>
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Confetti Effect -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --primary-purple: #8854C0;
+            --primary-teal: #00C9A7;
+            --correct-green: #00D26A;
+            --wrong-red: #FF4757;
+            --bg-pattern: #f3f4f6;
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: #f0fdf4;
+            background-image: radial-gradient(#8854c033 2px, transparent 2px), radial-gradient(#00c9a733 2px, transparent 2px);
+            background-size: 32px 32px;
+            background-position: 0 0, 16px 16px;
+            color: #2d3748;
+        }
+
+        .header-container {
+            background: linear-gradient(135deg, #8854C0 0%, #a78bfa 100%);
+            box-shadow: 0 8px 0 #6b21a8;
+            border-radius: 20px;
+        }
+
+        /* 3D Button Styles */
+        .btn-option {
+            transition: all 0.1s;
+            border-bottom: 6px solid #e2e8f0;
+            position: relative;
+            top: 0;
+        }
+
+        .btn-option:hover:not(:disabled) {
+            transform: scale(1.02);
+            filter: brightness(105%);
+        }
+
+        .btn-option:active:not(:disabled) {
+            top: 6px;
+            border-bottom: 0px solid transparent;
+            box-shadow: none;
+        }
+
+        /* Correct State */
+        .btn-correct {
+            background-color: var(--correct-green) !important;
+            border-color: #00a352 !important; /* Darker green for border */
+            color: white !important;
+        }
+
+        /* Wrong State */
+        .btn-wrong {
+            background-color: var(--wrong-red) !important;
+            border-color: #d63031 !important; /* Darker red for border */
+            color: white !important;
+            animation: shake 0.5s;
+        }
+
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-10px) rotate(-5deg); }
+            50% { transform: translateX(10px) rotate(5deg); }
+            75% { transform: translateX(-10px) rotate(-5deg); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Explanation Box */
+        .explanation-box {
+            background-color: #fff;
+            border-left: 5px solid var(--primary-purple);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            animation: slideDown 0.4s ease-out;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Teacher Avatar Area */
+        .teacher-badge {
+            background: #fff;
+            border: 3px solid var(--primary-teal);
+            box-shadow: 4px 4px 0 var(--primary-purple);
+        }
+
+        /* Vocabulary Table */
+        .vocab-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size: 0.95rem;
+        }
+        .vocab-table th {
+            background-color: #f3e8ff;
+            color: #6b21a8;
+            padding: 8px;
+            text-align: left;
+            border-bottom: 2px solid #d8b4fe;
+        }
+        .vocab-table td {
+            padding: 8px;
+            border-bottom: 1px solid #e9d5ff;
+        }
+    </style>
+</head>
+<body class="min-h-screen p-4 md:p-8">
+
+    <div class="max-w-4xl mx-auto">
+        <!-- Header -->
+        <header class="header-container text-white p-6 mb-10 text-center relative z-10">
+            <h1 class="text-3xl md:text-5xl font-extrabold mb-2 font-quicksand drop-shadow-md">
+                ENGLISH REVIEW CHALLENGE
+            </h1>
+            <div class="inline-flex items-center gap-2 bg-white text-purple-700 px-4 py-1 rounded-full font-bold shadow-lg">
+                <i class="fas fa-chalkboard-teacher"></i>
+                <span>Ms Mai An ULIS</span>
+            </div>
+            <p class="mt-2 text-purple-100 text-sm md:text-base opacity-90">Chinh phục 30 câu hỏi Từ vựng & Ngữ pháp siêu đỉnh!</p>
+        </header>
+
+        <!-- Progress Bar -->
+        <div class="mb-8 bg-white rounded-full h-4 shadow-inner overflow-hidden border-2 border-purple-200">
+            <div id="progress-bar" class="bg-gradient-to-r from-purple-500 to-teal-400 h-full w-0 transition-all duration-500 ease-out"></div>
+        </div>
+
+        <!-- Quiz Container -->
+        <div id="quiz-container" class="space-y-12">
+            <!-- Questions will be injected here by JS -->
+        </div>
+
+        <!-- Submit Button -->
+        <div class="text-center mt-12 pb-20">
+            <button onclick="submitQuiz()" class="bg-yellow-400 hover:bg-yellow-300 text-yellow-900 text-2xl font-bold py-4 px-12 rounded-2xl shadow-[0_6px_0_#b7791f] active:shadow-none active:translate-y-1.5 transition-all">
+                <i class="fas fa-paper-plane mr-2"></i> NỘP BÀI (SUBMIT)
+            </button>
+        </div>
+    </div>
+
+    <!-- Score Modal -->
+    <div id="score-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden backdrop-blur-sm">
+        <div class="bg-white rounded-3xl p-8 max-w-md w-full text-center border-4 border-purple-500 shadow-2xl transform scale-100 transition-transform">
+            <div class="text-6xl mb-4">🏆</div>
+            <h2 class="text-3xl font-bold text-purple-700 mb-4 font-quicksand">KẾT QUẢ</h2>
+            <div class="text-5xl font-extrabold text-teal-500 mb-2" id="final-score">0/30</div>
+            <p class="text-gray-600 mb-6" id="feedback-text">Bạn đã làm rất tốt!</p>
+            <button onclick="closeModal()" class="bg-purple-600 text-white font-bold py-3 px-8 rounded-xl shadow-lg hover:bg-purple-700 transition">
+                Xem lại bài làm
+            </button>
+        </div>
+    </div>
+
+    <!-- Audio Elements (Using CDN for reliability in single file) -->
+    <audio id="sound-correct" src="https://assets.mixkit.co/active_storage/sfx/2000/2000-preview.mp3"></audio>
+    <audio id="sound-wrong" src="https://assets.mixkit.co/active_storage/sfx/2003/2003-preview.mp3"></audio>
+
+<script>
+    // --- DỮ LIỆU ĐỀ BÀI (TỪ FILE GỐC) ---
+    const quizData = [
+{
+"questionNumber": 1,
+"question": "In Tokyo, you can see both old and ______ buildings.",
+"answerOptions": [
+{ "text": "modern", "rationale": "1. Phân tích từ vựng:\nA. modern (adj): hiện đại.\nB. heavy (adj): nặng.\nC. rainy (adj): có mưa.\nD. tasty (adj): ngon miệng.\n\n2. Dịch nghĩa toàn câu: \"Ở Tokyo, bạn có thể nhìn thấy cả những tòa nhà cổ kính và hiện đại.\"\n\n3. Tại sao chọn A?\nCụm từ \"old and...\" (cũ và...) thường đi kèm với một từ trái nghĩa để tạo sự đối lập hoặc bao quát. \"Modern\" (hiện đại) là từ đối lập hợp lý nhất với \"old\" khi nói về kiến trúc.", "isCorrect": true },
+{ "text": "heavy", "rationale": "1. Phân tích từ vựng:\nA. modern (adj): hiện đại.\nB. heavy (adj): nặng.\nC. rainy (adj): có mưa.\nD. tasty (adj): ngon miệng.\n\n2. Dịch nghĩa toàn câu: \"Ở Tokyo, bạn có thể nhìn thấy cả những tòa nhà cổ kính và hiện đại.\"\n\n3. Tại sao loại B?\n\"Heavy\" thường dùng cho giao thông (traffic) hoặc mưa (rain), không dùng để miêu tả phong cách tòa nhà trong ngữ cảnh này.", "isCorrect": false },
+{ "text": "rainy", "rationale": "1. Phân tích từ vựng:\nA. modern (adj): hiện đại.\nB. heavy (adj): nặng.\nC. rainy (adj): có mưa.\nD. tasty (adj): ngon miệng.\n\n2. Dịch nghĩa toàn câu: \"Ở Tokyo, bạn có thể nhìn thấy cả những tòa nhà cổ kính và hiện đại.\"\n\n3. Tại sao loại C?\n\"Rainy\" dùng cho thời tiết, không dùng cho tòa nhà.", "isCorrect": false },
+{ "text": "tasty", "rationale": "1. Phân tích từ vựng:\nA. modern (adj): hiện đại.\nB. heavy (adj): nặng.\nC. rainy (adj): có mưa.\nD. tasty (adj): ngon miệng.\n\n2. Dịch nghĩa toàn câu: \"Ở Tokyo, bạn có thể nhìn thấy cả những tòa nhà cổ kính và hiện đại.\"\n\n3. Tại sao loại D?\n\"Tasty\" dùng cho món ăn, không dùng cho tòa nhà.", "isCorrect": false }
+],
+"hint": "Cần một tính từ trái nghĩa với 'old' để miêu tả sự đa dạng của các tòa nhà."
+},
+{
+"questionNumber": 2,
+"question": "The ______ season in Ho Chi Minh City normally starts in May.",
+"answerOptions": [
+{ "text": "rainy", "rationale": "1. Phân tích từ vựng:\nA. rainy (adj): có mưa, mùa mưa.\nB. sunny (adj): có nắng.\nC. friendly (adj): thân thiện.\nD. exciting (adj): thú vị.\n\n2. Dịch nghĩa toàn câu: \"Mùa mưa ở Thành phố Hồ Chí Minh thường bắt đầu vào tháng Năm.\"\n\n3. Tại sao chọn A?\nDựa vào kiến thức địa lý và cụm từ phổ biến \"rainy season\" (mùa mưa). Tháng 5 thường là thời điểm bắt đầu mùa mưa ở miền Nam Việt Nam.", "isCorrect": true },
+{ "text": "sunny", "rationale": "1. Phân tích từ vựng:\nA. rainy (adj): có mưa, mùa mưa.\nB. sunny (adj): có nắng.\nC. friendly (adj): thân thiện.\nD. exciting (adj): thú vị.\n\n2. Dịch nghĩa toàn câu: \"Mùa mưa ở Thành phố Hồ Chí Minh thường bắt đầu vào tháng Năm.\"\n\n3. Tại sao loại B?\nMặc dù có \"sunny season\" (mùa nắng), nhưng ngữ cảnh tháng 5 thường được nhắc đến là sự khởi đầu của mùa mưa.", "isCorrect": false },
+{ "text": "friendly", "rationale": "1. Phân tích từ vựng:\nA. rainy (adj): có mưa, mùa mưa.\nB. sunny (adj): có nắng.\nC. friendly (adj): thân thiện.\nD. exciting (adj): thú vị.\n\n2. Dịch nghĩa toàn câu: \"Mùa mưa ở Thành phố Hồ Chí Minh thường bắt đầu vào tháng Năm.\"\n\n3. Tại sao loại C?\nTính từ chỉ tính cách con người, không dùng cho mùa.", "isCorrect": false },
+{ "text": "exciting", "rationale": "1. Phân tích từ vựng:\nA. rainy (adj): có mưa, mùa mưa.\nB. sunny (adj): có nắng.\nC. friendly (adj): thân thiện.\nD. exciting (adj): thú vị.\n\n2. Dịch nghĩa toàn câu: \"Mùa mưa ở Thành phố Hồ Chí Minh thường bắt đầu vào tháng Năm.\"\n\n3. Tại sao loại D?\nKhông tạo thành cụm từ chỉ thời gian/khí hậu cố định như \"rainy season\".", "isCorrect": false }
+],
+"hint": "Đây là từ chỉ một mùa đặc trưng bắt đầu vào tháng 5."
+},
+{
+"questionNumber": 3,
+"question": "The people in our city are quite ______ to strangers. It’s easy to talk with them.",
+"answerOptions": [
+{ "text": "friendly", "rationale": "1. Phân tích từ vựng:\nA. friendly (adj): thân thiện.\nB. crowded (adj): đông đúc.\nC. peaceful (adj): yên bình.\nD. tasty (adj): ngon miệng.\n\n2. Dịch nghĩa toàn câu: \"Người dân ở thành phố chúng tôi khá thân thiện với người lạ. Rất dễ để nói chuyện với họ.\"\n\n3. Tại sao chọn A?\nVế sau \"It’s easy to talk with them\" (Rất dễ nói chuyện với họ) giải thích cho tính từ cần điền. Sự thân thiện giúp dễ giao tiếp.", "isCorrect": true },
+{ "text": "crowded", "rationale": "1. Phân tích từ vựng:\nA. friendly (adj): thân thiện.\nB. crowded (adj): đông đúc.\nC. peaceful (adj): yên bình.\nD. tasty (adj): ngon miệng.\n\n2. Dịch nghĩa toàn câu: \"Người dân ở thành phố chúng tôi khá thân thiện với người lạ. Rất dễ để nói chuyện với họ.\"\n\n3. Tại sao loại B?\n\"Crowded\" dùng cho nơi chốn, không dùng miêu tả tính cách con người.", "isCorrect": false },
+{ "text": "peaceful", "rationale": "1. Phân tích từ vựng:\nA. friendly (adj): thân thiện.\nB. crowded (adj): đông đúc.\nC. peaceful (adj): yên bình.\nD. tasty (adj): ngon miệng.\n\n2. Dịch nghĩa toàn câu: \"Người dân ở thành phố chúng tôi khá thân thiện với người lạ. Rất dễ để nói chuyện với họ.\"\n\n3. Tại sao loại C?\n\"Peaceful\" thường dùng cho khung cảnh hoặc cảm giác, ít khi dùng để nói về thái độ với người lạ.", "isCorrect": false },
+{ "text": "tasty", "rationale": "1. Phân tích từ vựng:\nA. friendly (adj): thân thiện.\nB. crowded (adj): đông đúc.\nC. peaceful (adj): yên bình.\nD. tasty (adj): ngon miệng.\n\n2. Dịch nghĩa toàn câu: \"Người dân ở thành phố chúng tôi khá thân thiện với người lạ. Rất dễ để nói chuyện với họ.\"\n\n3. Tại sao loại D?\nChỉ dùng cho món ăn.", "isCorrect": false }
+],
+"hint": "Tính từ này miêu tả thái độ cởi mở, dễ gần."
+},
+{
+"questionNumber": 4,
+"question": "My aunt makes really ______ dish with chicken and rice.",
+"answerOptions": [
+{ "text": "tasty", "rationale": "1. Phân tích từ vựng:\nA. tasty (adj): ngon miệng.\nB. heavy (adj): nặng.\nC. modern (adj): hiện đại.\nD. rainy (adj): có mưa.\n\n2. Dịch nghĩa toàn câu: \"Dì của tôi làm món gà và cơm thực sự rất ngon.\"\n\n3. Tại sao chọn A?\n\"Dish\" là món ăn, nên cần một tính từ miêu tả hương vị. \"Tasty\" là phù hợp nhất.", "isCorrect": true },
+{ "text": "heavy", "rationale": "1. Phân tích từ vựng:\nA. tasty (adj): ngon miệng.\nB. heavy (adj): nặng.\nC. modern (adj): hiện đại.\nD. rainy (adj): có mưa.\n\n2. Dịch nghĩa toàn câu: \"Dì của tôi làm món gà và cơm thực sự rất ngon.\"\n\n3. Tại sao loại B?\n\"Heavy dish\" có thể hiểu là món ăn gây đầy bụng, nhưng trong ngữ cảnh khen ngợi chung thì \"tasty\" tự nhiên hơn.", "isCorrect": false },
+{ "text": "modern", "rationale": "1. Phân tích từ vựng:\nA. tasty (adj): ngon miệng.\nB. heavy (adj): nặng.\nC. modern (adj): hiện đại.\nD. rainy (adj): có mưa.\n\n2. Dịch nghĩa toàn câu: \"Dì của tôi làm món gà và cơm thực sự rất ngon.\"\n\n3. Tại sao loại C?\nKhông hợp ngữ nghĩa với món ăn truyền thống như cơm gà.", "isCorrect": false },
+{ "text": "rainy", "rationale": "1. Phân tích từ vựng:\nA. tasty (adj): ngon miệng.\nB. heavy (adj): nặng.\nC. modern (adj): hiện đại.\nD. rainy (adj): có mưa.\n\n2. Dịch nghĩa toàn câu: \"Dì của tôi làm món gà và cơm thực sự rất ngon.\"\n\n3. Tại sao loại D?\nKhông liên quan đến món ăn.", "isCorrect": false }
+],
+"hint": "Từ dùng để khen một món ăn ngon."
+},
+{
+"questionNumber": 5,
+"question": "Las Vegas is a/ an ______ city with an annual sunshine rate of 84.80%.",
+"answerOptions": [
+{ "text": "sunny", "rationale": "1. Phân tích từ vựng:\nA. sunny (adj): nhiều nắng.\nB. crowded (adj): đông đúc.\nC. heavy (adj): nặng nề.\nD. exciting (adj): thú vị.\n\n2. Dịch nghĩa toàn câu: \"Las Vegas là một thành phố nhiều nắng với tỷ lệ nắng hàng năm là 84,80%.\"\n\n3. Tại sao chọn A?\nThông tin \"annual sunshine rate\" (tỷ lệ nắng hàng năm) là gợi ý trực tiếp cho tính từ \"sunny\".", "isCorrect": true },
+{ "text": "crowded", "rationale": "1. Phân tích từ vựng:\nA. sunny (adj): nhiều nắng.\nB. crowded (adj): đông đúc.\nC. heavy (adj): nặng nề.\nD. exciting (adj): thú vị.\n\n2. Dịch nghĩa toàn câu: \"Las Vegas là một thành phố nhiều nắng với tỷ lệ nắng hàng năm là 84,80%.\"\n\n3. Tại sao loại B?\nMặc dù Las Vegas đông đúc, nhưng vế sau nói về \"nắng\" nên \"sunny\" chính xác hơn.", "isCorrect": false },
+{ "text": "heavy", "rationale": "1. Phân tích từ vựng:\nA. sunny (adj): nhiều nắng.\nB. crowded (adj): đông đúc.\nC. heavy (adj): nặng nề.\nD. exciting (adj): thú vị.\n\n2. Dịch nghĩa toàn câu: \"Las Vegas là một thành phố nhiều nắng với tỷ lệ nắng hàng năm là 84,80%.\"\n\n3. Tại sao loại C?\nKhông dùng cho thành phố theo nghĩa này.", "isCorrect": false },
+{ "text": "exciting", "rationale": "1. Phân tích từ vựng:\nA. sunny (adj): nhiều nắng.\nB. crowded (adj): đông đúc.\nC. heavy (adj): nặng nề.\nD. exciting (adj): thú vị.\n\n2. Dịch nghĩa toàn câu: \"Las Vegas là một thành phố nhiều nắng với tỷ lệ nắng hàng năm là 84,80%.\"\n\n3. Tại sao loại D?\nTương tự \"crowded\", đúng về thực tế nhưng không khớp với gợi ý \"sunshine\" ở vế sau.", "isCorrect": false }
+],
+"hint": "Hãy nhìn vào thông tin 'sunshine rate' (tỷ lệ nắng)."
+},
+{
+"questionNumber": 6,
+"question": "His lateness was due to the very ______ traffic on the motorway.",
+"answerOptions": [
+{ "text": "heavy", "rationale": "1. Phân tích từ vựng:\nA. heavy (adj): nặng (kẹt xe nặng/đông).\nB. tasty (adj): ngon.\nC. friendly (adj): thân thiện.\nD. peaceful (adj): yên bình.\n\n2. Dịch nghĩa toàn câu: \"Sự chậm trễ của anh ấy là do giao thông rất ùn tắc trên đường cao tốc.\"\n\n3. Tại sao chọn A?\nCụm từ cố định (collocation): \"heavy traffic\" nghĩa là giao thông đông đúc, tắc nghẽn.", "isCorrect": true },
+{ "text": "tasty", "rationale": "1. Phân tích từ vựng:\nA. heavy (adj): nặng (kẹt xe nặng/đông).\nB. tasty (adj): ngon.\nC. friendly (adj): thân thiện.\nD. peaceful (adj): yên bình.\n\n2. Dịch nghĩa toàn câu: \"Sự chậm trễ của anh ấy là do giao thông rất ùn tắc trên đường cao tốc.\"\n\n3. Tại sao loại B?\nKhông dùng cho giao thông.", "isCorrect": false },
+{ "text": "friendly", "rationale": "1. Phân tích từ vựng:\nA. heavy (adj): nặng (kẹt xe nặng/đông).\nB. tasty (adj): ngon.\nC. friendly (adj): thân thiện.\nD. peaceful (adj): yên bình.\n\n2. Dịch nghĩa toàn câu: \"Sự chậm trễ của anh ấy là do giao thông rất ùn tắc trên đường cao tốc.\"\n\n3. Tại sao loại C?\nKhông dùng cho giao thông.", "isCorrect": false },
+{ "text": "peaceful", "rationale": "1. Phân tích từ vựng:\nA. heavy (adj): nặng (kẹt xe nặng/đông).\nB. tasty (adj): ngon.\nC. friendly (adj): thân thiện.\nD. peaceful (adj): yên bình.\n\n2. Dịch nghĩa toàn câu: \"Sự chậm trễ của anh ấy là do giao thông rất ùn tắc trên đường cao tốc.\"\n\n3. Tại sao loại D?\nNếu giao thông \"yên bình\" thì anh ấy đã không bị muộn.", "isCorrect": false }
+],
+"hint": "Cụm từ dùng để chỉ kẹt xe nghiêm trọng là '... traffic'."
+},
+{
+"questionNumber": 7,
+"question": "We had a/ an ______ trip to Africa Last month. I enjoyed it very much.",
+"answerOptions": [
+{ "text": "exciting", "rationale": "1. Phân tích từ vựng:\nA. exciting (adj): thú vị, hào hứng.\nB. rainy (adj): có mưa.\nC. sunny (adj): có nắng.\nD. heavy (adj): nặng nề.\n\n2. Dịch nghĩa toàn câu: \"Chúng tôi đã có một chuyến đi thú vị đến Châu Phi vào tháng trước. Tôi rất thích nó.\"\n\n3. Tại sao chọn A?\nVế sau \"I enjoyed it very much\" (Tôi rất thích nó) cho thấy chuyến đi mang lại cảm giác tích cực, hào hứng.", "isCorrect": true },
+{ "text": "rainy", "rationale": "1. Phân tích từ vựng:\nA. exciting (adj): thú vị, hào hứng.\nB. rainy (adj): có mưa.\nC. sunny (adj): có nắng.\nD. heavy (adj): nặng nề.\n\n2. Dịch nghĩa toàn câu: \"Chúng tôi đã có một chuyến đi thú vị đến Châu Phi vào tháng trước. Tôi rất thích nó.\"\n\n3. Tại sao loại B?\nThường mang nghĩa tiêu cực cho một chuyến đi chơi.", "isCorrect": false },
+{ "text": "sunny", "rationale": "1. Phân tích từ vựng:\nA. exciting (adj): thú vị, hào hứng.\nB. rainy (adj): có mưa.\nC. sunny (adj): có nắng.\nD. heavy (adj): nặng nề.\n\n2. Dịch nghĩa toàn câu: \"Chúng tôi đã có một chuyến đi thú vị đến Châu Phi vào tháng trước. Tôi rất thích nó.\"\n\n3. Tại sao loại C?\nCó thể đúng về ngữ pháp, nhưng \"exciting\" miêu tả cảm xúc tổng thể tốt hơn cho từ \"enjoyed\".", "isCorrect": false },
+{ "text": "heavy", "rationale": "1. Phân tích từ vựng:\nA. exciting (adj): thú vị, hào hứng.\nB. rainy (adj): có mưa.\nC. sunny (adj): có nắng.\nD. heavy (adj): nặng nề.\n\n2. Dịch nghĩa toàn câu: \"Chúng tôi đã có một chuyến đi thú vị đến Châu Phi vào tháng trước. Tôi rất thích nó.\"\n\n3. Tại sao loại D?\nKhông dùng \"heavy trip\" theo nghĩa tích cực.", "isCorrect": false }
+],
+"hint": "Cần một tính từ tích cực để giải thích lý do 'tôi rất thích nó'."
+},
+{
+"questionNumber": 8,
+"question": "Buses and trains in big cities are always ______ with people.",
+"answerOptions": [
+{ "text": "crowded", "rationale": "1. Phân tích từ vựng:\nA. crowded (adj): đông đúc.\nB. peaceful (adj): yên bình.\nC. modern (adj): hiện đại.\nD. tasty (adj): ngon miệng.\n\n2. Dịch nghĩa toàn câu: \"Xe buýt và tàu hỏa ở các thành phố lớn luôn đông nghẹt người.\"\n\n3. Tại sao chọn A?\nCấu trúc \"crowded with people\" (đông đúc người) rất phổ biến để miêu tả giao thông công cộng.", "isCorrect": true },
+{ "text": "peaceful", "rationale": "1. Phân tích từ vựng:\nA. crowded (adj): đông đúc.\nB. peaceful (adj): yên bình.\nC. modern (adj): hiện đại.\nD. tasty (adj): ngon miệng.\n\n2. Dịch nghĩa toàn câu: \"Xe buýt và tàu hỏa ở các thành phố lớn luôn đông nghẹt người.\"\n\n3. Tại sao loại B?\nTrái ngược với thực tế ở các thành phố lớn.", "isCorrect": false },
+{ "text": "modern", "rationale": "1. Phân tích từ vựng:\nA. crowded (adj): đông đúc.\nB. peaceful (adj): yên bình.\nC. modern (adj): hiện đại.\nD. tasty (adj): ngon miệng.\n\n2. Dịch nghĩa toàn câu: \"Xe buýt và tàu hỏa ở các thành phố lớn luôn đông nghẹt người.\"\n\n3. Tại sao loại C?\nCó thể đúng, nhưng không đi với giới từ \"with people\".", "isCorrect": false },
+{ "text": "tasty", "rationale": "1. Phân tích từ vựng:\nA. crowded (adj): đông đúc.\nB. peaceful (adj): yên bình.\nC. modern (adj): hiện đại.\nD. tasty (adj): ngon miệng.\n\n2. Dịch nghĩa toàn câu: \"Xe buýt và tàu hỏa ở các thành phố lớn luôn đông nghẹt người.\"\n\n3. Tại sao loại D?\nKhông liên quan.", "isCorrect": false }
+],
+"hint": "Đi với giới từ 'with people' để chỉ sự đông người."
+},
+{
+"questionNumber": 9,
+"question": "We cannot afford to live in such a/ an ______ hotel in Paris.",
+"answerOptions": [
+{ "text": "expensive", "rationale": "1. Phân tích từ vựng:\nA. expensive (adj): đắt đỏ.\nB. friendly (adj): thân thiện.\nC. exciting (adj): thú vị.\nD. peaceful (adj): yên bình.\n\n2. Dịch nghĩa toàn câu: \"Chúng tôi không đủ khả năng để ở trong một khách sạn đắt đỏ như vậy tại Paris.\"\n\n3. Tại sao chọn A?\nCụm từ \"cannot afford\" (không đủ tiền/khả năng chi trả) luôn đi kèm với ý nghĩa về giá cả cao. \n*Lưu ý: Trong danh sách từ gốc bạn gửi có từ 'experience' (danh từ), đây có thể là lỗi đánh máy của đề bài gốc thay vì 'expensive' (tính từ). Đáp án đúng về ngữ nghĩa phải là 'expensive'.", "isCorrect": true },
+{ "text": "friendly", "rationale": "1. Phân tích từ vựng:\nA. expensive (adj): đắt đỏ.\nB. friendly (adj): thân thiện.\nC. exciting (adj): thú vị.\nD. peaceful (adj): yên bình.\n\n2. Dịch nghĩa toàn câu: \"Chúng tôi không đủ khả năng để ở trong một khách sạn đắt đỏ như vậy tại Paris.\"\n\n3. Tại sao loại B?\nKhông liên quan đến vấn đề tài chính (cannot afford).", "isCorrect": false },
+{ "text": "exciting", "rationale": "1. Phân tích từ vựng:\nA. expensive (adj): đắt đỏ.\nB. friendly (adj): thân thiện.\nC. exciting (adj): thú vị.\nD. peaceful (adj): yên bình.\n\n2. Dịch nghĩa toàn câu: \"Chúng tôi không đủ khả năng để ở trong một khách sạn đắt đỏ như vậy tại Paris.\"\n\n3. Tại sao loại C?\nKhông liên quan trực tiếp đến khả năng chi trả.", "isCorrect": false },
+{ "text": "peaceful", "rationale": "1. Phân tích từ vựng:\nA. expensive (adj): đắt đỏ.\nB. friendly (adj): thân thiện.\nC. exciting (adj): thú vị.\nD. peaceful (adj): yên bình.\n\n2. Dịch nghĩa toàn câu: \"Chúng tôi không đủ khả năng để ở trong một khách sạn đắt đỏ như vậy tại Paris.\"\n\n3. Tại sao loại D?\nKhông liên quan trực tiếp đến khả năng chi trả.", "isCorrect": false }
+],
+"hint": "Cụm từ 'cannot afford' (không đủ tiền) gợi ý đến giá cả."
+},
+{
+"questionNumber": 10,
+"question": "Instead of going to a busy beach hotel, we decided to head to the mountains for a/ an ______ vacation.",
+"answerOptions": [
+{ "text": "peaceful", "rationale": "1. Phân tích từ vựng:\nA. peaceful (adj): yên bình.\nB. crowded (adj): đông đúc.\nC. heavy (adj): nặng nề.\nD. rainy (adj): có mưa.\n\n2. Dịch nghĩa toàn câu: \"Thay vì đến một khách sạn bãi biển ồn ào, chúng tôi quyết định đi lên núi cho một kỳ nghỉ yên bình.\"\n\n3. Tại sao chọn A?\nCâu mang ý nghĩa tương phản: \"busy beach\" (bãi biển bận rộn/ồn ào) >< \"mountains\" (núi non). Núi non thường gắn liền với sự yên tĩnh, thanh bình.", "isCorrect": true },
+{ "text": "crowded", "rationale": "1. Phân tích từ vựng:\nA. peaceful (adj): yên bình.\nB. crowded (adj): đông đúc.\nC. heavy (adj): nặng nề.\nD. rainy (adj): có mưa.\n\n2. Dịch nghĩa toàn câu: \"Thay vì đến một khách sạn bãi biển ồn ào, chúng tôi quyết định đi lên núi cho một kỳ nghỉ yên bình.\"\n\n3. Tại sao loại B?\nNếu muốn tránh \"busy\" (bận rộn/đông), thì không thể chọn \"crowded\" (đông đúc).", "isCorrect": false },
+{ "text": "heavy", "rationale": "1. Phân tích từ vựng:\nA. peaceful (adj): yên bình.\nB. crowded (adj): đông đúc.\nC. heavy (adj): nặng nề.\nD. rainy (adj): có mưa.\n\n2. Dịch nghĩa toàn câu: \"Thay vì đến một khách sạn bãi biển ồn ào, chúng tôi quyết định đi lên núi cho một kỳ nghỉ yên bình.\"\n\n3. Tại sao loại C?\nKhông phù hợp ngữ cảnh.", "isCorrect": false },
+{ "text": "rainy", "rationale": "1. Phân tích từ vựng:\nA. peaceful (adj): yên bình.\nB. crowded (adj): đông đúc.\nC. heavy (adj): nặng nề.\nD. rainy (adj): có mưa.\n\n2. Dịch nghĩa toàn câu: \"Thay vì đến một khách sạn bãi biển ồn ào, chúng tôi quyết định đi lên núi cho một kỳ nghỉ yên bình.\"\n\n3. Tại sao loại D?\nKhông ai muốn đi nghỉ mát gặp mưa.", "isCorrect": false }
+],
+"hint": "Trái ngược với 'busy' (ồn ào, bận rộn) ở vế đầu."
+},
+{
+"questionNumber": 11,
+"question": "My cousins phoned me from ______ house in Mexico City.",
+"answerOptions": [
+{ "text": "their", "rationale": "1. Phân tích từ vựng:\nA. its (tính từ sở hữu): của nó.\nB. his (tính từ sở hữu): của anh ấy.\nC. her (tính từ sở hữu): của cô ấy.\nD. their (tính từ sở hữu): của họ.\n\n2. Dịch nghĩa toàn câu: \"Những người anh em họ của tôi đã gọi cho tôi từ nhà của họ ở thành phố Mexico.\"\n\n3. Tại sao chọn D?\nChủ ngữ là \"My cousins\" (số nhiều: những người anh em họ) -> Tính từ sở hữu tương ứng phải là \"their\" (của họ).", "isCorrect": true },
+{ "text": "his", "rationale": "1. Phân tích từ vựng:\nA. its (tính từ sở hữu): của nó.\nB. his (tính từ sở hữu): của anh ấy.\nC. her (tính từ sở hữu): của cô ấy.\nD. their (tính từ sở hữu): của họ.\n\n2. Dịch nghĩa toàn câu: \"Những người anh em họ của tôi đã gọi cho tôi từ nhà của họ ở thành phố Mexico.\"\n\n3. Tại sao loại B?\nChỉ dùng cho danh từ số ít nam giới.", "isCorrect": false },
+{ "text": "her", "rationale": "1. Phân tích từ vựng:\nA. its (tính từ sở hữu): của nó.\nB. his (tính từ sở hữu): của anh ấy.\nC. her (tính từ sở hữu): của cô ấy.\nD. their (tính từ sở hữu): của họ.\n\n2. Dịch nghĩa toàn câu: \"Những người anh em họ của tôi đã gọi cho tôi từ nhà của họ ở thành phố Mexico.\"\n\n3. Tại sao loại C?\nChỉ dùng cho danh từ số ít nữ giới.", "isCorrect": false },
+{ "text": "its", "rationale": "1. Phân tích từ vựng:\nA. its (tính từ sở hữu): của nó.\nB. his (tính từ sở hữu): của anh ấy.\nC. her (tính từ sở hữu): của cô ấy.\nD. their (tính từ sở hữu): của họ.\n\n2. Dịch nghĩa toàn câu: \"Những người anh em họ của tôi đã gọi cho tôi từ nhà của họ ở thành phố Mexico.\"\n\n3. Tại sao loại A?\nChỉ dùng cho vật/động vật số ít.", "isCorrect": false }
+],
+"hint": "Chủ ngữ là 'My cousins' (số nhiều)."
+},
+{
+"questionNumber": 12,
+"question": "This computer game belongs to me and my brother. This computer game is ______.",
+"answerOptions": [
+{ "text": "ours", "rationale": "1. Phân tích từ vựng:\nA. us (tân ngữ): chúng tôi.\nB. ours (đại từ sở hữu): cái của chúng tôi.\nC. we’re (viết tắt): chúng tôi là.\nD. our (tính từ sở hữu): của chúng tôi.\n\n2. Dịch nghĩa toàn câu: \"Trò chơi máy tính này thuộc về tôi và anh trai tôi. Trò chơi này là của chúng tôi.\"\n\n3. Tại sao chọn B?\nCần một Đại từ sở hữu (Possessive Pronoun) để thay thế cho cụm \"our computer game\". \nCông thức: Đại từ sở hữu = Tính từ sở hữu + Danh từ.\n\"me and my brother\" = \"we\" -> Sở hữu là \"ours\".", "isCorrect": true },
+{ "text": "us", "rationale": "1. Phân tích từ vựng:\nA. us (tân ngữ): chúng tôi.\nB. ours (đại từ sở hữu): cái của chúng tôi.\nC. we’re (viết tắt): chúng tôi là.\nD. our (tính từ sở hữu): của chúng tôi.\n\n2. Dịch nghĩa toàn câu: \"Trò chơi máy tính này thuộc về tôi và anh trai tôi. Trò chơi này là của chúng tôi.\"\n\n3. Tại sao loại A?\nĐây là tân ngữ, không chỉ sở hữu.", "isCorrect": false },
+{ "text": "our", "rationale": "1. Phân tích từ vựng:\nA. us (tân ngữ): chúng tôi.\nB. ours (đại từ sở hữu): cái của chúng tôi.\nC. we’re (viết tắt): chúng tôi là.\nD. our (tính từ sở hữu): của chúng tôi.\n\n2. Dịch nghĩa toàn câu: \"Trò chơi máy tính này thuộc về tôi và anh trai tôi. Trò chơi này là của chúng tôi.\"\n\n3. Tại sao loại D?\n\"Our\" phải đi kèm danh từ phía sau (ví dụ: our game). Ở cuối câu không có danh từ nên sai.", "isCorrect": false },
+{ "text": "we’re", "rationale": "1. Phân tích từ vựng:\nA. us (tân ngữ): chúng tôi.\nB. ours (đại từ sở hữu): cái của chúng tôi.\nC. we’re (viết tắt): chúng tôi là.\nD. our (tính từ sở hữu): của chúng tôi.\n\n2. Dịch nghĩa toàn câu: \"Trò chơi máy tính này thuộc về tôi và anh trai tôi. Trò chơi này là của chúng tôi.\"\n\n3. Tại sao loại C?\nSai ngữ pháp hoàn toàn.", "isCorrect": false }
+],
+"hint": "Cần một đại từ sở hữu đứng cuối câu thay cho 'our game'."
+},
+{
+"questionNumber": 13,
+"question": "Mr. Allen, shall we go in my car ______ ?",
+"answerOptions": [
+{ "text": "yours", "rationale": "1. Phân tích từ vựng:\nA. hers (đại từ sở hữu): cái của cô ấy.\nB. mine (đại từ sở hữu): cái của tôi.\nC. yours (đại từ sở hữu): cái của bạn/ông.\nD. his (đại từ sở hữu): cái của anh ấy.\n\n2. Dịch nghĩa toàn câu: \"Ông Allen, chúng ta sẽ đi bằng xe của tôi hay (xe của) ông?\"\n\n3. Tại sao chọn C?\nĐang nói chuyện trực tiếp với Mr. Allen (\"you\"), nên cần đại từ sở hữu tương ứng là \"yours\" (thay cho \"your car\").", "isCorrect": true },
+{ "text": "mine", "rationale": "1. Phân tích từ vựng:\nA. hers (đại từ sở hữu): cái của cô ấy.\nB. mine (đại từ sở hữu): cái của tôi.\nC. yours (đại từ sở hữu): cái của bạn/ông.\nD. his (đại từ sở hữu): cái của anh ấy.\n\n2. Dịch nghĩa toàn câu: \"Ông Allen, chúng ta sẽ đi bằng xe của tôi hay (xe của) ông?\"\n\n3. Tại sao loại B?\nCâu đã có \"my car\" rồi, không lặp lại \"mine\" (của tôi) nữa vì không tạo thành sự lựa chọn hợp lý.", "isCorrect": false },
+{ "text": "hers", "rationale": "1. Phân tích từ vựng:\nA. hers (đại từ sở hữu): cái của cô ấy.\nB. mine (đại từ sở hữu): cái của tôi.\nC. yours (đại từ sở hữu): cái của bạn/ông.\nD. his (đại từ sở hữu): cái của anh ấy.\n\n2. Dịch nghĩa toàn câu: \"Ông Allen, chúng ta sẽ đi bằng xe của tôi hay (xe của) ông?\"\n\n3. Tại sao loại A?\nKhông có đối tượng nữ nào được nhắc đến.", "isCorrect": false },
+{ "text": "his", "rationale": "1. Phân tích từ vựng:\nA. hers (đại từ sở hữu): cái của cô ấy.\nB. mine (đại từ sở hữu): cái của tôi.\nC. yours (đại từ sở hữu): cái của bạn/ông.\nD. his (đại từ sở hữu): cái của anh ấy.\n\n2. Dịch nghĩa toàn câu: \"Ông Allen, chúng ta sẽ đi bằng xe của tôi hay (xe của) ông?\"\n\n3. Tại sao loại D?\nKhông có người thứ 3 nam giới nào được nhắc đến.", "isCorrect": false }
+],
+"hint": "Đang hỏi ý kiến người đối diện (Mr. Allen)."
+},
+{
+"questionNumber": 14,
+"question": "Mango is a ______ fruit and I like it very much.",
+"answerOptions": [
+{ "text": "delicious", "rationale": "1. Phân tích từ vựng:\nA. delicious (adj): ngon.\nB. boring (adj): nhàm chán.\nC. heavy (adj): nặng.\nD. peaceful (adj): yên bình.\n\n2. Dịch nghĩa toàn câu: \"Xoài là một loại trái cây ngon và tôi rất thích nó.\"\n\n3. Tại sao chọn A?\nVế sau \"I like it very much\" (tôi rất thích nó) cho thấy đây là một lời khen về hương vị -> \"delicious\" là phù hợp nhất.", "isCorrect": true },
+{ "text": "boring", "rationale": "1. Phân tích từ vựng:\nA. delicious (adj): ngon.\nB. boring (adj): nhàm chán.\nC. heavy (adj): nặng.\nD. peaceful (adj): yên bình.\n\n2. Dịch nghĩa toàn câu: \"Xoài là một loại trái cây ngon và tôi rất thích nó.\"\n\n3. Tại sao loại B?\nMang nghĩa tiêu cực, mâu thuẫn với \"like it\".", "isCorrect": false },
+{ "text": "heavy", "rationale": "1. Phân tích từ vựng:\nA. delicious (adj): ngon.\nB. boring (adj): nhàm chán.\nC. heavy (adj): nặng.\nD. peaceful (adj): yên bình.\n\n2. Dịch nghĩa toàn câu: \"Xoài là một loại trái cây ngon và tôi rất thích nó.\"\n\n3. Tại sao loại C?\nKhông dùng để miêu tả vị ngon của trái cây.", "isCorrect": false },
+{ "text": "peaceful", "rationale": "1. Phân tích từ vựng:\nA. delicious (adj): ngon.\nB. boring (adj): nhàm chán.\nC. heavy (adj): nặng.\nD. peaceful (adj): yên bình.\n\n2. Dịch nghĩa toàn câu: \"Xoài là một loại trái cây ngon và tôi rất thích nó.\"\n\n3. Tại sao loại D?\nKhông liên quan đến thực phẩm.", "isCorrect": false }
+],
+"hint": "Từ miêu tả vị ngon của trái cây."
+},
+{
+"questionNumber": 15,
+"question": "Eiffel Tower is the most ______ landmark in the world.",
+"answerOptions": [
+{ "text": "visited", "rationale": "1. Phân tích từ vựng:\nA. been (V3): thì hoàn thành của 'be'.\nB. looked (V3): nhìn.\nC. designed (V3): thiết kế.\nD. visited (V3/adj): được ghé thăm.\n\n2. Dịch nghĩa toàn câu: \"Tháp Eiffel là địa danh được ghé thăm nhiều nhất trên thế giới.\"\n\n3. Tại sao chọn D?\nCụm từ \"most visited landmark\" (địa danh được tham quan nhiều nhất) là cách diễn đạt phổ biến.", "isCorrect": true },
+{ "text": "looked", "rationale": "1. Phân tích từ vựng:\nA. been (V3): thì hoàn thành của 'be'.\nB. looked (V3): nhìn.\nC. designed (V3): thiết kế.\nD. visited (V3/adj): được ghé thăm.\n\n2. Dịch nghĩa toàn câu: \"Tháp Eiffel là địa danh được ghé thăm nhiều nhất trên thế giới.\"\n\n3. Tại sao loại B?\nPhải là \"looked at\" mới có nghĩa, nhưng cũng không tự nhiên bằng \"visited\".", "isCorrect": false },
+{ "text": "designed", "rationale": "1. Phân tích từ vựng:\nA. been (V3): thì hoàn thành của 'be'.\nB. looked (V3): nhìn.\nC. designed (V3): thiết kế.\nD. visited (V3/adj): được ghé thăm.\n\n2. Dịch nghĩa toàn câu: \"Tháp Eiffel là địa danh được ghé thăm nhiều nhất trên thế giới.\"\n\n3. Tại sao loại C?\n\"Most designed\" (được thiết kế nhiều nhất) không có nghĩa hợp lý.", "isCorrect": false },
+{ "text": "been", "rationale": "1. Phân tích từ vựng:\nA. been (V3): thì hoàn thành của 'be'.\nB. looked (V3): nhìn.\nC. designed (V3): thiết kế.\nD. visited (V3/adj): được ghé thăm.\n\n2. Dịch nghĩa toàn câu: \"Tháp Eiffel là địa danh được ghé thăm nhiều nhất trên thế giới.\"\n\n3. Tại sao loại A?\nSai ngữ pháp và ngữ nghĩa.", "isCorrect": false }
+],
+"hint": "Nói về lượng khách du lịch đến tham quan."
+},
+{
+"questionNumber": 16,
+"question": "Britain’s most popular ______ is fish and chips.",
+"answerOptions": [
+{ "text": "food", "rationale": "1. Phân tích từ vựng:\nA. drink (n): đồ uống.\nB. place (n): địa điểm.\nC. food (n): món ăn/thực phẩm.\nD. film (n): phim ảnh.\n\n2. Dịch nghĩa toàn câu: \"Món ăn phổ biến nhất của nước Anh là cá và khoai tây chiên.\"\n\n3. Tại sao chọn C?\n\"Fish and chips\" (Cá và khoai tây chiên) là một món ăn, nên danh từ bao quát nó phải là \"food\" (hoặc dish).", "isCorrect": true },
+{ "text": "drink", "rationale": "1. Phân tích từ vựng:\nA. drink (n): đồ uống.\nB. place (n): địa điểm.\nC. food (n): món ăn/thực phẩm.\nD. film (n): phim ảnh.\n\n2. Dịch nghĩa toàn câu: \"Món ăn phổ biến nhất của nước Anh là cá và khoai tây chiên.\"\n\n3. Tại sao loại A?\nCá chiên không phải là đồ uống.", "isCorrect": false },
+{ "text": "place", "rationale": "1. Phân tích từ vựng:\nA. drink (n): đồ uống.\nB. place (n): địa điểm.\nC. food (n): món ăn/thực phẩm.\nD. film (n): phim ảnh.\n\n2. Dịch nghĩa toàn câu: \"Món ăn phổ biến nhất của nước Anh là cá và khoai tây chiên.\"\n\n3. Tại sao loại B?\nKhông phải là địa điểm.", "isCorrect": false },
+{ "text": "film", "rationale": "1. Phân tích từ vựng:\nA. drink (n): đồ uống.\nB. place (n): địa điểm.\nC. food (n): món ăn/thực phẩm.\nD. film (n): phim ảnh.\n\n2. Dịch nghĩa toàn câu: \"Món ăn phổ biến nhất của nước Anh là cá và khoai tây chiên.\"\n\n3. Tại sao loại D?\nKhông phải là phim.", "isCorrect": false }
+],
+"hint": "'Fish and chips' là tên một món ăn."
+},
+{
+"questionNumber": 17,
+"question": "Canada’s ______ is different from season to season.",
+"answerOptions": [
+{ "text": "Weather", "rationale": "1. Phân tích từ vựng:\nA. Weather (n): thời tiết.\nB. currency (n): tiền tệ.\nC. language (n): ngôn ngữ.\nD. economy (n): kinh tế.\n\n2. Dịch nghĩa toàn câu: \"Thời tiết của Canada khác nhau theo từng mùa.\"\n\n3. Tại sao chọn A?\nCụm từ \"different from season to season\" (khác nhau theo mùa) ám chỉ sự thay đổi tự nhiên, phù hợp nhất với \"thời tiết\". Tiền tệ hay ngôn ngữ không thay đổi theo mùa.", "isCorrect": true },
+{ "text": "currency", "rationale": "1. Phân tích từ vựng:\nA. Weather (n): thời tiết.\nB. currency (n): tiền tệ.\nC. language (n): ngôn ngữ.\nD. economy (n): kinh tế.\n\n2. Dịch nghĩa toàn câu: \"Thời tiết của Canada khác nhau theo từng mùa.\"\n\n3. Tại sao loại B?\nTiền tệ không đổi theo mùa.", "isCorrect": false },
+{ "text": "language", "rationale": "1. Phân tích từ vựng:\nA. Weather (n): thời tiết.\nB. currency (n): tiền tệ.\nC. language (n): ngôn ngữ.\nD. economy (n): kinh tế.\n\n2. Dịch nghĩa toàn câu: \"Thời tiết của Canada khác nhau theo từng mùa.\"\n\n3. Tại sao loại C?\nNgôn ngữ không đổi theo mùa.", "isCorrect": false },
+{ "text": "economy", "rationale": "1. Phân tích từ vựng:\nA. Weather (n): thời tiết.\nB. currency (n): tiền tệ.\nC. language (n): ngôn ngữ.\nD. economy (n): kinh tế.\n\n2. Dịch nghĩa toàn câu: \"Thời tiết của Canada khác nhau theo từng mùa.\"\n\n3. Tại sao loại D?\nKinh tế có thể biến động nhưng không dùng cụm \"from season to season\" một cách đặc trưng như thời tiết.", "isCorrect": false }
+],
+"hint": "Yếu tố tự nhiên thay đổi theo Xuân, Hạ, Thu, Đông."
+},
+{
+"questionNumber": 18,
+"question": "______ is the symbol of Singapore.",
+"answerOptions": [
+{ "text": "Merlion", "rationale": "1. Phân tích từ vựng:\nA. Big Ben (n): Tháp đồng hồ Big Ben (Anh).\nB. Merlion (n): Tượng Sư tử biển (Singapore).\nC. Eiffel Tower (n): Tháp Eiffel (Pháp).\nD. Uluru (n): Núi đá Uluru (Úc).\n\n2. Dịch nghĩa toàn câu: \"Sư tử biển (Merlion) là biểu tượng của Singapore.\"\n\n3. Tại sao chọn B?\nMerlion (đầu sư tử, mình cá) là biểu tượng nổi tiếng nhất của đảo quốc Singapore.", "isCorrect": true },
+{ "text": "Big Ben", "rationale": "1. Phân tích từ vựng:\nA. Big Ben (n): Tháp đồng hồ Big Ben (Anh).\nB. Merlion (n): Tượng Sư tử biển (Singapore).\nC. Eiffel Tower (n): Tháp Eiffel (Pháp).\nD. Uluru (n): Núi đá Uluru (Úc).\n\n2. Dịch nghĩa toàn câu: \"Sư tử biển (Merlion) là biểu tượng của Singapore.\"\n\n3. Tại sao loại A?\nBiểu tượng của London, Anh.", "isCorrect": false },
+{ "text": "Eiffel Tower", "rationale": "1. Phân tích từ vựng:\nA. Big Ben (n): Tháp đồng hồ Big Ben (Anh).\nB. Merlion (n): Tượng Sư tử biển (Singapore).\nC. Eiffel Tower (n): Tháp Eiffel (Pháp).\nD. Uluru (n): Núi đá Uluru (Úc).\n\n2. Dịch nghĩa toàn câu: \"Sư tử biển (Merlion) là biểu tượng của Singapore.\"\n\n3. Tại sao loại C?\nBiểu tượng của Paris, Pháp.", "isCorrect": false },
+{ "text": "Uluru", "rationale": "1. Phân tích từ vựng:\nA. Big Ben (n): Tháp đồng hồ Big Ben (Anh).\nB. Merlion (n): Tượng Sư tử biển (Singapore).\nC. Eiffel Tower (n): Tháp Eiffel (Pháp).\nD. Uluru (n): Núi đá Uluru (Úc).\n\n2. Dịch nghĩa toàn câu: \"Sư tử biển (Merlion) là biểu tượng của Singapore.\"\n\n3. Tại sao loại D?\nBiểu tượng thiên nhiên của Úc.", "isCorrect": false }
+],
+"hint": "Tượng mình cá đầu sư tử."
+},
+{
+"questionNumber": 19,
+"question": "The weather in this city is very ______ with fumes from cars.",
+"answerOptions": [
+{ "text": "polluted", "rationale": "1. Phân tích từ vựng:\nA. boring (adj): nhàm chán.\nB. clean (adj): sạch sẽ.\nC. quiet (adj): yên tĩnh.\nD. polluted (adj): ô nhiễm.\n\n2. Dịch nghĩa toàn câu: \"Thời tiết (không khí) ở thành phố này rất ô nhiễm bởi khói bụi từ xe hơi.\"\n\n3. Tại sao chọn D?\n\"Fumes from cars\" (khói từ xe) là nguyên nhân gây ra ô nhiễm -> \"polluted\".", "isCorrect": true },
+{ "text": "clean", "rationale": "1. Phân tích từ vựng:\nA. boring (adj): nhàm chán.\nB. clean (adj): sạch sẽ.\nC. quiet (adj): yên tĩnh.\nD. polluted (adj): ô nhiễm.\n\n2. Dịch nghĩa toàn câu: \"Thời tiết (không khí) ở thành phố này rất ô nhiễm bởi khói bụi từ xe hơi.\"\n\n3. Tại sao loại B?\nTrái nghĩa với ngữ cảnh có khói xe.", "isCorrect": false },
+{ "text": "boring", "rationale": "1. Phân tích từ vựng:\nA. boring (adj): nhàm chán.\nB. clean (adj): sạch sẽ.\nC. quiet (adj): yên tĩnh.\nD. polluted (adj): ô nhiễm.\n\n2. Dịch nghĩa toàn câu: \"Thời tiết (không khí) ở thành phố này rất ô nhiễm bởi khói bụi từ xe hơi.\"\n\n3. Tại sao loại A?\nKhông hợp ngữ nghĩa.", "isCorrect": false },
+{ "text": "quiet", "rationale": "1. Phân tích từ vựng:\nA. boring (adj): nhàm chán.\nB. clean (adj): sạch sẽ.\nC. quiet (adj): yên tĩnh.\nD. polluted (adj): ô nhiễm.\n\n2. Dịch nghĩa toàn câu: \"Thời tiết (không khí) ở thành phố này rất ô nhiễm bởi khói bụi từ xe hơi.\"\n\n3. Tại sao loại C?\nNhiều xe hơi thì không thể yên tĩnh.", "isCorrect": false }
+],
+"hint": "Khói xe (fumes) làm không khí bị làm sao?"
+},
+{
+"questionNumber": 20,
+"question": "Is ASIA a ______ ? - Yes, it is.",
+"answerOptions": [
+{ "text": "continent", "rationale": "1. Phân tích từ vựng:\nA. country (n): quốc gia.\nB. capital (n): thủ đô.\nC. continent (n): châu lục.\nD. city (n): thành phố.\n\n2. Dịch nghĩa toàn câu: \"Châu Á có phải là một châu lục không? - Đúng vậy.\"\n\n3. Tại sao chọn C?\nAsia (Châu Á) là một châu lục.", "isCorrect": true },
+{ "text": "country", "rationale": "1. Phân tích từ vựng:\nA. country (n): quốc gia.\nB. capital (n): thủ đô.\nC. continent (n): châu lục.\nD. city (n): thành phố.\n\n2. Dịch nghĩa toàn câu: \"Châu Á có phải là một châu lục không? - Đúng vậy.\"\n\n3. Tại sao loại A?\nAsia bao gồm nhiều quốc gia, bản thân nó không phải là một nước.", "isCorrect": false },
+{ "text": "capital", "rationale": "1. Phân tích từ vựng:\nA. country (n): quốc gia.\nB. capital (n): thủ đô.\nC. continent (n): châu lục.\nD. city (n): thành phố.\n\n2. Dịch nghĩa toàn câu: \"Châu Á có phải là một châu lục không? - Đúng vậy.\"\n\n3. Tại sao loại B?\nSai về địa lý.", "isCorrect": false },
+{ "text": "city", "rationale": "1. Phân tích từ vựng:\nA. country (n): quốc gia.\nB. capital (n): thủ đô.\nC. continent (n): châu lục.\nD. city (n): thành phố.\n\n2. Dịch nghĩa toàn câu: \"Châu Á có phải là một châu lục không? - Đúng vậy.\"\n\n3. Tại sao loại D?\nSai về địa lý.", "isCorrect": false }
+],
+"hint": "Châu Á, Châu Âu, Châu Phi được gọi chung là gì?"
+},
+{
+"questionNumber": 21,
+"question": "The Sweden’s capital city is ______.",
+"answerOptions": [
+{ "text": "Stockholm", "rationale": "1. Phân tích từ vựng:\nA. Stockholm: Thủ đô Thụy Điển.\nB. Paris: Thủ đô Pháp.\nC. New York: Thành phố lớn của Mỹ (không phải thủ đô).\nD. Bangkok: Thủ đô Thái Lan.\n\n2. Dịch nghĩa toàn câu: \"Thủ đô của Thụy Điển là Stockholm.\"\n\n3. Tại sao chọn A?\nKiến thức địa lý: Thủ đô của Thụy Điển (Sweden) là Stockholm.", "isCorrect": true },
+{ "text": "Paris", "rationale": "1. Phân tích từ vựng:\nA. Stockholm: Thủ đô Thụy Điển.\nB. Paris: Thủ đô Pháp.\nC. New York: Thành phố lớn của Mỹ (không phải thủ đô).\nD. Bangkok: Thủ đô Thái Lan.\n\n2. Dịch nghĩa toàn câu: \"Thủ đô của Thụy Điển là Stockholm.\"\n\n3. Tại sao loại B?\nLà thủ đô của Pháp.", "isCorrect": false },
+{ "text": "New York", "rationale": "1. Phân tích từ vựng:\nA. Stockholm: Thủ đô Thụy Điển.\nB. Paris: Thủ đô Pháp.\nC. New York: Thành phố lớn của Mỹ (không phải thủ đô).\nD. Bangkok: Thủ đô Thái Lan.\n\n2. Dịch nghĩa toàn câu: \"Thủ đô của Thụy Điển là Stockholm.\"\n\n3. Tại sao loại C?\nLà thành phố của Mỹ.", "isCorrect": false },
+{ "text": "Bangkok", "rationale": "1. Phân tích từ vựng:\nA. Stockholm: Thủ đô Thụy Điển.\nB. Paris: Thủ đô Pháp.\nC. New York: Thành phố lớn của Mỹ (không phải thủ đô).\nD. Bangkok: Thủ đô Thái Lan.\n\n2. Dịch nghĩa toàn câu: \"Thủ đô của Thụy Điển là Stockholm.\"\n\n3. Tại sao loại D?\nLà thủ đô của Thái Lan.", "isCorrect": false }
+],
+"hint": "Tên thành phố thủ đô của Thụy Điển bắt đầu bằng chữ S."
+},
+{
+"questionNumber": 22,
+"question": "Saint Stephen’s Tower is one of London’s most famous ______.",
+"answerOptions": [
+{ "text": "landmarks", "rationale": "1. Phân tích từ vựng:\nA. tower (n): tháp (số ít).\nB. landmarks (n): địa danh (số nhiều).\nC. towels (n): khăn tắm.\nD. buildings (n): tòa nhà (số nhiều).\n\n2. Dịch nghĩa toàn câu: \"Tháp Saint Stephen là một trong những địa danh nổi tiếng nhất của London.\"\n\n3. Tại sao chọn B?\nCấu trúc \"one of...\" (một trong những...) luôn đi kèm danh từ số nhiều. \"Landmarks\" (địa danh) phù hợp nghĩa hơn \"buildings\" khi nói về sự nổi tiếng và mang tính biểu tượng.", "isCorrect": true },
+{ "text": "tower", "rationale": "1. Phân tích từ vựng:\nA. tower (n): tháp (số ít).\nB. landmarks (n): địa danh (số nhiều).\nC. towels (n): khăn tắm.\nD. buildings (n): tòa nhà (số nhiều).\n\n2. Dịch nghĩa toàn câu: \"Tháp Saint Stephen là một trong những địa danh nổi tiếng nhất của London.\"\n\n3. Tại sao loại A?\nSau \"one of\" phải là danh từ số nhiều (towers mới đúng ngữ pháp).", "isCorrect": false },
+{ "text": "towels", "rationale": "1. Phân tích từ vựng:\nA. tower (n): tháp (số ít).\nB. landmarks (n): địa danh (số nhiều).\nC. towels (n): khăn tắm.\nD. buildings (n): tòa nhà (số nhiều).\n\n2. Dịch nghĩa toàn câu: \"Tháp Saint Stephen là một trong những địa danh nổi tiếng nhất của London.\"\n\n3. Tại sao loại C?\nSai nghĩa (khăn tắm).", "isCorrect": false },
+{ "text": "buildings", "rationale": "1. Phân tích từ vựng:\nA. tower (n): tháp (số ít).\nB. landmarks (n): địa danh (số nhiều).\nC. towels (n): khăn tắm.\nD. buildings (n): tòa nhà (số nhiều).\n\n2. Dịch nghĩa toàn câu: \"Tháp Saint Stephen là một trong những địa danh nổi tiếng nhất của London.\"\n\n3. Tại sao loại D?\nĐúng ngữ pháp nhưng \"landmarks\" hay hơn vì nhấn mạnh sự nổi tiếng tham quan.", "isCorrect": false }
+],
+"hint": "Sau 'one of' cần danh từ số nhiều, chỉ các địa điểm nổi tiếng."
+},
+{
+"questionNumber": 23,
+"question": "Easter is one of the ______ important holidays in Russia.",
+"answerOptions": [
+{ "text": "most", "rationale": "1. Phân tích từ vựng:\nA. more (so sánh hơn): hơn.\nB. best (so sánh nhất của good): tốt nhất.\nC. most (so sánh nhất): nhất.\nD. better (so sánh hơn của good): tốt hơn.\n\n2. Dịch nghĩa toàn câu: \"Lễ Phục sinh là một trong những ngày lễ quan trọng nhất ở Nga.\"\n\n3. Tại sao chọn C?\nSo sánh nhất với tính từ dài \"important\" -> dùng \"the most important\".", "isCorrect": true },
+{ "text": "more", "rationale": "1. Phân tích từ vựng:\nA. more (so sánh hơn): hơn.\nB. best (so sánh nhất của good): tốt nhất.\nC. most (so sánh nhất): nhất.\nD. better (so sánh hơn của good): tốt hơn.\n\n2. Dịch nghĩa toàn câu: \"Lễ Phục sinh là một trong những ngày lễ quan trọng nhất ở Nga.\"\n\n3. Tại sao loại A?\nSo sánh hơn phải có \"than\" hoặc so sánh giữa 2 đối tượng.", "isCorrect": false },
+{ "text": "best", "rationale": "1. Phân tích từ vựng:\nA. more (so sánh hơn): hơn.\nB. best (so sánh nhất của good): tốt nhất.\nC. most (so sánh nhất): nhất.\nD. better (so sánh hơn của good): tốt hơn.\n\n2. Dịch nghĩa toàn câu: \"Lễ Phục sinh là một trong những ngày lễ quan trọng nhất ở Nga.\"\n\n3. Tại sao loại B?\n\"The best important\" là sai ngữ pháp (thừa best).", "isCorrect": false },
+{ "text": "better", "rationale": "1. Phân tích từ vựng:\nA. more (so sánh hơn): hơn.\nB. best (so sánh nhất của good): tốt nhất.\nC. most (so sánh nhất): nhất.\nD. better (so sánh hơn của good): tốt hơn.\n\n2. Dịch nghĩa toàn câu: \"Lễ Phục sinh là một trong những ngày lễ quan trọng nhất ở Nga.\"\n\n3. Tại sao loại D?\nSai ngữ pháp so sánh nhất.", "isCorrect": false }
+],
+"hint": "Dùng cho so sánh nhất với tính từ dài 'important'."
+},
+{
+"questionNumber": 24,
+"question": "In the US, Easter is a ______ holiday.",
+"answerOptions": [
+{ "text": "national", "rationale": "1. Phân tích từ vựng:\nA. nation (n): quốc gia.\nB. local (adj): địa phương.\nC. native (adj): bản xứ.\nD. national (adj): thuộc về quốc gia/toàn quốc.\n\n2. Dịch nghĩa toàn câu: \"Ở Mỹ, Lễ Phục sinh là một ngày lễ toàn quốc.\"\n\n3. Tại sao chọn D?\nCần một tính từ đứng trước danh từ \"holiday\". \"National holiday\" là cụm từ chỉ ngày lễ chung của cả nước.", "isCorrect": true },
+{ "text": "nation", "rationale": "1. Phân tích từ vựng:\nA. nation (n): quốc gia.\nB. local (adj): địa phương.\nC. native (adj): bản xứ.\nD. national (adj): thuộc về quốc gia/toàn quốc.\n\n2. Dịch nghĩa toàn câu: \"Ở Mỹ, Lễ Phục sinh là một ngày lễ toàn quốc.\"\n\n3. Tại sao loại A?\nĐây là danh từ, không bổ nghĩa cho \"holiday\" theo cách này.", "isCorrect": false },
+{ "text": "local", "rationale": "1. Phân tích từ vựng:\nA. nation (n): quốc gia.\nB. local (adj): địa phương.\nC. native (adj): bản xứ.\nD. national (adj): thuộc về quốc gia/toàn quốc.\n\n2. Dịch nghĩa toàn câu: \"Ở Mỹ, Lễ Phục sinh là một ngày lễ toàn quốc.\"\n\n3. Tại sao loại B?\nEaster được tổ chức khắp nơi, không chỉ ở \"địa phương\".", "isCorrect": false },
+{ "text": "native", "rationale": "1. Phân tích từ vựng:\nA. nation (n): quốc gia.\nB. local (adj): địa phương.\nC. native (adj): bản xứ.\nD. national (adj): thuộc về quốc gia/toàn quốc.\n\n2. Dịch nghĩa toàn câu: \"Ở Mỹ, Lễ Phục sinh là một ngày lễ toàn quốc.\"\n\n3. Tại sao loại C?\nKhông dùng \"native holiday\".", "isCorrect": false }
+],
+"hint": "Tính từ chỉ ngày lễ chung cho cả nước."
+},
+{
+"questionNumber": 25,
+"question": "Easter is not a fixed holiday, its ______ varies between 22nd March and 25th April.",
+"answerOptions": [
+{ "text": "date", "rationale": "1. Phân tích từ vựng:\nA. day (n): ngày (thứ trong tuần hoặc ngày chung chung).\nB. date (n): ngày tháng (cụ thể trong lịch).\nC. event (n): sự kiện.\nD. month (n): tháng.\n\n2. Dịch nghĩa toàn câu: \"Lễ Phục sinh không phải là một ngày lễ cố định, ngày diễn ra của nó thay đổi trong khoảng từ 22/3 đến 25/4.\"\n\n3. Tại sao chọn B?\nKhi nói về một mốc thời gian cụ thể trên lịch (số ngày + tháng), ta dùng \"date\".", "isCorrect": true },
+{ "text": "day", "rationale": "1. Phân tích từ vựng:\nA. day (n): ngày (thứ trong tuần hoặc ngày chung chung).\nB. date (n): ngày tháng (cụ thể trong lịch).\nC. event (n): sự kiện.\nD. month (n): tháng.\n\n2. Dịch nghĩa toàn câu: \"Lễ Phục sinh không phải là một ngày lễ cố định, ngày diễn ra của nó thay đổi trong khoảng từ 22/3 đến 25/4.\"\n\n3. Tại sao loại A?\n\"Day\" thường chỉ thứ (Monday, Tuesday) hoặc ngày ban ngày, ít dùng để chỉ \"ngày tháng\" cụ thể như 22nd March.", "isCorrect": false },
+{ "text": "event", "rationale": "1. Phân tích từ vựng:\nA. day (n): ngày (thứ trong tuần hoặc ngày chung chung).\nB. date (n): ngày tháng (cụ thể trong lịch).\nC. event (n): sự kiện.\nD. month (n): tháng.\n\n2. Dịch nghĩa toàn câu: \"Lễ Phục sinh không phải là một ngày lễ cố định, ngày diễn ra của nó thay đổi trong khoảng từ 22/3 đến 25/4.\"\n\n3. Tại sao loại C?\nCâu đang nói về sự thay đổi thời gian (varies between...), nên cần từ chỉ thời gian.", "isCorrect": false },
+{ "text": "month", "rationale": "1. Phân tích từ vựng:\nA. day (n): ngày (thứ trong tuần hoặc ngày chung chung).\nB. date (n): ngày tháng (cụ thể trong lịch).\nC. event (n): sự kiện.\nD. month (n): tháng.\n\n2. Dịch nghĩa toàn câu: \"Lễ Phục sinh không phải là một ngày lễ cố định, ngày diễn ra của nó thay đổi trong khoảng từ 22/3 đến 25/4.\"\n\n3. Tại sao loại D?\nNó thay đổi cả ngày lẫn tháng, không chỉ tháng.", "isCorrect": false }
+],
+"hint": "Từ chỉ ngày tháng cụ thể trên lịch."
+},
+{
+"questionNumber": 26,
+"question": "Give a ______ before you turn left or right.",
+"answerOptions": [
+{ "text": "signal", "rationale": "1. Phân tích từ vựng:\nA. sign (n): biển báo/dấu hiệu.\nB. turn (n): lượt/khúc cua.\nC. sound (n): âm thanh.\nD. signal (n): tín hiệu (xi-nhan).\n\n2. Dịch nghĩa toàn câu: \"Hãy ra tín hiệu (xi-nhan) trước khi bạn rẽ trái hoặc phải.\"\n\n3. Tại sao chọn D?\nTrong giao thông, hành động báo hiệu rẽ gọi là \"give a signal\" (hoặc turn signal).", "isCorrect": true },
+{ "text": "sign", "rationale": "1. Phân tích từ vựng:\nA. sign (n): biển báo/dấu hiệu.\nB. turn (n): lượt/khúc cua.\nC. sound (n): âm thanh.\nD. signal (n): tín hiệu (xi-nhan).\n\n2. Dịch nghĩa toàn câu: \"Hãy ra tín hiệu (xi-nhan) trước khi bạn rẽ trái hoặc phải.\"\n\n3. Tại sao loại A?\n\"Sign\" thường là biển báo cố định trên đường, không phải hành động của người lái xe.", "isCorrect": false },
+{ "text": "turn", "rationale": "1. Phân tích từ vựng:\nA. sign (n): biển báo/dấu hiệu.\nB. turn (n): lượt/khúc cua.\nC. sound (n): âm thanh.\nD. signal (n): tín hiệu (xi-nhan).\n\n2. Dịch nghĩa toàn câu: \"Hãy ra tín hiệu (xi-nhan) trước khi bạn rẽ trái hoặc phải.\"\n\n3. Tại sao loại B?\nLặp từ và không rõ nghĩa.", "isCorrect": false },
+{ "text": "sound", "rationale": "1. Phân tích từ vựng:\nA. sign (n): biển báo/dấu hiệu.\nB. turn (n): lượt/khúc cua.\nC. sound (n): âm thanh.\nD. signal (n): tín hiệu (xi-nhan).\n\n2. Dịch nghĩa toàn câu: \"Hãy ra tín hiệu (xi-nhan) trước khi bạn rẽ trái hoặc phải.\"\n\n3. Tại sao loại C?\nKhông cụ thể, thường dùng \"honk\" (bấm còi) nếu nói về âm thanh.", "isCorrect": false }
+],
+"hint": "Hành động bật đèn xi-nhan để báo rẽ."
+},
+{
+"questionNumber": 27,
+"question": "We will go on holiday with some friends of ______",
+"answerOptions": [
+{ "text": "ours", "rationale": "1. Phân tích từ vựng:\nA. ours (đại từ sở hữu): của chúng tôi.\nB. our (tính từ sở hữu): của chúng tôi.\nC. us (tân ngữ): chúng tôi.\nD. we (chủ ngữ): chúng tôi.\n\n2. Dịch nghĩa toàn câu: \"Chúng tôi sẽ đi nghỉ mát với vài người bạn của chúng tôi.\"\n\n3. Tại sao chọn A?\nCấu trúc sở hữu kép (Double Possessive): \"some friends of ours\" = \"some of our friends\". Sau giới từ \"of\" trong cấu trúc này phải dùng Đại từ sở hữu.", "isCorrect": true },
+{ "text": "our", "rationale": "1. Phân tích từ vựng:\nA. ours (đại từ sở hữu): của chúng tôi.\nB. our (tính từ sở hữu): của chúng tôi.\nC. us (tân ngữ): chúng tôi.\nD. we (chủ ngữ): chúng tôi.\n\n2. Dịch nghĩa toàn câu: \"Chúng tôi sẽ đi nghỉ mát với vài người bạn của chúng tôi.\"\n\n3. Tại sao loại B?\n\"Our\" phải đi kèm danh từ.", "isCorrect": false },
+{ "text": "us", "rationale": "1. Phân tích từ vựng:\nA. ours (đại từ sở hữu): của chúng tôi.\nB. our (tính từ sở hữu): của chúng tôi.\nC. us (tân ngữ): chúng tôi.\nD. we (chủ ngữ): chúng tôi.\n\n2. Dịch nghĩa toàn câu: \"Chúng tôi sẽ đi nghỉ mát với vài người bạn của chúng tôi.\"\n\n3. Tại sao loại C?\n\"Friends of us\" sai ngữ pháp trong cấu trúc sở hữu này.", "isCorrect": false },
+{ "text": "we", "rationale": "1. Phân tích từ vựng:\nA. ours (đại từ sở hữu): của chúng tôi.\nB. our (tính từ sở hữu): của chúng tôi.\nC. us (tân ngữ): chúng tôi.\nD. we (chủ ngữ): chúng tôi.\n\n2. Dịch nghĩa toàn câu: \"Chúng tôi sẽ đi nghỉ mát với vài người bạn của chúng tôi.\"\n\n3. Tại sao loại D?\nSai ngữ pháp sau giới từ.", "isCorrect": false }
+],
+"hint": "Cấu trúc 'A friend of mine/yours/ours...'."
+},
+{
+"questionNumber": 28,
+"question": "New York is a(n) ______ city. You can do many things there.",
+"answerOptions": [
+{ "text": "exciting", "rationale": "1. Phân tích từ vựng:\nA. sunny (adj): nắng.\nB. friendly (adj): thân thiện.\nC. exciting (adj): thú vị/sôi động.\nD. old (adj): cũ.\n\n2. Dịch nghĩa toàn câu: \"New York là một thành phố thú vị. Bạn có thể làm rất nhiều thứ ở đó.\"\n\n3. Tại sao chọn C?\nVế sau \"You can do many things there\" (Làm được nhiều thứ) giải thích cho sự \"thú vị/sôi động\" (exciting) của thành phố.", "isCorrect": true },
+{ "text": "sunny", "rationale": "1. Phân tích từ vựng:\nA. sunny (adj): nắng.\nB. friendly (adj): thân thiện.\nC. exciting (adj): thú vị/sôi động.\nD. old (adj): cũ.\n\n2. Dịch nghĩa toàn câu: \"New York là một thành phố thú vị. Bạn có thể làm rất nhiều thứ ở đó.\"\n\n3. Tại sao loại A?\nKhông liên quan trực tiếp đến việc \"làm nhiều thứ\".", "isCorrect": false },
+{ "text": "friendly", "rationale": "1. Phân tích từ vựng:\nA. sunny (adj): nắng.\nB. friendly (adj): thân thiện.\nC. exciting (adj): thú vị/sôi động.\nD. old (adj): cũ.\n\n2. Dịch nghĩa toàn câu: \"New York là một thành phố thú vị. Bạn có thể làm rất nhiều thứ ở đó.\"\n\n3. Tại sao loại B?\nThường dùng cho con người hơn là thành phố trong ngữ cảnh hành động.", "isCorrect": false },
+{ "text": "old", "rationale": "1. Phân tích từ vựng:\nA. sunny (adj): nắng.\nB. friendly (adj): thân thiện.\nC. exciting (adj): thú vị/sôi động.\nD. old (adj): cũ.\n\n2. Dịch nghĩa toàn câu: \"New York là một thành phố thú vị. Bạn có thể làm rất nhiều thứ ở đó.\"\n\n3. Tại sao loại D?\nKhông phù hợp với ý \"làm nhiều thứ\".", "isCorrect": false }
+],
+"hint": "Nhiều hoạt động để làm thì thành phố đó rất..."
+},
+{
+"questionNumber": 29,
+"question": "I don't like the ______ weather in London. I just stay at home and watch.",
+"answerOptions": [
+{ "text": "rainy", "rationale": "1. Phân tích từ vựng:\nA. sunny (adj): nắng.\nB. rainy (adj): mưa.\nC. nice (adj): đẹp.\nD. snow (n): tuyết (sai loại từ).\n\n2. Dịch nghĩa toàn câu: \"Tôi không thích thời tiết mưa ở London. Tôi chỉ ở nhà và xem (TV/cái gì đó).\"\n\n3. Tại sao chọn B?\nHành động \"stay at home\" (ở nhà) thường do thời tiết xấu (mưa). London cũng nổi tiếng với mưa.", "isCorrect": true },
+{ "text": "sunny", "rationale": "1. Phân tích từ vựng:\nA. sunny (adj): nắng.\nB. rainy (adj): mưa.\nC. nice (adj): đẹp.\nD. snow (n): tuyết (sai loại từ).\n\n2. Dịch nghĩa toàn câu: \"Tôi không thích thời tiết mưa ở London. Tôi chỉ ở nhà và xem (TV/cái gì đó).\"\n\n3. Tại sao loại A?\nThời tiết đẹp thì thường đi chơi, không ở nhà.", "isCorrect": false },
+{ "text": "nice", "rationale": "1. Phân tích từ vựng:\nA. sunny (adj): nắng.\nB. rainy (adj): mưa.\nC. nice (adj): đẹp.\nD. snow (n): tuyết (sai loại từ).\n\n2. Dịch nghĩa toàn câu: \"Tôi không thích thời tiết mưa ở London. Tôi chỉ ở nhà và xem (TV/cái gì đó).\"\n\n3. Tại sao loại C?\nĐã nói \"don't like\" (không thích) thì không thể là \"nice\" (đẹp).", "isCorrect": false },
+{ "text": "snow", "rationale": "1. Phân tích từ vựng:\nA. sunny (adj): nắng.\nB. rainy (adj): mưa.\nC. nice (adj): đẹp.\nD. snow (n): tuyết (sai loại từ).\n\n2. Dịch nghĩa toàn câu: \"Tôi không thích thời tiết mưa ở London. Tôi chỉ ở nhà và xem (TV/cái gì đó).\"\n\n3. Tại sao loại D?\n\"Snow\" là danh từ, chỗ trống cần tính từ. Phải là \"snowy\" mới đúng ngữ pháp.", "isCorrect": false }
+],
+"hint": "Thời tiết xấu khiến bạn phải ở nhà."
+},
+{
+"questionNumber": 30,
+"question": "Can you lend me ______ new book? I really like its title.",
+"answerOptions": [
+{ "text": "your", "rationale": "1. Phân tích từ vựng:\nA. my (tính từ sở hữu): của tôi.\nB. mine (đại từ sở hữu): cái của tôi.\nC. your (tính từ sở hữu): của bạn.\nD. yours (đại từ sở hữu): cái của bạn.\n\n2. Dịch nghĩa toàn câu: \"Bạn có thể cho tôi mượn cuốn sách mới của bạn được không? Tôi rất thích tựa đề của nó.\"\n\n3. Tại sao chọn C?\nCần tính từ sở hữu đứng trước danh từ \"new book\". Người nói mượn sách của người nghe (\"you\") -> dùng \"your\".", "isCorrect": true },
+{ "text": "my", "rationale": "1. Phân tích từ vựng:\nA. my (tính từ sở hữu): của tôi.\nB. mine (đại từ sở hữu): cái của tôi.\nC. your (tính từ sở hữu): của bạn.\nD. yours (đại từ sở hữu): cái của bạn.\n\n2. Dịch nghĩa toàn câu: \"Bạn có thể cho tôi mượn cuốn sách mới của bạn được không? Tôi rất thích tựa đề của nó.\"\n\n3. Tại sao loại A?\nKhông ai mượn đồ của chính mình.", "isCorrect": false },
+{ "text": "mine", "rationale": "1. Phân tích từ vựng:\nA. my (tính từ sở hữu): của tôi.\nB. mine (đại từ sở hữu): cái của tôi.\nC. your (tính từ sở hữu): của bạn.\nD. yours (đại từ sở hữu): cái của bạn.\n\n2. Dịch nghĩa toàn câu: \"Bạn có thể cho tôi mượn cuốn sách mới của bạn được không? Tôi rất thích tựa đề của nó.\"\n\n3. Tại sao loại B?\n\"Mine\" không đứng trước danh từ.", "isCorrect": false },
+{ "text": "yours", "rationale": "1. Phân tích từ vựng:\nA. my (tính từ sở hữu): của tôi.\nB. mine (đại từ sở hữu): cái của tôi.\nC. your (tính từ sở hữu): của bạn.\nD. yours (đại từ sở hữu): cái của bạn.\n\n2. Dịch nghĩa toàn câu: \"Bạn có thể cho tôi mượn cuốn sách mới của bạn được không? Tôi rất thích tựa đề của nó.\"\n\n3. Tại sao loại D?\n\"Yours\" không đứng trước danh từ.", "isCorrect": false }
+],
+"hint": "Tính từ sở hữu đi với danh từ 'new book'."
+}
+];
+
+    let correctCount = 0;
+    const totalQuestions = quizData.length;
+
+    // --- RENDER LOGIC ---
+    function renderQuiz() {
+        const container = document.getElementById('quiz-container');
+        quizData.forEach((item, index) => {
+            // Create Card
+            const card = document.createElement('div');
+            card.className = "bg-white rounded-2xl shadow-lg overflow-hidden border border-purple-100 p-6";
+            
+            // Question Text
+            const qTitle = `<div class="flex items-start gap-4 mb-6">
+                <div class="bg-purple-100 text-purple-700 font-bold rounded-lg p-3 min-w-[50px] text-center shadow-sm">
+                    Q${item.questionNumber}
+                </div>
+                <h3 class="text-xl font-bold text-gray-800 pt-1 leading-snug">${item.question}</h3>
+            </div>`;
+
+            // Options
+            let optionsHtml = '<div class="grid grid-cols-1 md:grid-cols-2 gap-4">';
+            const labels = ['A', 'B', 'C', 'D'];
+            
+            item.answerOptions.forEach((opt, optIndex) => {
+                optionsHtml += `
+                    <button id="q${index}_opt${optIndex}" 
+                        onclick="checkAnswer(${index}, ${optIndex}, ${opt.isCorrect})"
+                        class="btn-option bg-gray-50 text-left p-4 rounded-xl flex items-center gap-3 text-lg font-medium text-gray-700 hover:bg-white w-full">
+                        <span class="w-8 h-8 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center font-bold text-sm border-2 border-purple-200">
+                            ${labels[optIndex]}
+                        </span>
+                        <span>${opt.text}</span>
+                    </button>
+                `;
+            });
+            optionsHtml += '</div>';
+
+            // Explanation Section (Hidden by default)
+            // Convert newline \n in rationale to <br> for HTML display
+            const rationaleHtml = item.answerOptions.find(o => o.isCorrect)?.rationale.replace(/\n/g, '<br>') || "Giải thích đang cập nhật...";
+            const explanationHtml = `
+                <div id="explanation-${index}" class="explanation-box hidden mt-6 p-4 rounded-r-xl bg-purple-50">
+                    <div class="flex items-center gap-2 mb-2 text-purple-700 font-bold uppercase text-sm tracking-wider">
+                        <i class="fas fa-lightbulb text-yellow-500 text-xl"></i>
+                        <span>Ms Mai An giải thích:</span>
+                    </div>
+                    <div class="text-gray-700 leading-relaxed space-y-2 text-base">
+                        ${rationaleHtml}
+                    </div>
+                    ${item.hint ? `<div class="mt-3 text-sm text-gray-500 italic bg-white p-2 rounded border border-gray-100"><i class="fas fa-key mr-1"></i> Mẹo: ${item.hint}</div>` : ''}
+                </div>
+            `;
+
+            card.innerHTML = qTitle + optionsHtml + explanationHtml;
+            container.appendChild(card);
+        });
+    }
+
+    // --- INTERACTION LOGIC ---
+    function checkAnswer(qIndex, optIndex, isCorrect) {
+        const selectedBtn = document.getElementById(`q${qIndex}_opt${optIndex}`);
+        const explanationDiv = document.getElementById(`explanation-${qIndex}`);
+        const allButtons = document.querySelectorAll(`[id^='q${qIndex}_opt']`);
+        
+        // Prevent re-clicking
+        if (selectedBtn.disabled) return;
+        allButtons.forEach(btn => btn.disabled = true);
+
+        // Update UI
+        explanationDiv.classList.remove('hidden');
+        
+        if (isCorrect) {
+            selectedBtn.classList.add('btn-correct');
+            playSound('correct');
+            triggerConfetti(selectedBtn);
+            correctCount++;
+            updateProgressBar();
+        } else {
+            selectedBtn.classList.add('btn-wrong');
+            playSound('wrong');
+            // Highlight the correct answer automatically if wrong
+            const correctOptIndex = quizData[qIndex].answerOptions.findIndex(o => o.isCorrect);
+            document.getElementById(`q${qIndex}_opt${correctOptIndex}`).classList.add('btn-correct', 'opacity-75');
+        }
+    }
+
+    function updateProgressBar() {
+        const percentage = (correctCount / totalQuestions) * 100;
+        document.getElementById('progress-bar').style.width = `${percentage}%`;
+    }
+
+    function playSound(type) {
+        const audio = document.getElementById(type === 'correct' ? 'sound-correct' : 'sound-wrong');
+        audio.currentTime = 0;
+        audio.play().catch(e => console.log("Audio play failed interaction required"));
+    }
+
+    function triggerConfetti(element) {
+        const rect = element.getBoundingClientRect();
+        // Calculate position relative to viewport
+        const x = (rect.left + rect.width / 2) / window.innerWidth;
+        const y = (rect.top + rect.height / 2) / window.innerHeight;
+
+        confetti({
+            particleCount: 60,
+            spread: 70,
+            origin: { x: x, y: y },
+            colors: ['#00C9A7', '#8854C0', '#FFD700']
+        });
+    }
+
+    function submitQuiz() {
+        const modal = document.getElementById('score-modal');
+        const scoreDisplay = document.getElementById('final-score');
+        const feedback = document.getElementById('feedback-text');
+
+        scoreDisplay.innerText = `${correctCount}/${totalQuestions}`;
+        
+        if (correctCount === totalQuestions) {
+            feedback.innerText = "Tuyệt vời! Bạn là thiên tài tiếng Anh! 🌟";
+        } else if (correctCount >= 20) {
+            feedback.innerText = "Làm tốt lắm! Cố gắng thêm chút nữa nhé! 💪";
+        } else {
+            feedback.innerText = "Đừng nản chí! Hãy xem lại phần giải thích nhé! 📚";
+        }
+
+        modal.classList.remove('hidden');
+        // Final celebration confetti
+        if (correctCount > 15) {
+            const duration = 3000;
+            const end = Date.now() + duration;
+            (function frame() {
+                confetti({
+                    particleCount: 5,
+                    angle: 60,
+                    spread: 55,
+                    origin: { x: 0 },
+                    colors: ['#8854C0', '#00C9A7']
+                });
+                confetti({
+                    particleCount: 5,
+                    angle: 120,
+                    spread: 55,
+                    origin: { x: 1 },
+                    colors: ['#8854C0', '#00C9A7']
+                });
+                if (Date.now() < end) requestAnimationFrame(frame);
+            }());
+        }
+    }
+
+    function closeModal() {
+        document.getElementById('score-modal').classList.add('hidden');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // Initialize
+    renderQuiz();
+
+</script>
+</body>
+</html>

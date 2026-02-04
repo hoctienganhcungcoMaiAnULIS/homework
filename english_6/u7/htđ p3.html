@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Luyện tập Tiếng Anh 6 - Ms Mai An ULIS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+    <style>
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: #f0f4f8;
+            background-image: radial-gradient(#8854C0 0.5px, transparent 0.5px), radial-gradient(#8854C0 0.5px, #f0f4f8 0.5px);
+            background-size: 20px 20px;
+            background-position: 0 0, 10px 10px;
+            background-attachment: fixed;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .game-card {
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 10px 0 rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            max-width: 650px;
+            width: 95%;
+            margin: 20px auto;
+            padding: 24px;
+            position: relative;
+        }
+
+        .option-btn {
+            width: 100%;
+            text-align: left;
+            padding: 16px 20px;
+            margin-bottom: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 18px;
+            background: white;
+            box-shadow: 0 5px 0 #e2e8f0;
+            font-weight: 700;
+            font-size: 1.1rem;
+            transition: all 0.2s;
+            cursor: pointer;
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .option-btn:hover {
+            transform: translateY(-2px);
+            border-color: #8854C0;
+            box-shadow: 0 7px 0 #8854C0;
+        }
+
+        .option-btn:active {
+            transform: translateY(3px);
+            box-shadow: 0 2px 0 #8854C0;
+        }
+
+        .option-btn.correct {
+            background-color: #00D26A !important;
+            color: white !important;
+            border-color: #00a854 !important;
+            box-shadow: 0 5px 0 #00a854 !important;
+        }
+
+        .option-btn.wrong {
+            background-color: #FF4757 !important;
+            color: white !important;
+            border-color: #d63031 !important;
+            box-shadow: 0 5px 0 #d63031 !important;
+        }
+
+        .explanation-box {
+            background-color: #f8f0ff;
+            border-left: 5px solid #8854C0;
+            border-radius: 12px;
+            margin-top: 15px;
+            padding: 15px;
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .shake { animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both; }
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-1px, 0, 0); }
+            20%, 80% { transform: translate3d(2px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+            40%, 60% { transform: translate3d(4px, 0, 0); }
+        }
+
+        .teacher-badge {
+            background: #8854C0;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 800;
+            display: inline-block;
+            margin-bottom: 8px;
+        }
+
+        .progress-bar {
+            height: 12px;
+            background: #e2e8f0;
+            border-radius: 6px;
+            overflow: hidden;
+            width: 100%;
+            margin: 10px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00C9A7, #8854C0);
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 40px;
+            border-radius: 30px;
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 20px 0 rgba(0,0,0,0.2);
+        }
+
+        .btn-primary {
+            background: #00C9A7;
+            color: white;
+            padding: 12px 30px;
+            border-radius: 20px;
+            font-weight: 800;
+            box-shadow: 0 5px 0 #00a88b;
+            cursor: pointer;
+            border: none;
+            margin-top: 20px;
+        }
+
+        .btn-primary:active { transform: translateY(3px); box-shadow: 0 2px 0 #00a88b; }
+        
+        .glossary-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        .glossary-table th, .glossary-table td { border: 1px solid #e2e8f0; padding: 10px; text-align: left; }
+        .glossary-table th { background-color: #f8f0ff; color: #8854C0; }
+
+        #question-area { width: 100%; display: flex; flex-direction: column; align-items: center; }
+    </style>
+</head>
+<body>
+
+    <header class="w-full text-center py-6">
+        <h1 class="text-4xl font-extrabold text-[#8854C0]">GRAMMAR CHALLENGE</h1>
+        <div class="teacher-badge mt-2">Giáo viên tạo: Ms Mai An ULIS</div>
+        <div class="max-w-xl mx-auto px-4">
+            <div class="progress-bar">
+                <div id="progress-fill" class="progress-fill"></div>
+            </div>
+            <p id="stats" class="text-gray-600 font-bold">Câu 1/30 • Điểm: 0</p>
+        </div>
+    </header>
+
+    <main id="question-area">
+        <!-- Question Card will be injected here -->
+    </main>
+
+    <div id="final-modal" class="modal">
+        <div class="modal-content">
+            <h2 class="text-3xl font-black text-[#8854C0] mb-4">KẾT QUẢ TUYỆT VỜI!</h2>
+            <p id="final-score" class="text-5xl font-black text-[#00C9A7] my-4">0/30</p>
+            <p id="final-comment" class="text-xl text-gray-700 font-bold mb-6"></p>
+            <button onclick="location.reload()" class="btn-primary">LÀM LẠI NÀO!</button>
+        </div>
+    </div>
+
+    <!-- Audio Effects -->
+    <audio id="snd-correct" src="https://assets.mixkit.co/active_storage/sfx/2000/2000-preview.mp3"></audio>
+    <audio id="snd-wrong" src="https://assets.mixkit.co/active_storage/sfx/2020/2020-preview.mp3"></audio>
+
+    <script>
+        const quizData = [
+            {
+                q: "My brother ______ to school by bike every day.",
+                options: ["cycle", "cycles", "cycling", "is cycle"],
+                correct: 1,
+                hint: "Chủ ngữ số ít (He) -> Động từ thêm 's'.",
+                explanation: {
+                    analysis: ["cycle (v): đạp xe", "cycles (v): đạp xe (số ít)", "cycling (v-ing): đang đạp xe", "is cycle (sai cấu trúc)"],
+                    translation: "Anh trai tôi đạp xe đến trường mỗi ngày.",
+                    logic: "Chủ ngữ 'My brother' là ngôi thứ 3 số ít (tương đương 'He'), nên động từ 'cycle' phải thêm 's'.",
+                    whyNot: "A sai vì thiếu s; C sai thì; D sai cấu trúc kết hợp."
+                }
+            },
+            {
+                q: "We ______ new subjects for this school year.",
+                options: ["has", "have", "having", "haves"],
+                correct: 1,
+                hint: "Chủ ngữ 'We' đi với 'have'.",
+                explanation: {
+                    analysis: ["has (v): có (số ít)", "have (v): có (số nhiều/nguyên mẫu)", "having (v-ing): đang có", "haves (sai chính tả)"],
+                    translation: "Chúng tôi có những môn học mới cho năm học này.",
+                    logic: "Chủ ngữ 'We' là ngôi thứ 1 số nhiều, động từ 'have' giữ nguyên mẫu.",
+                    whyNot: "A dùng cho số ít; C sai thì; D từ này không tồn tại."
+                }
+            },
+            {
+                q: "______ you often ______ in the school library?",
+                options: ["Do / read", "Does / read", "Do / reads", "Are / read"],
+                correct: 0,
+                hint: "Do + You + V(nguyên thể)?",
+                explanation: {
+                    analysis: ["Do / read: Đọc (hỏi với You)", "Does / read: Đọc (hỏi với số ít)", "Do / reads: Sai ngữ pháp", "Are / read: Sai ngữ pháp"],
+                    translation: "Bạn có thường đọc sách trong thư viện trường không?",
+                    logic: "Câu hỏi với 'You', dùng trợ động từ 'Do'. Động từ chính 'read' giữ nguyên.",
+                    whyNot: "B sai trợ động từ; C sai vì chia động từ chính; D sai vì dùng tobe."
+                }
+            },
+            {
+                q: "Mai ______ Judo at the gym on Mondays.",
+                options: ["practices", "practice", "do", "is practice"],
+                correct: 0,
+                hint: "Mai là ngôi thứ 3 số ít.",
+                explanation: {
+                    analysis: ["practices (v): luyện tập (số ít)", "practice (v): nguyên mẫu", "do (v): làm/tập", "is practice (sai cấu trúc)"],
+                    translation: "Mai luyện tập Judo ở phòng tập vào các ngày thứ Hai.",
+                    logic: "Chủ ngữ 'Mai' là số ít -> thêm 's'. Cô Mai An lưu ý: Sách Global Success dùng 'do Judo', nếu dùng 'do' ở đây phải là 'does'. Do đó chọn 'practices' là hợp lý nhất về ngữ pháp chia động từ.",
+                    whyNot: "B thiếu s; C sai chia động từ; D sai cấu trúc."
+                }
+            },
+            {
+                q: "The students ______ their uniforms on Sundays.",
+                options: ["doesn't wear", "don't wear", "not wear", "don't wears"],
+                correct: 1,
+                hint: "'The students' là số nhiều -> dùng don't.",
+                explanation: {
+                    analysis: ["doesn't wear: không mặc (số ít)", "don't wear: không mặc (số nhiều)", "not wear: thiếu trợ động từ", "don't wears: sai ngữ pháp"],
+                    translation: "Các học sinh không mặc đồng phục vào Chủ nhật.",
+                    logic: "Chủ ngữ 'The students' là số nhiều -> dùng 'don't' + V nguyên mẫu.",
+                    whyNot: "A dùng cho số ít; C thiếu 'do'; D sai vì chia động từ sau 'don't'."
+                }
+            },
+            {
+                q: "My father usually ______ up at 6 o'clock.",
+                options: ["get", "gets", "getting", "is get"],
+                correct: 1,
+                explanation: {
+                    analysis: ["get (v)", "gets (v) - chia số ít", "getting (v-ing)", "is get (sai)"],
+                    translation: "Bố tôi thường thức dậy lúc 6 giờ.",
+                    logic: "Chủ ngữ 'My father' (He) -> động từ 'get' thêm 's'.",
+                    whyNot: "A thiếu s; C, D sai thì/cấu trúc."
+                }
+            },
+            {
+                q: "She ______ her homework in the evening.",
+                options: ["do", "does", "dos", "doing"],
+                correct: 1,
+                explanation: {
+                    analysis: ["do (v)", "does (v) - làm (số ít)", "dos (sai chính tả)", "doing (v-ing)"],
+                    translation: "Cô ấy làm bài tập về nhà vào buổi tối.",
+                    logic: "Chủ ngữ 'She', động từ 'do' kết thúc bằng 'o' nên thêm 'es' thành 'does'.",
+                    whyNot: "A sai ngôi; C sai chính tả; D sai thì."
+                }
+            },
+            {
+                q: "______ Miss Lan teach English?",
+                options: ["Do", "Does", "Is", "Are"],
+                correct: 1,
+                explanation: {
+                    analysis: ["Do (aux)", "Does (aux)", "Is (tobe)", "Are (tobe)"],
+                    translation: "Cô Lan có dạy tiếng Anh không?",
+                    logic: "Miss Lan là ngôi thứ 3 số ít. Câu hỏi động từ thường 'teach' dùng trợ động từ 'Does'.",
+                    whyNot: "A sai ngôi; C, D không đi với động từ thường nguyên mẫu."
+                }
+            },
+            {
+                q: "We ______ in a town house.",
+                options: ["live", "lives", "living", "are live"],
+                correct: 0,
+                explanation: {
+                    analysis: ["live (v): sống", "lives (v): số ít", "living (v-ing)", "are live (sai)"],
+                    translation: "Chúng tôi sống trong một ngôi nhà phố.",
+                    logic: "Chủ ngữ 'We' là số nhiều -> Động từ 'live' giữ nguyên.",
+                    whyNot: "B dùng cho số ít; C, D sai cấu trúc."
+                }
+            },
+            {
+                q: "He ______ TV before dinner.",
+                options: ["watch", "watches", "watchs", "watching"],
+                correct: 1,
+                explanation: {
+                    analysis: ["watch (v)", "watches (v) - xem (số ít)", "watchs (sai)", "watching (v-ing)"],
+                    translation: "Anh ấy xem TV trước bữa tối.",
+                    logic: "Chủ ngữ 'He', động từ 'watch' tận cùng 'ch' nên thêm 'es'.",
+                    whyNot: "A thiếu es; C sai quy tắc chính tả; D sai thì."
+                }
+            },
+            {
+                q: "Lan and Mai ______ lunch at school.",
+                options: ["has", "have", "haves", "having"],
+                correct: 1,
+                explanation: {
+                    analysis: ["has (v)", "have (v) - ăn/có", "haves (sai)", "having (v-ing)"],
+                    translation: "Lan và Mai ăn trưa ở trường.",
+                    logic: "Lan and Mai = 2 người (They) -> Dùng 'have' nguyên mẫu.",
+                    whyNot: "A dùng cho 1 người; C, D không tồn tại/sai thì."
+                }
+            },
+            {
+                q: "My sister ______ her room every day.",
+                options: ["don't clean", "doesn't clean", "doesn't cleans", "not clean"],
+                correct: 1,
+                explanation: {
+                    analysis: ["don't clean", "doesn't clean: không dọn dẹp", "doesn't cleans: sai", "not clean: sai"],
+                    translation: "Chị gái tôi không dọn phòng mỗi ngày.",
+                    logic: "My sister (số ít) -> Dùng 'doesn't' + V nguyên mẫu.",
+                    whyNot: "A sai ngôi; C thừa s; D thiếu trợ động từ."
+                }
+            },
+            {
+                q: "How ______ Nam ______ to school?",
+                options: ["do / go", "does / go", "does / goes", "is / go"],
+                correct: 1,
+                explanation: {
+                    analysis: ["do / go", "does / go", "does / goes", "is / go"],
+                    translation: "Nam đi đến trường bằng cách nào?",
+                    logic: "Nam là số ít -> trợ động từ 'does', động từ chính 'go' nguyên mẫu.",
+                    whyNot: "A sai trợ động từ; C sai động từ chính; D sai cấu trúc."
+                }
+            },
+            {
+                q: "I ______ study History on Tuesdays.",
+                options: ["doesn't", "don't", "not", "am not"],
+                correct: 1,
+                explanation: {
+                    analysis: ["doesn't", "don't: không", "not", "am not"],
+                    translation: "Tôi không học môn Lịch sử vào các ngày thứ Ba.",
+                    logic: "Chủ ngữ 'I' luôn đi với 'don't' trong câu phủ định thì hiện tại đơn.",
+                    whyNot: "A dùng cho số ít; C thiếu trợ động từ; D không đi với động từ thường study."
+                }
+            },
+            {
+                q: "Phong ______ hard for the exams.",
+                options: ["study", "studies", "studys", "studying"],
+                correct: 1,
+                explanation: {
+                    analysis: ["study (v)", "studies (v): học (số ít)", "studys (sai)", "studying (v-ing)"],
+                    translation: "Phong học chăm chỉ cho các kỳ thi.",
+                    logic: "Phong (số ít). Tận cùng phụ âm + y -> đổi y thành i + es.",
+                    whyNot: "A sai ngôi; C sai chính tả; D sai thì."
+                }
+            },
+            {
+                q: "______ they play football in the afternoon?",
+                options: ["Do", "Does", "Are", "Is"],
+                correct: 0,
+                explanation: {
+                    analysis: ["Do (aux)", "Does (aux)", "Are (tobe)", "Is (tobe)"],
+                    translation: "Họ có chơi bóng đá vào buổi chiều không?",
+                    logic: "They đi với trợ động từ 'Do'.",
+                    whyNot: "B sai ngôi; C, D không đi với động từ thường nguyên mẫu."
+                }
+            },
+            {
+                q: "My mom ______ the housework every weekend.",
+                options: ["do", "does", "doing", "don't"],
+                correct: 1,
+                explanation: {
+                    analysis: ["do", "does: làm", "doing", "don't"],
+                    translation: "Mẹ tôi làm việc nhà vào mỗi cuối tuần.",
+                    logic: "My mom (She) -> do thêm es thành 'does'.",
+                    whyNot: "A sai ngôi; C sai thì; D sai nghĩa."
+                }
+            },
+            {
+                q: "The children ______ video games too much.",
+                options: ["doesn't play", "don't play", "not plays", "don't plays"],
+                correct: 1,
+                explanation: {
+                    analysis: ["doesn't play", "don't play: không chơi", "not plays", "don't plays"],
+                    translation: "Những đứa trẻ không chơi trò chơi điện tử quá nhiều.",
+                    logic: "The children là danh từ số nhiều của 'child' -> dùng 'don't'.",
+                    whyNot: "A dùng cho số ít; C, D sai ngữ pháp."
+                }
+            },
+            {
+                q: "Where ______ you ______?",
+                options: ["do / live", "does / live", "do / lives", "are / live"],
+                correct: 0,
+                explanation: {
+                    analysis: ["do / live", "does / live", "do / lives", "are / live"],
+                    translation: "Bạn sống ở đâu?",
+                    logic: "Hỏi 'you' dùng 'do'.",
+                    whyNot: "B sai trợ động từ; C chia động từ chính sai; D dùng tobe sai."
+                }
+            },
+            {
+                q: "My class ______ at 7:00 a.m.",
+                options: ["start", "starts", "starting", "is start"],
+                correct: 1,
+                explanation: {
+                    analysis: ["start", "starts: bắt đầu", "starting", "is start"],
+                    translation: "Lớp học của tôi bắt đầu lúc 7 giờ sáng.",
+                    logic: "My class là danh từ số ít -> thêm s.",
+                    whyNot: "A sai ngôi; C, D sai cấu trúc."
+                }
+            },
+            {
+                q: "Vy ______ to music every night.",
+                options: ["listens", "listen", "listening", "does listen"],
+                correct: 0,
+                explanation: {
+                    analysis: ["listens (v): nghe", "listen (v)", "listening (v-ing)", "does listen"],
+                    translation: "Vy nghe nhạc mỗi tối.",
+                    logic: "Vy (She) -> thêm s.",
+                    whyNot: "B thiếu s; C sai thì; D thường không dùng 'does' trong câu khẳng định thông thường."
+                }
+            },
+            {
+                q: "What time ______ school ______?",
+                options: ["do / finish", "does / finishes", "does / finish", "is / finish"],
+                correct: 2,
+                explanation: {
+                    analysis: ["do / finish", "does / finishes", "does / finish", "is / finish"],
+                    translation: "Trường học tan học lúc mấy giờ?",
+                    logic: "School là danh từ số ít -> dùng 'Does', động từ chính không chia.",
+                    whyNot: "A sai trợ động từ; B chia động từ chính sai; D dùng tobe sai."
+                }
+            },
+            {
+                q: "We usually ______ badminton at break time.",
+                options: ["plays", "play", "playing", "are play"],
+                correct: 1,
+                explanation: {
+                    analysis: ["plays", "play: chơi", "playing", "are play"],
+                    translation: "Chúng tôi thường chơi cầu lông vào giờ ra chơi.",
+                    logic: "We -> động từ nguyên mẫu.",
+                    whyNot: "A dùng cho số ít; C, D sai thì/cấu trúc."
+                }
+            },
+            {
+                q: "He ______ his face in the morning.",
+                options: ["wash", "washes", "washs", "washing"],
+                correct: 1,
+                explanation: {
+                    analysis: ["wash", "washes: rửa", "washs", "washing"],
+                    translation: "Anh ấy rửa mặt vào buổi sáng.",
+                    logic: "Tận cùng sh -> thêm es.",
+                    whyNot: "A sai ngôi; C sai chính tả; D sai thì."
+                }
+            },
+            {
+                q: "______ your parents ______ to work by car?",
+                options: ["Do / go", "Does / go", "Do / goes", "Are / go"],
+                correct: 0,
+                explanation: {
+                    analysis: ["Do / go", "Does / go", "Do / goes", "Are / go"],
+                    translation: "Bố mẹ bạn có đi làm bằng ô tô không?",
+                    logic: "Parents (số nhiều) -> dùng Do.",
+                    whyNot: "B sai trợ động từ; C chia động từ chính; D dùng tobe."
+                }
+            },
+            {
+                q: "This bird ______ very high.",
+                options: ["fly", "flies", "flys", "flying"],
+                correct: 1,
+                explanation: {
+                    analysis: ["fly", "flies: bay", "flys", "flying"],
+                    translation: "Chú chim này bay rất cao.",
+                    logic: "Tận cùng phụ âm + y -> đổi y thành i + es.",
+                    whyNot: "A sai ngôi; C sai chính tả; D sai thì."
+                }
+            },
+            {
+                q: "I ______ English, but I ______ Math.",
+                options: ["like / doesn't like", "likes / don't like", "like / don't like", "like / not like"],
+                correct: 2,
+                explanation: {
+                    analysis: ["like / doesn't like", "likes / don't like", "like / don't like", "like / not like"],
+                    translation: "Tôi thích tiếng Anh, nhưng tôi không thích Toán.",
+                    logic: "I đi với like nguyên mẫu và don't like.",
+                    whyNot: "A, B sai ngôi; D sai cấu trúc phủ định."
+                }
+            },
+            {
+                q: "When ______ we ______ Physics?",
+                options: ["do / have", "does / have", "do / has", "are / having"],
+                correct: 0,
+                explanation: {
+                    analysis: ["do / have", "does / have", "do / has", "are / having"],
+                    translation: "Khi nào chúng ta có môn Vật lý?",
+                    logic: "We dùng trợ động từ do.",
+                    whyNot: "B sai trợ động từ; C chia động từ chính sai; D sai thì."
+                }
+            },
+            {
+                q: "My aunt ______ in a flat in Hanoi.",
+                options: ["don't live", "doesn't live", "doesn't lives", "not live"],
+                correct: 1,
+                explanation: {
+                    analysis: ["don't live", "doesn't live: không sống", "doesn't lives", "not live"],
+                    translation: "Dì của tôi không sống ở căn hộ tại Hà Nội.",
+                    logic: "Aunt là số ít -> dùng doesn't.",
+                    whyNot: "A sai ngôi; C chia động từ chính; D thiếu trợ động từ."
+                }
+            },
+            {
+                q: "She never ______ school late.",
+                options: ["go to", "goes to", "going to", "is go to"],
+                correct: 1,
+                explanation: {
+                    analysis: ["go to", "goes to: đi đến", "going to", "is go to"],
+                    translation: "Cô ấy không bao giờ đi học muộn.",
+                    logic: "She -> go thêm es thành 'goes'. Trạng từ 'never' không làm thay đổi việc chia động từ.",
+                    whyNot: "A sai ngôi; C, D sai thì/cấu trúc."
+                }
+            }
+        ];
+
+        let currentQuestion = 0;
+        let score = 0;
+        let canAnswer = true;
+
+        function updateStats() {
+            const progress = (currentQuestion / quizData.length) * 100;
+            document.getElementById('progress-fill').style.width = `${progress}%`;
+            document.getElementById('stats').innerText = `Câu ${currentQuestion + 1}/${quizData.length} • Điểm: ${score}`;
+        }
+
+        function renderQuestion() {
+            canAnswer = true;
+            const data = quizData[currentQuestion];
+            const area = document.getElementById('question-area');
+            
+            area.innerHTML = `
+                <div class="game-card" id="card-${currentQuestion}">
+                    <h3 class="text-2xl font-bold text-gray-800 mb-6">${data.q}</h3>
+                    <div id="options-container">
+                        ${data.options.map((opt, i) => `
+                            <button class="option-btn" onclick="checkAnswer(${i})">
+                                <span class="bg-gray-100 px-3 py-1 rounded-lg mr-4 text-[#8854C0]">${String.fromCharCode(65 + i)}</span>
+                                ${opt}
+                            </button>
+                        `).join('')}
+                    </div>
+                    <div id="explanation" class="explanation-box">
+                        <div class="font-bold text-[#8854C0] mb-2">💡 Cô Mai An giải thích:</div>
+                        <div class="text-gray-700 text-sm space-y-2">
+                            <p><strong>Dịch câu:</strong> ${data.explanation.translation}</p>
+                            <p><strong>Phân tích 4 đáp án:</strong></p>
+                            <ul class="list-disc ml-5">
+                                ${data.explanation.analysis.map(a => `<li>${a}</li>`).join('')}
+                            </ul>
+                            <p><strong>Tại sao đúng?</strong> ${data.explanation.logic}</p>
+                            <p><strong>Tại sao loại đáp án khác?</strong> ${data.explanation.whyNot}</p>
+                        </div>
+                        <button class="btn-primary w-full mt-4" onclick="nextQuestion()">TIẾP THEO ➜</button>
+                    </div>
+                </div>
+            `;
+            updateStats();
+        }
+
+        function checkAnswer(index) {
+            if (!canAnswer) return;
+            canAnswer = false;
+
+            const data = quizData[currentQuestion];
+            const buttons = document.querySelectorAll('.option-btn');
+            const expBox = document.getElementById('explanation');
+            const card = document.getElementById(`card-${currentQuestion}`);
+
+            if (index === data.correct) {
+                buttons[index].classList.add('correct');
+                score++;
+                document.getElementById('snd-correct').play();
+                confetti({
+                    particleCount: 100,
+                    spread: 70,
+                    origin: { y: 0.6 },
+                    colors: ['#8854C0', '#00C9A7', '#FFD700']
+                });
+            } else {
+                buttons[index].classList.add('wrong');
+                buttons[data.correct].classList.add('correct');
+                card.classList.add('shake');
+                document.getElementById('snd-wrong').play();
+            }
+
+            expBox.style.display = 'block';
+            updateStats();
+        }
+
+        function nextQuestion() {
+            currentQuestion++;
+            if (currentQuestion < quizData.length) {
+                renderQuestion();
+            } else {
+                showFinalResult();
+            }
+        }
+
+        function showFinalResult() {
+            const modal = document.getElementById('final-modal');
+            const scoreText = document.getElementById('final-score');
+            const commentText = document.getElementById('final-comment');
+            
+            modal.style.display = 'flex';
+            scoreText.innerText = `${score}/${quizData.length}`;
+            
+            let comment = "";
+            const percent = (score / quizData.length) * 100;
+            if (percent === 100) comment = "Xuất sắc! Em là thiên tài ngữ pháp!";
+            else if (percent >= 80) comment = "Giỏi quá! Cố gắng phát huy nhé!";
+            else if (percent >= 50) comment = "Khá tốt, nhưng cần ôn tập kỹ hơn một chút!";
+            else comment = "Đừng buồn, hãy làm lại để nhớ kiến thức nhé!";
+            
+            commentText.innerText = comment;
+        }
+
+        // Khởi tạo
+        window.onload = renderQuestion;
+    </script>
+</body>
+</html>

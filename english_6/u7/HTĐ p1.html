@@ -1,0 +1,833 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thì Hiện tại đơn - Ms Mai An ULIS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        :root {
+            --primary: #8854C0; /* Purple */
+            --secondary: #00C9A7; /* Teal */
+            --correct: #00D26A;
+            --incorrect: #FF4757;
+            --bg: #F0F4F8;
+            --text: #2D3436;
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: var(--bg);
+            background-image: radial-gradient(#d1d1d1 1px, transparent 1px);
+            background-size: 20px 20px;
+            color: var(--text);
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding-bottom: 50px;
+        }
+
+        header {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .teacher-name {
+            font-size: 1rem;
+            color: var(--primary);
+            font-weight: 700;
+            margin: 0;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        h1 {
+            font-weight: 900;
+            font-size: 2.2rem;
+            color: var(--primary);
+            margin: 5px 0;
+            text-shadow: 2px 2px 0px rgba(0,0,0,0.05);
+        }
+
+        .progress-container {
+            width: 90%;
+            max-width: 600px;
+            height: 12px;
+            background: #E0E0E0;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            overflow: hidden;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--secondary), #00A388);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .quiz-container {
+            width: 90%;
+            max-width: 700px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 25px;
+            padding: 30px;
+            box-shadow: 0 10px 0px #D6DEE5;
+            border: 2px solid #E2E8F0;
+            margin-bottom: 30px;
+            position: relative;
+            transition: transform 0.2s;
+        }
+
+        .question-text {
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin-bottom: 25px;
+            color: #2D3436;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        @media (max-width: 500px) {
+            .options-grid { grid-template-columns: 1fr; }
+        }
+
+        .option-btn {
+            background: white;
+            border: 2px solid #E2E8F0;
+            border-bottom: 5px solid #E2E8F0;
+            border-radius: 20px;
+            padding: 15px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: left;
+            outline: none;
+            display: flex;
+            align-items: center;
+        }
+
+        .option-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            background-color: #F8FAFC;
+        }
+
+        .option-btn.selected-correct {
+            background-color: var(--correct) !important;
+            border-color: #00B358 !important;
+            color: white;
+        }
+
+        .option-btn.selected-incorrect {
+            background-color: var(--incorrect) !important;
+            border-color: #D63031 !important;
+            color: white;
+        }
+
+        .explanation-box {
+            margin-top: 20px;
+            padding: 20px;
+            background-color: #F9F7FF;
+            border-left: 5px solid var(--primary);
+            border-radius: 15px;
+            display: none;
+            animation: slideUp 0.4s ease;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        .shake { animation: shake 0.3s ease-in-out 0s 2; }
+
+        .explanation-box h4 {
+            margin: 0 0 10px 0;
+            color: var(--primary);
+            font-weight: 900;
+        }
+
+        .analysis-list {
+            margin: 10px 0;
+            padding: 0;
+            list-style: none;
+            font-size: 0.95rem;
+        }
+
+        .analysis-item {
+            margin-bottom: 5px;
+            line-height: 1.4;
+        }
+
+        .submit-container {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .final-btn {
+            background: var(--secondary);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.3rem;
+            font-weight: 900;
+            border-radius: 50px;
+            border-bottom: 5px solid #00A388;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .final-btn:hover {
+            transform: scale(1.05);
+        }
+
+        /* Modal Score */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 100;
+            left: 0; top: 0; width: 100%; height: 100%;
+            background-color: rgba(0,0,0,0.6);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 10% auto;
+            padding: 40px;
+            width: 80%;
+            max-width: 500px;
+            border-radius: 30px;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes popIn {
+            from { transform: scale(0.5); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .score-circle {
+            width: 120px; height: 120px;
+            background: var(--secondary);
+            color: white;
+            font-size: 2.5rem;
+            font-weight: 900;
+            line-height: 120px;
+            border-radius: 50%;
+            margin: 20px auto;
+            border: 8px solid #E0FFF8;
+        }
+
+        .praise {
+            font-size: 1.5rem;
+            color: var(--primary);
+            font-weight: 900;
+            margin-top: 10px;
+        }
+
+        .close-btn {
+            margin-top: 20px;
+            background: #FF4757;
+            color: white;
+            padding: 10px 30px;
+            border-radius: 20px;
+            border: none;
+            cursor: pointer;
+            font-weight: 700;
+        }
+
+        .glossary-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .glossary-table th, .glossary-table td {
+            padding: 10px;
+            border: 1px solid #eee;
+            text-align: left;
+        }
+
+        .glossary-table th {
+            background: var(--secondary);
+            color: white;
+        }
+
+        .u-line { text-decoration: underline; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<header>
+    <p class="teacher-name">Giáo viên tạo: Ms Mai An ULIS 🎓</p>
+    <h1>CHINH PHỤC THÌ HIỆN TẠI ĐƠN</h1>
+</header>
+
+<div class="progress-container">
+    <div class="progress-bar" id="progressBar"></div>
+</div>
+
+<div class="quiz-container" id="quizBody">
+    <!-- Questions will be injected here -->
+</div>
+
+<div class="submit-container">
+    <button class="final-btn" onclick="showResults()">NỘP BÀI XEM ĐIỂM 🚀</button>
+</div>
+
+<div id="resultModal" class="modal">
+    <div class="modal-content">
+        <h2>KẾT QUẢ CỦA BẠN</h2>
+        <div class="score-circle" id="finalScore">0/30</div>
+        <div class="praise" id="praiseMsg">Cố gắng lên nhé!</div>
+        <button class="close-btn" onclick="location.reload()">LÀM LẠI BÀI 🔄</button>
+    </div>
+</div>
+
+<script>
+    const quizData = [
+        {
+            q: "I ______ a student.",
+            options: ["is", "are", "am", "be"],
+            correct: 2,
+            trans: "Tôi là một học sinh.",
+            analysis: [
+                "A. is (v-tobe): là (ngôi 3 số ít)",
+                "B. are (v-tobe): là (số nhiều)",
+                "C. am (v-tobe): là (ngôi I)",
+                "D. be (v): thì, là, ở (nguyên mẫu)"
+            ],
+            logic: "Ngôi 'I' bắt buộc đi với 'am' trong thì hiện tại đơn."
+        },
+        {
+            q: "She ______ very beautiful.",
+            options: ["am", "are", "is", "be"],
+            correct: 2,
+            trans: "Cô ấy rất xinh đẹp.",
+            analysis: [
+                "A. am: thì, là (dùng cho I)",
+                "B. are: thì, là (dùng cho số nhiều)",
+                "C. is: thì, là (dùng cho số ít)",
+                "D. be: nguyên mẫu"
+            ],
+            logic: "'She' là ngôi thứ 3 số ít nên động từ tobe tương ứng là 'is'."
+        },
+        {
+            q: "My brothers ______ at school.",
+            options: ["is not", "aren't", "am not", "not are"],
+            correct: 1,
+            trans: "Các anh em trai của tôi không ở trường.",
+            analysis: [
+                "A. is not: số ít",
+                "B. aren't: số nhiều (are not)",
+                "C. am not: dùng cho I",
+                "D. not are: sai trật tự"
+            ],
+            logic: "Chủ ngữ 'My brothers' số nhiều nên dùng 'aren't'."
+        },
+        {
+            q: "______ she a nurse?",
+            options: ["Are", "Am", "Is", "Do"],
+            correct: 2,
+            trans: "Cô ấy có phải là y tá không?",
+            analysis: [
+                "A. Are: Là (số nhiều)",
+                "B. Am: Là (ngôi I)",
+                "C. Is: Là (số ít)",
+                "D. Do: Trợ động từ thường"
+            ],
+            logic: "Câu hỏi tobe với chủ ngữ số ít 'she', ta đảo 'Is' lên đầu."
+        },
+        {
+            q: "Are you in team A? - Yes, ______.",
+            options: ["I am", "I am not", "you are", "you aren't"],
+            correct: 0,
+            trans: "Bạn có ở đội A không? - Vâng, đúng vậy.",
+            analysis: [
+                "A. I am: Tôi là (khẳng định)",
+                "B. I am not: Tôi không phải (phủ định)",
+                "C. you are: Bạn là",
+                "D. you aren't: Bạn không phải"
+            ],
+            logic: "Hỏi 'Are you', trả lời 'I am'. Vì có 'Yes' nên chọn khẳng định."
+        },
+        {
+            q: "I ______ to school every morning.",
+            options: ["walks", "walking", "walk", "is walk"],
+            correct: 2,
+            trans: "Tôi đi bộ đến trường mỗi sáng.",
+            analysis: [
+                "A. walks: thêm s (số ít)",
+                "B. walking: V-ing (hiện tại tiếp diễn)",
+                "C. walk: nguyên mẫu",
+                "D. is walk: sai cấu trúc"
+            ],
+            logic: "Với chủ ngữ 'I', động từ thường ở hiện tại đơn giữ nguyên mẫu."
+        },
+        {
+            q: "My parents ______ badminton in the morning.",
+            options: ["plays", "play", "playing", "to play"],
+            correct: 1,
+            trans: "Bố mẹ tôi chơi cầu lông vào buổi sáng.",
+            analysis: [
+                "A. plays: thêm s (số ít)",
+                "B. play: nguyên mẫu (số nhiều)",
+                "C. playing: V-ing",
+                "D. to play: dạng to-V"
+            ],
+            logic: "'My parents' là số nhiều (họ), động từ giữ nguyên 'play'."
+        },
+        {
+            q: "She always ______ up early.",
+            options: ["get", "gets", "getting", "is get"],
+            correct: 1,
+            trans: "Cô ấy luôn thức dậy sớm.",
+            analysis: [
+                "A. get: nguyên mẫu",
+                "B. gets: thêm s (số ít)",
+                "C. getting: V-ing",
+                "D. is get: sai cấu trúc"
+            ],
+            logic: "Chủ ngữ 'She' (số ít), ta phải thêm 's' vào động từ thường."
+        },
+        {
+            q: "Nam ______ TV every evening.",
+            options: ["watch", "watchs", "watches", "watching"],
+            correct: 2,
+            trans: "Nam xem TV mỗi buổi tối.",
+            analysis: [
+                "A. watch: nguyên mẫu",
+                "B. watchs: sai chính tả",
+                "C. watches: thêm es",
+                "D. watching: V-ing"
+            ],
+            logic: "Động từ kết thúc bằng 'ch' khi đi với chủ ngữ số ít (Nam) phải thêm 'es'."
+        },
+        {
+            q: "They ______ their homework every afternoon.",
+            options: ["not do", "don't do", "doesn't do", "don't"],
+            correct: 1,
+            trans: "Họ không làm bài tập về nhà mỗi buổi chiều.",
+            analysis: [
+                "A. not do: sai cấu trúc",
+                "B. don't do: không làm (số nhiều)",
+                "C. doesn't do: không làm (số ít)",
+                "D. don't: thiếu động từ chính"
+            ],
+            logic: "Họ (They) là số nhiều, mượn trợ động từ 'don't' + V nguyên mẫu."
+        },
+        {
+            q: "He ______ to school on Sunday.",
+            options: ["doesn't go", "don't go", "not go", "doesn't goes"],
+            correct: 0,
+            trans: "Anh ấy không đi học vào Chủ nhật.",
+            analysis: [
+                "A. doesn't go: không đi (số ít)",
+                "B. don't go: số nhiều",
+                "C. not go: thiếu trợ động từ",
+                "D. doesn't goes: đã có doesn't thì V nguyên mẫu"
+            ],
+            logic: "Ngôi số ít 'He' mượn 'doesn't', động từ 'go' quay về nguyên mẫu."
+        },
+        {
+            q: "Her grandmother ______ exercise in the park.",
+            options: ["don't do", "doesn't do", "doesn't does", "don't does"],
+            correct: 1,
+            trans: "Bà của cô ấy không tập thể dục trong công viên.",
+            analysis: [
+                "A. don't do: số nhiều",
+                "B. doesn't do: số ít",
+                "C. doesn't does: thừa chia động từ",
+                "D. don't does: sai trợ động từ"
+            ],
+            logic: "Bà (số ít) dùng 'doesn't'. Động từ tập thể dục là 'do exercise'."
+        },
+        {
+            q: "______ you often go to the cinema on weekends?",
+            options: ["Do", "Does", "Are", "Is"],
+            correct: 0,
+            trans: "Bạn có thường đi xem phim vào cuối tuần không?",
+            analysis: [
+                "A. Do: Trợ động từ số nhiều/ngôi you",
+                "B. Does: Số ít",
+                "C. Are: Tobe",
+                "D. Is: Tobe số ít"
+            ],
+            logic: "Câu hỏi có động từ thường 'go', chủ ngữ 'you' nên mượn 'Do'."
+        },
+        {
+            q: "______ he play soccer in the afternoon?",
+            options: ["Does", "Do", "Is", "Has"],
+            correct: 0,
+            trans: "Anh ấy có chơi bóng đá vào buổi chiều không?",
+            analysis: [
+                "A. Does: Trợ động từ số ít",
+                "B. Do: Số nhiều",
+                "C. Is: Tobe",
+                "D. Has: Động từ có"
+            ],
+            logic: "Chủ ngữ 'he' số ít mượn trợ động từ 'Does' trong câu hỏi."
+        },
+        {
+            q: "Do they often go swimming? - Yes, they ______.",
+            options: ["do", "don't", "are", "does"],
+            correct: 0,
+            trans: "Họ có thường đi bơi không? - Vâng, có.",
+            analysis: [
+                "A. do: đúng",
+                "B. don't: sai nghĩa (No mới dùng don't)",
+                "C. are: sai loại từ",
+                "D. does: sai số ít"
+            ],
+            logic: "Hỏi 'Do they', trả lời 'Yes, they do'."
+        },
+        {
+            q: "Where ______ they?",
+            options: ["are", "is", "am", "do"],
+            correct: 0,
+            trans: "Họ đang ở đâu?",
+            analysis: [
+                "A. are: số nhiều",
+                "B. is: số ít",
+                "C. am: ngôi I",
+                "D. do: thiếu động từ chính"
+            ],
+            logic: "Câu hỏi trạng thái/vị trí với tobe, 'they' đi với 'are'."
+        },
+        {
+            q: "What ______ you do?",
+            options: ["do", "does", "are", "is"],
+            correct: 0,
+            trans: "Bạn làm nghề gì? / Bạn làm gì?",
+            analysis: [
+                "A. do: trợ động từ cho you",
+                "B. does: cho số ít",
+                "C. are: dùng khi không có động từ chính",
+                "D. is: dùng cho số ít"
+            ],
+            logic: "Mượn trợ động từ 'do' cho chủ ngữ 'you'."
+        },
+        {
+            q: "Who ______ he?",
+            options: ["is", "are", "does", "do"],
+            correct: 0,
+            trans: "Anh ấy là ai?",
+            analysis: [
+                "A. is: số ít",
+                "B. are: số nhiều",
+                "C. does: mượn khi có V thường",
+                "D. do: mượn khi có V thường"
+            ],
+            logic: "Hỏi danh tính dùng tobe, 'he' đi với 'is'."
+        },
+        {
+            q: "Why ______ he cry?",
+            options: ["does", "do", "is", "are"],
+            correct: 0,
+            trans: "Tại sao anh ấy lại khóc?",
+            analysis: [
+                "A. does: đúng trợ động từ số ít",
+                "B. do: số nhiều",
+                "C. is: nếu dùng is thì phải là crying",
+                "D. are: số nhiều"
+            ],
+            logic: "Câu hỏi có động từ thường 'cry', chủ ngữ 'he' mượn 'does'."
+        },
+        {
+            q: "He ______ goes to school by bus.",
+            options: ["rarely", "rare", "rarelys", "raring"],
+            correct: 0,
+            trans: "Anh ấy hiếm khi đi học bằng xe buýt.",
+            analysis: [
+                "A. rarely (adv): hiếm khi",
+                "B. rare (adj): hiếm",
+                "C. rarelys: sai từ",
+                "D. raring: tính từ khác nghĩa"
+            ],
+            logic: "Trạng từ tần suất 'rarely' đứng trước động từ thường 'goes'."
+        },
+        {
+            q: "She ______ at home in the evening.",
+            options: ["is usually", "usually is", "usually", "is"],
+            correct: 0,
+            trans: "Cô ấy thường xuyên ở nhà vào buổi tối.",
+            analysis: [
+                "A. is usually: đúng vị trí",
+                "B. usually is: sai vị trí",
+                "C. usually: thiếu V",
+                "D. is: thiếu trạng từ"
+            ],
+            logic: "Trạng từ tần suất đứng SAU động từ tobe."
+        },
+        {
+            q: "I ______ go out with my friends.",
+            options: ["don’t often", "not often", "often don't", "doesn't often"],
+            correct: 0,
+            trans: "Tôi không thường đi chơi với bạn bè.",
+            analysis: [
+                "A. don't often: đúng trật tự",
+                "B. not often: sai cấu trúc",
+                "C. often don't: sai trật tự",
+                "D. doesn't often: sai chủ ngữ I"
+            ],
+            logic: "Trạng từ tần suất đứng giữa trợ động từ và động từ chính."
+        },
+        {
+            q: "He phones home ______.",
+            options: ["every week", "week", "every weeks", "weeks every"],
+            correct: 0,
+            trans: "Anh ấy gọi điện về nhà mỗi tuần.",
+            analysis: [
+                "A. every week: mỗi tuần",
+                "B. week: tuần (danh từ)",
+                "C. every weeks: sai (every + danh từ số ít)",
+                "D. weeks every: sai trật tự"
+            ],
+            logic: "Every + danh từ số ít làm trạng ngữ chỉ thời gian."
+        },
+        {
+            q: "They go on holiday to the seaside ______ a year.",
+            options: ["once", "one", "one time", "ones"],
+            correct: 0,
+            trans: "Họ đi nghỉ mát ở biển mỗi năm một lần.",
+            analysis: [
+                "A. once: một lần",
+                "B. one: số 1",
+                "C. one time: ít dùng hơn once",
+                "D. ones: đại từ"
+            ],
+            logic: "Dùng 'once/twice' để chỉ tần suất thực hiện hành động."
+        },
+        {
+            q: "We visit our grandparents ______ a month.",
+            options: ["twice", "two", "seconds", "two time"],
+            correct: 0,
+            trans: "Chúng tôi thăm ông bà hai lần một tháng.",
+            analysis: [
+                "A. twice: hai lần",
+                "B. two: số hai",
+                "C. seconds: giây",
+                "D. two time: sai ngữ pháp"
+            ],
+            logic: "Dùng 'twice' cho tần suất 2 lần."
+        },
+        {
+            q: "She brushes her teeth ______ times a day.",
+            options: ["three", "third", "thrice", "three's"],
+            correct: 0,
+            trans: "Cô ấy đánh răng ba lần một ngày.",
+            analysis: [
+                "A. three: số đếm (3 lần)",
+                "B. third: thứ 3",
+                "C. thrice: từ cổ",
+                "D. three's: sở hữu"
+            ],
+            logic: "Từ 3 lần trở lên: số đếm + times."
+        },
+        {
+            q: "I usually ______ breakfast at 7 AM.",
+            options: ["have", "has", "having", "haves"],
+            correct: 0,
+            trans: "Tôi thường ăn sáng lúc 7 giờ sáng.",
+            analysis: [
+                "A. have: nguyên mẫu cho I",
+                "B. has: cho số ít",
+                "C. having: V-ing",
+                "D. haves: sai chính tả"
+            ],
+            logic: "Chủ ngữ 'I' đi với động từ nguyên mẫu 'have'."
+        },
+        {
+            q: "Miss Lan ______ my teacher.",
+            options: ["isn't", "aren't", "am not", "not is"],
+            correct: 0,
+            trans: "Cô Lan không phải là giáo viên của tôi.",
+            analysis: [
+                "A. isn't: số ít",
+                "B. aren't: số nhiều",
+                "C. am not: cho I",
+                "D. not is: sai trật tự"
+            ],
+            logic: "Cô Lan (số ít) dùng 'isn't'."
+        },
+        {
+            q: "What ______ your father do?",
+            options: ["does", "do", "is", "are"],
+            correct: 0,
+            trans: "Bố của bạn làm nghề gì?",
+            analysis: [
+                "A. does: trợ động từ cho bố (số ít)",
+                "B. do: số nhiều",
+                "C. is: sai nếu có V chính là 'do'",
+                "D. are: số nhiều"
+            ],
+            logic: "Câu hỏi nghề nghiệp cho ngôi thứ 3 số ít."
+        },
+        {
+            q: "They ______ friendly.",
+            options: ["are", "is", "am", "do"],
+            correct: 0,
+            trans: "Họ thì thân thiện.",
+            analysis: [
+                "A. are: số nhiều",
+                "B. is: số ít",
+                "C. am: cho I",
+                "D. do: động từ thường"
+            ],
+            logic: "Miêu tả tính chất với tobe, 'they' đi với 'are'."
+        }
+    ];
+
+    let currentScore = 0;
+    let answeredCount = 0;
+
+    // Sounds using Web Audio API
+    function playSound(type) {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const oscillator = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+
+        oscillator.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+
+        if (type === 'correct') {
+            oscillator.type = 'sine';
+            oscillator.frequency.setValueAtTime(523.25, audioCtx.currentTime); // C5
+            oscillator.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.1);
+            gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+            oscillator.start();
+            oscillator.stop(audioCtx.currentTime + 0.3);
+        } else {
+            oscillator.type = 'sawtooth';
+            oscillator.frequency.setValueAtTime(200, audioCtx.currentTime);
+            oscillator.frequency.linearRampToValueAtTime(100, audioCtx.currentTime + 0.4);
+            gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            gainNode.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+            oscillator.start();
+            oscillator.stop(audioCtx.currentTime + 0.4);
+        }
+    }
+
+    function renderQuiz() {
+        const quizBody = document.getElementById('quizBody');
+        quizBody.innerHTML = quizData.map((item, index) => `
+            <div class="card" id="card-${index}">
+                <div class="question-text">Question ${index + 1}: ${item.q}</div>
+                <div class="options-grid">
+                    ${item.options.map((opt, optIdx) => `
+                        <button class="option-btn" onclick="checkAnswer(${index}, ${optIdx}, this)">
+                            ${String.fromCharCode(65 + optIdx)}. ${opt}
+                        </button>
+                    `).join('')}
+                </div>
+                <div class="explanation-box" id="explain-${index}">
+                    <h4>Cô Mai An giải thích:</h4>
+                    <p><strong>1. Dịch nghĩa toàn câu:</strong> "${item.trans}"</p>
+                    <p><strong>2. Phân tích 4 đáp án:</strong></p>
+                    <ul class="analysis-list">
+                        ${item.analysis.map(a => `<li class="analysis-item">${a}</li>`).join('')}
+                    </ul>
+                    <p><strong>3. Tại sao chọn ${String.fromCharCode(65 + item.correct)}?</strong></p>
+                    <p>${item.logic}</p>
+                    <p style="font-weight: 900; color: var(--correct)">👉 Đáp án đúng: ${String.fromCharCode(65 + item.correct)}</p>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function checkAnswer(qIdx, selectedIdx, btn) {
+        const card = document.getElementById(`card-${qIdx}`);
+        const explainBox = document.getElementById(`explain-${qIdx}`);
+        const buttons = card.querySelectorAll('.option-btn');
+        const correctIdx = quizData[qIdx].correct;
+
+        if (explainBox.style.display === 'block') return; // Prevent re-clicking
+
+        answeredCount++;
+        updateProgress();
+
+        if (selectedIdx === correctIdx) {
+            btn.classList.add('selected-correct');
+            currentScore++;
+            playSound('correct');
+            confetti({
+                particleCount: 50,
+                spread: 70,
+                origin: { y: 0.6 },
+                colors: ['#8854C0', '#00C9A7', '#00D26A']
+            });
+        } else {
+            btn.classList.add('selected-incorrect');
+            buttons[correctIdx].classList.add('selected-correct');
+            card.classList.add('shake');
+            playSound('incorrect');
+            setTimeout(() => card.classList.remove('shake'), 500);
+        }
+
+        // Show explanation
+        explainBox.style.display = 'block';
+        
+        // Disable all buttons in this card
+        buttons.forEach(b => b.disabled = true);
+    }
+
+    function updateProgress() {
+        const bar = document.getElementById('progressBar');
+        const percent = (answeredCount / quizData.length) * 100;
+        bar.style.width = percent + '%';
+    }
+
+    function showResults() {
+        if (answeredCount < quizData.length) {
+            if(!confirm("Bạn chưa hoàn thành hết các câu hỏi. Vẫn muốn nộp bài chứ?")) return;
+        }
+
+        const modal = document.getElementById('resultModal');
+        const scoreDisplay = document.getElementById('finalScore');
+        const praise = document.getElementById('praiseMsg');
+
+        modal.style.display = 'block';
+        scoreDisplay.innerText = `${currentScore}/${quizData.length}`;
+
+        const ratio = currentScore / quizData.length;
+        if (ratio === 1) praise.innerText = "XUẤT SẮC! Bạn là thiên tài ngữ pháp! 🌟";
+        else if (ratio >= 0.8) praise.innerText = "Tuyệt vời! Cô Mai An rất tự hào về bạn! 👏";
+        else if (ratio >= 0.5) praise.innerText = "Khá tốt! Hãy ôn lại các lỗi sai nhé! 💪";
+        else praise.innerText = "Cần cố gắng hơn! Đừng bỏ cuộc bạn nhé! ❤️";
+        
+        confetti({
+            particleCount: 150,
+            spread: 180,
+            origin: { y: 0.3 }
+        });
+    }
+
+    window.onload = renderQuiz;
+</script>
+
+</body>
+</html>

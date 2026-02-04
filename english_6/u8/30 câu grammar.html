@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trắc nghiệm Ngữ pháp Thể thao (31-60) - Ms Mai An ULIS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root {
+            --primary: #8854C0;
+            --accent: #00C9A7;
+            --correct: #00D26A;
+            --wrong: #FF4757;
+            --bg-color: #f0f4f8;
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: var(--bg-color);
+            background-image: radial-gradient(#8854C0 0.5px, transparent 0.5px), radial-gradient(#8854C0 0.5px, #f0f4f8 0.5px);
+            background-size: 20px 20px;
+            background-position: 0 0, 10px 10px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .teacher-header {
+            font-size: 0.9rem;
+            color: var(--primary);
+            font-weight: 700;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .quiz-card {
+            background: white;
+            border-radius: 30px;
+            box-shadow: 0 15px 0 rgba(0,0,0,0.05);
+            width: 100%;
+            max-width: 700px;
+            padding: 30px;
+            margin-top: 10px;
+            border: 4px solid #e2e8f0;
+            transition: transform 0.3s ease;
+            position: relative;
+        }
+
+        .option-btn {
+            width: 100%;
+            text-align: left;
+            padding: 15px 25px;
+            margin-bottom: 12px;
+            border-radius: 20px;
+            border: 3px solid #e2e8f0;
+            background: white;
+            font-weight: 700;
+            font-size: 1.1rem;
+            box-shadow: 0 6px 0 #e2e8f0;
+            transition: all 0.2s;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .option-btn:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 9px 0 #e2e8f0;
+            background-color: #f8fafc;
+            border-color: var(--primary);
+        }
+
+        .option-btn:active:not(:disabled) {
+            transform: translateY(3px);
+            box-shadow: 0 2px 0 #e2e8f0;
+        }
+
+        .option-btn.correct {
+            background-color: var(--correct) !important;
+            color: white !important;
+            border-color: #00a854 !important;
+            box-shadow: 0 6px 0 #008a45 !important;
+        }
+
+        .option-btn.wrong {
+            background-color: var(--wrong) !important;
+            color: white !important;
+            border-color: #d63031 !important;
+            box-shadow: 0 6px 0 #b32626 !important;
+        }
+
+        .explanation-box {
+            display: none;
+            margin-top: 20px;
+            padding: 20px;
+            border-radius: 20px;
+            background-color: #f3f0ff;
+            border-left: 8px solid var(--primary);
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .shake {
+            animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+        }
+
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-1px, 0, 0); }
+            20%, 80% { transform: translate3d(2px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+            40%, 60% { transform: translate3d(4px, 0, 0); }
+        }
+
+        .progress-bar-container {
+            width: 100%;
+            max-width: 700px;
+            height: 15px;
+            background: #e2e8f0;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            overflow: hidden;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
+        .btn-next {
+            background: var(--accent);
+            color: white;
+            padding: 12px 30px;
+            border-radius: 50px;
+            font-weight: 900;
+            box-shadow: 0 6px 0 #00a88b;
+            margin-top: 20px;
+            display: none;
+            transition: all 0.2s;
+        }
+
+        .btn-next:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 9px 0 #00a88b;
+        }
+
+        .btn-next:active {
+            transform: translateY(3px);
+            box-shadow: 0 2px 0 #00a88b;
+        }
+
+        .result-screen {
+            display: none;
+            text-align: center;
+            animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0.5); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        
+        .score-badge {
+            font-size: 4rem;
+            font-weight: 900;
+            color: var(--primary);
+            margin: 20px 0;
+        }
+
+        .glossary-table {
+            width: 100%;
+            margin-top: 20px;
+            border-collapse: separate;
+            border-spacing: 0;
+            border-radius: 15px;
+            overflow: hidden;
+            border: 2px solid #e2e8f0;
+        }
+
+        .glossary-table th {
+            background: var(--primary);
+            color: white;
+            padding: 10px;
+        }
+
+        .glossary-table td {
+            background: white;
+            padding: 10px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="teacher-header">Giáo viên tạo: Ms Mai An ULIS (Master of Arts)</div>
+    <h1 class="text-2xl font-black text-slate-800 mb-6 text-center">🏆 TRẮC NGHIỆM NGỮ PHÁP THỂ THAO 🏆</h1>
+
+    <div class="progress-bar-container">
+        <div id="progressFill" class="progress-bar-fill"></div>
+    </div>
+
+    <div id="quizContainer">
+        <!-- Question Card -->
+        <div class="quiz-card" id="questionCard">
+            <div id="questionNumber" class="text-sm font-bold text-slate-400 mb-2">CÂU HỎI 31/60</div>
+            <h2 id="questionText" class="text-xl font-black text-slate-800 mb-6">Đang tải câu hỏi...</h2>
+            
+            <div id="optionsGroup">
+                <!-- Options will be injected here -->
+            </div>
+
+            <div id="explanationBox" class="explanation-box">
+                <!-- Explanation will be injected here -->
+            </div>
+
+            <div class="flex justify-end">
+                <button id="nextBtn" class="btn-next">CÂU TIẾP THEO ➜</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Result Screen -->
+    <div id="resultScreen" class="result-screen quiz-card">
+        <h2 class="text-3xl font-black text-slate-800">KẾT QUẢ BÀI THI</h2>
+        <div id="finalScore" class="score-badge">0/30</div>
+        <p id="motivationalText" class="text-lg font-bold text-slate-600 mb-6">Bạn đã làm rất tốt!</p>
+        <button onclick="location.reload()" class="btn-next" style="display: inline-block;">LÀM LẠI BÀI ↺</button>
+    </div>
+
+    <script>
+        const quizData = [
+            {
+                number: 31,
+                q: "Yesterday, I _______ tennis with my brother for two hours.",
+                options: ["play", "plays", "playing", "played"],
+                correct: 3,
+                translation: "Hôm qua, tôi đã chơi quần vợt với anh trai tôi trong hai giờ.",
+                explainA: "play (v): chơi (dạng nguyên mẫu/hiện tại).",
+                explainB: "plays (v): chơi (hiện tại số ít).",
+                explainC: "playing (v-ing): đang chơi.",
+                explainD: "played (v-ed): đã chơi (quá khứ).",
+                whyCorrect: "Vì có dấu hiệu thời gian 'Yesterday' (hôm qua) nên ta dùng thì Quá khứ đơn (V-ed).",
+                whyWrong: "Các đáp án A, B, C đều thuộc thì hiện tại hoặc dạng tiếp diễn, không phù hợp với 'Yesterday'."
+            },
+            {
+                number: 32,
+                q: "Last Sunday, our team _______ the championship game 3-1.",
+                options: ["won", "win", "wins", "winning"],
+                correct: 0,
+                translation: "Chủ nhật tuần trước, đội của chúng tôi đã thắng trận chung kết với tỉ số 3-1.",
+                explainA: "won (v2): đã thắng (quá khứ của win).",
+                explainB: "win (v1): thắng.",
+                explainC: "wins (v-s): thắng (số ít).",
+                explainD: "winning (v-ing): đang thắng.",
+                whyCorrect: "'Last Sunday' là mốc thời gian trong quá khứ, nên dùng động từ cột 2 (bất quy tắc) của win là 'won'.",
+                whyWrong: "B, C là hiện tại. D là dạng tiếp diễn thiếu to be."
+            },
+            {
+                number: 33,
+                q: "She _______ go swimming last week because the pool was closed.",
+                options: ["don't", "didn't", "doesn't", "isn't"],
+                correct: 1,
+                translation: "Cô ấy đã không đi bơi vào tuần trước vì hồ bơi bị đóng cửa.",
+                explainA: "don't: trợ động từ phủ định hiện tại.",
+                explainB: "didn't: trợ động từ phủ định quá khứ.",
+                explainC: "doesn't: trợ động từ phủ định hiện tại số ít.",
+                explainD: "isn't: to be phủ định.",
+                whyCorrect: "'Last week' yêu cầu phủ định ở quá khứ đơn: didn't + V-nguyên mẫu.",
+                whyWrong: "A và C sai thì. D không đi với động từ thường 'go' ở dạng nguyên mẫu."
+            },
+            {
+                number: 34,
+                q: "_______ you watch the football match on TV yesterday?",
+                options: ["Do", "Does", "Did", "Are"],
+                correct: 2,
+                translation: "Bạn có xem trận bóng đá trên TV hôm qua không?",
+                explainA: "Do: trợ động từ hiện tại.",
+                explainB: "Does: trợ động từ hiện tại số ít.",
+                explainC: "Did: trợ động từ quá khứ.",
+                explainD: "Are: to be hiện tại.",
+                whyCorrect: "Câu hỏi nghi vấn thì Quá khứ đơn (yesterday) dùng trợ động từ 'Did' đảo lên trước chủ ngữ.",
+                whyWrong: "A, B sai thì. D không đi với động từ thường 'watch'."
+            },
+            {
+                number: 35,
+                q: "Two days ago, we _______ very tired after the marathon.",
+                options: ["were", "are", "was", "is"],
+                correct: 0,
+                translation: "Hai ngày trước, chúng tôi đã rất mệt sau cuộc chạy marathon.",
+                explainA: "were: to be quá khứ (số nhiều).",
+                explainB: "are: to be hiện tại (số nhiều).",
+                explainC: "was: to be quá khứ (số ít).",
+                explainD: "is: to be hiện tại (số ít).",
+                whyCorrect: "'Two days ago' là quá khứ. Chủ ngữ 'We' đi với to be 'were'.",
+                whyWrong: "B, D sai thì. C sai ngôi (was dùng cho I/He/She/It)."
+            },
+            {
+                number: 36,
+                q: "My sister _______ badminton when she was young.",
+                options: ["like", "liked", "likes", "liking"],
+                correct: 1,
+                translation: "Chị gái tôi đã thích cầu lông khi chị ấy còn nhỏ.",
+                explainA: "like: thích (hiện tại).",
+                explainB: "liked: đã thích (quá khứ).",
+                explainC: "likes: thích (hiện tại số ít).",
+                explainD: "liking: việc thích.",
+                whyCorrect: "Mệnh đề 'when she was young' chỉ một trạng thái trong quá khứ, nên động từ chính phải chia quá khứ đơn.",
+                whyWrong: "A, C là hiện tại. D là danh động từ."
+            },
+            {
+                number: 37,
+                q: "The coach _______ happy with our performance last night.",
+                options: ["weren't", "isn't", "wasn't", "aren't"],
+                correct: 2,
+                translation: "Huấn luyện viên đã không hài lòng với màn trình diễn của chúng tôi tối qua.",
+                explainA: "weren't: to be quá khứ (số nhiều).",
+                explainB: "isn't: to be hiện tại.",
+                explainC: "wasn't: to be quá khứ (số ít).",
+                explainD: "aren't: to be hiện tại số nhiều.",
+                whyCorrect: "'Last night' -> quá khứ. 'The coach' là danh từ số ít nên dùng 'wasn't'.",
+                whyWrong: "A sai ngôi. B, D sai thì."
+            },
+            {
+                number: 38,
+                q: "They _______ basketball in the park three hours ago.",
+                options: ["played", "play", "plays", "playing"],
+                correct: 0,
+                translation: "Họ đã chơi bóng rổ ở công viên ba giờ trước.",
+                explainA: "played: đã chơi (quá khứ).",
+                explainB: "play: chơi (hiện tại).",
+                explainC: "plays: chơi (hiện tại số ít).",
+                explainD: "playing: đang chơi.",
+                whyCorrect: "'Three hours ago' là dấu hiệu quá khứ đơn (V-ed).",
+                whyWrong: "B, C là hiện tại. D thiếu to be."
+            },
+            {
+                number: 39,
+                q: "_______ Tom at the sports center yesterday afternoon?",
+                options: ["Is", "Was", "Are", "Were"],
+                correct: 1,
+                translation: "Tom có ở trung tâm thể thao vào chiều hôm qua không?",
+                explainA: "Is: to be hiện tại số ít.",
+                explainB: "Was: to be quá khứ số ít.",
+                explainC: "Are: to be hiện tại số nhiều.",
+                explainD: "Were: to be quá khứ số nhiều.",
+                whyCorrect: "Câu hỏi về vị trí/trạng thái trong quá khứ (yesterday) với chủ ngữ Tom (số ít) dùng 'Was'.",
+                whyWrong: "A, C sai thì. D sai ngôi."
+            },
+            {
+                number: 40,
+                q: "I _______ my bike to school last Monday morning.",
+                options: ["ride", "rides", "rode", "riding"],
+                correct: 2,
+                translation: "Tôi đã đạp xe đến trường vào sáng thứ Hai tuần trước.",
+                explainA: "ride: đạp xe (hiện tại).",
+                explainB: "rides: đạp xe (số ít).",
+                explainC: "rode: đã đạp xe (quá khứ).",
+                explainD: "riding: đang đạp xe.",
+                whyCorrect: "'Last Monday' -> quá khứ đơn. Động từ bất quy tắc 'ride' chuyển sang cột 2 là 'rode'.",
+                whyWrong: "A, B sai thì. D sai dạng."
+            },
+            {
+                number: 41,
+                q: "The players _______ practice tennis yesterday because it rained.",
+                options: ["didn't", "don't", "doesn't", "aren't"],
+                correct: 0,
+                translation: "Các vận động viên đã không tập quần vợt hôm qua vì trời mưa.",
+                explainA: "didn't: không (quá khứ).",
+                explainB: "don't: không (hiện tại số nhiều).",
+                explainC: "doesn't: không (hiện tại số ít).",
+                explainD: "aren't: không phải (to be).",
+                whyCorrect: "Phủ định quá khứ (yesterday) dùng didn't + V nguyên mẫu.",
+                whyWrong: "B, C sai thì. D không đi với động từ thường."
+            },
+            {
+                number: 42,
+                q: "In 2022, our school team _______ five matches in the tournament.",
+                options: ["win", "wins", "winning", "won"],
+                correct: 3,
+                translation: "Năm 2022, đội trường chúng tôi đã thắng năm trận đấu trong giải đấu.",
+                explainA: "win: thắng (hiện tại).",
+                explainB: "wins: thắng (số ít).",
+                explainC: "winning: đang thắng.",
+                explainD: "won: đã thắng (quá khứ).",
+                whyCorrect: "'In 2022' là mốc thời gian đã qua trong quá khứ.",
+                whyWrong: "Các phương án khác không dùng cho sự việc đã hoàn tất trong quá khứ."
+            },
+            {
+                number: 43,
+                q: "_______ your friends play volleyball at the beach last summer?",
+                options: ["Does", "Did", "Do", "Are"],
+                correct: 1,
+                translation: "Các bạn của bạn có chơi bóng chuyền ở bãi biển vào mùa hè năm ngoái không?",
+                explainA: "Does: hiện tại số ít.",
+                explainB: "Did: quá khứ.",
+                explainC: "Do: hiện tại số nhiều.",
+                explainD: "Are: to be hiện tại.",
+                whyCorrect: "'Last summer' yêu cầu trợ động từ quá khứ 'Did'.",
+                whyWrong: "A, C sai thì. D sai cấu trúc câu hỏi động từ thường."
+            },
+            {
+                number: 44,
+                q: "The referee _______ the red card to the player five minutes ago.",
+                options: ["showed", "show", "shows", "showing"],
+                correct: 0,
+                translation: "Trọng tài đã giơ thẻ đỏ cho cầu thủ năm phút trước.",
+                explainA: "showed: đã giơ/cho xem (quá khứ).",
+                explainB: "show: cho xem (hiện tại).",
+                explainC: "shows: cho xem (số ít).",
+                explainD: "showing: đang cho xem.",
+                whyCorrect: "Dùng quá khứ đơn với 'five minutes ago'.",
+                whyWrong: "Các thì hiện tại không dùng được với 'ago'."
+            },
+            {
+                number: 45,
+                q: "We _______ excited about the game last night because our team lost badly.",
+                options: ["didn't", "wasn't", "weren't", "don't"],
+                correct: 2,
+                translation: "Chúng tôi đã không hào hứng về trận đấu tối qua vì đội của chúng tôi thua đậm.",
+                explainA: "didn't: trợ động từ (đi với V).",
+                explainB: "wasn't: to be quá khứ số ít.",
+                explainC: "weren't: to be quá khứ số nhiều.",
+                explainD: "don't: trợ động từ hiện tại.",
+                whyCorrect: "'excited' là tính từ nên phải dùng to be. We (số nhiều) đi với 'weren't'.",
+                whyWrong: "A không đi với tính từ. B sai ngôi. D sai thì."
+            },
+            {
+                number: 46,
+                q: '\"_______ the ball to me!\" the coach shouted to the player.',
+                options: ["Pass", "Passing", "Passed", "To pass"],
+                correct: 0,
+                translation: "\"Chuyền bóng cho tôi!\" huấn luyện viên hét lên với cầu thủ.",
+                explainA: "Pass: chuyền (V-nguyên mẫu).",
+                explainB: "Passing: đang chuyền.",
+                explainC: "Passed: đã chuyền.",
+                explainD: "To pass: để chuyền.",
+                whyCorrect: "Đây là câu mệnh lệnh (Imperative), luôn bắt đầu bằng động từ nguyên mẫu không 'to'.",
+                whyWrong: "Câu mệnh lệnh không dùng V-ing, V-ed hay To-V ở đầu câu."
+            },
+            {
+                number: 47,
+                q: '\"_______ run in the swimming pool area. It\'s dangerous!\"',
+                options: ["Not", "Don't", "No", "Doesn't"],
+                correct: 1,
+                translation: "\"Đừng chạy trong khu vực hồ bơi. Nguy hiểm lắm!\"",
+                explainA: "Not: không (phụ từ).",
+                explainB: "Don't: đừng (mệnh lệnh phủ định).",
+                explainC: "No: không (dùng với danh từ).",
+                explainD: "Doesn't: không (trợ động từ hiện tại).",
+                whyCorrect: "Mệnh lệnh phủ định (cấm đoán) bắt đầu bằng 'Don't' + V nguyên mẫu.",
+                whyWrong: "A, C, D không dùng để bắt đầu một câu mệnh lệnh phủ định."
+            },
+            {
+                number: 48,
+                q: '\"_______ play tennis after school today!\" - \"Great idea!\"',
+                options: ["Let's", "Let", "Lets", "Letting"],
+                correct: 0,
+                translation: "\"Chúng ta hãy chơi quần vợt sau giờ học hôm nay đi!\" - \"Ý kiến hay đấy!\"",
+                explainA: "Let's: chúng ta hãy (rủ rê).",
+                explainB: "Let: để cho (cần túc từ).",
+                explainC: "Lets: để cho (chia ngôi 3).",
+                explainD: "Letting: việc để cho.",
+                whyCorrect: "Cấu trúc đề nghị/rủ rê: Let's (Let us) + V nguyên mẫu.",
+                whyWrong: "B thiếu túc từ. C là động từ chia. D là dạng V-ing."
+            },
+            {
+                number: 49,
+                q: 'The referee said: \"_______ touch the ball with your hands in football!\"',
+                options: ["Please", "You", "Don't", "Can't"],
+                correct: 2,
+                translation: "Trọng tài nói: \"Đừng chạm tay vào bóng trong môn bóng đá!\"",
+                explainA: "Please: làm ơn.",
+                explainB: "You: bạn.",
+                explainC: "Don't: đừng.",
+                explainD: "Can't: không thể.",
+                whyCorrect: "Dùng 'Don't' để đưa ra một yêu cầu cấm đoán trực tiếp trong luật chơi.",
+                whyWrong: "A, B, D không tạo thành câu mệnh lệnh cấm đoán chuẩn ngữ pháp."
+            },
+            {
+                number: 50,
+                q: '\"_______ bring your racket tomorrow for badminton practice.\"',
+                options: ["Pleased", "Pleasing", "To please", "Please"],
+                correct: 3,
+                translation: "\"Vui lòng mang vợt của bạn vào ngày mai để tập cầu lông.\"",
+                explainA: "Pleased: hài lòng (tính từ).",
+                explainB: "Pleasing: dễ chịu (tính từ).",
+                explainC: "To please: để làm vui lòng.",
+                explainD: "Please: vui lòng/làm ơn.",
+                whyCorrect: "Dùng 'Please' ở đầu câu để tạo thành câu mệnh lệnh lịch sự.",
+                whyWrong: "Các phương án khác là tính từ hoặc dạng khác của từ, không dùng rủ rê/yêu cầu."
+            },
+            {
+                number: 51,
+                q: '\"_______ not go swimming today. The water is too cold.\"',
+                options: ["Let", "Let's", "Lets", "Let is"],
+                correct: 1,
+                translation: "\"Chúng ta đừng đi bơi hôm nay. Nước lạnh quá.\"",
+                explainA: "Let: để cho.",
+                explainB: "Let's: chúng ta hãy.",
+                explainC: "Lets: (động từ chia).",
+                explainD: "Let is: (sai ngữ pháp).",
+                whyCorrect: "Cấu trúc đề nghị phủ định: Let's not + V nguyên mẫu.",
+                whyWrong: "Chỉ có Let's mới kết hợp với 'not' để rủ rê 'đừng làm gì'."
+            },
+            {
+                number: 52,
+                q: 'Coach: \"_______ harder if you want to win the game!\"',
+                options: ["Tried", "Trying", "Try", "To try"],
+                correct: 2,
+                translation: "HLV: \"Hãy cố gắng hơn nếu các em muốn thắng trận đấu!\"",
+                explainA: "Tried: đã cố gắng.",
+                explainB: "Trying: đang cố gắng.",
+                explainC: "Try: hãy cố gắng (nguyên mẫu).",
+                explainD: "To try: để cố gắng.",
+                whyCorrect: "Câu mệnh lệnh/khuyên bảo bắt đầu bằng V-nguyên mẫu.",
+                whyWrong: "Không dùng các dạng V-ed, V-ing hay To-V làm mệnh lệnh."
+            },
+            {
+                number: 53,
+                q: '\"_______ forget your helmet when riding your bike!\"',
+                options: ["Do", "Does", "Doing", "Don't"],
+                correct: 3,
+                translation: "\"Đừng quên đội mũ bảo hiểm khi đi xe đạp!\"",
+                explainA: "Do: hãy (nhấn mạnh).",
+                explainB: "Does: (sai ngôi).",
+                explainC: "Doing: (sai dạng).",
+                explainD: "Don't: đừng.",
+                whyCorrect: "Lời khuyên 'Đừng quên' dùng mệnh lệnh phủ định 'Don't forget'.",
+                whyWrong: "Nếu chọn A sẽ mang nghĩa 'Hãy quên đi', sai hoàn toàn về ý nghĩa an toàn."
+            },
+            {
+                number: 54,
+                q: '\"_______ watch the World Cup final together tonight!\"',
+                options: ["Let's", "Let", "We", "You"],
+                correct: 0,
+                translation: "\"Chúng ta hãy cùng xem chung kết World Cup tối nay nhé!\"",
+                explainA: "Let's: chúng ta hãy.",
+                explainB: "Let: để (thiếu túc từ).",
+                explainC: "We: chúng tôi (câu kể).",
+                explainD: "You: bạn (câu kể).",
+                whyCorrect: "Dùng 'Let's' để rủ rê mọi người cùng làm một việc gì đó (together).",
+                whyWrong: "B thiếu 'us'. C, D biến câu thành câu trần thuật chứ không phải rủ rê."
+            },
+            {
+                number: 55,
+                q: 'Sign at the gym: \"_______ clean the equipment after use, please.\"',
+                options: ["Cleaning", "Cleaned", "To clean", "Clean"],
+                correct: 3,
+                translation: "Biển báo tại phòng tập: \"Vui lòng lau sạch dụng cụ sau khi sử dụng.\"",
+                explainA: "Cleaning: việc lau dọn.",
+                explainB: "Cleaned: đã lau dọn.",
+                explainC: "To clean: để lau dọn.",
+                explainD: "Clean: hãy lau dọn (nguyên mẫu).",
+                whyCorrect: "Hướng dẫn trên biển báo thường dùng câu mệnh lệnh (V nguyên mẫu).",
+                whyWrong: "Các dạng khác không dùng trong biển báo chỉ dẫn hành động."
+            },
+            {
+                number: 56,
+                q: '\"Please _______ quietly during the chess tournament.\"',
+                options: ["to sit", "sit", "sitting", "sat"],
+                correct: 1,
+                translation: "\"Vui lòng ngồi trật tự trong suốt giải đấu cờ vua.\"",
+                explainA: "to sit: (sai cấu trúc).",
+                explainB: "sit: ngồi (V nguyên mẫu).",
+                explainC: "sitting: đang ngồi.",
+                explainD: "sat: đã ngồi.",
+                whyCorrect: "Cấu trúc: Please + V nguyên mẫu.",
+                whyWrong: "Không dùng to-V, V-ing hay V-quá khứ sau 'Please' trong câu yêu cầu."
+            },
+            {
+                number: 57,
+                q: '\"_______ late for basketball practice tomorrow morning!\"',
+                options: ["Don't be", "Not be", "No be", "Doesn't be"],
+                correct: 0,
+                translation: "\"Đừng đến muộn buổi tập bóng rổ sáng mai nhé!\"",
+                explainA: "Don't be: đừng (mệnh lệnh phủ định với to be).",
+                explainB: "Not be: (sai cấu trúc).",
+                explainC: "No be: (sai cấu trúc).",
+                explainD: "Doesn't be: (sai cấu trúc).",
+                whyCorrect: "'late' là tính từ nên cần động từ to be. Phủ định mệnh lệnh là 'Don't be'.",
+                whyWrong: "Mệnh lệnh phủ định luôn bắt đầu bằng 'Don't', không dùng 'Not' hay 'No' đứng một mình."
+            },
+            {
+                number: 58,
+                q: 'Teacher: \"_______ your sports shoes to PE class.\"',
+                options: ["Bringing", "Brought", "Bring", "To bring"],
+                correct: 2,
+                translation: "Giáo viên: \"Hãy mang giày thể thao của các em đến giờ Thể dục.\"",
+                explainA: "Bringing: việc mang theo.",
+                explainB: "Brought: đã mang theo.",
+                explainC: "Bring: mang theo (V nguyên mẫu).",
+                explainD: "To bring: để mang theo.",
+                whyCorrect: "Câu yêu cầu của giáo viên với học sinh dùng mệnh lệnh khẳng định.",
+                whyWrong: "Chỉ có 'Bring' là dạng nguyên mẫu phù hợp làm mệnh lệnh."
+            },
+            {
+                number: 59,
+                q: '\"_______ not stay up late before the big game.\"',
+                options: ["Don't", "Let", "Let's", "Doesn't"],
+                correct: 2,
+                translation: "\"Chúng ta đừng thức khuya trước trận đấu lớn.\"",
+                explainA: "Don't: đừng (nếu dùng thì bỏ 'not' phía sau).",
+                explainB: "Let: để (thiếu túc từ).",
+                explainC: "Let's: chúng ta hãy.",
+                explainD: "Doesn't: (không phù hợp).",
+                whyCorrect: "Cấu trúc rủ rê phủ định: Let's not + V.",
+                whyWrong: "Câu đã có 'not' nên chỉ chọn 'Let's'. Nếu chọn 'Don't' sẽ bị lặp từ phủ định (Don't not)."
+            },
+            {
+                number: 60,
+                q: '\"_______ join the football team!\" - \"Sorry, I prefer basketball.\"',
+                options: ["You", "Please", "We", "Must"],
+                correct: 1,
+                translation: "\"Hãy tham gia đội bóng đá đi!\" - \"Xin lỗi, tớ thích bóng rổ hơn.\"",
+                explainA: "You: bạn (câu kể).",
+                explainB: "Please: hãy/vui lòng (mời gọi).",
+                explainC: "We: chúng tôi (sai ngữ pháp).",
+                explainD: "Must: phải (thiếu chủ ngữ).",
+                whyCorrect: "'Please join...' là câu đề nghị lịch sự, mang tính mời gọi bạn bè tham gia.",
+                whyWrong: "A, C là chủ ngữ thiếu động từ chia. D là động từ khuyết thiếu đứng một mình."
+            }
+        ];
+
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let answered = false;
+
+        const questionNumberEl = document.getElementById('questionNumber');
+        const questionTextEl = document.getElementById('questionText');
+        const optionsGroupEl = document.getElementById('optionsGroup');
+        const explanationBoxEl = document.getElementById('explanationBox');
+        const nextBtnEl = document.getElementById('nextBtn');
+        const progressFillEl = document.getElementById('progressFill');
+        const quizContainerEl = document.getElementById('quizContainer');
+        const resultScreenEl = document.getElementById('resultScreen');
+        const finalScoreEl = document.getElementById('finalScore');
+        const motivationalTextEl = document.getElementById('motivationalText');
+
+        // Sounds using Web Audio API for gamification
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        
+        function playSound(type) {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            
+            if (type === 'correct') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(523.25, audioCtx.currentTime); // C5
+                osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.1);
+                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.3);
+            } else {
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(50, audioCtx.currentTime + 0.2);
+                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.4);
+            }
+        }
+
+        function loadQuestion() {
+            answered = false;
+            const data = quizData[currentQuestionIndex];
+            
+            questionNumberEl.innerText = `CÂU HỎI ${data.number}/60`;
+            questionTextEl.innerText = data.q;
+            
+            optionsGroupEl.innerHTML = '';
+            data.options.forEach((opt, index) => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.innerHTML = `<span class="mr-4 text-slate-400">${String.fromCharCode(65 + index)}.</span> ${opt}`;
+                btn.onclick = () => selectOption(index);
+                optionsGroupEl.appendChild(btn);
+            });
+            
+            explanationBoxEl.style.display = 'none';
+            nextBtnEl.style.display = 'none';
+            
+            updateProgressBar();
+        }
+
+        function selectOption(index) {
+            if (answered) return;
+            answered = true;
+            
+            const data = quizData[currentQuestionIndex];
+            const btns = optionsGroupEl.getElementsByTagName('button');
+            const questionCard = document.getElementById('questionCard');
+
+            if (index === data.correct) {
+                btns[index].classList.add('correct');
+                score++;
+                playSound('correct');
+                confetti({
+                    particleCount: 100,
+                    spread: 70,
+                    origin: { y: 0.6 },
+                    colors: ['#8854C0', '#00C9A7', '#00D26A']
+                });
+            } else {
+                btns[index].classList.add('wrong');
+                btns[data.correct].classList.add('correct');
+                questionCard.classList.add('shake');
+                setTimeout(() => questionCard.classList.remove('shake'), 500);
+                playSound('wrong');
+            }
+
+            // Show explanation
+            showExplanation(data, index === data.correct);
+            nextBtnEl.style.display = 'block';
+        }
+
+        function showExplanation(data, isCorrect) {
+            explanationBoxEl.innerHTML = `
+                <div class="font-black text-primary mb-2">💡 Cô Mai An giải thích:</div>
+                <div class="mb-3 italic text-slate-700">"${data.translation}"</div>
+                
+                <div class="bg-white p-3 rounded-xl mb-3 shadow-sm border border-slate-100">
+                    <div class="font-bold text-slate-800 text-sm mb-1">1. Phân tích từ vựng 4 đáp án:</div>
+                    <ul class="text-sm space-y-1">
+                        <li><strong class="text-primary">A.</strong> ${data.explainA}</li>
+                        <li><strong class="text-primary">B.</strong> ${data.explainB}</li>
+                        <li><strong class="text-primary">C.</strong> ${data.explainC}</li>
+                        <li><strong class="text-primary">D.</strong> ${data.explainD}</li>
+                    </ul>
+                </div>
+
+                <div class="mb-2">
+                    <strong class="text-green-600">✅ Tại sao chọn đáp án này?</strong><br>
+                    <span class="text-sm">${data.whyCorrect}</span>
+                </div>
+                <div>
+                    <strong class="text-red-500">❌ Tại sao loại các đáp án khác?</strong><br>
+                    <span class="text-sm">${data.whyWrong}</span>
+                </div>
+            `;
+            explanationBoxEl.style.display = 'block';
+        }
+
+        function updateProgressBar() {
+            const progress = (currentQuestionIndex / quizData.length) * 100;
+            progressFillEl.style.width = `${progress}%`;
+        }
+
+        nextBtnEl.onclick = () => {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < quizData.length) {
+                loadQuestion();
+            } else {
+                showResults();
+            }
+        };
+
+        function showResults() {
+            quizContainerEl.style.display = 'none';
+            resultScreenEl.style.display = 'block';
+            progressFillEl.style.width = '100%';
+            
+            finalScoreEl.innerText = `${score}/30`;
+            
+            if (score >= 25) {
+                motivationalTextEl.innerText = "WOW! Bạn thực sự là một siêu sao ngữ pháp! 🌟";
+                confetti({ particleCount: 200, spread: 100 });
+            } else if (score >= 20) {
+                motivationalTextEl.innerText = "Rất tốt! Cố gắng thêm chút nữa để đạt điểm tuyệt đối nhé! 💪";
+            } else {
+                motivationalTextEl.innerText = "Đừng nản lòng nhé, luyện tập thêm cùng cô Mai An nào! ❤️";
+            }
+        }
+
+        // Initialize
+        window.onload = loadQuestion;
+    </script>
+</body>
+</html>

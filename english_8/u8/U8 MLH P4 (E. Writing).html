@@ -1,0 +1,833 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unit 8: Writing Mastery - Ms Mai An ULIS</title>
+    <!-- Nhúng Font Google -->
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-purple: #8854C0;
+            --primary-teal: #00C9A7;
+            --correct-green: #00D26A;
+            --wrong-red: #FF4757;
+            --bg-color: #f0f4f8;
+            --card-bg: #ffffff;
+            --text-color: #2d3436;
+        }
+
+        * {
+            box-sizing: border-box;
+            user-select: none; /* Ngăn bôi đen để trải nghiệm như app */
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Nunito', sans-serif;
+            background-color: var(--bg-color);
+            /* Họa tiết zigzag/chấm bi mờ */
+            background-image: radial-gradient(#8854C0 0.5px, transparent 0.5px), radial-gradient(#8854C0 0.5px, var(--bg-color) 0.5px);
+            background-size: 20px 20px;
+            background-position: 0 0, 10px 10px;
+            color: var(--text-color);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* --- Header --- */
+        header {
+            width: 100%;
+            background: white;
+            padding: 15px 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            text-align: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-bottom: 5px solid var(--primary-purple);
+        }
+
+        h1 {
+            margin: 0;
+            color: var(--primary-purple);
+            font-family: 'Quicksand', sans-serif;
+            font-weight: 800;
+            font-size: 1.5rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .subtitle {
+            font-size: 0.9rem;
+            color: #636e72;
+            margin-top: 5px;
+        }
+
+        /* --- Game Container --- */
+        .game-container {
+            width: 95%;
+            max-width: 800px;
+            margin: 20px auto;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* Progress Bar */
+        .progress-wrapper {
+            background: #dfe6e9;
+            height: 20px;
+            border-radius: 10px;
+            overflow: hidden;
+            width: 100%;
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary-purple), var(--primary-teal));
+            width: 0%;
+            transition: width 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        /* Card Question */
+        .question-card {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 0 rgba(0,0,0,0.05), 0 20px 30px rgba(0,0,0,0.1);
+            text-align: center;
+            border: 2px solid #fff;
+            position: relative;
+        }
+
+        .q-tag {
+            background: var(--primary-purple);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 15px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            display: inline-block;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+        }
+
+        .question-text {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #2d3436;
+            line-height: 1.5;
+            margin-bottom: 25px;
+        }
+
+        /* Options Grid */
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+        }
+
+        @media (min-width: 768px) {
+            .options-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        /* 3D Button Style */
+        .option-btn {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 15px;
+            padding: 15px 20px;
+            font-family: 'Nunito', sans-serif;
+            font-size: 1rem;
+            font-weight: 600;
+            color: #2d3436;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.1s ease;
+            box-shadow: 0 5px 0 #b2bec3; /* 3D effect */
+            text-align: left;
+            display: flex;
+            align-items: center;
+            min-height: 80px;
+        }
+
+        .option-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 7px 0 #b2bec3;
+            border-color: var(--primary-purple);
+        }
+
+        .option-btn:active:not(:disabled) {
+            transform: translateY(5px);
+            box-shadow: 0 0 0 #b2bec3;
+        }
+
+        /* Correct/Wrong States */
+        .option-btn.correct {
+            background-color: var(--correct-green);
+            color: white;
+            border-color: #00b85c;
+            box-shadow: 0 5px 0 #008f47 !important;
+            transform: translateY(0);
+        }
+
+        .option-btn.wrong {
+            background-color: var(--wrong-red);
+            color: white;
+            border-color: #ff2e40;
+            box-shadow: 0 5px 0 #d63031 !important;
+            animation: shake 0.5s;
+        }
+
+        .option-btn:disabled {
+            cursor: default;
+            opacity: 0.7;
+        }
+
+        /* Shake Animation */
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-5px) rotate(-2deg); }
+            50% { transform: translateX(5px) rotate(2deg); }
+            75% { transform: translateX(-5px) rotate(-2deg); }
+            100% { transform: translateX(0); }
+        }
+
+        /* --- Explanation Box (Teacher's Note) --- */
+        .explanation-box {
+            background: #fff;
+            border-radius: 15px;
+            border-left: 8px solid var(--primary-purple);
+            padding: 20px;
+            margin-top: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            display: none; /* Hidden by default */
+            animation: slideUp 0.4s ease-out;
+            text-align: left;
+        }
+
+        .exp-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+
+        .exp-avatar {
+            width: 40px;
+            height: 40px;
+            background: var(--primary-purple);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        .exp-title {
+            font-weight: 800;
+            color: var(--primary-purple);
+            font-size: 1.1rem;
+        }
+
+        .exp-content {
+            font-size: 0.95rem;
+            line-height: 1.6;
+            color: #4b4b4b;
+            white-space: pre-wrap; /* Giữ định dạng xuống dòng */
+        }
+
+        .exp-content strong {
+            color: var(--primary-teal);
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Next Button */
+        .next-btn {
+            background: var(--primary-purple);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            border-radius: 50px;
+            box-shadow: 0 5px 0 #5f27cd;
+            cursor: pointer;
+            margin: 20px auto;
+            display: none; /* Hidden by default */
+            transition: all 0.2s;
+            font-family: 'Quicksand', sans-serif;
+        }
+
+        .next-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 7px 0 #5f27cd;
+            background: #9b59b6;
+        }
+
+        .next-btn:active {
+            transform: translateY(5px);
+            box-shadow: 0 0 0 #5f27cd;
+        }
+
+        /* --- Result Screen --- */
+        .result-screen {
+            display: none;
+            text-align: center;
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            max-width: 600px;
+            width: 90%;
+            margin: auto;
+        }
+
+        .score-circle {
+            width: 150px;
+            height: 150px;
+            background: var(--primary-teal);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            font-weight: 800;
+            color: white;
+            margin: 0 auto 20px;
+            box-shadow: 0 10px 0 #00a884;
+        }
+
+        .message {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: var(--primary-purple);
+        }
+
+        /* Confetti Canvas */
+        #confetti-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 999;
+        }
+
+    </style>
+</head>
+<body>
+
+    <canvas id="confetti-canvas"></canvas>
+
+    <header>
+        <h1>Ms Mai An ULIS</h1>
+        <div class="subtitle">Unit 8: Writing Mastery - Sentence Building & Transformation</div>
+    </header>
+
+    <div class="game-container" id="game-ui">
+        <div class="progress-wrapper">
+            <div class="progress-bar" id="progress-bar"></div>
+        </div>
+
+        <div class="question-card">
+            <span class="q-tag" id="q-tag">Question 1</span>
+            <div class="question-text" id="question-text">
+                Loading question...
+            </div>
+
+            <div class="options-grid" id="options-grid">
+                <!-- Options will be injected here -->
+            </div>
+        </div>
+
+        <div class="explanation-box" id="explanation-box">
+            <div class="exp-header">
+                <div class="exp-avatar">M</div>
+                <div class="exp-title">Cô Mai An giải thích chi tiết:</div>
+            </div>
+            <div class="exp-content" id="exp-content">
+                <!-- Explanation text -->
+            </div>
+        </div>
+
+        <button class="next-btn" id="next-btn" onclick="nextQuestion()">Tiếp tục ➔</button>
+    </div>
+
+    <!-- Result Screen -->
+    <div class="result-screen" id="result-ui">
+        <div class="score-circle" id="final-score">0/0</div>
+        <div class="message" id="final-message">Tuyệt vời!</div>
+        <button class="next-btn" style="display: inline-block;" onclick="location.reload()">Làm lại bài thi ⟳</button>
+    </div>
+
+    <script>
+        // --- DỮ LIỆU ĐỀ BÀI (DATA) ---
+        const quizData = [
+            {
+                "id": 1,
+                "type": "Building",
+                "question": "Make a sentence: The shop owner/ always/ treat/ his customers/ respect.",
+                "options": [
+                    "The shop owner always treats his customers with respect.",
+                    "The shop owner always treat his customers with respect.",
+                    "The shop owner always treats his customers by respect.",
+                    "The shop owner treats always his customers with respect."
+                ],
+                "correctIndex": 0,
+                "explanation": "**Dịch nghĩa:** Chủ cửa hàng luôn đối xử với khách hàng của mình bằng sự tôn trọng.\n\n**Phân tích chi tiết:**\n- **Đáp án A (ĐÚNG):** Cấu trúc: Chủ ngữ (The shop owner - số ít) + Trạng từ tần suất (always) + Động từ (treats - thêm 's') + Tân ngữ (his customers) + Cụm giới từ (with respect).\n\n**Tại sao các đáp án khác SAI?**\n- B: Sai ngữ pháp. Chủ ngữ 'The shop owner' là ngôi thứ 3 số ít, động từ 'treat' phải thêm 's' -> 'treats'.\n- C: Sai giới từ. Cấu trúc là 'with respect', không dùng 'by respect'.\n- D: Sai vị trí trạng từ. Trạng từ chỉ tần suất 'always' phải đứng TRƯỚC động từ thường 'treats'."
+            },
+            {
+                "id": 2,
+                "type": "Building",
+                "question": "Make a sentence: The grand opening/ begin/ 8 o’clock/ morning/ next Monday.",
+                "options": [
+                    "The grand opening begins at 8 o’clock in the morning next Monday.",
+                    "The grand opening will begin at 8 o’clock in the morning on next Monday.",
+                    "The grand opening begins on 8 o’clock in the morning next Monday.",
+                    "The grand opening begin at 8 o’clock in the morning next Monday."
+                ],
+                "correctIndex": 0,
+                "explanation": "**Dịch nghĩa:** Lễ khai trương bắt đầu lúc 8 giờ sáng thứ Hai tới.\n\n**Phân tích chi tiết:**\n- **Đáp án A (ĐÚNG):** Lịch trình sự kiện trong tương lai dùng thì Hiện tại đơn (begins). Giới từ chỉ thời gian: 'at' 8 o'clock, 'in' the morning.\n\n**Tại sao các đáp án khác SAI?**\n- B: Sai ngữ pháp. Trước 'next Monday' không dùng giới từ 'on'. Ngoài ra, lịch trình cố định ưu tiên dùng Hiện tại đơn hơn Tương lai đơn.\n- C: Sai giới từ. Trước giờ phải dùng 'at', không dùng 'on'.\n- D: Sai ngữ pháp. Chủ ngữ số ít 'The grand opening' thì động từ phải là 'begins'."
+            },
+            {
+                "id": 3,
+                "type": "Building",
+                "question": "Make a sentence: you/ usually/ bargain/ when/ you/ go/ open-air market?",
+                "options": [
+                    "Do you usually bargain when you go to an open-air market?",
+                    "Are you usually bargain when you go to an open-air market?",
+                    "Do you usually bargain when you go an open-air market?",
+                    "Do you usually bargain when you go to open-air market?"
+                ],
+                "correctIndex": 0,
+                "explanation": "**Dịch nghĩa:** Bạn có thường mặc cả khi đi chợ trời không?\n\n**Phân tích chi tiết:**\n- **Đáp án A (ĐÚNG):** Câu hỏi nghi vấn hiện tại đơn: Do + S + adv + V...? Cụm 'go to a market' (đi chợ). 'An open-air market' (một khu chợ trời).\n\n**Tại sao các đáp án khác SAI?**\n- B: Sai trợ động từ. Động từ thường 'bargain' phải dùng trợ động từ 'Do', không dùng 'Are'.\n- C: Thiếu giới từ. Phải là 'go TO' an open-air market.\n- D: Thiếu mạo từ. Danh từ đếm được số ít 'market' cần có mạo từ 'an' hoặc 'the' phía trước."
+            },
+            {
+                "id": 4,
+                "type": "Building",
+                "question": "Make a sentence: We/ not file/ a complaint/ if/ the shop assistant/ apologise/ us.",
+                "options": [
+                    "We won't file a complaint if the shop assistant apologises to us.",
+                    "We don't file a complaint if the shop assistant apologises us.",
+                    "We won't file a complaint if the shop assistant will apologise to us.",
+                    "We won't file a complaint if the shop assistant apologises us."
+                ],
+                "correctIndex": 0,
+                "explanation": "**Dịch nghĩa:** Chúng tôi sẽ không khiếu nại nếu nhân viên bán hàng xin lỗi chúng tôi.\n\n**Phân tích chi tiết:**\n- **Đáp án A (ĐÚNG):** Câu điều kiện loại 1. Mệnh đề chính: Future Simple (won't file). Mệnh đề IF: Present Simple (apologises). Cụm 'Apologise TO someone' (xin lỗi ai).\n\n**Tại sao các đáp án khác SAI?**\n- B: Sai cấu trúc & giới từ. Thiếu 'to' sau apologises. Dùng 'won't' hay hơn 'don't' trong ngữ cảnh giả định cụ thể này.\n- C: Sai ngữ pháp. Trong mệnh đề IF của câu điều kiện loại 1 không dùng thì tương lai đơn (will).\n- D: Thiếu giới từ. Phải là 'apologises TO us'."
+            },
+            {
+                "id": 5,
+                "type": "Building",
+                "question": "Make a sentence: Shopping centres/ offer/ wide/ range/ products/ choose/ from.",
+                "options": [
+                    "Shopping centres offer a wide range of products to choose from.",
+                    "Shopping centres offer wide range of products to choose from.",
+                    "Shopping centres offer a wide range products choose from.",
+                    "Shopping centres offer a wide range of products choosing from."
+                ],
+                "correctIndex": 0,
+                "explanation": "**Dịch nghĩa:** Các trung tâm mua sắm cung cấp nhiều loại sản phẩm để lựa chọn.\n\n**Phân tích chi tiết:**\n- **Đáp án A (ĐÚNG):** Cụm 'a wide range of' (nhiều loại/đa dạng). Cụm động từ 'choose from' (lựa chọn từ những cái đó).\n\n**Tại sao các đáp án khác SAI?**\n- B: Thiếu mạo từ. Phải là 'A wide range of'.\n- C: Thiếu giới từ 'of' sau range và thiếu 'to' trước choose.\n- D: Sai dạng động từ. Dùng 'to choose' (mục đích/bổ ngữ) chính xác hơn 'choosing'."
+            },
+            {
+                "id": 6,
+                "type": "Building",
+                "question": "Make a sentence: How often/ your mother/ shop/ the local market?",
+                "options": [
+                    "How often does your mother shop at the local market?",
+                    "How often your mother shops at the local market?",
+                    "How often does your mother shops at the local market?",
+                    "How often does your mother shop the local market?"
+                ],
+                "correctIndex": 0,
+                "explanation": "**Dịch nghĩa:** Mẹ bạn có thường xuyên đi chợ địa phương không?\n\n**Phân tích chi tiết:**\n- **Đáp án A (ĐÚNG):** Cấu trúc: How often + trợ động từ (does) + S (your mother) + V (shop) + Preposition (at) + Place?\n\n**Tại sao các đáp án khác SAI?**\n- B: Sai cấu trúc. Thiếu trợ động từ 'does' đảo lên trước chủ ngữ.\n- C: Sai chia động từ. Đã có trợ động từ 'does' thì động từ chính 'shop' phải để nguyên mẫu, không thêm 's'.\n- D: Thiếu giới từ. Phải là shop 'AT' the market."
+            },
+            {
+                "id": 7,
+                "type": "Building",
+                "question": "Make a sentence: Although/ they/ go/ shop/ all/ yesterday morning/ they/ not buy/ anything.",
+                "options": [
+                    "Although they went shopping all yesterday morning, they didn't buy anything.",
+                    "Although they went shopping all yesterday morning, but they didn't buy anything.",
+                    "Although they go shopping all yesterday morning, they don't buy anything.",
+                    "Although they went to shop all yesterday morning, they didn't buy anything."
+                ],
+                "correctIndex": 0,
+                "explanation": "**Dịch nghĩa:** Mặc dù họ đã đi mua sắm cả sáng hôm qua, nhưng họ không mua được gì.\n\n**Phân tích chi tiết:**\n- **Đáp án A (ĐÚNG):** 'Yesterday morning' -> Quá khứ đơn (went, didn't buy). Cấu trúc Although + S + V, S + V.\n\n**Tại sao các đáp án khác SAI?**\n- B: Sai ngữ pháp. Tiếng Anh không dùng 'Although' và 'but' trong cùng một câu.\n- C: Sai thì. 'Yesterday' là quá khứ, không dùng hiện tại (go/don't).\n- D: Chưa tự nhiên. Cụm 'go shopping' (đi mua sắm) tự nhiên hơn 'go to shop'."
+            },
+            {
+                "id": 8,
+                "type": "Building",
+                "question": "Make a sentence: Some people/ go/ shopping malls/ order/ avoid/ the heat/ outside.",
+                "options": [
+                    "Some people go to shopping malls in order to avoid the heat outside.",
+                    "Some people go shopping malls order avoid the heat outside.",
+                    "Some people go to shopping malls to order avoid the heat outside.",
+                    "Some people go shopping malls in order to avoid the heat outside."
+                ],
+                "correctIndex": 0,
+                "explanation": "**Dịch nghĩa:** Một số người đến các trung tâm mua sắm để tránh cái nóng bên ngoài.\n\n**Phân tích chi tiết:**\n- **Đáp án A (ĐÚNG):** Cấu trúc S + go to + Place + in order to + V (chỉ mục đích).\n\n**Tại sao các đáp án khác SAI?**\n- B: Sai ngữ pháp. Thiếu giới từ 'to' sau go, thiếu 'in' và 'to' trong cụm 'in order to'.\n- C: Sai cấu trúc. Thừa 'to' trước order, hoặc thừa 'order' nếu dùng 'to avoid'. Cụm đúng là 'in order to'.\n- D: Thiếu giới từ. Phải là go 'TO' shopping malls."
+            },
+            {
+                "id": 9,
+                "type": "Transformation",
+                "question": "Rewrite: She visits that discount shop all the time to look for cheap products. (Use: always)",
+                "options": [
+                    "She always visits that discount shop to look for cheap products.",
+                    "She visits always that discount shop to look for cheap products.",
+                    "She always visit that discount shop to look for cheap products.",
+                    "She visits that discount shop to look for cheap products always."
+                ],
+                "correctIndex": 0,
+                "explanation": "**Dịch nghĩa:** Cô ấy luôn ghé qua cửa hàng giảm giá đó để tìm đồ rẻ.\n\n**Phân tích chi tiết:**\n- **Đáp án A (ĐÚNG):** 'all the time' = 'always'. Trạng từ 'always' đứng trước động từ thường 'visits'.\n\n**Tại sao các đáp án khác SAI?**\n- B: Sai vị trí. 'Always' phải đứng trước động từ 'visits'.\n- C: Sai chia động từ. 'She' số ít -> 'visits'.\n- D: Sai vị trí. 'Always' ít khi đứng cuối câu trong văn phong trang trọng."
+            },
+            {
+                "id": 10,
+                "type": "Transformation",
+                "question": "Rewrite: It is difficult for my grandmother to buy things online. (Use: difficulty)",
+                "options": [
+                    "My grandmother has difficulty (in) buying things online.",
+                    "My grandmother has difficulty to buy things online.",
+                    "My grandmother is difficulty buying things online.",
+                    "My grandmother has difficult buying things online."
+                ],
+                "correctIndex": 0,
+                "explanation": "**Dịch nghĩa:** Bà tôi gặp khó khăn trong việc mua đồ trực tuyến.\n\n**Phân tích chi tiết:**\n- **Đáp án A (ĐÚNG):** Cấu trúc 'have/has difficulty (in) V-ing'.\n\n**Tại sao các đáp án khác SAI?**\n- B: Sai ngữ pháp. Sau 'have difficulty' phải dùng V-ing, không dùng to-V.\n- C: Sai động từ. Phải dùng động từ 'have/has', không dùng to be 'is'.\n- D: Sai từ loại. Cần danh từ 'difficulty', không phải tính từ 'difficult'."
+            },
+            {
+                "id": 11,
+                "type": "Transformation",
+                "question": "Rewrite: Tim didn’t like Takashimaya because their products were expensive. (Use: of)",
+                "options": [
+                    "Because of the expensive products, Tim didn’t like Takashimaya.",
+                    "Because of their products were expensive, Tim didn’t like Takashimaya.",
+                    "Because of the expensive of their products, Tim didn’t like Takashimaya.",
+                    "Because of Tim didn't like Takashimaya, their products were expensive."
+                ],
+                "correctIndex": 0,
+                "explanation": "**Dịch nghĩa:** Vì những sản phẩm đắt đỏ, Tim không thích Takashimaya.\n\n**Phân tích chi tiết:**\n- **Đáp án A (ĐÚNG):** Cấu trúc 'Because of + Noun Phrase'. 'their products were expensive' -> 'the expensive products'.\n\n**Tại sao các đáp án khác SAI?**\n- B: Sai ngữ pháp. Sau 'Because of' không được là một mệnh đề (có động từ 'were').\n- C: Sai ngữ pháp. 'The expensive' là tính từ, không đứng làm danh từ chính được.\n- D: Sai nghĩa hoàn toàn (Đảo ngược nguyên nhân kết quả)."
+            },
+            {
+                "id": 12,
+                "type": "Transformation",
+                "question": "Rewrite: The children almost never come to that open-air market. (Use: rarely)",
+                "options": [
+                    "The children rarely come to that open-air market.",
+                    "The children come rarely to that open-air market.",
+                    "Rarely the children come to that open-air market.",
+                    "The children don't rarely come to that open-air market."
+                ],
+                "correctIndex": 0,
+                "explanation": "**Dịch nghĩa:** Lũ trẻ hiếm khi đến khu chợ trời đó.\n\n**Phân tích chi tiết:**\n- **Đáp án A (ĐÚNG):** 'almost never' = 'rarely'. Trạng từ tần suất đứng trước động từ thường 'come'.\n\n**Tại sao các đáp án khác SAI?**\n- B: Sai vị trí. Trạng từ tần suất thường đứng trước động từ chính.\n- C: Sai ngữ pháp. Nếu 'Rarely' đứng đầu câu phải đảo ngữ (Rarely do the children come...).\n- D: Sai nghĩa. Phủ định kép (don't + rarely) làm sai lệch ý nghĩa câu gốc."
+            },
+            {
+                "id": 13,
+                "type": "Transformation",
+                "question": "Rewrite: It took us two hours to explore every shop at the mall. (Use: spent)",
+                "options": [
+                    "We spent two hours exploring every shop at the mall.",
+                    "We spent two hours to explore every shop at the mall.",
+                    "We spent two hours explore every shop at the mall.",
+                    "We spent two hours on explore every shop at the mall."
+                ],
+                "correctIndex": 0,
+                "explanation": "**Dịch nghĩa:** Chúng tôi đã dành hai giờ để khám phá mọi cửa hàng tại trung tâm mua sắm.\n\n**Phân tích chi tiết:**\n- **Đáp án A (ĐÚNG):** Cấu trúc 'It took SB + time + to V' = 'SB + spent + time + V-ing'.\n\n**Tại sao các đáp án khác SAI?**\n- B: Sai ngữ pháp. Sau 'spend time' phải là V-ing, không phải to-V.\n- C: Sai ngữ pháp. Thiếu đuôi -ing.\n- D: Sai ngữ pháp. Sau giới từ 'on' phải là danh từ hoặc V-ing (on exploring)."
+            },
+            {
+                "id": 14,
+                "type": "Transformation",
+                "question": "Rewrite: That luxury bag is too expensive for Sarah to buy. (Use: so)",
+                "options": [
+                    "That luxury bag is so expensive that Sarah can't buy it.",
+                    "That luxury bag is so expensive for Sarah to buy.",
+                    "That luxury bag is so expensive that Sarah can't buy.",
+                    "That luxury bag is so expensive that Sarah buys it."
+                ],
+                "correctIndex": 0,
+                "explanation": "**Dịch nghĩa:** Chiếc túi sang trọng đó đắt đến nỗi Sarah không thể mua nó.\n\n**Phân tích chi tiết:**\n- **Đáp án A (ĐÚNG):** Cấu trúc 'S + be + so + adj + THAT + S + can't/couldn't + V + O'. Phải thêm tân ngữ 'it' ở cuối.\n\n**Tại sao các đáp án khác SAI?**\n- B: Sai cấu trúc. 'So' không đi với 'for...to...'.\n- C: Thiếu tân ngữ. Động từ 'buy' cần tân ngữ 'it' trong mệnh đề sau 'that'.\n- D: Sai nghĩa. Đắt quá thì KHÔNG mua được (can't buy)."
+            },
+            {
+                "id": 15,
+                "type": "Transformation",
+                "question": "Rewrite: Katie went shopping all morning, but she didn’t buy anything. (Use: although)",
+                "options": [
+                    "Although Katie went shopping all morning, she didn’t buy anything.",
+                    "Although Katie went shopping all morning, but she didn’t buy anything.",
+                    "Katie went shopping all morning although she didn’t buy anything.",
+                    "Although she didn’t buy anything, Katie went shopping all morning."
+                ],
+                "correctIndex": 0,
+                "explanation": "**Dịch nghĩa:** Mặc dù Katie đi mua sắm cả sáng, nhưng cô ấy không mua gì cả.\n\n**Phân tích chi tiết:**\n- **Đáp án A (ĐÚNG):** Dùng 'Although' thì KHÔNG dùng 'but'. Cấu trúc Although + S + V, S + V.\n\n**Tại sao các đáp án khác SAI?**\n- B: Sai ngữ pháp. Có 'Although' thì bỏ 'but'.\n- C: Sai logic. Nghĩa câu này là 'Katie đi mua sắm mặc dù không mua gì' (Ngược nhân quả).\n- D: Sai logic. Mặc dù không mua gì, cô ấy đã đi mua sắm (Ngược nghĩa)."
+            },
+            {
+                "id": 16,
+                "type": "Transformation",
+                "question": "Rewrite: I can’t wait to see the shops at Suria KLCC in Kuala Lumpur. (Use: forward)",
+                "options": [
+                    "I am looking forward to seeing the shops at Suria KLCC in Kuala Lumpur.",
+                    "I am looking forward to see the shops at Suria KLCC in Kuala Lumpur.",
+                    "I look forward seeing the shops at Suria KLCC in Kuala Lumpur.",
+                    "I am looking forward seeing the shops at Suria KLCC in Kuala Lumpur."
+                ],
+                "correctIndex": 0,
+                "explanation": "**Dịch nghĩa:** Tôi đang rất mong chờ được ngắm các cửa hàng tại Suria KLCC ở Kuala Lumpur.\n\n**Phân tích chi tiết:**\n- **Đáp án A (ĐÚNG):** Cấu trúc 'look forward to + V-ing'.\n\n**Tại sao các đáp án khác SAI?**\n- B: Sai ngữ pháp. Sau 'look forward to' phải là V-ing, không phải V nguyên thể.\n- C: Thiếu giới từ. Phải là 'look forward TO' seeing.\n- D: Thiếu giới từ. Phải là 'to seeing'."
+            },
+            {
+                "id": 17,
+                "type": "Transformation",
+                "question": "Rewrite: What time does your plane land tomorrow? (Use: when)\n-> Can you tell ...",
+                "options": [
+                    "Can you tell me when your plane lands tomorrow?",
+                    "Can you tell me when does your plane land tomorrow?",
+                    "Can you tell me when your plane land tomorrow?",
+                    "Can you tell me when will your plane land tomorrow?"
+                ],
+                "correctIndex": 0,
+                "explanation": "**Dịch nghĩa:** Bạn có thể cho tôi biết khi nào máy bay của bạn hạ cánh ngày mai không?\n\n**Phân tích chi tiết:**\n- **Đáp án A (ĐÚNG):** Câu hỏi gián tiếp (Indirect Question): Wh-word + S + V (không đảo ngữ). 'your plane lands'.\n\n**Tại sao các đáp án khác SAI?**\n- B: Sai cấu trúc. Câu hỏi gián tiếp không được đảo ngữ (không dùng 'does' trước chủ ngữ).\n- C: Sai chia động từ. 'Your plane' là số ít, động từ 'land' phải thêm 's' -> 'lands'.\n- D: Sai thì & cấu trúc. Lịch trình ưu tiên Hiện tại đơn, và không đảo ngữ 'will' lên trước."
+            },
+            {
+                "id": 18,
+                "type": "Transformation",
+                "question": "Rewrite: If we don’t hurry, we can’t go to the speciality shop as planned. (Use: unless)",
+                "options": [
+                    "We can’t go to the speciality shop as planned unless we hurry.",
+                    "Unless we don't hurry, we can’t go to the speciality shop as planned.",
+                    "We can go to the speciality shop as planned unless we hurry.",
+                    "Unless we hurry, we can go to the speciality shop as planned."
+                ],
+                "correctIndex": 0,
+                "explanation": "**Dịch nghĩa:** Chúng ta không thể đến cửa hàng chuyên doanh như kế hoạch trừ khi chúng ta nhanh lên.\n\n**Phân tích chi tiết:**\n- **Đáp án A (ĐÚNG):** 'Unless' = 'If ... not'. 'If we don't hurry' = 'Unless we hurry'. Giữ nguyên vế chính phủ định 'can't go'.\n\n**Tại sao các đáp án khác SAI?**\n- B: Sai ngữ pháp. 'Unless' đã mang nghĩa phủ định, không dùng thêm 'don't'.\n- C: Sai nghĩa. Mất 'not' ở vế chính -> Nghĩa ngược lại.\n- D: Sai nghĩa. (Trừ khi nhanh lên, chúng ta mới có thể đi... -> Nghe có vẻ đúng nhưng câu gốc là 'can't go', cấu trúc chuẩn là giữ nguyên phủ định ở vế chính)."
+            }
+        ];
+
+        // --- TRẠNG THÁI GAME ---
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let answered = false;
+
+        // --- DOM ELEMENTS ---
+        const progressBar = document.getElementById('progress-bar');
+        const qTag = document.getElementById('q-tag');
+        const questionText = document.getElementById('question-text');
+        const optionsGrid = document.getElementById('options-grid');
+        const explanationBox = document.getElementById('explanation-box');
+        const expContent = document.getElementById('exp-content');
+        const nextBtn = document.getElementById('next-btn');
+        const gameUI = document.getElementById('game-ui');
+        const resultUI = document.getElementById('result-ui');
+        const finalScore = document.getElementById('final-score');
+        const finalMessage = document.getElementById('final-message');
+
+        // --- SOUND SYSTEM (Web Audio API) ---
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        function playSound(type) {
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            const osc = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+
+            osc.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+
+            if (type === 'correct') {
+                // Tiếng Ding (High Pitch Sine Wave)
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(600, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.1);
+                gainNode.gain.setValueAtTime(0.5, audioCtx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.5);
+            } else if (type === 'wrong') {
+                // Tiếng Buzz (Low Pitch Sawtooth)
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+                osc.frequency.linearRampToValueAtTime(100, audioCtx.currentTime + 0.3);
+                gainNode.gain.setValueAtTime(0.5, audioCtx.currentTime);
+                gainNode.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.3);
+            } else if (type === 'win') {
+                // Tiếng chiến thắng
+                 osc.type = 'triangle';
+                osc.frequency.setValueAtTime(400, audioCtx.currentTime);
+                osc.frequency.setValueAtTime(600, audioCtx.currentTime + 0.1);
+                osc.frequency.setValueAtTime(800, audioCtx.currentTime + 0.2);
+                gainNode.gain.setValueAtTime(0.5, audioCtx.currentTime);
+                gainNode.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 1);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 1);
+            }
+        }
+
+        // --- CONFETTI SYSTEM ---
+        const canvas = document.getElementById('confetti-canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        let confettiParticles = [];
+
+        function fireConfetti() {
+            const colors = ['#8854C0', '#00C9A7', '#FF4757', '#F1C40F', '#3498DB'];
+            for (let i = 0; i < 100; i++) {
+                confettiParticles.push({
+                    x: window.innerWidth / 2,
+                    y: window.innerHeight / 2,
+                    r: Math.random() * 6 + 2,
+                    dx: Math.random() * 10 - 5,
+                    dy: Math.random() * 10 - 5,
+                    color: colors[Math.floor(Math.random() * colors.length)],
+                    life: 100
+                });
+            }
+            animateConfetti();
+        }
+
+        function animateConfetti() {
+            if (confettiParticles.length === 0) return;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            for (let i = 0; i < confettiParticles.length; i++) {
+                let p = confettiParticles[i];
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+                ctx.fillStyle = p.color;
+                ctx.fill();
+                p.x += p.dx;
+                p.y += p.dy;
+                p.dy += 0.2; // Gravity
+                p.life--;
+            }
+            confettiParticles = confettiParticles.filter(p => p.life > 0);
+            if (confettiParticles.length > 0) requestAnimationFrame(animateConfetti);
+            else ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+
+        // --- GAME LOGIC ---
+
+        function loadQuestion() {
+            // Reset state
+            answered = false;
+            explanationBox.style.display = 'none';
+            nextBtn.style.display = 'none';
+            
+            // Get data
+            const currentQ = quizData[currentQuestionIndex];
+            
+            // Update UI
+            qTag.textContent = `Câu ${currentQuestionIndex + 1} / ${quizData.length} - ${currentQ.type === 'Building' ? 'Xây dựng câu' : 'Viết lại câu'}`;
+            questionText.textContent = currentQ.question;
+            
+            // Update Progress Bar
+            const progress = ((currentQuestionIndex) / quizData.length) * 100;
+            progressBar.style.width = `${progress}%`;
+
+            // Render Options
+            optionsGrid.innerHTML = '';
+            currentQ.options.forEach((opt, index) => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.textContent = opt;
+                btn.onclick = () => checkAnswer(index, btn);
+                optionsGrid.appendChild(btn);
+            });
+        }
+
+        function checkAnswer(selectedIndex, btnElement) {
+            if (answered) return;
+            answered = true;
+
+            const currentQ = quizData[currentQuestionIndex];
+            const isCorrect = selectedIndex === currentQ.correctIndex;
+            const buttons = document.querySelectorAll('.option-btn');
+
+            if (isCorrect) {
+                btnElement.classList.add('correct');
+                playSound('correct');
+                fireConfetti();
+                score++;
+            } else {
+                btnElement.classList.add('wrong');
+                playSound('wrong');
+                // Highlight correct answer
+                buttons[currentQ.correctIndex].classList.add('correct');
+            }
+
+            // Disable all buttons
+            buttons.forEach(btn => btn.disabled = true);
+
+            // Show Explanation
+            expContent.innerHTML = currentQ.explanation.replace(/\n/g, '<br>');
+            explanationBox.style.display = 'block';
+            explanationBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+            // Show Next Button
+            nextBtn.style.display = 'block';
+            
+            // Update text of Next Button based on position
+            if (currentQuestionIndex === quizData.length - 1) {
+                nextBtn.textContent = 'HOÀN THÀNH - XEM ĐIỂM';
+            } else {
+                nextBtn.textContent = 'Tiếp tục ➔';
+            }
+        }
+
+        function nextQuestion() {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < quizData.length) {
+                loadQuestion();
+                window.scrollTo(0, 0);
+            } else {
+                showResults();
+            }
+        }
+
+        function showResults() {
+            gameUI.style.display = 'none';
+            resultUI.style.display = 'block';
+            
+            finalScore.textContent = `${score}/${quizData.length}`;
+            playSound('win');
+            fireConfetti(); // Big confetti for finish
+
+            let msg = "";
+            const percentage = (score / quizData.length) * 100;
+            if (percentage === 100) msg = "Xuất sắc! Bạn là thiên tài tiếng Anh! 🌟";
+            else if (percentage >= 80) msg = "Làm tốt lắm! Bạn rất chắc kiến thức! 🔥";
+            else if (percentage >= 50) msg = "Khá lắm! Cố gắng thêm chút nữa nhé! 💪";
+            else msg = "Đừng buồn! Hãy xem lại phần giải thích và thử lại nhé! 📚";
+            
+            finalMessage.textContent = msg;
+        }
+
+        // --- INIT ---
+        loadQuestion();
+
+        // Resize canvas on window resize
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+
+    </script>
+</body>
+</html>

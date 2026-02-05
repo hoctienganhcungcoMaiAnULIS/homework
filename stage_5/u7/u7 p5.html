@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thử Thách Giới Từ Cùng Ms Mai An</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #8854C0; /* Hồng tím pastel */
+            --secondary: #00C9A7; /* Xanh ngọc */
+            --correct: #00D26A; /* Xanh lá */
+            --wrong: #FF4757; /* Đỏ cam */
+            --bg-pattern: #f0f3f8;
+            --card-bg: #ffffff;
+            --text-main: #2d3436;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: #e3f2fd;
+            background-image: radial-gradient(#8854C0 15%, transparent 16%), radial-gradient(#00C9A7 15%, transparent 16%);
+            background-size: 20px 20px;
+            background-position: 0 0, 10px 10px;
+            color: var(--text-main);
+            padding-bottom: 50px;
+        }
+
+        /* Header nhỏ gọn */
+        .teacher-header {
+            background: #fff;
+            color: var(--primary);
+            padding: 5px 20px;
+            font-size: 0.9rem;
+            font-weight: 700;
+            border-bottom: 3px solid #ddd;
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 60px auto 0;
+            padding: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            color: var(--primary);
+            font-family: 'Quicksand', sans-serif;
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 0px #fff;
+            animation: popIn 0.8s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+        }
+
+        /* Lý thuyết - Theory Card */
+        .theory-card {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 0 rgba(0,0,0,0.1);
+            border: 2px solid var(--secondary);
+        }
+        
+        .theory-title {
+            font-size: 1.5rem;
+            color: var(--secondary);
+            font-weight: 800;
+            margin-bottom: 15px;
+            text-align: center;
+            text-transform: uppercase;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 15px;
+            font-size: 0.95rem;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+        }
+
+        th {
+            background-color: var(--primary);
+            color: white;
+            text-align: center;
+        }
+
+        tr:nth-child(even) {background-color: #f9f9f9;}
+
+        /* Quiz Cards */
+        .quiz-card {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 6px 0 #d1d8e0;
+            transition: transform 0.3s;
+            position: relative;
+            border: 2px solid transparent;
+        }
+
+        .quiz-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .question-number {
+            background: var(--primary);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            display: inline-block;
+            margin-bottom: 10px;
+            font-size: 0.9rem;
+        }
+
+        .question-text {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: #2c3e50;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        @media (max-width: 600px) {
+            .options-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .option-btn {
+            background: white;
+            border: 2px solid #dfe6e9;
+            border-bottom: 6px solid #dfe6e9;
+            padding: 15px;
+            border-radius: 15px;
+            font-family: 'Nunito', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.1s;
+            text-align: left;
+            position: relative;
+        }
+
+        .option-btn:active {
+            transform: translateY(4px);
+            border-bottom: 2px solid #dfe6e9;
+        }
+
+        .option-btn:hover:not(.disabled) {
+            background-color: #f0f3f8;
+            transform: scale(1.02);
+        }
+
+        /* Trạng thái Đúng/Sai */
+        .option-btn.correct {
+            background-color: var(--correct);
+            color: white;
+            border-color: #00b85c;
+            border-bottom-color: #008f47;
+        }
+
+        .option-btn.wrong {
+            background-color: var(--wrong);
+            color: white;
+            border-color: #ff2e43;
+            border-bottom-color: #d61c30;
+            animation: shake 0.5s;
+        }
+
+        /* Giải thích */
+        .explanation {
+            display: none;
+            margin-top: 20px;
+            padding: 20px;
+            background: #eefbf4;
+            border: 2px dashed var(--correct);
+            border-radius: 15px;
+            font-size: 1rem;
+            line-height: 1.6;
+        }
+        
+        .explanation.visible {
+            display: block;
+            animation: slideDown 0.4s ease-out;
+        }
+
+        .explanation strong {
+            color: var(--primary);
+        }
+
+        .exp-header {
+            font-weight: 800;
+            color: var(--secondary);
+            margin-bottom: 10px;
+            display: block;
+            font-size: 1.1rem;
+        }
+
+        /* Nút nộp bài */
+        .submit-section {
+            text-align: center;
+            margin-top: 40px;
+        }
+
+        .submit-btn {
+            background: var(--secondary);
+            color: white;
+            border: none;
+            border-bottom: 8px solid #009e82;
+            padding: 15px 50px;
+            font-size: 1.5rem;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: 800;
+            font-family: 'Quicksand', sans-serif;
+            transition: all 0.2s;
+        }
+
+        .submit-btn:active {
+            transform: translateY(6px);
+            border-bottom-width: 2px;
+        }
+
+        /* Animations */
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            50% { transform: translateX(10px); }
+            75% { transform: translateX(-10px); }
+            100% { transform: translateX(0); }
+        }
+
+        @keyframes popIn {
+            0% { opacity: 0; transform: scale(0.5); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Modal Kết quả */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 40px;
+            border-radius: 30px;
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            animation: popIn 0.5s;
+        }
+
+        .score-display {
+            font-size: 4rem;
+            font-weight: 900;
+            color: var(--primary);
+            margin: 20px 0;
+        }
+
+        .feedback-text {
+            font-size: 1.2rem;
+            color: #555;
+            margin-bottom: 20px;
+        }
+
+        /* Confetti Canvas */
+        #confetti-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 9999;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="teacher-header">
+        <span><i class="fas fa-chalkboard-teacher"></i> Giáo viên tạo: Ms Mai An ULIS</span>
+        <span>Lớp học vui vẻ</span>
+    </div>
+
+    <canvas id="confetti-canvas"></canvas>
+
+    <div class="container">
+        <h1>PREPOSITIONS MASTER <br> <span>(IN - ON - AT)</span></h1>
+
+        <div class="theory-card">
+            <div class="theory-title">📚 Ôn tập kiến thức cùng Ms Mai An</div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Giới từ</th>
+                        <th>Cách dùng chính</th>
+                        <th>Ví dụ ghi nhớ</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>IN</strong></td>
+                        <td>
+                            - Quốc gia, thành phố, châu lục<br>
+                            - Không gian kín (phòng, hộp, tòa nhà)<br>
+                            - Phương tiện: Car, Taxi
+                        </td>
+                        <td>
+                            in Vietnam, in Hanoi, in the room, in a taxi, in the North
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><strong>ON</strong></td>
+                        <td>
+                            - Trên bề mặt (bàn, tường)<br>
+                            - Tên đường (không số), Đảo<br>
+                            - Phương tiện: Bus, Train, Plane, Ship
+                        </td>
+                        <td>
+                            on the table, on Le Loi Street, on Phu Quoc Island, on the bus
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><strong>AT</strong></td>
+                        <td>
+                            - Địa điểm cụ thể, địa chỉ nhà (có số)<br>
+                            - Nơi chốn: School, Work, Home<br>
+                            - Sự kiện: Party, Meeting
+                        </td>
+                        <td>
+                            at 25 Tran Phu, at school, at the airport, at a party
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <div style="background: #fff3cd; padding: 10px; border-radius: 10px; border: 1px solid #ffeeba; text-align: center;">
+                ⚡ <strong>Lưu ý:</strong> Arrive <strong>IN</strong> (thành phố/nước) - Arrive <strong>AT</strong> (sân bay/nhà ga/địa điểm nhỏ).
+            </div>
+        </div>
+
+        <div id="quiz-container">
+            </div>
+
+        <div class="submit-section">
+            <button class="submit-btn" onclick="submitQuiz()">Nộp Bài & Xem Điểm</button>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="result-modal">
+        <div class="modal-content">
+            <h2>Kết Quả Của Bạn</h2>
+            <div class="score-display" id="final-score">0/30</div>
+            <p class="feedback-text" id="feedback-msg">Bạn làm tốt lắm!</p>
+            <button class="submit-btn" style="font-size: 1rem; padding: 10px 30px;" onclick="closeModal()">Xem lại bài</button>
+        </div>
+    </div>
+
+    <script>
+        // --- DATA ---
+        const questions = [
+            {
+                id: 1,
+                text: "My uncle lives _______ Hanoi, the capital of Vietnam.",
+                options: ["on", "at", "in", "of"],
+                answer: 2, // in
+                explain: "<b>1. Phân tích:</b><br>Hanoi (n): Hà Nội (Thành phố/Địa danh lớn).<br><b>2. Dịch nghĩa:</b> Chú tôi sống ở Hà Nội, thủ đô của Việt Nam.<br><b>3. Tại sao chọn IN?</b> Cô Mai An nhắc: Dùng 'in' trước tên thành phố, thị trấn, quốc gia (in Hanoi, in Vietnam).<br><b>4. Tại sao sai?</b> 'On' dùng cho bề mặt/đường; 'At' dùng cho địa chỉ cụ thể/địa điểm nhỏ."
+            },
+            {
+                id: 2,
+                text: "There is a beautiful picture _______ the wall.",
+                options: ["in", "on", "at", "into"],
+                answer: 1, // on
+                explain: "<b>1. Phân tích:</b><br>Wall (n): Bức tường (Bề mặt).<br><b>2. Dịch nghĩa:</b> Có một bức tranh đẹp ở trên tường.<br><b>3. Tại sao chọn ON?</b> Quy tắc: Vật nằm trên bề mặt phẳng (dù ngang hay dọc) dùng 'on' (on the table, on the wall).<br><b>4. Tại sao sai?</b> 'In' là bên trong khối; 'At' là tại một điểm."
+            },
+            {
+                id: 3,
+                text: "We will meet _______ the cinema at 7 p.m.",
+                options: ["on", "in", "at", "to"],
+                answer: 2, // at
+                explain: "<b>1. Phân tích:</b><br>The cinema (n): Rạp chiếu phim (Địa điểm công cộng cụ thể để gặp gỡ).<br><b>2. Dịch nghĩa:</b> Chúng ta sẽ gặp nhau tại rạp chiếu phim lúc 7 giờ tối.<br><b>3. Tại sao chọn AT?</b> Dùng 'at' để chỉ một điểm dừng chân, nơi gặp gỡ hoặc địa điểm công cộng cụ thể.<br><b>4. Tại sao sai?</b> 'In the cinema' có nghĩa là đang ngồi bên trong rạp (nhấn mạnh không gian kín), nhưng ở đây 'meet' (gặp) thường dùng 'at'."
+            },
+            {
+                id: 4,
+                text: "Put your toys _______ the box, please!",
+                options: ["at", "on", "in", "above"],
+                answer: 2, // in
+                explain: "<b>1. Phân tích:</b><br>Box (n): Cái hộp (Không gian kín/vật chứa).<br><b>2. Dịch nghĩa:</b> Làm ơn cất đồ chơi của con vào trong hộp đi!<br><b>3. Tại sao chọn IN?</b> Dùng 'in' cho vật nằm bên trong không gian kín (in the box, in the room).<br><b>4. Tại sao sai?</b> 'On' là trên nắp hộp; 'At' là tại vị trí cái hộp."
+            },
+            {
+                id: 5,
+                text: "Her house is _______ 25 Tran Phu Street.",
+                options: ["in", "on", "at", "from"],
+                answer: 2, // at
+                explain: "<b>1. Phân tích:</b><br>25 Tran Phu Street: Địa chỉ nhà cụ thể (có số nhà).<br><b>2. Dịch nghĩa:</b> Nhà cô ấy ở số 25 đường Trần Phú.<br><b>3. Tại sao chọn AT?</b> Cô Mai An nhắc kĩ: Có số nhà cụ thể phải dùng 'AT'.<br><b>4. Tại sao sai?</b> Nếu chỉ có tên đường (Tran Phu Street) thì dùng 'ON'. Ở đây có số 25 nên 'On' sai."
+            },
+            {
+                id: 6,
+                text: "They are swimming _______ the sea.",
+                options: ["on", "at", "in", "over"],
+                answer: 2, // in
+                explain: "<b>1. Phân tích:</b><br>The sea (n): Biển (Môi trường nước/không gian chứa).<br><b>2. Dịch nghĩa:</b> Họ đang bơi dưới biển.<br><b>3. Tại sao chọn IN?</b> Khi nói về bơi lội trong môi trường nước (sea, river, pool), ta dùng 'in' (ở bên trong làn nước).<br><b>4. Tại sao sai?</b> 'On the sea' nghĩa là trôi lềnh bềnh trên mặt nước (như con thuyền)."
+            },
+            {
+                id: 7,
+                text: "Don't sit _______ the floor; it's very dirty.",
+                options: ["in", "at", "on", "by"],
+                answer: 2, // on
+                explain: "<b>1. Phân tích:</b><br>The floor (n): Sàn nhà (Bề mặt).<br><b>2. Dịch nghĩa:</b> Đừng ngồi trên sàn nhà; nó bẩn lắm.<br><b>3. Tại sao chọn ON?</b> Sàn nhà là bề mặt phẳng, ta tiếp xúc lên trên nó -> Dùng 'on'.<br><b>4. Tại sao sai?</b> Không ai ngồi 'in' (bên trong) sàn nhà cả."
+            },
+            {
+                id: 8,
+                text: "My father is working _______ the garden.",
+                options: ["on", "at", "in", "of"],
+                answer: 2, // in
+                explain: "<b>1. Phân tích:</b><br>Garden (n): Khu vườn (Không gian có ranh giới bao quanh).<br><b>2. Dịch nghĩa:</b> Bố tôi đang làm việc trong vườn.<br><b>3. Tại sao chọn IN?</b> Vườn, sân, cánh đồng (field) được xem là không gian, dùng 'in'.<br><b>4. Tại sao sai?</b> 'On' sai vì không chỉ đứng trên bề mặt cỏ mà là trong không gian đó."
+            },
+            {
+                id: 9,
+                text: "We usually go to school _______ the bus.",
+                options: ["in", "on", "at", "by"],
+                answer: 1, // on
+                explain: "<b>1. Phân tích:</b><br>The bus (n): Xe buýt (Phương tiện công cộng lớn, có thể đi lại bên trong).<br><b>2. Dịch nghĩa:</b> Chúng tôi thường đi học trên xe buýt.<br><b>3. Tại sao chọn ON?</b> Quy tắc phương tiện: Bus, Train, Plane, Ship (đứng và đi lại được) -> Dùng ON. (Lưu ý: Nếu dùng 'by' thì phải là 'by bus' không có 'the').<br><b>4. Tại sao sai?</b> 'In' dùng cho Car/Taxi."
+            },
+            {
+                id: 10,
+                text: "I read about it _______ the newspaper.",
+                options: ["at", "in", "on", "to"],
+                answer: 1, // in
+                explain: "<b>1. Phân tích:</b><br>Newspaper (n): Tờ báo (Vật chứa thông tin/chữ viết).<br><b>2. Dịch nghĩa:</b> Tôi đã đọc về điều đó trong tờ báo.<br><b>3. Tại sao chọn IN?</b> Với sách, báo, tạp chí (chứa nội dung bên trong), ta dùng 'in'.<br><b>4. Tại sao sai?</b> Dùng 'On' khi nói vật gì đặt trên bề mặt tờ báo (ví dụ: cái kính trên tờ báo)."
+            },
+            {
+                id: 11,
+                text: "She arrived _______ Paris late last night.",
+                options: ["at", "on", "in", "to"],
+                answer: 2, // in
+                explain: "<b>1. Phân tích:</b><br>Paris (n): Thủ đô của Pháp (Thành phố lớn). Arrive (v): Đến.<br><b>2. Dịch nghĩa:</b> Cô ấy đã đến Paris muộn vào tối qua.<br><b>3. Tại sao chọn IN?</b> Cấu trúc: Arrive IN + Thành phố/Quốc gia (Địa điểm lớn).<br><b>4. Tại sao sai?</b> Arrive AT + Địa điểm nhỏ (Sân bay, nhà ga)."
+            },
+            {
+                id: 12,
+                text: "The train stopped _______ the station for 10 minutes.",
+                options: ["in", "on", "at", "behind"],
+                answer: 2, // at
+                explain: "<b>1. Phân tích:</b><br>The station (n): Nhà ga (Điểm dừng cụ thể).<br><b>2. Dịch nghĩa:</b> Tàu đã dừng tại nhà ga trong 10 phút.<br><b>3. Tại sao chọn AT?</b> Nhà ga, sân bay, bến xe buýt là các 'điểm' giao thông -> Dùng 'at'.<br><b>4. Tại sao sai?</b> 'In' nghĩa là bên trong tòa nhà ga (ít dùng khi nói về tàu dừng)."
+            },
+            {
+                id: 13,
+                text: "Look at the stars _______ the sky!",
+                options: ["on", "at", "in", "above"],
+                answer: 2, // in
+                explain: "<b>1. Phân tích:</b><br>The sky (n): Bầu trời (Không gian rộng lớn).<br><b>2. Dịch nghĩa:</b> Hãy nhìn những ngôi sao trên bầu trời kìa!<br><b>3. Tại sao chọn IN?</b> Trong tiếng Anh, bầu trời là một không gian bao la, các vật nằm 'trong' không gian đó -> Dùng 'in the sky'.<br><b>4. Tại sao sai?</b> Tiếng Việt nói 'trên trời' nhưng tiếng Anh KHÔNG dùng 'on the sky'."
+            },
+            {
+                id: 14,
+                text: "My office is _______ the second floor.",
+                options: ["at", "in", "on", "under"],
+                answer: 2, // on
+                explain: "<b>1. Phân tích:</b><br>The second floor (n): Tầng 2.<br><b>2. Dịch nghĩa:</b> Văn phòng của tôi ở tầng 2.<br><b>3. Tại sao chọn ON?</b> Quy tắc: Dùng 'on' với số tầng (On the 1st floor, on the top floor).<br><b>4. Tại sao sai?</b> 'In' và 'At' không dùng cho tầng nhà."
+            },
+            {
+                id: 15,
+                text: "We stayed _______ a lovely hotel by the beach.",
+                options: ["on", "to", "at", "of"],
+                answer: 2, // at
+                explain: "<b>1. Phân tích:</b><br>Hotel (n): Khách sạn (Địa điểm lưu trú).<br><b>2. Dịch nghĩa:</b> Chúng tôi đã ở tại một khách sạn dễ thương gần bãi biển.<br><b>3. Tại sao chọn AT?</b> Khi nói về việc lưu trú hoặc sự kiện tại một tòa nhà, ta dùng 'at'. (Cũng có thể dùng 'in' nếu muốn nhấn mạnh ở trong phòng, nhưng 'at' phổ biến hơn cho địa điểm chung).<br><b>4. Tại sao sai?</b> 'On a hotel' là sai (trên nóc khách sạn?)."
+            },
+            {
+                id: 16,
+                text: "Hurry up! Get _______ the car, we are late.",
+                options: ["on", "in", "at", "to"],
+                answer: 1, // in
+                explain: "<b>1. Phân tích:</b><br>Car (n): Xe hơi (Phương tiện cá nhân nhỏ, phải cúi người vào).<br><b>2. Dịch nghĩa:</b> Nhanh lên! Vào xe đi, chúng ta muộn rồi.<br><b>3. Tại sao chọn IN?</b> Quy tắc phương tiện: Car, Taxi, Helicopter (không gian nhỏ, không đi lại được bên trong) -> Dùng IN.<br><b>4. Tại sao sai?</b> 'On' dùng cho Bus/Train."
+            },
+            {
+                id: 17,
+                text: " Phu Quoc is the largest island _______ Vietnam.",
+                options: ["on", "at", "in", "from"],
+                answer: 2, // in
+                explain: "<b>1. Phân tích:</b><br>Vietnam (n): Quốc gia.<br><b>2. Dịch nghĩa:</b> Phú Quốc là hòn đảo lớn nhất ở Việt Nam.<br><b>3. Tại sao chọn IN?</b> Trước tên đất nước dùng 'in'.<br><b>4. Tại sao sai?</b> Lưu ý: Dùng 'On' cho đảo (On Phu Quoc Island) nhưng dùng 'In' cho quốc gia chứa hòn đảo đó."
+            },
+            {
+                id: 18,
+                text: "She is currently _______ work.",
+                options: ["in", "on", "at", "to"],
+                answer: 2, // at
+                explain: "<b>1. Phân tích:</b><br>Work (n): Nơi làm việc (Trạng thái đang làm việc).<br><b>2. Dịch nghĩa:</b> Cô ấy hiện đang ở chỗ làm.<br><b>3. Tại sao chọn AT?</b> Cụm cố định: at work (đang làm việc), at school (đang đi học), at home (ở nhà).<br><b>4. Tại sao sai?</b> Không dùng 'in work' hay 'on work' trong ngữ cảnh địa điểm này."
+            },
+            {
+                id: 19,
+                text: "The shop is _______ Le Loi Street.",
+                options: ["in", "at", "on", "into"],
+                answer: 2, // on
+                explain: "<b>1. Phân tích:</b><br>Le Loi Street: Tên đường (Không có số nhà).<br><b>2. Dịch nghĩa:</b> Cửa hàng nằm trên đường Lê Lợi.<br><b>3. Tại sao chọn ON?</b> Chỉ có tên đường -> Dùng 'ON'.<br><b>4. Tại sao sai?</b> Nếu thêm số nhà (ví dụ 10 Le Loi) mới dùng 'At'."
+            },
+            {
+                id: 20,
+                text: "I saw a spider _______ the ceiling.",
+                options: ["in", "at", "on", "above"],
+                answer: 2, // on
+                explain: "<b>1. Phân tích:</b><br>Ceiling (n): Trần nhà.<br><b>2. Dịch nghĩa:</b> Tôi thấy một con nhện ở trên trần nhà.<br><b>3. Tại sao chọn ON?</b> Trần nhà cũng là một bề mặt (dù nó ở trên đầu ta), con nhện bám vào bề mặt đó -> Dùng 'on'.<br><b>4. Tại sao sai?</b> 'In' là bên trong lớp bê tông trần nhà."
+            },
+            {
+                id: 21,
+                text: "They arrived _______ the airport just in time.",
+                options: ["on", "in", "at", "to"],
+                answer: 2, // at
+                explain: "<b>1. Phân tích:</b><br>The airport (n): Sân bay (Địa điểm cụ thể).<br><b>2. Dịch nghĩa:</b> Họ đã đến sân bay vừa kịp lúc.<br><b>3. Tại sao chọn AT?</b> Arrive AT + Địa điểm nhỏ/cụ thể.<br><b>4. Tại sao sai?</b> Arrive IN + Thành phố/Quốc gia."
+            },
+            {
+                id: 22,
+                text: "Who is that man standing _______ the bus stop?",
+                options: ["in", "on", "at", "under"],
+                answer: 2, // at
+                explain: "<b>1. Phân tích:</b><br>Bus stop (n): Điểm chờ xe buýt.<br><b>2. Dịch nghĩa:</b> Người đàn ông đang đứng ở điểm chờ xe buýt là ai vậy?<br><b>3. Tại sao chọn AT?</b> Điểm chờ xe buýt là một vị trí chính xác trên đường -> Dùng 'at'.<br><b>4. Tại sao sai?</b> Không ai đứng 'in' (trong) cái cột xe buýt cả."
+            },
+            {
+                id: 23,
+                text: "Open your book _______ page 33.",
+                options: ["at", "in", "on", "to"],
+                answer: 2, // on
+                explain: "<b>1. Phân tích:</b><br>Page 33 (n): Trang 33.<br><b>2. Dịch nghĩa:</b> Mở sách của em ra trang 33.<br><b>3. Tại sao chọn ON?</b> Số trang được xem là bề mặt chứa thông tin -> Dùng 'on page...'.<br><b>4. Tại sao sai?</b> Một số sách cũ dùng 'at page' nhưng hiện nay 'on page' chuẩn xác hơn."
+            },
+            {
+                id: 24,
+                text: "Jane isn't here. She is _______ a party.",
+                options: ["in", "on", "at", "to"],
+                answer: 2, // at
+                explain: "<b>1. Phân tích:</b><br>Party (n): Bữa tiệc (Sự kiện/Hoạt động).<br><b>2. Dịch nghĩa:</b> Jane không ở đây. Cô ấy đang ở một bữa tiệc.<br><b>3. Tại sao chọn AT?</b> Dùng 'at' trước các sự kiện/hoạt động xã hội (at a party, at a concert, at a meeting).<br><b>4. Tại sao sai?</b> 'In a party' có thể dùng nhưng ít phổ biến hơn, 'at' nhấn mạnh sự hiện diện tại sự kiện."
+            },
+            {
+                id: 25,
+                text: "Penguins live _______ the North Pole.",
+                options: ["in", "on", "at", "to"],
+                answer: 2, // at (Lưu ý: Thực tế Chim cánh cụt ở Nam Cực - South Pole, nhưng về ngữ pháp North Pole dùng 'at')
+                explain: "<b>1. Phân tích:</b><br>The North Pole (n): Bắc Cực (Điểm cực của trái đất).<br><b>2. Dịch nghĩa:</b> (Ví dụ ngữ pháp) Chim cánh cụt sống ở Bắc Cực.<br><b>3. Tại sao chọn AT?</b> Các điểm cực (North Pole, South Pole) được xem là 1 điểm trên bản đồ -> Dùng 'at'.<br><b>4. Tại sao sai?</b> Dùng 'in' cho vùng rộng lớn (in the Arctic), nhưng Pole là điểm cực."
+            },
+            {
+                id: 26,
+                text: "I kept my money _______ a wallet.",
+                options: ["on", "at", "in", "over"],
+                answer: 2, // in
+                explain: "<b>1. Phân tích:</b><br>Wallet (n): Cái ví (Vật chứa).<br><b>2. Dịch nghĩa:</b> Tôi giữ tiền trong ví.<br><b>3. Tại sao chọn IN?</b> Ví là vật chứa, tiền nằm bên trong -> Dùng 'in'.<br><b>4. Tại sao sai?</b> 'On' là để trên mặt ví."
+            },
+            {
+                id: 27,
+                text: "There is a label _______ the bottle.",
+                options: ["in", "at", "on", "into"],
+                answer: 2, // on
+                explain: "<b>1. Phân tích:</b><br>Bottle (n): Cái chai. Label (n): Nhãn dán.<br><b>2. Dịch nghĩa:</b> Có một cái nhãn dán trên cái chai.<br><b>3. Tại sao chọn ON?</b> Nhãn dán nằm trên bề mặt bên ngoài của cái chai -> Dùng 'on'.<br><b>4. Tại sao sai?</b> 'In the bottle' là bên trong chai (như nước)."
+            },
+            {
+                id: 28,
+                text: "He is sitting _______ the armchair.",
+                options: ["at", "on", "in", "to"],
+                answer: 2, // in
+                explain: "<b>1. Phân tích:</b><br>Armchair (n): Ghế bành (Ghế có tay vịn, êm ái, trũng xuống).<br><b>2. Dịch nghĩa:</b> Anh ấy đang ngồi trên ghế bành.<br><b>3. Tại sao chọn IN?</b> Với ghế bành (armchair) ta ngồi lọt thỏm vào trong -> Dùng 'in'.<br><b>4. Tại sao sai?</b> Với ghế gỗ cứng, phẳng (chair/bench) ta dùng 'on'. Đây là trường hợp đặc biệt!"
+            },
+            {
+                id: 29,
+                text: "We spent our holiday _______ Asia.",
+                options: ["at", "on", "in", "of"],
+                answer: 2, // in
+                explain: "<b>1. Phân tích:</b><br>Asia (n): Châu Á (Châu lục).<br><b>2. Dịch nghĩa:</b> Chúng tôi đã dành kỳ nghỉ ở Châu Á.<br><b>3. Tại sao chọn IN?</b> Trước tên châu lục (Asia, Europe, Africa) dùng 'in'.<br><b>4. Tại sao sai?</b> Châu lục là vùng lãnh thổ cực lớn, không dùng 'at' hay 'on'."
+            },
+            {
+                id: 30,
+                text: "My apartment is _______ the top of the building.",
+                options: ["in", "on", "at", "above"],
+                answer: 2, // at
+                explain: "<b>1. Phân tích:</b><br>The top (n): Đỉnh, phần cao nhất.<br><b>2. Dịch nghĩa:</b> Căn hộ của tôi ở trên đỉnh tòa nhà.<br><b>3. Tại sao chọn AT?</b> Cụm từ cố định: 'at the top of', 'at the bottom of'.<br><b>4. Tại sao sai?</b> Mặc dù đỉnh tòa nhà cao, nhưng cụm từ chỉ vị trí tương đối này dùng 'at'."
+            }
+        ];
+
+        // --- SOUNDS (Web Audio API) ---
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        function playSound(type) {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            osc.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+
+            if (type === 'correct') {
+                // Ding sound (High pitch, decays)
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(800, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.1);
+                gainNode.gain.setValueAtTime(0.5, audioCtx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.5);
+            } else {
+                // Buzz sound (Sawtooth, low pitch)
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+                osc.frequency.linearRampToValueAtTime(100, audioCtx.currentTime + 0.3);
+                gainNode.gain.setValueAtTime(0.5, audioCtx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.3);
+            }
+        }
+
+        // --- CONFETTI LOGIC ---
+        function fireConfetti() {
+            const canvas = document.getElementById('confetti-canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            
+            const particles = [];
+            const colors = ['#8854C0', '#00C9A7', '#FF4757', '#FFD700', '#00D26A'];
+
+            for (let i = 0; i < 100; i++) {
+                particles.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height - canvas.height,
+                    vx: Math.random() * 4 - 2,
+                    vy: Math.random() * 4 + 2,
+                    color: colors[Math.floor(Math.random() * colors.length)],
+                    size: Math.random() * 5 + 5
+                });
+            }
+
+            function animate() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                let active = false;
+                particles.forEach(p => {
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    if (p.y < canvas.height) active = true;
+                    ctx.fillStyle = p.color;
+                    ctx.fillRect(p.x, p.y, p.size, p.size);
+                });
+                if (active) requestAnimationFrame(animate);
+                else ctx.clearRect(0, 0, canvas.width, canvas.height);
+            }
+            animate();
+        }
+
+        // --- QUIZ LOGIC ---
+        let currentScore = 0;
+        let answeredCount = 0;
+
+        // Shuffle Array
+        function shuffle(array) {
+            let currentIndex = array.length, randomIndex;
+            while (currentIndex != 0) {
+                randomIndex = Math.floor(Math.random() * currentIndex);
+                currentIndex--;
+                [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
+            }
+            return array;
+        }
+
+        function renderQuiz() {
+            const container = document.getElementById('quiz-container');
+            const shuffledQuestions = shuffle([...questions]); // Shuffle questions for freshness
+
+            shuffledQuestions.forEach((q, index) => {
+                const card = document.createElement('div');
+                card.className = 'quiz-card';
+                card.innerHTML = `
+                    <span class="question-number">Câu ${index + 1}</span>
+                    <div class="question-text">${q.text}</div>
+                    <div class="options-grid">
+                        ${q.options.map((opt, i) => `
+                            <button class="option-btn" onclick="checkAnswer(this, ${q.id}, ${i})">${String.fromCharCode(65+i)}. ${opt}</button>
+                        `).join('')}
+                    </div>
+                    <div id="exp-${q.id}" class="explanation">
+                        <span class="exp-header">📝 GIẢI THÍCH CHI TIẾT:</span>
+                        ${q.explain}
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function checkAnswer(btn, qId, selectedIndex) {
+            // Prevent multiple clicks
+            const card = btn.closest('.quiz-card');
+            if (card.classList.contains('answered')) return;
+            card.classList.add('answered');
+
+            const question = questions.find(q => q.id === qId);
+            const allBtns = card.querySelectorAll('.option-btn');
+            const explanation = document.getElementById(`exp-${qId}`);
+
+            // Logic Correct/Wrong
+            if (selectedIndex === question.answer) {
+                btn.classList.add('correct');
+                playSound('correct');
+                fireConfetti();
+                currentScore++;
+            } else {
+                btn.classList.add('wrong');
+                playSound('wrong');
+                // Highlight correct answer
+                allBtns[question.answer].classList.add('correct');
+            }
+
+            // Disable all buttons in this card
+            allBtns.forEach(b => b.classList.add('disabled'));
+
+            // Show explanation immediately
+            explanation.classList.add('visible');
+            
+            answeredCount++;
+        }
+
+        function submitQuiz() {
+            const modal = document.getElementById('result-modal');
+            const scoreDisplay = document.getElementById('final-score');
+            const feedback = document.getElementById('feedback-msg');
+
+            scoreDisplay.textContent = `${currentScore}/30`;
+
+            if (currentScore === 30) {
+                feedback.textContent = "Xuất sắc! Bạn là bậc thầy giới từ! 🏆";
+            } else if (currentScore >= 20) {
+                feedback.textContent = "Rất tốt! Bạn nắm khá chắc kiến thức rồi! 🌟";
+            } else {
+                feedback.textContent = "Cố gắng thêm nhé! Hãy xem lại phần giải thích chi tiết. 💪";
+            }
+
+            modal.style.display = 'flex';
+            fireConfetti();
+        }
+
+        function closeModal() {
+            document.getElementById('result-modal').style.display = 'none';
+        }
+
+        // Init
+        window.onload = renderQuiz;
+
+    </script>
+</body>
+</html>

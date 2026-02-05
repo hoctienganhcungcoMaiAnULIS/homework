@@ -1,0 +1,933 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sentence Building Challenge - Ms Mai An ULIS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-purple: #8854C0;
+            --primary-teal: #00C9A7;
+            --correct-green: #00D26A;
+            --wrong-red: #FF4757;
+            --bg-color: #f0f4f8;
+            --card-bg: #ffffff;
+            --text-dark: #2d3436;
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: var(--bg-color);
+            background-image: radial-gradient(#8854c0 1.5px, transparent 1.5px), radial-gradient(#8854c0 1.5px, var(--bg-color) 1.5px);
+            background-size: 30px 30px;
+            background-position: 0 0, 15px 15px;
+            color: var(--text-dark);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 900px;
+            margin-top: 20px;
+            padding-bottom: 80px;
+        }
+
+        /* HEADER */
+        .header {
+            text-align: center;
+            background: linear-gradient(135deg, var(--primary-purple), #a29bfe);
+            color: white;
+            padding: 20px;
+            border-radius: 20px;
+            box-shadow: 0 8px 0 #5f27cd;
+            margin-bottom: 30px;
+            position: relative;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-family: 'Quicksand', sans-serif;
+            font-size: 2rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .header p {
+            margin: 5px 0 0;
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .score-board {
+            position: absolute;
+            top: 50%;
+            right: 20px;
+            transform: translateY(-50%);
+            background: white;
+            color: var(--primary-purple);
+            padding: 10px 20px;
+            border-radius: 15px;
+            font-weight: 800;
+            box-shadow: 0 4px 0 rgba(0,0,0,0.1);
+        }
+
+        /* QUESTION CARD */
+        .question-card {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            border: 2px solid #dfe6e9;
+            transition: transform 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .question-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .q-tag {
+            background: var(--primary-teal);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+
+        .question-text {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--primary-purple);
+            margin-bottom: 25px;
+            line-height: 1.5;
+            background: #fdf2f8;
+            padding: 15px;
+            border-radius: 15px;
+            border-left: 5px solid var(--primary-purple);
+        }
+
+        /* OPTIONS GRID */
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+        }
+
+        .option-btn {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 15px;
+            padding: 15px 20px;
+            font-family: 'Nunito', sans-serif;
+            font-size: 1.05rem;
+            color: var(--text-dark);
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+            box-shadow: 0 4px 0 #b2bec3;
+            display: flex;
+            align-items: center;
+        }
+
+        .option-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 0 #b2bec3;
+            background-color: #f8f9fa;
+        }
+
+        .option-btn:active:not(:disabled) {
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 #b2bec3;
+        }
+
+        .option-letter {
+            background: var(--primary-purple);
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 15px;
+            flex-shrink: 0;
+        }
+
+        /* STATES */
+        .option-btn.correct {
+            background-color: #d1fae5;
+            border-color: var(--correct-green);
+            box-shadow: 0 4px 0 #059669;
+            color: #065f46;
+        }
+        .option-btn.correct .option-letter {
+            background-color: var(--correct-green);
+        }
+
+        .option-btn.wrong {
+            background-color: #ffe5e5;
+            border-color: var(--wrong-red);
+            box-shadow: 0 4px 0 #c0392b;
+            color: #c0392b;
+            animation: shake 0.5s;
+        }
+        .option-btn.wrong .option-letter {
+            background-color: var(--wrong-red);
+        }
+
+        .option-btn:disabled {
+            cursor: default;
+            opacity: 0.8;
+            pointer-events: none;
+        }
+
+        /* EXPLANATION BOX */
+        .explanation-box {
+            margin-top: 25px;
+            background: #fff;
+            border: 2px dashed var(--primary-purple);
+            border-radius: 15px;
+            padding: 20px;
+            display: none; /* Hidden by default */
+            animation: slideDown 0.4s ease-out;
+        }
+
+        .exp-header {
+            font-weight: 800;
+            color: var(--primary-purple);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.1rem;
+        }
+
+        .exp-content {
+            font-size: 1rem;
+            line-height: 1.6;
+        }
+
+        .exp-section {
+            margin-bottom: 12px;
+        }
+
+        .exp-label {
+            font-weight: 700;
+            color: var(--primary-teal);
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        /* ANIMATIONS */
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-5px) rotate(-2deg); }
+            50% { transform: translateX(5px) rotate(2deg); }
+            75% { transform: translateX(-5px) rotate(-2deg); }
+            100% { transform: translateX(0); }
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* SUBMIT BUTTON */
+        .submit-container {
+            text-align: center;
+            margin-top: 40px;
+        }
+
+        .submit-btn {
+            background: var(--primary-teal);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.2rem;
+            border-radius: 50px;
+            font-weight: 800;
+            box-shadow: 0 6px 0 #009688;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: 'Quicksand', sans-serif;
+            text-transform: uppercase;
+        }
+
+        .submit-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 0 #009688;
+        }
+
+        .submit-btn:active {
+            transform: translateY(4px);
+            box-shadow: 0 2px 0 #009688;
+        }
+
+        /* CANVAS FOR CONFETTI */
+        #confetti-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 9999;
+        }
+
+        /* MODAL */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.6);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 15% auto;
+            padding: 30px;
+            border-radius: 25px;
+            width: 90%;
+            max-width: 500px;
+            text-align: center;
+            border: 4px solid var(--primary-purple);
+            animation: zoomIn 0.3s;
+        }
+
+        .modal h2 {
+            color: var(--primary-purple);
+            font-family: 'Quicksand', sans-serif;
+            font-size: 2rem;
+        }
+
+        .final-score {
+            font-size: 3rem;
+            font-weight: 800;
+            color: var(--primary-teal);
+            margin: 20px 0;
+        }
+
+        @keyframes zoomIn {
+            from {transform: scale(0.5); opacity: 0;}
+            to {transform: scale(1); opacity: 1;}
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            .header h1 { font-size: 1.5rem; }
+            .question-text { font-size: 1.1rem; }
+            .score-board { position: static; transform: none; display: inline-block; margin-top: 10px; }
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="confetti-canvas"></canvas>
+
+    <div class="container">
+        <div class="header">
+            <h1>Ms Mai An ULIS</h1>
+            <p>Sentence Building: Present Perfect Tense</p>
+            <div class="score-board">Điểm: <span id="current-score">0</span>/<span id="total-qs">0</span></div>
+        </div>
+
+        <div id="quiz-container">
+            <!-- Questions will be rendered here -->
+        </div>
+
+        <div class="submit-container">
+            <button class="submit-btn" onclick="finishQuiz()">NỘP BÀI & XEM ĐIỂM</button>
+        </div>
+    </div>
+
+    <!-- Modal Result -->
+    <div id="resultModal" class="modal">
+        <div class="modal-content">
+            <h2>KẾT QUẢ CỦA CON</h2>
+            <div class="final-score" id="final-score-display">0/10</div>
+            <p id="teacher-comment" style="font-size: 1.2rem; margin-bottom: 20px;">...</p>
+            <button class="submit-btn" onclick="closeModal()">Xem lại bài làm</button>
+        </div>
+    </div>
+
+    <script>
+        // --- DATASET FROM CONTEXT ---
+        const quizDataRaw = {
+          "questions": [
+            {
+              "questionNumber": 1,
+              "question": "The Great Barrier Reef/ lose/ half/ its coral/ since 1995.",
+              "answerOptions": [
+                {
+                  "text": "The Great Barrier Reef has lost half of its coral since 1995.",
+                  "rationale": "**Dịch câu:** Rạn san hô Great Barrier đã mất đi một nửa lượng san hô kể từ năm 1995.\n\n**Giải thích chi tiết:**\n- **Thì:** Có từ \"since 1995\" -> Dùng thì Hiện tại hoàn thành (Present Perfect).\n- **Chủ ngữ:** \"The Great Barrier Reef\" (số ít) -> Dùng trợ động từ **has**.\n- **Động từ:** \"lose\" (bất quy tắc) -> V3 là **lost**.\n- **Công thức:** S + has + V3.",
+                  "isCorrect": true
+                },
+                {
+                  "text": "The Great Barrier Reef lost half of its coral since 1995.",
+                  "rationale": "**Giải thích:** Đây là thì Quá khứ đơn (Past Simple), không dùng với \"since\" trong ngữ cảnh kết quả còn kéo dài đến hiện tại.",
+                  "isCorrect": false
+                },
+                {
+                  "text": "The Great Barrier Reef has lose half of its coral since 1995.",
+                  "rationale": "**Giải thích:** Sai dạng động từ. Sau \"has\" phải là V3 (lost), không được để nguyên thể (lose).",
+                  "isCorrect": false
+                },
+                {
+                  "text": "The Great Barrier Reef have lost half of its coral since 1995.",
+                  "rationale": "**Giải thích:** Sai trợ động từ. Chủ ngữ số ít không dùng \"have\".",
+                  "isCorrect": false
+                }
+              ]
+            },
+            {
+              "questionNumber": 2,
+              "question": "Mount Everest/ grow/ taller/ every year/ due to/ tectonic movement.",
+              "answerOptions": [
+                {
+                  "text": "Mount Everest has grown taller over the years due to tectonic movement.",
+                  "rationale": "**Dịch câu:** Đỉnh Everest đã cao thêm qua các năm do sự vận động kiến tạo.\n\n**Giải thích chi tiết:**\n- **Thì:** Diễn tả sự thay đổi kéo dài từ quá khứ đến nay -> Hiện tại hoàn thành.\n- **Chủ ngữ:** \"Mount Everest\" (số ít) -> Dùng **has**.\n- **Động từ:** \"grow\" (bất quy tắc) -> V3 là **grown**.",
+                  "isCorrect": true
+                },
+                {
+                  "text": "Mount Everest grew taller every year due to tectonic movement.",
+                  "rationale": "**Giải thích:** Thì Quá khứ đơn, diễn tả việc đã chấm dứt, không phù hợp với thực tế là núi vẫn đang cao lên.",
+                  "isCorrect": false
+                },
+                {
+                  "text": "Mount Everest has grow taller every year due to tectonic movement.",
+                  "rationale": "**Giải thích:** Sai dạng động từ (thiếu \"n\" ở grown).",
+                  "isCorrect": false
+                },
+                {
+                  "text": "Mount Everest have grown taller every year due to tectonic movement.",
+                  "rationale": "**Giải thích:** Sai trợ động từ (Mount Everest là số ít).",
+                  "isCorrect": false
+                }
+              ]
+            },
+            {
+              "questionNumber": 3,
+              "question": "Tourists/ damage/ many parts/ Grand Canyon/ over the years.",
+              "answerOptions": [
+                {
+                  "text": "Tourists have damaged many parts of the Grand Canyon over the years.",
+                  "rationale": "**Dịch câu:** Khách du lịch đã làm hư hại nhiều phần của hẻm núi Grand Canyon qua nhiều năm.\n\n**Giải thích chi tiết:**\n- **Thì:** \"Over the years\" (qua nhiều năm) -> Hiện tại hoàn thành.\n- **Chủ ngữ:** \"Tourists\" (số nhiều) -> Dùng trợ động từ **have**.\n- **Động từ:** \"damage\" (có quy tắc) -> V3 là **damaged**.",
+                  "isCorrect": true
+                },
+                {
+                  "text": "Tourists damaged many parts of the Grand Canyon over the years.",
+                  "rationale": "**Giải thích:** Quá khứ đơn, chưa chính xác bằng hiện tại hoàn thành khi đi với \"over the years\".",
+                  "isCorrect": false
+                },
+                {
+                  "text": "Tourists have damage many parts of the Grand Canyon over the years.",
+                  "rationale": "**Giải thích:** Sai dạng động từ (thiếu đuôi -ed).",
+                  "isCorrect": false
+                },
+                {
+                  "text": "Tourists has damaged many parts of the Grand Canyon over the years.",
+                  "rationale": "**Giải thích:** Sai trợ động từ. Chủ ngữ số nhiều không dùng \"has\".",
+                  "isCorrect": false
+                }
+              ]
+            },
+            {
+              "questionNumber": 4,
+              "question": "Scientists/ never/ explore/ deepest parts/ Amazon Rainforest.",
+              "answerOptions": [
+                {
+                  "text": "Scientists have never explored the deepest parts of the Amazon Rainforest.",
+                  "rationale": "**Dịch câu:** Các nhà khoa học chưa bao giờ khám phá những phần sâu nhất của rừng mưa Amazon.\n\n**Giải thích chi tiết:**\n- **Thì:** Có từ \"never\" (chưa từng) nói về trải nghiệm -> Hiện tại hoàn thành.\n- **Chủ ngữ:** \"Scientists\" (số nhiều) -> Dùng **have**.\n- **Vị trí trạng từ:** \"never\" đứng giữa have và V3 -> have **never** explored.",
+                  "isCorrect": true
+                },
+                {
+                  "text": "Scientists never explored the deepest parts of the Amazon Rainforest.",
+                  "rationale": "**Giải thích:** Quá khứ đơn, ngụ ý là việc này đã chấm dứt (ví dụ các nhà khoa học đã qua đời hoặc không còn làm việc nữa).",
+                  "isCorrect": false
+                },
+                {
+                  "text": "Scientists have never explore the deepest parts of the Amazon Rainforest.",
+                  "rationale": "**Giải thích:** Sai dạng động từ (thiếu -ed).",
+                  "isCorrect": false
+                },
+                {
+                  "text": "Scientists has never explored the deepest parts of the Amazon Rainforest.",
+                  "rationale": "**Giải thích:** Sai trợ động từ (Scientists số nhiều không dùng has).",
+                  "isCorrect": false
+                }
+              ]
+            },
+            {
+              "questionNumber": 5,
+              "question": "Victoria Falls/ attract/ millions/ visitors/ since/ it/ become/ famous.",
+              "answerOptions": [
+                {
+                  "text": "Victoria Falls has attracted millions of visitors since it became famous.",
+                  "rationale": "**Dịch câu:** Thác Victoria đã thu hút hàng triệu du khách kể từ khi nó trở nên nổi tiếng.\n\n**Giải thích chi tiết:**\n- **Cấu trúc với SINCE:** Mệnh đề chính dùng Hiện tại hoàn thành (S + has attracted), mệnh đề sau \"since\" dùng Quá khứ đơn (it became).\n- **Chủ ngữ chính:** \"Victoria Falls\" (tên riêng, số ít) -> Dùng **has**.",
+                  "isCorrect": true
+                },
+                {
+                  "text": "Victoria Falls attracted millions of visitors since it became famous.",
+                  "rationale": "**Giải thích:** Sai thì ở mệnh đề chính (phải dùng HTHT, không dùng QKĐ).",
+                  "isCorrect": false
+                },
+                {
+                  "text": "Victoria Falls have attracted millions of visitors since it became famous.",
+                  "rationale": "**Giải thích:** Sai trợ động từ. Tên địa danh số ít dùng \"has\".",
+                  "isCorrect": false
+                },
+                {
+                  "text": "Victoria Falls has attract millions of visitors since it became famous.",
+                  "rationale": "**Giải thích:** Sai dạng động từ (thiếu -ed).",
+                  "isCorrect": false
+                }
+              ]
+            },
+            {
+              "questionNumber": 6,
+              "question": "Climate change/ already/ affect/ Northern Lights/ visibility.",
+              "answerOptions": [
+                {
+                  "text": "Climate change has already affected the Northern Lights' visibility.",
+                  "rationale": "**Dịch câu:** Biến đổi khí hậu đã ảnh hưởng đến tầm nhìn của Bắc Cực Quang rồi.\n\n**Giải thích chi tiết:**\n- **Thì:** Có từ \"already\" -> Hiện tại hoàn thành.\n- **Chủ ngữ:** \"Climate change\" (không đếm được, số ít) -> Dùng **has**.\n- **Vị trí trạng từ:** \"already\" đứng giữa has và V3 -> has **already** affected.",
+                  "isCorrect": true
+                },
+                {
+                  "text": "Climate change already affected the Northern Lights' visibility.",
+                  "rationale": "**Giải thích:** Quá khứ đơn, thiếu trợ động từ.",
+                  "isCorrect": false
+                },
+                {
+                  "text": "Climate change has already affect the Northern Lights' visibility.",
+                  "rationale": "**Giải thích:** Sai dạng động từ (thiếu -ed).",
+                  "isCorrect": false
+                },
+                {
+                  "text": "Climate change have already affected the Northern Lights' visibility.",
+                  "rationale": "**Giải thích:** Sai trợ động từ (số ít không dùng have).",
+                  "isCorrect": false
+                }
+              ]
+            },
+            {
+              "questionNumber": 7,
+              "question": "Ha Long Bay/ receive/ UNESCO recognition/ since 1994.",
+              "answerOptions": [
+                {
+                  "text": "Ha Long Bay has received UNESCO recognition since 1994.",
+                  "rationale": "**Dịch câu:** Vịnh Hạ Long đã nhận được sự công nhận của UNESCO từ năm 1994.\n\n**Giải thích chi tiết:**\n- **Thì:** Có \"since 1994\" -> Hiện tại hoàn thành.\n- **Chủ ngữ:** \"Ha Long Bay\" (số ít) -> Dùng **has**.\n- **Động từ:** \"receive\" (có quy tắc) -> V3 là **received**.",
+                  "isCorrect": true
+                },
+                {
+                  "text": "Ha Long Bay received UNESCO recognition since 1994.",
+                  "rationale": "**Giải thích:** Sai thì (QKĐ không đi với since).",
+                  "isCorrect": false
+                },
+                {
+                  "text": "Ha Long Bay has receive UNESCO recognition since 1994.",
+                  "rationale": "**Giải thích:** Sai dạng động từ (thiếu -ed).",
+                  "isCorrect": false
+                },
+                {
+                  "text": "Ha Long Bay have received UNESCO recognition since 1994.",
+                  "rationale": "**Giải thích:** Sai trợ động từ (số ít không dùng have).",
+                  "isCorrect": false
+                }
+              ]
+            },
+            {
+              "questionNumber": 8,
+              "question": "Many species/ disappear/ from/ Sahara Desert/ recent decades.",
+              "answerOptions": [
+                {
+                  "text": "Many species have disappeared from the Sahara Desert in recent decades.",
+                  "rationale": "**Dịch câu:** Nhiều loài đã biến mất khỏi sa mạc Sahara trong những thập kỷ gần đây.\n\n**Giải thích chi tiết:**\n- **Thì:** \"In recent decades\" (trong các thập kỷ gần đây) -> Hiện tại hoàn thành.\n- **Chủ ngữ:** \"Many species\" (số nhiều) -> Dùng **have**.\n- **Động từ:** \"disappear\" -> V3 là **disappeared**.",
+                  "isCorrect": true
+                },
+                {
+                  "text": "Many species disappeared from the Sahara Desert in recent decades.",
+                  "rationale": "**Giải thích:** Quá khứ đơn, thường dùng khi có mốc thời gian cụ thể trong quá khứ (ví dụ: in 1990) hơn là khoảng thời gian kéo dài đến nay.",
+                  "isCorrect": false
+                },
+                {
+                  "text": "Many species has disappeared from the Sahara Desert in recent decades.",
+                  "rationale": "**Giải thích:** Sai trợ động từ (species số nhiều không dùng has).",
+                  "isCorrect": false
+                },
+                {
+                  "text": "Many species have disappear from the Sahara Desert in recent decades.",
+                  "rationale": "**Giải thích:** Sai dạng động từ (thiếu -ed).",
+                  "isCorrect": false
+                }
+              ]
+            },
+            {
+              "questionNumber": 9,
+              "question": "Niagara Falls/ not freeze/ completely/ for/ 100 years.",
+              "answerOptions": [
+                {
+                  "text": "Niagara Falls has not frozen completely for 100 years.",
+                  "rationale": "**Dịch câu:** Thác Niagara đã không đóng băng hoàn toàn trong suốt 100 năm qua.\n\n**Giải thích chi tiết:**\n- **Thì:** \"For 100 years\" -> Hiện tại hoàn thành.\n- **Thể:** Phủ định (not freeze) -> has not + V3.\n- **Chủ ngữ:** \"Niagara Falls\" (tên riêng, số ít) -> Dùng **has**.\n- **Động từ:** \"freeze\" (bất quy tắc) -> V3 là **frozen**.",
+                  "isCorrect": true
+                },
+                {
+                  "text": "Niagara Falls did not freeze completely for 100 years.",
+                  "rationale": "**Giải thích:** Sai thì (QKĐ).",
+                  "isCorrect": false
+                },
+                {
+                  "text": "Niagara Falls have not frozen completely for 100 years.",
+                  "rationale": "**Giải thích:** Sai trợ động từ (số ít không dùng have).",
+                  "isCorrect": false
+                },
+                {
+                  "text": "Niagara Falls has not freeze completely for 100 years.",
+                  "rationale": "**Giải thích:** Sai dạng động từ (phải là frozen, không phải freeze).",
+                  "isCorrect": false
+                }
+              ]
+            },
+            {
+              "questionNumber": 10,
+              "question": "The Dead Sea/ shrink/ significantly/ past 50 years.",
+              "answerOptions": [
+                {
+                  "text": "The Dead Sea has shrunk significantly in the past 50 years.",
+                  "rationale": "**Dịch câu:** Biển Chết đã thu hẹp đáng kể trong 50 năm qua.\n\n**Giải thích chi tiết:**\n- **Thì:** \"In the past 50 years\" -> Hiện tại hoàn thành.\n- **Chủ ngữ:** \"The Dead Sea\" (số ít) -> Dùng **has**.\n- **Động từ:** \"shrink\" (bất quy tắc) -> V3 là **shrunk** (hoặc shrunken).",
+                  "isCorrect": true
+                },
+                {
+                  "text": "The Dead Sea shrank significantly in the past 50 years.",
+                  "rationale": "**Giải thích:** Quá khứ đơn (shrank là V2).",
+                  "isCorrect": false
+                },
+                {
+                  "text": "The Dead Sea has shrank significantly in the past 50 years.",
+                  "rationale": "**Giải thích:** Sai dạng động từ (sau has phải là V3 shrunk, không phải V2 shrank).",
+                  "isCorrect": false
+                },
+                {
+                  "text": "The Dead Sea have shrunk significantly in the past 50 years",
+                  "rationale": "**Giải thích:** Sai trợ động từ (số ít không dùng have).",
+                  "isCorrect": false
+                }
+              ]
+            }
+          ]
+        };
+
+        // --- GLOBAL VARIABLES ---
+        let currentScore = 0;
+        let answeredCount = 0;
+        const totalQuestions = quizDataRaw.questions.length;
+        
+        // --- SOUND SYSTEM (Using AudioContext for no-dependency sounds) ---
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        
+        function playSound(type) {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            osc.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+
+            if (type === 'correct') {
+                // Ding effect
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(500, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(1000, audioCtx.currentTime + 0.1);
+                gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.5);
+            } else {
+                // Buzz/Error effect
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+                osc.frequency.linearRampToValueAtTime(100, audioCtx.currentTime + 0.3);
+                gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.3);
+            }
+        }
+
+        // --- SHUFFLE FUNCTION ---
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        // --- RENDER GAME ---
+        function initGame() {
+            // Shuffle questions
+            shuffleArray(quizDataRaw.questions);
+            
+            const container = document.getElementById('quiz-container');
+            document.getElementById('total-qs').textContent = totalQuestions;
+
+            quizDataRaw.questions.forEach((q, index) => {
+                const qEl = document.createElement('div');
+                qEl.className = 'question-card';
+                qEl.id = `q-card-${index}`;
+
+                // Process options: assign original index to track correctness later
+                let optionsWithIndex = q.answerOptions.map((opt, i) => ({...opt, originalIndex: i}));
+                
+                // Note: We might NOT want to shuffle options for Sentence Building if they follow a pattern, 
+                // but usually MCQs are shuffled. Let's shuffle options too.
+                shuffleArray(optionsWithIndex);
+
+                let optionsHtml = '';
+                const letters = ['A', 'B', 'C', 'D'];
+                
+                optionsWithIndex.forEach((opt, i) => {
+                    optionsHtml += `
+                        <button class="option-btn" onclick="handleAnswer(${index}, ${opt.isCorrect}, this)">
+                            <span class="option-letter">${letters[i]}</span>
+                            <span class="option-text">${opt.text}</span>
+                        </button>
+                    `;
+                });
+
+                qEl.innerHTML = `
+                    <div class="question-header">
+                        <span class="q-tag">Question ${index + 1}</span>
+                    </div>
+                    <div class="question-text">
+                         ${q.question}
+                    </div>
+                    <div class="options-grid">
+                        ${optionsHtml}
+                    </div>
+                    <div class="explanation-box" id="exp-${index}">
+                        <!-- Content injected via JS -->
+                    </div>
+                `;
+                container.appendChild(qEl);
+            });
+        }
+
+        function escapeHtml(text) {
+          return text
+              .replace(/&/g, "&amp;")
+              .replace(/</g, "&lt;")
+              .replace(/>/g, "&gt;")
+              .replace(/"/g, "&quot;")
+              .replace(/'/g, "&#039;");
+        }
+
+        // --- HANDLE ANSWER ---
+        function handleAnswer(qIndex, isCorrect, btnEl) {
+            // Check if already answered
+            const card = document.getElementById(`q-card-${qIndex}`);
+            if (card.classList.contains('answered')) return;
+            card.classList.add('answered');
+
+            // Retrieve options directly from data source instead of passing via HTML arguments
+            // This prevents syntax errors when text contains quotes (e.g., "Northern Lights'")
+            const allOptions = quizDataRaw.questions[qIndex].answerOptions;
+            
+            const expBox = document.getElementById(`exp-${qIndex}`);
+            const buttons = card.querySelectorAll('.option-btn');
+
+            answeredCount++;
+
+            if (isCorrect) {
+                // Correct Logic
+                btnEl.classList.add('correct');
+                playSound('correct');
+                fireConfetti();
+                currentScore++;
+                document.getElementById('current-score').textContent = currentScore;
+            } else {
+                // Wrong Logic
+                btnEl.classList.add('wrong');
+                playSound('wrong');
+                // Highlight correct one
+                buttons.forEach(b => {
+                    // Logic to find the button that has the text of the correct answer
+                    // Since we shuffled, we find the one that corresponds to the correct data
+                    // Actually, simpler: loop through original data to find correct text
+                    const correctOptData = allOptions.find(o => o.isCorrect);
+                    if(b.querySelector('.option-text').textContent === correctOptData.text) {
+                        b.classList.add('correct');
+                    }
+                });
+            }
+
+            // Disable all buttons
+            buttons.forEach(b => b.disabled = true);
+
+            // GENERATE MS MAI AN'S EXPLANATION
+            const correctOption = allOptions.find(o => o.isCorrect);
+            
+            // Extract Translation and Main Grammar from Correct Option's Rationale
+            // The JSON has formatting like "**Dịch câu:** ..."
+            let rawCorrectRationale = correctOption.rationale;
+            
+            // Basic parsing to separate sections (assuming the consistent format in JSON)
+            // If format varies, we display the raw markdown rendered nicely.
+            
+            let explanationHtml = `
+                <div class="exp-header">
+                    <i style="font-size: 1.5rem">👩‍🏫</i> Lời giải thích của cô Mai An:
+                </div>
+                <div class="exp-content">
+            `;
+
+            // 1. Dịch & Giải thích đúng
+            explanationHtml += `
+                <div class="exp-section">
+                    <span class="exp-label">✅ Tại sao đáp án này đúng?</span>
+                    ${renderMarkdown(rawCorrectRationale)}
+                </div>
+            `;
+
+            // 2. Phân tích lỗi sai (nếu chọn sai) hoặc hiển thị các lỗi sai thường gặp
+            let wrongAnalysisHtml = '';
+            allOptions.forEach((opt, idx) => {
+                if (!opt.isCorrect) {
+                    // Extract just the explanation part from wrong answers usually starting with "**Giải thích:**"
+                    let cleanReason = opt.rationale.replace(/\*\*Giải thích:\*\*/g, "").trim();
+                    wrongAnalysisHtml += `<li style="margin-bottom: 5px;"><b>${opt.text}</b>: ${cleanReason}</li>`;
+                }
+            });
+
+            if (wrongAnalysisHtml) {
+                explanationHtml += `
+                    <div class="exp-section">
+                        <span class="exp-label">⚠️ Tại sao các đáp án khác sai?</span>
+                        <ul style="padding-left: 20px; margin: 5px 0;">${wrongAnalysisHtml}</ul>
+                    </div>
+                `;
+            }
+
+            explanationHtml += `</div>`;
+            expBox.innerHTML = explanationHtml;
+            expBox.style.display = 'block';
+        }
+
+        // Helper to basic render markdown-like bold syntax
+        function renderMarkdown(text) {
+            return text
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\n/g, '<br>');
+        }
+
+        // --- CONFETTI EFFECT ---
+        function fireConfetti() {
+            const canvas = document.getElementById('confetti-canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+
+            const pieces = [];
+            const numberOfPieces = 100;
+            const colors = ['#f00', '#0f0', '#00f', '#ff0', '#0ff'];
+
+            function Piece(x, y) {
+                this.x = x;
+                this.y = y;
+                this.size = (Math.random() * 0.5 + 0.75) * 15;
+                this.gravity = (Math.random() * 0.5 + 0.75) * 0.5;
+                this.rotation = (Math.PI * 2) * Math.random();
+                this.rotationSpeed = (Math.PI * 2) * (Math.random() - 0.5) * 0.05;
+                this.color = colors[Math.floor(Math.random() * colors.length)];
+            }
+            
+            Piece.prototype.update = function() {
+                this.y += this.gravity;
+                this.rotation += this.rotationSpeed;
+            }
+            
+            Piece.prototype.draw = function() {
+                ctx.save();
+                ctx.fillStyle = this.color;
+                ctx.translate(this.x + this.size / 2, this.y + this.size / 2);
+                ctx.rotate(this.rotation);
+                ctx.fillRect(-this.size / 2, -this.size / 2, this.size, this.size);
+                ctx.restore();
+            }
+
+            // Spawn center
+            for (let i = 0; i < numberOfPieces; i++) {
+                pieces.push(new Piece(window.innerWidth / 2, window.innerHeight / 2));
+            }
+
+            let animationId;
+            function loop() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                let activePieces = 0;
+                pieces.forEach(p => {
+                    p.update();
+                    p.draw();
+                    if (p.y < canvas.height) activePieces++;
+                });
+
+                if (activePieces > 0) {
+                    animationId = requestAnimationFrame(loop);
+                } else {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                }
+            }
+            loop();
+        }
+
+        // --- FINISH & MODAL ---
+        function finishQuiz() {
+            const modal = document.getElementById('resultModal');
+            const scoreDisplay = document.getElementById('final-score-display');
+            const comment = document.getElementById('teacher-comment');
+
+            scoreDisplay.textContent = `${currentScore}/${totalQuestions}`;
+            
+            const percentage = (currentScore / totalQuestions) * 100;
+            if (percentage === 100) {
+                comment.textContent = "🌟 Xuất sắc! Con là thiên tài Tiếng Anh!";
+                fireConfetti();
+                playSound('correct');
+            } else if (percentage >= 80) {
+                comment.textContent = "🎉 Rất tốt! Con làm bài rất chắc chắn!";
+                playSound('correct');
+            } else if (percentage >= 50) {
+                comment.textContent = "💪 Cố gắng lên! Con cần ôn lại một chút nhé!";
+            } else {
+                comment.textContent = "📚 Con cần luyện tập thêm nhiều nha!";
+            }
+
+            modal.style.display = "block";
+        }
+
+        function closeModal() {
+            document.getElementById('resultModal').style.display = "none";
+        }
+
+        // Initialize
+        window.onload = initGame;
+
+    </script>
+</body>
+</html>

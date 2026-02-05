@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unit 10: Communication in the Future - Ms Mai An ULIS</title>
+    <!-- Google Fonts: Quicksand cho cảm giác thân thiện -->
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome cho icon -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Thư viện Confetti (Pháo giấy) -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <style>
+        :root {
+            --primary: #8854C0; /* Tím hồng */
+            --secondary: #00C9A7; /* Xanh ngọc */
+            --correct: #00D26A; /* Xanh lá */
+            --wrong: #FF4757; /* Đỏ cam */
+            --bg-color: #F0F3F8;
+            --text-color: #2F3542;
+            --card-bg: #FFFFFF;
+        }
+
+        body {
+            font-family: 'Quicksand', sans-serif;
+            background-color: var(--bg-color);
+            background-image: radial-gradient(#dbeaf9 10%, transparent 11%), radial-gradient(#dbeaf9 10%, transparent 11%);
+            background-size: 30px 30px;
+            background-position: 0 0, 15px 15px;
+            margin: 0;
+            padding: 0;
+            color: var(--text-color);
+        }
+
+        /* --- Header --- */
+        header {
+            background: linear-gradient(135deg, var(--primary), #a29bfe);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-bottom-left-radius: 20px;
+            border-bottom-right-radius: 20px;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 1.8rem;
+            text-shadow: 2px 2px 0px rgba(0,0,0,0.1);
+        }
+
+        header p {
+            margin: 5px 0 0;
+            font-size: 1rem;
+            opacity: 0.9;
+        }
+
+        /* --- Container --- */
+        .container {
+            max-width: 800px;
+            margin: 30px auto;
+            padding: 0 15px;
+            padding-bottom: 100px; /* Để tránh nút nộp bài che */
+        }
+
+        /* --- Question Card --- */
+        .quiz-card {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 0 rgba(0,0,0,0.05), 0 10px 20px rgba(0,0,0,0.1);
+            border: 2px solid #fff;
+            position: relative;
+            transition: transform 0.3s ease;
+        }
+
+        .quiz-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .question-number {
+            display: inline-block;
+            background: var(--secondary);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 0 rgba(0,0,0,0.1);
+        }
+
+        .question-text {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 25px;
+            line-height: 1.5;
+            color: #2d3436;
+        }
+
+        /* --- Options Grid --- */
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        @media (max-width: 600px) {
+            .options-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .option-btn {
+            background: #fff;
+            border: 2px solid #dfe6e9;
+            border-radius: 15px;
+            padding: 15px 20px;
+            font-family: 'Quicksand', sans-serif;
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-color);
+            cursor: pointer;
+            position: relative;
+            box-shadow: 0 4px 0 #dfe6e9;
+            transition: all 0.1s ease;
+            text-align: left;
+            display: flex;
+            align-items: center;
+        }
+
+        .option-btn:active {
+            box-shadow: 0 0 0 #dfe6e9;
+            transform: translateY(4px);
+        }
+
+        .option-btn .label {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            background: #f1f2f6;
+            color: #747d8c;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 30px;
+            margin-right: 10px;
+            flex-shrink: 0;
+            font-weight: 700;
+        }
+
+        /* States for Options */
+        .option-btn.correct {
+            background-color: var(--correct);
+            color: white;
+            border-color: #00b85c;
+            box-shadow: 0 4px 0 #00b85c;
+        }
+        .option-btn.correct .label {
+            background: rgba(255,255,255,0.3);
+            color: white;
+        }
+
+        .option-btn.wrong {
+            background-color: var(--wrong);
+            color: white;
+            border-color: #e63e4d;
+            box-shadow: 0 4px 0 #e63e4d;
+            animation: shake 0.5s;
+        }
+        .option-btn.wrong .label {
+            background: rgba(255,255,255,0.3);
+            color: white;
+        }
+
+        /* --- Explanation Box --- */
+        .explanation-box {
+            margin-top: 20px;
+            background: #f8f9fa;
+            border-left: 5px solid var(--primary);
+            padding: 20px;
+            border-radius: 10px;
+            display: none; /* Hidden by default */
+            animation: slideDown 0.3s ease-out;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            color: #4a4a4a;
+        }
+
+        .explanation-header {
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .explanation-content {
+            white-space: pre-line; /* Respect line breaks from JSON */
+        }
+        
+        /* Highlight specific text styles */
+        .highlight-vocab {
+            color: #d63031;
+            font-weight: bold;
+        }
+
+        /* --- Footer / Submit --- */
+        .footer-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: white;
+            padding: 15px;
+            box-shadow: 0 -5px 20px rgba(0,0,0,0.1);
+            text-align: center;
+            z-index: 99;
+        }
+
+        .submit-btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            border-radius: 30px;
+            cursor: pointer;
+            box-shadow: 0 6px 0 #6c429c, 0 10px 20px rgba(136, 84, 192, 0.4);
+            transition: all 0.2s;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 0 #6c429c, 0 15px 25px rgba(136, 84, 192, 0.4);
+        }
+
+        .submit-btn:active {
+            transform: translateY(6px);
+            box-shadow: 0 0 0 #6c429c;
+        }
+
+        /* --- Modal Score --- */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            backdrop-filter: blur(5px);
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background-color: white;
+            padding: 40px;
+            border-radius: 30px;
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            animation: popUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .score-circle {
+            width: 120px;
+            height: 120px;
+            background: var(--secondary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: white;
+            box-shadow: 0 10px 25px rgba(0, 201, 167, 0.5);
+        }
+
+        .modal h2 {
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+
+        .modal-msg {
+            font-size: 1.1rem;
+            color: #636e72;
+            margin-bottom: 30px;
+        }
+
+        .close-btn {
+            background: #dfe6e9;
+            color: #2d3436;
+            border: none;
+            padding: 10px 30px;
+            border-radius: 20px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .close-btn:hover {
+            background: #b2bec3;
+        }
+
+        /* --- Animations --- */
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-5px) rotate(-5deg); }
+            50% { transform: translateX(5px) rotate(5deg); }
+            75% { transform: translateX(-5px) rotate(-5deg); }
+            100% { transform: translateX(0); }
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes popUp {
+            from { transform: scale(0.5); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Unit 10: Communication in the Future</h1>
+        <p>Giáo viên: Ms Mai An ULIS - Comprehensive Practice</p>
+    </header>
+
+    <div class="container" id="quiz-container">
+        <!-- Questions will be injected here via JavaScript -->
+    </div>
+
+    <div class="footer-bar">
+        <button class="submit-btn" onclick="finishQuiz()">Nộp bài & Xem điểm</button>
+    </div>
+
+    <!-- Modal Result -->
+    <div id="resultModal" class="modal">
+        <div class="modal-content">
+            <div class="score-circle" id="finalScore">0/0</div>
+            <h2 id="resultTitle">Tuyệt vời!</h2>
+            <p class="modal-msg" id="resultMessage">Bạn đã hoàn thành bài tập.</p>
+            <button class="close-btn" onclick="closeModal()">Xem lại bài làm</button>
+        </div>
+    </div>
+
+    <!-- Audio Elements -->
+    <audio id="sound-correct" src="https://assets.mixkit.co/active_storage/sfx/2000/2000-preview.mp3"></audio>
+    <audio id="sound-wrong" src="https://assets.mixkit.co/active_storage/sfx/2955/2955-preview.mp3"></audio>
+    <audio id="sound-finish" src="https://assets.mixkit.co/active_storage/sfx/1435/1435-preview.mp3"></audio>
+
+    <script>
+        // --- DỮ LIỆU BÀI TẬP (Từ file quiz_unit10_communication) ---
+        const quizData = [
+            {
+                "questionNumber": 1,
+                "question": "The ______ name was spelled incorrectly on the letter. (Part A.II)",
+                "answerOptions": [
+                    { "text": "addressee's", "rationale": "1. Phân tích từ vựng:\n- A. addressee's (noun - sở hữu cách): của người nhận thư.\n- B. addresser's (noun - sở hữu cách): của người gửi thư.\n- C. employee's (noun - sở hữu cách): của nhân viên.\n- D. referee's (noun - sở hữu cách): của trọng tài.\n2. Dịch nghĩa toàn câu: \"Tên của người nhận đã bị viết sai chính tả trên lá thư.\"\n3. Tại sao chọn A?\n- Ngữ cảnh \"on the letter\" (trên lá thư) và \"name\" (tên) thường ám chỉ người nhận (addressee). Addresser là người gửi, nhưng trong ngữ cảnh bưu chính, lỗi sai tên người nhận hay được nhắc đến hơn để giải thích việc thư thất lạc hoặc bất lịch sự.", "isCorrect": true },
+                    { "text": "addresser's", "rationale": "Sai ngữ cảnh. Người gửi (addresser) thường tự viết tên mình, ít khi bị người khác viết sai tên mình trên thư của chính mình.", "isCorrect": false },
+                    { "text": "employee's", "rationale": "Không phù hợp ngữ cảnh cụ thể về thư từ bằng từ addressee.", "isCorrect": false },
+                    { "text": "referee's", "rationale": "Sai. Referee là trọng tài, không liên quan đến ngữ cảnh thư từ.", "isCorrect": false }
+                ]
+            },
+            {
+                "questionNumber": 2,
+                "question": "Her boss thinks she is a hard-working ______. (Part A.II)",
+                "answerOptions": [
+                    { "text": "employee", "rationale": "1. Phân tích từ vựng:\n- A. employee (noun): nhân viên.\n- B. employer (noun): ông chủ/nhà tuyển dụng.\n- C. trainee (noun): thực tập sinh.\n- D. interviewee (noun): người đi phỏng vấn.\n2. Dịch nghĩa toàn câu: \"Sếp của cô ấy nghĩ rằng cô ấy là một nhân viên chăm chỉ.\"\n3. Tại sao chọn A?\n- Từ khóa \"Her boss\" (Sếp của cô ấy) -> Mối quan hệ Sếp - Nhân viên. Trainee cũng có thể, nhưng Employee là từ chung nhất chỉ người làm việc dưới quyền sếp.", "isCorrect": true },
+                    { "text": "employer", "rationale": "Sai. Employer là ông chủ, không thể là người dưới quyền 'Her boss' trong ngữ cảnh này.", "isCorrect": false },
+                    { "text": "trainee", "rationale": "Chưa chính xác nhất. Trainee là người đang học việc, employee bao quát hơn.", "isCorrect": false },
+                    { "text": "interviewee", "rationale": "Sai. Interviewee là người đang phỏng vấn, chưa có 'boss' chính thức.", "isCorrect": false }
+                ]
+            },
+            {
+                "questionNumber": 3,
+                "question": "The ______ are the people of the Guangdong region in the south of China. (Part A.II)",
+                "answerOptions": [
+                    { "text": "Cantonese", "rationale": "1. Phân tích từ vựng:\n- A. Cantonese (noun/adj): Người/Tiếng Quảng Đông.\n- B. Chinese (noun/adj): Người/Tiếng Trung Quốc (chung).\n- C. Japanese (noun/adj): Người/Tiếng Nhật.\n- D. Vietnamese (noun/adj): Người/Tiếng Việt.\n2. Dịch nghĩa toàn câu: \"Người Quảng Đông là những người thuộc vùng Quảng Đông ở phía nam Trung Quốc.\"\n3. Tại sao chọn A?\n- Từ khóa \"Guangdong region\" (vùng Quảng Đông) -> Cantonese.", "isCorrect": true },
+                    { "text": "Chinese", "rationale": "Quá chung chung. Đề bài nhắc cụ thể vùng Guangdong.", "isCorrect": false },
+                    { "text": "Japanese", "rationale": "Sai về mặt địa lý.", "isCorrect": false },
+                    { "text": "Vietnamese", "rationale": "Sai về mặt địa lý.", "isCorrect": false }
+                ]
+            },
+            {
+                "questionNumber": 4,
+                "question": "The ______ whistled and the game was over. (Part A.II)",
+                "answerOptions": [
+                    { "text": "referee", "rationale": "1. Phân tích từ vựng:\n- A. referee (noun): trọng tài.\n- B. trainee (noun): thực tập sinh.\n- C. awardee (noun): người nhận giải.\n- D. escapee (noun): kẻ đào tẩu.\n2. Dịch nghĩa toàn câu: \"Trọng tài thổi còi và trận đấu kết thúc.\"\n3. Tại sao chọn A?\n- Từ khóa \"whistled\" (thổi còi) và \"game was over\" (trận đấu kết thúc) -> Hành động của trọng tài.", "isCorrect": true },
+                    { "text": "trainee", "rationale": "Sai nghĩa.", "isCorrect": false },
+                    { "text": "awardee", "rationale": "Sai nghĩa.", "isCorrect": false },
+                    { "text": "escapee", "rationale": "Sai nghĩa.", "isCorrect": false }
+                ]
+            },
+            {
+                "questionNumber": 5,
+                "question": "Thousands of ______ have entered the camps along the borders in recent days. (Part A.II)",
+                "answerOptions": [
+                    { "text": "refugees", "rationale": "1. Phân tích từ vựng:\n- A. refugees (noun - số nhiều): người tị nạn.\n- B. employees (noun - số nhiều): nhân viên.\n- C. interviewees (noun - số nhiều): người phỏng vấn.\n- D. attendees (noun - số nhiều): người tham dự.\n2. Dịch nghĩa toàn câu: \"Hàng ngàn người tị nạn đã tiến vào các trại dọc biên giới trong những ngày gần đây.\"\n3. Tại sao chọn A?\n- Từ khóa \"entered the camps\" (vào các trại) và \"along the borders\" (dọc biên giới) thường dùng để mô tả hoàn cảnh của người tị nạn.", "isCorrect": true },
+                    { "text": "employees", "rationale": "Sai ngữ cảnh.", "isCorrect": false },
+                    { "text": "interviewees", "rationale": "Sai ngữ cảnh.", "isCorrect": false },
+                    { "text": "attendees", "rationale": "Sai ngữ cảnh.", "isCorrect": false }
+                ]
+            },
+            {
+                "questionNumber": 6,
+                "question": "The ______ kimono is one of the world's recognizable traditional garments. (Part A.II)",
+                "answerOptions": [
+                    { "text": "Japanese", "rationale": "1. Phân tích từ vựng:\n- A. Japanese (adj): thuộc về Nhật Bản.\n- B. Portuguese (adj): thuộc về Bồ Đào Nha.\n- C. Vietnamese (adj): thuộc về Việt Nam.\n- D. Cantonese (adj): thuộc về Quảng Đông.\n2. Dịch nghĩa toàn câu: \"Bộ Kimono của Nhật Bản là một trong những trang phục truyền thống dễ nhận biết nhất thế giới.\"\n3. Tại sao chọn A?\n- Kimono là quốc phục của Nhật Bản -> Japanese.", "isCorrect": true },
+                    { "text": "Portuguese", "rationale": "Sai kiến thức văn hóa.", "isCorrect": false },
+                    { "text": "Vietnamese", "rationale": "Sai kiến thức văn hóa (Việt Nam là Áo dài).", "isCorrect": false },
+                    { "text": "Cantonese", "rationale": "Sai kiến thức văn hóa.", "isCorrect": false }
+                ]
+            },
+            {
+                "questionNumber": 7,
+                "question": "Each ______ receives a certificate, a medallion and a cash prize. (Part A.II)",
+                "answerOptions": [
+                    { "text": "awardee", "rationale": "1. Phân tích từ vựng:\n- A. awardee (noun): người được nhận thưởng/giải.\n- B. trainee (noun): thực tập sinh.\n- C. examinee (noun): thí sinh đi thi.\n- D. refugee (noun): người tị nạn.\n2. Dịch nghĩa toàn câu: \"Mỗi người nhận giải đều nhận được một chứng nhận, một huy chương và một khoản tiền thưởng.\"\n3. Tại sao chọn A?\n- Từ khóa \"certificate\" (chứng nhận), \"medallion\" (huy chương), \"prize\" (giải thưởng) -> Dành cho awardee.", "isCorrect": true },
+                    { "text": "trainee", "rationale": "Sai. Trainee thường nhận kiến thức/kỹ năng, không phải giải thưởng.", "isCorrect": false },
+                    { "text": "examinee", "rationale": "Sai. Examinee chỉ nhận đề thi hoặc kết quả thi.", "isCorrect": false },
+                    { "text": "refugee", "rationale": "Sai ngữ cảnh hoàn toàn.", "isCorrect": false }
+                ]
+            },
+            {
+                "questionNumber": 8,
+                "question": "The ______ had only just finished the test when the bell rang. (Part A.II)",
+                "answerOptions": [
+                    { "text": "examinee", "rationale": "1. Phân tích từ vựng:\n- A. examinee (noun): thí sinh/người dự thi.\n- B. examiner (noun): giám khảo.\n- C. employee (noun): nhân viên.\n- D. referee (noun): trọng tài.\n2. Dịch nghĩa toàn câu: \"Thí sinh vừa mới làm xong bài kiểm tra thì chuông reo.\"\n3. Tại sao chọn A?\n- Từ khóa \"finished the test\" (làm xong bài kiểm tra) -> Hành động của thí sinh (examinee).", "isCorrect": true },
+                    { "text": "examiner", "rationale": "Sai. Examiner là người chấm thi/coi thi.", "isCorrect": false },
+                    { "text": "employee", "rationale": "Không phù hợp ngữ cảnh thi cử.", "isCorrect": false },
+                    { "text": "referee", "rationale": "Dùng trong thể thao, không dùng trong thi cử.", "isCorrect": false }
+                ]
+            },
+            {
+                "questionNumber": 9,
+                "question": "Susan has lived in Hanoi for a year and she is studying ______. (Part A.II)",
+                "answerOptions": [
+                    { "text": "Vietnamese", "rationale": "1. Phân tích từ vựng:\n- A. Vietnamese (noun): Tiếng Việt.\n- B. Japanese (noun): Tiếng Nhật.\n- C. Portuguese (noun): Tiếng Bồ Đào Nha.\n- D. Cantonese (noun): Tiếng Quảng Đông.\n2. Dịch nghĩa toàn câu: \"Susan đã sống ở Hà Nội được một năm và cô ấy đang học tiếng Việt.\"\n3. Tại sao chọn A?\n- Từ khóa \"Hanoi\" (Thủ đô Việt Nam) -> Ngôn ngữ cần học là Vietnamese.", "isCorrect": true },
+                    { "text": "Japanese", "rationale": "Không hợp lý về mặt địa lý.", "isCorrect": false },
+                    { "text": "Portuguese", "rationale": "Không hợp lý về mặt địa lý.", "isCorrect": false },
+                    { "text": "Cantonese", "rationale": "Không hợp lý về mặt địa lý.", "isCorrect": false }
+                ]
+            },
+            {
+                "questionNumber": 10,
+                "question": "A ______ teacher showed the children what to do. (Part A.II)",
+                "answerOptions": [
+                    { "text": "trainee", "rationale": "1. Phân tích từ vựng:\n- A. trainee (noun/adj): thực tập sinh/người đang được đào tạo.\n- B. refugee (noun): người tị nạn.\n- C. nominee (noun): người được đề cử.\n- D. guarantee (noun): sự bảo đảm.\n2. Dịch nghĩa toàn câu: \"Một giáo viên thực tập đã chỉ cho bọn trẻ những gì cần làm.\"\n3. Tại sao chọn A?\n- Cụm từ \"trainee teacher\" là collocations phổ biến chỉ giáo sinh thực tập.", "isCorrect": true },
+                    { "text": "refugee", "rationale": "Sai nghĩa.", "isCorrect": false },
+                    { "text": "nominee", "rationale": "Sai nghĩa.", "isCorrect": false },
+                    { "text": "guarantee", "rationale": "Sai từ loại và nghĩa.", "isCorrect": false }
+                ]
+            },
+            {
+                "questionNumber": 11,
+                "question": "______ is the national language of Brazil. (Part A.II)",
+                "answerOptions": [
+                    { "text": "Portuguese", "rationale": "1. Phân tích từ vựng:\n- A. Portuguese (noun): Tiếng Bồ Đào Nha.\n- B. Spanish (noun): Tiếng Tây Ban Nha.\n- C. Brazilian (noun): Người Brazil (không phải tên ngôn ngữ chuẩn quốc tế).\n- D. English (noun): Tiếng Anh.\n2. Dịch nghĩa toàn câu: \"Tiếng Bồ Đào Nha là ngôn ngữ quốc gia của Brazil.\"\n3. Tại sao chọn A?\n- Kiến thức thực tế: Brazil thuộc thuộc địa cũ của Bồ Đào Nha nên nói tiếng Bồ Đào Nha.", "isCorrect": true },
+                    { "text": "Spanish", "rationale": "Sai. Hầu hết Nam Mỹ nói tiếng TBN trừ Brazil.", "isCorrect": false },
+                    { "text": "Brazilian", "rationale": "Sai. Không có ngôn ngữ gọi là 'Brazilian', chỉ có 'Brazilian Portuguese'.", "isCorrect": false },
+                    { "text": "English", "rationale": "Sai.", "isCorrect": false }
+                ]
+            },
+            {
+                "questionNumber": 12,
+                "question": "The ______ were recaptured after three days on the run. (Part A.II)",
+                "answerOptions": [
+                    { "text": "escapees", "rationale": "1. Phân tích từ vựng:\n- A. escapees (noun - số nhiều): kẻ đào tẩu/tù nhân trốn trại.\n- B. refugees (noun - số nhiều): người tị nạn.\n- C. employees (noun - số nhiều): nhân viên.\n- D. trainees (noun - số nhiều): thực tập sinh.\n2. Dịch nghĩa toàn câu: \"Những kẻ đào tẩu đã bị bắt lại sau ba ngày lẩn trốn.\"\n3. Tại sao chọn A?\n- Từ khóa \"recaptured\" (bị bắt lại) và \"on the run\" (đang lẩn trốn/chạy trốn) -> Chỉ người trốn thoát (escapees).", "isCorrect": true },
+                    { "text": "refugees", "rationale": "Sai. Refugee chạy trốn chiến tranh để tìm nơi an toàn, không phải bị 'bắt lại' như tội phạm.", "isCorrect": false },
+                    { "text": "employees", "rationale": "Sai ngữ cảnh.", "isCorrect": false },
+                    { "text": "trainees", "rationale": "Sai ngữ cảnh.", "isCorrect": false }
+                ]
+            },
+            {
+                "questionNumber": 13,
+                "question": "Match definition: 'a mobile phone that also has some of the functions of a computer' (Part B.I)",
+                "answerOptions": [
+                    { "text": "smartphone", "rationale": "1. Phân tích từ vựng:\n- A. smartphone (n): điện thoại thông minh.\n- B. tablet (n): máy tính bảng.\n- C. laptop (n): máy tính xách tay.\n- D. webcam (n): camera máy tính.\n2. Dịch nghĩa toàn câu: \"Một chiếc điện thoại di động có thêm một số chức năng của máy tính.\"\n3. Tại sao chọn A?\n- Định nghĩa gốc là 'mobile phone' -> Smartphone.", "isCorrect": true },
+                    { "text": "tablet", "rationale": "Tablet lớn hơn phone và không gọi là mobile phone.", "isCorrect": false },
+                    { "text": "laptop", "rationale": "Sai loại thiết bị.", "isCorrect": false },
+                    { "text": "webcam", "rationale": "Sai loại thiết bị.", "isCorrect": false }
+                ]
+            },
+            {
+                "questionNumber": 14,
+                "question": "Match definition: 'a method of producing or using a three-dimensional image created by laser beams' (Part B.I)",
+                "answerOptions": [
+                    { "text": "holography", "rationale": "1. Phân tích từ vựng:\n- A. holography (n): kỹ thuật tạo ảnh 3 chiều (toàn ảnh).\n- B. photography (n): nhiếp ảnh.\n- C. videography (n): quay phim.\n- D. telepathy (n): thần giao cách cảm.\n2. Dịch nghĩa toàn câu: \"Phương pháp tạo ra hoặc sử dụng hình ảnh ba chiều được tạo bởi tia laser.\"\n3. Tại sao chọn A?\n- Từ khóa 'three-dimensional image' (ảnh 3D) và 'laser beams' -> Holography.", "isCorrect": true },
+                    { "text": "photography", "rationale": "Chỉ tạo ảnh 2D.", "isCorrect": false },
+                    { "text": "videography", "rationale": "Tạo video 2D.", "isCorrect": false },
+                    { "text": "telepathy", "rationale": "Liên quan đến tâm trí, không phải hình ảnh.", "isCorrect": false }
+                ]
+            },
+            {
+                "questionNumber": 15,
+                "question": "Match definition: 'a way of communicating in which thoughts are sent from one person's mind to another person's mind' (Part B.I)",
+                "answerOptions": [
+                    { "text": "telepathy", "rationale": "1. Phân tích từ vựng:\n- A. telepathy (n): thần giao cách cảm.\n- B. psychology (n): tâm lý học.\n- C. sympathy (n): sự thông cảm.\n- D. social network (n): mạng xã hội.\n2. Dịch nghĩa toàn câu: \"Cách giao tiếp mà suy nghĩ được gửi từ tâm trí người này sang tâm trí người khác.\"\n3. Tại sao chọn A?\n- Từ khóa 'mind to another person's mind' (tâm trí sang tâm trí) -> Telepathy.", "isCorrect": true },
+                    { "text": "psychology", "rationale": "Môn học, không phải cách giao tiếp.", "isCorrect": false },
+                    { "text": "sympathy", "rationale": "Cảm xúc, không phải cách giao tiếp.", "isCorrect": false },
+                    { "text": "social network", "rationale": "Dùng công nghệ, không dùng tâm trí trực tiếp.", "isCorrect": false }
+                ]
+            },
+            {
+                "questionNumber": 16,
+                "question": "Match definition: 'a means of communication which involves multiple people' (Part B.I)",
+                "answerOptions": [
+                    { "text": "group call", "rationale": "1. Phân tích từ vựng:\n- A. group call (n): cuộc gọi nhóm.\n- B. private message (n): tin nhắn riêng.\n- C. monologue (n): độc thoại.\n- D. voice message (n): tin nhắn thoại.\n2. Dịch nghĩa toàn câu: \"Một phương thức giao tiếp bao gồm nhiều người tham gia.\"\n3. Tại sao chọn A?\n- Từ khóa 'multiple people' (nhiều người) -> Group call.", "isCorrect": true },
+                    { "text": "private message", "rationale": "Chỉ 2 người (1-1).", "isCorrect": false },
+                    { "text": "monologue", "rationale": "Chỉ 1 người nói.", "isCorrect": false },
+                    { "text": "voice message", "rationale": "Thường là 1 chiều hoặc gửi cho 1 người.", "isCorrect": false }
+                ]
+            },
+            {
+                "questionNumber": 17,
+                "question": "Match definition: 'a recording of a spoken message' (Part B.I)",
+                "answerOptions": [
+                    { "text": "voice message", "rationale": "1. Phân tích từ vựng:\n- A. voice message (n): tin nhắn thoại.\n- B. text message (n): tin nhắn văn bản.\n- C. video call (n): cuộc gọi video.\n- D. emoji (n): biểu tượng cảm xúc.\n2. Dịch nghĩa toàn câu: \"Bản ghi âm của một tin nhắn bằng lời nói.\"\n3. Tại sao chọn A?\n- Từ khóa 'recording' (ghi âm) và 'spoken' (lời nói) -> Voice message.", "isCorrect": true },
+                    { "text": "text message", "rationale": "Dạng văn bản (viết).", "isCorrect": false },
+                    { "text": "video call", "rationale": "Trực tiếp (live), không phải bản ghi (recording).", "isCorrect": false },
+                    { "text": "emoji", "rationale": "Hình ảnh, không phải âm thanh.", "isCorrect": false }
+                ]
+            },
+            {
+                "questionNumber": 18,
+                "question": "Match definition: 'a small computer that is easy to carry, with a large touch screen' (Part B.I)",
+                "answerOptions": [
+                    { "text": "tablet", "rationale": "1. Phân tích từ vựng:\n- A. tablet (n): máy tính bảng.\n- B. laptop (n): máy tính xách tay.\n- C. desktop (n): máy tính để bàn.\n- D. smartphone (n): điện thoại thông minh.\n2. Dịch nghĩa toàn câu: \"Một máy tính nhỏ dễ mang theo, có màn hình cảm ứng lớn.\"\n3. Tại sao chọn A?\n- 'Large touch screen' (màn hình cảm ứng lớn) phân biệt nó với smartphone (màn hình nhỏ hơn) và laptop (thường có bàn phím vật lý).", "isCorrect": true },
+                    { "text": "laptop", "rationale": "Có bàn phím vật lý, không nhấn mạnh vào touch screen.", "isCorrect": false },
+                    { "text": "desktop", "rationale": "Không 'easy to carry' (dễ mang theo).", "isCorrect": false },
+                    { "text": "smartphone", "rationale": "Màn hình nhỏ hơn tablet.", "isCorrect": false }
+                ]
+            },
+            {
+                "questionNumber": 19,
+                "question": "Match definition: 'a conference in which participants in different locations are able to communicate with each other by using video technology' (Part B.I)",
+                "answerOptions": [
+                    { "text": "video conference", "rationale": "1. Phân tích từ vựng:\n- A. video conference (n): hội nghị trực tuyến.\n- B. live streaming (n): phát trực tiếp.\n- C. group chat (n): nhóm chat.\n- D. meeting (n): cuộc họp.\n2. Dịch nghĩa toàn câu: \"Một cuộc hội nghị mà người tham gia ở các địa điểm khác nhau có thể giao tiếp bằng công nghệ video.\"\n3. Tại sao chọn A?\n- 'Conference' + 'video technology' -> Video conference.", "isCorrect": true },
+                    { "text": "live streaming", "rationale": "Thường là 1 người phát cho nhiều người xem, ít tương tác 2 chiều.", "isCorrect": false },
+                    { "text": "group chat", "rationale": "Thường là nhắn tin (text).", "isCorrect": false },
+                    { "text": "meeting", "rationale": "Quá chung chung.", "isCorrect": false }
+                ]
+            },
+            {
+                "questionNumber": 20,
+                "question": "Match definition: 'a website or app through which users can communicate with each other by adding information, messages, images, etc.' (Part B.I)",
+                "answerOptions": [
+                    { "text": "social network", "rationale": "1. Phân tích từ vựng:\n- A. social network (n): mạng xã hội.\n- B. search engine (n): công cụ tìm kiếm.\n- C. browser (n): trình duyệt web.\n- D. blog (n): trang nhật ký web.\n2. Dịch nghĩa toàn câu: \"Một trang web hoặc ứng dụng nơi người dùng giao tiếp với nhau bằng cách thêm thông tin, tin nhắn, hình ảnh...\"\n3. Tại sao chọn A?\n- Tính năng giao tiếp (communicate) và chia sẻ đa phương tiện (images, messages) là đặc trưng của Social network (Facebook, Instagram...).", "isCorrect": true },
+                    { "text": "search engine", "rationale": "Dùng để tìm kiếm (Google), không phải để giao tiếp.", "isCorrect": false },
+                    { "text": "browser", "rationale": "Công cụ để vào web, không phải nơi chứa nội dung giao tiếp.", "isCorrect": false },
+                    { "text": "blog", "rationale": "Thường là cá nhân viết, ít tính tương tác qua lại như social network.", "isCorrect": false }
+                ]
+            },
+            {
+                "questionNumber": 21,
+                "question": "Match definition: 'a video camera that is connected to a computer' (Part B.I)",
+                "answerOptions": [
+                    { "text": "webcam", "rationale": "1. Phân tích từ vựng:\n- A. webcam (n): camera máy tính.\n- B. dashcam (n): camera hành trình.\n- C. camcorder (n): máy quay phim cầm tay.\n- D. digital camera (n): máy ảnh kỹ thuật số.\n2. Dịch nghĩa toàn câu: \"Một camera video được kết nối với máy tính.\"\n3. Tại sao chọn A?\n- Định nghĩa chuẩn của webcam.", "isCorrect": true },
+                    { "text": "dashcam", "rationale": "Gắn trên ô tô.", "isCorrect": false },
+                    { "text": "camcorder", "rationale": "Thiết bị độc lập, không nhất thiết nối máy tính.", "isCorrect": false },
+                    { "text": "digital camera", "rationale": "Chụp ảnh là chính.", "isCorrect": false }
+                ]
+            },
+            {
+                "questionNumber": 22,
+                "question": "Match definition: 'a small digital image or icon used to express an idea or emotion' (Part B.I)",
+                "answerOptions": [
+                    { "text": "emoji", "rationale": "1. Phân tích từ vựng:\n- A. emoji (n): biểu tượng cảm xúc.\n- B. sticker (n): nhãn dán.\n- C. logo (n): biểu trưng thương hiệu.\n- D. gif (n): ảnh động.\n2. Dịch nghĩa toàn câu: \"Một hình ảnh kỹ thuật số nhỏ hoặc biểu tượng dùng để diễn đạt ý tưởng hoặc cảm xúc.\"\n3. Tại sao chọn A?\n- Keyword: 'small digital image or icon', 'express emotion' -> Emoji.", "isCorrect": true },
+                    { "text": "sticker", "rationale": "Thường lớn hơn emoji.", "isCorrect": false },
+                    { "text": "logo", "rationale": "Dùng cho thương hiệu.", "isCorrect": false },
+                    { "text": "gif", "rationale": "Là ảnh động, phức tạp hơn icon.", "isCorrect": false }
+                ]
+            },
+            {
+                "questionNumber": 23,
+                "question": "My favourite ______ is 'laughing face' because it saves you putting 'hahaha' or 'lol'. (Part B.II)",
+                "answerOptions": [
+                    { "text": "emoji", "rationale": "1. Phân tích từ vựng:\n- A. emoji (n): biểu tượng cảm xúc.\n- B. message (n): tin nhắn.\n- C. function (n): chức năng.\n- D. hobby (n): sở thích.\n2. Dịch nghĩa toàn câu: \"Biểu tượng cảm xúc yêu thích của tôi là 'mặt cười' vì nó giúp bạn đỡ phải gõ 'hahaha' hay 'lol'.\"\n3. Tại sao chọn A?\n- 'Laughing face' là tên một loại emoji.", "isCorrect": true },
+                    { "text": "message", "rationale": "Không phù hợp.", "isCorrect": false },
+                    { "text": "function", "rationale": "Không phù hợp.", "isCorrect": false },
+                    { "text": "hobby", "rationale": "Không phù hợp.", "isCorrect": false }
+                ]
+            },
+            {
+                "questionNumber": 24,
+                "question": "______ allows one to speak directly to the mind of another. (Part B.II)",
+                "answerOptions": [
+                    { "text": "Telepathy", "rationale": "1. Phân tích từ vựng:\n- A. Telepathy (n): Thần giao cách cảm.\n- B. Technology (n): Công nghệ.\n- C. Telephone (n): Điện thoại.\n- D. Television (n): Ti vi.\n2. Dịch nghĩa toàn câu: \"Thần giao cách cảm cho phép một người nói chuyện trực tiếp với tâm trí của người khác.\"\n3. Tại sao chọn A?\n- 'Speak directly to the mind' -> Telepathy.", "isCorrect": true },
+                    { "text": "Technology", "rationale": "Quá chung chung.", "isCorrect": false },
+                    { "text": "Telephone", "rationale": "Dùng âm thanh, không phải mind-to-mind.", "isCorrect": false },
+                    { "text": "Television", "rationale": "Truyền hình ảnh.", "isCorrect": false }
+                ]
+            },
+            {
+                "questionNumber": 25,
+                "question": "______ are faster to send because you don't have to type the text, you can just quickly say it. (Part B.II)",
+                "answerOptions": [
+                    { "text": "Voice messages", "rationale": "1. Phân tích từ vựng:\n- A. Voice messages (n - số nhiều): Tin nhắn thoại.\n- B. Text messages (n): Tin nhắn văn bản.\n- C. Video calls (n): Cuộc gọi video.\n- D. Emojis (n): Biểu tượng cảm xúc.\n2. Dịch nghĩa toàn câu: \"Tin nhắn thoại gửi nhanh hơn vì bạn không cần gõ văn bản, bạn chỉ cần nói nhanh.\"\n3. Tại sao chọn A?\n- 'Don't have to type' (không cần gõ) và 'say it' (nói) -> Voice messages. (Dùng số nhiều vì động từ 'are').", "isCorrect": true },
+                    { "text": "Text messages", "rationale": "Phải gõ (type).", "isCorrect": false },
+                    { "text": "Video calls", "rationale": "Thường mất thời gian kết nối, không phải 'send' (gửi) mà là 'make' (gọi).", "isCorrect": false },
+                    { "text": "Emojis", "rationale": "Không phải dạng 'say' (nói).", "isCorrect": false }
+                ]
+            },
+            {
+                "questionNumber": 26,
+                "question": "Turn on the ______ so the teacher can see your face. (Part B.II)",
+                "answerOptions": [
+                    { "text": "webcam", "rationale": "1. Phân tích từ vựng:\n- A. webcam (n): camera máy tính.\n- B. microphone (n): mi-crô.\n- C. speaker (n): loa.\n- D. screen (n): màn hình.\n2. Dịch nghĩa toàn câu: \"Bật webcam lên để giáo viên có thể nhìn thấy mặt bạn.\"\n3. Tại sao chọn A?\n- 'See your face' (nhìn thấy mặt) -> Cần thiết bị thu hình là webcam.", "isCorrect": true },
+                    { "text": "microphone", "rationale": "Chỉ thu âm thanh.", "isCorrect": false },
+                    { "text": "speaker", "rationale": "Chỉ phát âm thanh.", "isCorrect": false },
+                    { "text": "screen", "rationale": "Màn hình để bạn xem, không phải để giáo viên xem bạn (camera mới làm việc đó).", "isCorrect": false }
+                ]
+            },
+            {
+                "questionNumber": 27,
+                "question": "My phone is too small, my computer is too inconvenient, so I prefer using a ______. (Part B.II)",
+                "answerOptions": [
+                    { "text": "tablet", "rationale": "1. Phân tích từ vựng:\n- A. tablet (n): máy tính bảng.\n- B. smartwatch (n): đồng hồ thông minh.\n- C. television (n): ti vi.\n- D. radio (n): đài.\n2. Dịch nghĩa toàn câu: \"Điện thoại thì quá nhỏ, máy tính thì quá bất tiện, nên tôi thích dùng máy tính bảng hơn.\"\n3. Tại sao chọn A?\n- Tablet là thiết bị lai giữa phone (nhỏ) và computer (lớn/cồng kềnh), giải quyết được vấn đề size và tiện lợi.", "isCorrect": true },
+                    { "text": "smartwatch", "rationale": "Thậm chí còn nhỏ hơn phone.", "isCorrect": false },
+                    { "text": "television", "rationale": "Không mang đi lại được như ý 'inconvenient' của computer.", "isCorrect": false },
+                    { "text": "radio", "rationale": "Chỉ nghe, không thay thế chức năng phone/computer.", "isCorrect": false }
+                ]
+            },
+            {
+                "questionNumber": 28,
+                "question": "Let's have a ______ on Facebook to discuss our project. (Part B.II)",
+                "answerOptions": [
+                    { "text": "group call", "rationale": "1. Phân tích từ vựng:\n- A. group call (n): cuộc gọi nhóm.\n- B. status update (n): cập nhật trạng thái.\n- C. comment (n): bình luận.\n- D. friend request (n): lời mời kết bạn.\n2. Dịch nghĩa toàn câu: \"Hãy tạo một cuộc gọi nhóm trên Facebook để thảo luận về dự án của chúng ta nhé.\"\n3. Tại sao chọn A?\n- 'Discuss our project' (thảo luận dự án) cần sự tương tác trực tiếp nhiều người -> group call là phù hợp nhất trong các options trên Facebook.", "isCorrect": true },
+                    { "text": "status update", "rationale": "Không dùng để thảo luận nhóm hiệu quả.", "isCorrect": false },
+                    { "text": "comment", "rationale": "Không tối ưu cho thảo luận dự án dài.", "isCorrect": false },
+                    { "text": "friend request", "rationale": "Không liên quan đến thảo luận.", "isCorrect": false }
+                ]
+            },
+            {
+                "questionNumber": 29,
+                "question": "______ can be held with people in any corner of the globe. (Part B.II)",
+                "answerOptions": [
+                    { "text": "Video conferences", "rationale": "1. Phân tích từ vựng:\n- A. Video conferences (n - số nhiều): Các cuộc hội nghị trực tuyến.\n- B. Face-to-face meetings (n): Các cuộc họp trực tiếp.\n- C. Local calls (n): Cuộc gọi nội hạt.\n- D. Handwritten letters (n): Thư tay.\n2. Dịch nghĩa toàn câu: \"Các cuộc hội nghị trực tuyến có thể được tổ chức với mọi người ở bất kỳ ngóc ngách nào trên toàn cầu.\"\n3. Tại sao chọn A?\n- 'Any corner of the globe' (mọi nơi trên thế giới) -> Video conferences xóa nhòa khoảng cách địa lý. Dùng số nhiều vì động từ 'can be held' (dạng bị động chung).", "isCorrect": true },
+                    { "text": "Face-to-face meetings", "rationale": "Yêu cầu gặp mặt, không thể 'any corner' cùng lúc.", "isCorrect": false },
+                    { "text": "Local calls", "rationale": "Chỉ trong vùng.", "isCorrect": false },
+                    { "text": "Handwritten letters", "rationale": "Không dùng từ 'held' (tổ chức) cho thư.", "isCorrect": false }
+                ]
+            },
+            {
+                "questionNumber": 30,
+                "question": "Many young people find it difficult to go about their daily lives without using their ______. (Part B.II)",
+                "answerOptions": [
+                    { "text": "smartphones", "rationale": "1. Phân tích từ vựng:\n- A. smartphones (n - số nhiều): điện thoại thông minh.\n- B. landlines (n): điện thoại bàn.\n- C. typewriters (n): máy đánh chữ.\n- D. fax machines (n): máy fax.\n2. Dịch nghĩa toàn câu: \"Nhiều người trẻ cảm thấy khó khăn khi xoay sở cuộc sống hàng ngày mà không sử dụng điện thoại thông minh.\"\n3. Tại sao chọn A?\n- Vật bất ly thân của 'young people' (người trẻ) hiện nay là smartphone. Dùng số nhiều tương ứng với 'their' (của họ).", "isCorrect": true },
+                    { "text": "landlines", "rationale": "Ít người trẻ dùng.", "isCorrect": false },
+                    { "text": "typewriters", "rationale": "Lỗi thời.", "isCorrect": false },
+                    { "text": "fax machines", "rationale": "Lỗi thời/chỉ dùng văn phòng.", "isCorrect": false }
+                ]
+            },
+            {
+                "questionNumber": 31,
+                "question": "Kidz World is a ______ for kids, tweens and teens. (Part B.II)",
+                "answerOptions": [
+                    { "text": "social network", "rationale": "1. Phân tích từ vựng:\n- A. social network (n): mạng xã hội.\n- B. hardware (n): phần cứng.\n- C. software (n): phần mềm (chung chung).\n- D. research paper (n): bài nghiên cứu.\n2. Dịch nghĩa toàn câu: \"Kidz World là một mạng xã hội dành cho trẻ em, thiếu niên và thanh thiếu niên.\"\n3. Tại sao chọn A?\n- Tên riêng 'Kidz World' và đối tượng 'kids, tweens, teens' thường ám chỉ một cộng đồng trực tuyến/mạng xã hội.", "isCorrect": true },
+                    { "text": "hardware", "rationale": "Sai nghĩa.", "isCorrect": false },
+                    { "text": "software", "rationale": "Quá chung chung, social network cụ thể hơn.", "isCorrect": false },
+                    { "text": "research paper", "rationale": "Sai nghĩa.", "isCorrect": false }
+                ]
+            },
+            {
+                "questionNumber": 32,
+                "question": "______ allows us to create 3D images of virtual and real objects. (Part B.II)",
+                "answerOptions": [
+                    { "text": "Holography", "rationale": "1. Phân tích từ vựng:\n- A. Holography (n): Kỹ thuật toàn ảnh (Hologram).\n- B. Painting (n): Hội họa.\n- C. Sculpture (n): Điêu khắc.\n- D. Typography (n): Nghệ thuật chữ.\n2. Dịch nghĩa toàn câu: \"Kỹ thuật toàn ảnh cho phép chúng ta tạo ra hình ảnh 3D của các vật thể ảo và thực.\"\n3. Tại sao chọn A?\n- Keyword 'create 3D images' (tạo ảnh 3D) -> Holography.", "isCorrect": true },
+                    { "text": "Painting", "rationale": "Thường là 2D.", "isCorrect": false },
+                    { "text": "Sculpture", "rationale": "Là vật thể thật, không phải 'image' (hình ảnh).", "isCorrect": false },
+                    { "text": "Typography", "rationale": "Liên quan đến chữ viết.", "isCorrect": false }
+                ]
+            }
+        ];
+
+        // --- RENDER LOGIC ---
+
+        function initQuiz() {
+            const container = document.getElementById('quiz-container');
+            
+            quizData.forEach((q, index) => {
+                const card = document.createElement('div');
+                card.className = 'quiz-card';
+                card.id = `card-${index}`;
+
+                // Tạo danh sách đáp án
+                const optionLabels = ['A', 'B', 'C', 'D'];
+                let optionsHtml = '';
+                
+                q.answerOptions.forEach((opt, optIndex) => {
+                    optionsHtml += `
+                        <button class="option-btn" 
+                                onclick="checkAnswer(${index}, ${optIndex}, ${opt.isCorrect}, this)">
+                            <span class="label">${optionLabels[optIndex]}</span>
+                            ${opt.text}
+                        </button>
+                    `;
+                });
+
+                // Xây dựng card nội dung
+                card.innerHTML = `
+                    <div class="question-number">Question ${q.questionNumber}</div>
+                    <div class="question-text">${q.question}</div>
+                    <div class="options-grid">
+                        ${optionsHtml}
+                    </div>
+                    <div class="explanation-box" id="explain-${index}">
+                        <div class="explanation-header">
+                            <i class="fas fa-lightbulb"></i> Giải thích chi tiết từ Ms Mai An:
+                        </div>
+                        <div class="explanation-content" id="explain-content-${index}"></div>
+                    </div>
+                `;
+
+                container.appendChild(card);
+            });
+        }
+
+        let totalScore = 0;
+        let answeredQuestions = new Set();
+
+        function checkAnswer(questionIndex, optionIndex, isCorrect, btnElement) {
+            // Ngăn chặn chọn lại nếu đã trả lời (nếu muốn strict mode), 
+            // nhưng ở đây tôi cho phép chọn lại để học tập, tuy nhiên chỉ tính điểm lần đầu
+            
+            const card = document.getElementById(`card-${questionIndex}`);
+            const buttons = card.querySelectorAll('.option-btn');
+            const explanationBox = document.getElementById(`explain-${questionIndex}`);
+            const explanationContent = document.getElementById(`explain-content-${questionIndex}`);
+
+            // Reset trạng thái hiển thị của các nút trong câu này
+            buttons.forEach(b => {
+                b.classList.remove('correct', 'wrong');
+            });
+
+            // Xử lý đúng/sai
+            if (isCorrect) {
+                btnElement.classList.add('correct');
+                playSound('correct');
+                triggerConfetti();
+                
+                if (!answeredQuestions.has(questionIndex)) {
+                    totalScore++;
+                    answeredQuestions.add(questionIndex);
+                }
+            } else {
+                btnElement.classList.add('wrong');
+                playSound('wrong');
+                // Highlight đáp án đúng để học sinh biết
+                const correctOptionIndex = quizData[questionIndex].answerOptions.findIndex(o => o.isCorrect);
+                if (correctOptionIndex !== -1) {
+                    buttons[correctOptionIndex].classList.add('correct'); // Show correct answer visually
+                }
+                
+                if (!answeredQuestions.has(questionIndex)) {
+                    answeredQuestions.add(questionIndex); // Đánh dấu đã làm nhưng không cộng điểm
+                }
+            }
+
+            // Hiển thị giải thích chi tiết
+            const explanationText = quizData[questionIndex].answerOptions.find(o => o.isCorrect).rationale;
+            // Format text (highlight từ vựng A, B, C, D)
+            let formattedText = explanationText.replace(/(A\.|B\.|C\.|D\.)/g, '<br><b>$1</b>');
+            explanationContent.innerHTML = formattedText;
+            explanationBox.style.display = 'block';
+        }
+
+        function triggerConfetti() {
+            confetti({
+                particleCount: 100,
+                spread: 70,
+                origin: { y: 0.6 },
+                colors: ['#8854C0', '#00C9A7', '#ffeb3b']
+            });
+        }
+
+        function playSound(type) {
+            const sounds = {
+                correct: document.getElementById('sound-correct'),
+                wrong: document.getElementById('sound-wrong'),
+                finish: document.getElementById('sound-finish')
+            };
+            
+            if (sounds[type]) {
+                sounds[type].currentTime = 0;
+                sounds[type].play().catch(e => console.log("Audio play failed:", e));
+            }
+        }
+
+        function finishQuiz() {
+            const modal = document.getElementById('resultModal');
+            const scoreText = document.getElementById('finalScore');
+            const title = document.getElementById('resultTitle');
+            const msg = document.getElementById('resultMessage');
+
+            scoreText.textContent = `${totalScore}/${quizData.length}`;
+            
+            const percentage = (totalScore / quizData.length) * 100;
+            
+            if (percentage === 100) {
+                title.textContent = "Xuất sắc! 🏆";
+                msg.textContent = "Bạn là thiên tài tiếng Anh! Ms Mai An rất tự hào.";
+                playSound('finish');
+                triggerConfetti();
+            } else if (percentage >= 80) {
+                title.textContent = "Làm tốt lắm! 🌟";
+                msg.textContent = "Kiến thức rất vững vàng, cố lên chút nữa thôi!";
+                playSound('finish');
+            } else if (percentage >= 50) {
+                title.textContent = "Cố gắng hơn nhé! 💪";
+                msg.textContent = "Hãy xem lại phần giải thích chi tiết để hiểu bài hơn.";
+            } else {
+                title.textContent = "Đừng nản chí! 🌱";
+                msg.textContent = "Thất bại là mẹ thành công. Hãy ôn lại từ vựng nhé.";
+            }
+
+            modal.style.display = "flex";
+        }
+
+        function closeModal() {
+            document.getElementById('resultModal').style.display = "none";
+        }
+
+        // Khởi chạy khi load trang
+        window.onload = initQuiz;
+
+    </script>
+</body>
+</html>

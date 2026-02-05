@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tiếng Anh 7: Pronunciation Challenge - Ms Mai An</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-bg: #F0F4F8;
+            --main-pink: #FF9FF3;
+            --main-purple: #8854C0;
+            --main-teal: #00C9A7;
+            --correct-green: #00D26A;
+            --wrong-red: #FF4757;
+            --text-color: #2C3A47;
+            --card-shadow: 0 10px 25px rgba(136, 84, 192, 0.2);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none; /* Ngăn bôi đen để trải nghiệm giống App */
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: #e0f7fa;
+            background-image: 
+                radial-gradient(#00C9A7 15%, transparent 16%),
+                radial-gradient(#8854C0 15%, transparent 16%);
+            background-size: 30px 30px;
+            background-position: 0 0, 15px 15px;
+            color: var(--text-color);
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 25px;
+            padding: 30px;
+            box-shadow: var(--card-shadow);
+            border: 4px solid #fff;
+            position: relative;
+        }
+
+        /* Header */
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            background: linear-gradient(135deg, var(--main-purple), #a29bfe);
+            padding: 20px;
+            border-radius: 20px;
+            color: white;
+            box-shadow: 0 6px 0 #5f27cd;
+            position: relative;
+            overflow: hidden;
+        }
+
+        header h1 {
+            font-weight: 800;
+            font-size: 1.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 5px;
+            text-shadow: 2px 2px 0px rgba(0,0,0,0.1);
+        }
+
+        header p {
+            font-size: 1rem;
+            opacity: 0.9;
+        }
+
+        .score-board {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: white;
+            padding: 10px 20px;
+            border-radius: 50px;
+            font-weight: 800;
+            color: var(--main-purple);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            z-index: 100;
+            border: 2px solid var(--main-purple);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Question Card */
+        .question-card {
+            background: white;
+            border-radius: 20px;
+            margin-bottom: 40px;
+            padding: 20px;
+            border: 2px solid #eee;
+            transition: all 0.3s ease;
+        }
+
+        .question-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--main-purple);
+            margin-bottom: 15px;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+        }
+
+        .question-number {
+            background: var(--main-teal);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            white-space: nowrap;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        @media (max-width: 600px) {
+            .options-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .option-btn {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 15px;
+            padding: 15px 20px;
+            font-family: 'Nunito', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-color);
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+            box-shadow: 0 4px 0 #d1d1d1;
+            text-align: left;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .option-btn:hover:not(.disabled) {
+            transform: translateY(-2px);
+            border-color: var(--main-purple);
+            color: var(--main-purple);
+        }
+
+        .option-btn:active:not(.disabled) {
+            transform: translateY(2px);
+            box-shadow: 0 0 0 #d1d1d1;
+        }
+
+        /* States */
+        .option-btn.correct {
+            background: var(--correct-green);
+            color: white;
+            border-color: #00b85c;
+            box-shadow: 0 4px 0 #009e4f;
+            animation: pop 0.4s ease;
+        }
+
+        .option-btn.wrong {
+            background: var(--wrong-red);
+            color: white;
+            border-color: #ff3344;
+            box-shadow: 0 4px 0 #d63031;
+            animation: shake 0.5s ease;
+        }
+
+        .option-btn.disabled {
+            cursor: default;
+            opacity: 0.7;
+            pointer-events: none;
+        }
+
+        /* Explanation Box */
+        .explanation-box {
+            display: none;
+            margin-top: 20px;
+            background: #fff0f6; /* Hồng rất nhạt */
+            border: 2px dashed var(--main-pink);
+            border-radius: 15px;
+            padding: 20px;
+            position: relative;
+        }
+
+        .explanation-header {
+            font-weight: 800;
+            color: var(--main-purple);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .explanation-header i {
+            font-size: 1.5rem;
+        }
+
+        .explanation-content {
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
+        .vocab-list {
+            list-style: none;
+            margin: 10px 0;
+            background: white;
+            padding: 10px;
+            border-radius: 10px;
+            border: 1px solid #ffdde1;
+        }
+
+        .vocab-item {
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 1px solid #eee;
+            padding: 5px 0;
+        }
+        .vocab-item:last-child { border-bottom: none; }
+        .vocab-word { font-weight: 700; color: var(--main-purple); }
+        .vocab-mean { color: #555; font-style: italic; }
+
+        /* Animations */
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20% { transform: translateX(-10px) rotate(-5deg); }
+            40% { transform: translateX(10px) rotate(5deg); }
+            60% { transform: translateX(-10px) rotate(-5deg); }
+            80% { transform: translateX(10px) rotate(5deg); }
+        }
+
+        @keyframes pop {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        /* Underline style for Phonetics */
+        u {
+            text-decoration: none;
+            border-bottom: 3px solid var(--main-purple);
+            padding-bottom: 2px;
+        }
+
+        /* Submit Section */
+        .submit-section {
+            text-align: center;
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 2px dashed #ddd;
+        }
+
+        .btn-submit {
+            background: var(--main-purple);
+            color: white;
+            font-family: 'Nunito', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 800;
+            padding: 15px 50px;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 8px 0 #5f27cd;
+            transition: all 0.3s;
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 0 #5f27cd;
+        }
+        
+        .btn-submit:active {
+            transform: translateY(4px);
+            box-shadow: 0 0 0 #5f27cd;
+        }
+
+        /* Popup Result */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 40px;
+            border-radius: 30px;
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+            animation: pop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border: 5px solid var(--main-teal);
+        }
+
+        .final-score {
+            font-size: 4rem;
+            font-weight: 900;
+            color: var(--main-purple);
+            margin: 20px 0;
+        }
+
+        /* Confetti Canvas */
+        #confetti-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 999;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="score-board">
+        <span>⭐ Điểm:</span>
+        <span id="current-score">0</span>
+    </div>
+
+    <canvas id="confetti-canvas"></canvas>
+
+    <div class="container">
+        <header>
+            <h1>English 7: Phonetics Master</h1>
+            <p>Giáo viên: Ms Mai An (ULIS)</p>
+            <p style="margin-top: 10px; font-size: 0.9rem; background: rgba(255,255,255,0.2); display: inline-block; padding: 5px 15px; border-radius: 20px;">
+                Chủ đề: Nguyên âm đôi /ɪə/ và /eə/
+            </p>
+        </header>
+
+        <div id="quiz-container">
+            <!-- Questions will be injected here via JS -->
+        </div>
+
+        <div class="submit-section">
+            <button class="btn-submit" onclick="showFinalResult()">NỘP BÀI & XEM ĐIỂM</button>
+        </div>
+    </div>
+
+    <!-- Modal Result -->
+    <div id="result-modal" class="modal">
+        <div class="modal-content">
+            <h2 style="color: var(--main-teal)">KẾT QUẢ CỦA BẠN</h2>
+            <div class="final-score" id="final-score-display">0/15</div>
+            <p id="final-feedback" style="font-size: 1.2rem; color: #555; margin-bottom: 20px;"></p>
+            <button class="btn-submit" style="font-size: 1rem; padding: 10px 30px;" onclick="closeModal()">Xem lại bài</button>
+        </div>
+    </div>
+
+<script>
+    // DATA SOURCE
+    const quizData = [
+        {
+            id: 1,
+            question: "Choose the word with the underlined part pronounced differently:",
+            options: [
+                { id: "A", text: "c<u>are</u>", ipa: "/keə(r)/", mean: "quan tâm/chăm sóc (v)", type: "eə" },
+                { id: "B", text: "b<u>are</u>", ipa: "/beə(r)/", mean: "trần trụi (adj)", type: "eə" },
+                { id: "C", text: "<u>are</u>", ipa: "/ɑː(r)/", mean: "thì/là/ở (v)", type: "ɑː", correct: true },
+                { id: "D", text: "sh<u>are</u>", ipa: "/ʃeə(r)/", mean: "chia sẻ (v)", type: "eə" }
+            ],
+            hint: "Chú ý âm 'are'. Ba từ có âm /eə/, một từ có âm /ɑː/."
+        },
+        {
+            id: 2,
+            question: "Choose the word with the underlined part pronounced differently:",
+            options: [
+                { id: "A", text: "th<u>ei</u>r", ipa: "/ðeə(r)/", mean: "của họ (det)", type: "eə" },
+                { id: "B", text: "h<u>ei</u>r", ipa: "/eə(r)/", mean: "người thừa kế (n)", type: "eə" },
+                { id: "C", text: "th<u>e</u>re", ipa: "/ðeə(r)/", mean: "ở đó (adv)", type: "eə" },
+                { id: "D", text: "h<u>e</u>re", ipa: "/hɪə(r)/", mean: "ở đây (adv)", type: "ɪə", correct: true }
+            ],
+            hint: "Phân biệt giữa âm /eə/ (như air) và /ɪə/ (như ear)."
+        },
+        {
+            id: 3,
+            question: "Choose the word with the underlined part pronounced differently:",
+            options: [
+                { id: "A", text: "ch<u>ee</u>r", ipa: "/tʃɪə(r)/", mean: "cổ vũ/vui vẻ (v/n)", type: "ɪə", correct: true },
+                { id: "B", text: "wh<u>ee</u>l", ipa: "/wiːl/", mean: "bánh xe (n)", type: "iː" },
+                { id: "C", text: "k<u>ee</u>n", ipa: "/kiːn/", mean: "thích thú/sắc sảo (adj)", type: "iː" },
+                { id: "D", text: "kn<u>ee</u>", ipa: "/niː/", mean: "đầu gối (n)", type: "iː" }
+            ],
+            hint: "Phân biệt âm /i:/ (y dài) và /ɪə/."
+        },
+        {
+            id: 4,
+            question: "Choose the word with the underlined part pronounced differently:",
+            options: [
+                { id: "A", text: "h<u>ea</u>r", ipa: "/hɪə(r)/", mean: "nghe (v)", type: "ɪə", correct: true },
+                { id: "B", text: "s<u>ea</u>t", ipa: "/siːt/", mean: "chỗ ngồi (n)", type: "iː" },
+                { id: "C", text: "b<u>ea</u>ch", ipa: "/biːtʃ/", mean: "bãi biển (n)", type: "iː" },
+                { id: "D", text: "p<u>ea</u>ch", ipa: "/piːtʃ/", mean: "quả đào (n)", type: "iː" }
+            ],
+            hint: "Phân biệt âm /i:/ và /ɪə/."
+        },
+        {
+            id: 5,
+            question: "Choose the word with the underlined part pronounced differently:",
+            options: [
+                { id: "A", text: "p<u>ee</u>r", ipa: "/pɪə(r)/", mean: "nhìn chăm chú (v) / bạn đồng trang lứa (n)", type: "ɪə" },
+                { id: "B", text: "y<u>ea</u>r", ipa: "/jɪə(r)/", mean: "năm (n)", type: "ɪə" },
+                { id: "C", text: "r<u>a</u>re", ipa: "/reə(r)/", mean: "hiếm (adj)", type: "eə", correct: true },
+                { id: "D", text: "s<u>ee</u>r", ipa: "/sɪə(r)/", mean: "nhà tiên tri (n)", type: "ɪə" }
+            ],
+            hint: "Chú ý sự khác biệt giữa /ɪə/ và /eə/."
+        },
+        {
+            id: 6,
+            question: "Choose the word with the underlined part pronounced differently:",
+            options: [
+                { id: "A", text: "b<u>ea</u>r", ipa: "/beə(r)/", mean: "con gấu (n) / chịu đựng (v)", type: "eə" },
+                { id: "B", text: "w<u>ea</u>r", ipa: "/weə(r)/", mean: "mặc (v)", type: "eə" },
+                { id: "C", text: "sw<u>ea</u>r", ipa: "/sweə(r)/", mean: "thề (v)", type: "eə" },
+                { id: "D", text: "f<u>ea</u>r", ipa: "/fɪə(r)/", mean: "nỗi sợ (n)", type: "ɪə", correct: true }
+            ],
+            hint: "Một từ mang nghĩa 'nỗi sợ hãi' có cách phát âm khác."
+        },
+        {
+            id: 7,
+            question: "Choose the word with the underlined part pronounced differently:",
+            options: [
+                { id: "A", text: "h<u>ai</u>r", ipa: "/heə(r)/", mean: "tóc (n)", type: "eə" },
+                { id: "B", text: "f<u>ai</u>r", ipa: "/feə(r)/", mean: "công bằng / hội chợ (adj/n)", type: "eə" },
+                { id: "C", text: "ch<u>ai</u>n", ipa: "/tʃeɪn/", mean: "chuỗi, xích (n)", type: "eɪ", correct: true },
+                { id: "D", text: "ch<u>ai</u>r", ipa: "/tʃeə(r)/", mean: "cái ghế (n)", type: "eə" }
+            ],
+            hint: "Chú ý nguyên âm: một từ có âm /eɪ/."
+        },
+        {
+            id: 8,
+            question: "Choose the word with the underlined part pronounced differently:",
+            options: [
+                { id: "A", text: "b<u>ee</u>", ipa: "/biː/", mean: "con ong (n)", type: "iː" },
+                { id: "B", text: "b<u>ee</u>n", ipa: "/biːn/", mean: "thì, là (V3 of be)", type: "iː" },
+                { id: "C", text: "s<u>ee</u>n", ipa: "/siːn/", mean: "nhìn thấy (V3 of see)", type: "iː" },
+                { id: "D", text: "d<u>ee</u>r", ipa: "/dɪə(r)/", mean: "con hươu (n)", type: "ɪə", correct: true }
+            ],
+            hint: "Con hươu (deer) có phát âm khác các từ còn lại."
+        },
+        {
+            id: 9,
+            question: "Choose the word with the underlined part pronounced differently:",
+            options: [
+                { id: "A", text: "id<u>ea</u>", ipa: "/aɪˈdɪə/", mean: "ý tưởng (n)", type: "ɪə" },
+                { id: "B", text: "p<u>ea</u>", ipa: "/piː/", mean: "hạt đậu (n)", type: "iː", correct: true },
+                { id: "C", text: "n<u>ea</u>r", ipa: "/nɪə(r)/", mean: "gần (adj)", type: "ɪə" },
+                { id: "D", text: "g<u>ea</u>r", ipa: "/gɪə(r)/", mean: "bánh răng / số xe (n)", type: "ɪə" }
+            ],
+            hint: "Tìm từ có âm /i:/ trong nhóm /ɪə/."
+        },
+        {
+            id: 10,
+            question: "Choose the word with the underlined part pronounced differently:",
+            options: [
+                { id: "A", text: "t<u>ea</u>r", ipa: "/teə(r)/", mean: "xé rách (v) [Lưu ý: Nếu là nước mắt thì đọc là /tɪə/, nhưng ở đây là động từ]", type: "eə", correct: true },
+                { id: "B", text: "app<u>ea</u>r", ipa: "/əˈpɪə(r)/", mean: "xuất hiện (v)", type: "ɪə" },
+                { id: "C", text: "th<u>ea</u>ter", ipa: "/ˈθɪətə(r)/", mean: "nhà hát (n)", type: "ɪə" },
+                { id: "D", text: "sh<u>ea</u>r", ipa: "/ʃɪə(r)/", mean: "cắt lông cừu (v)", type: "ɪə" }
+            ],
+            hint: "Từ 'tear' có 2 cách đọc. Hãy xét các đáp án còn lại để suy ra cách đọc đúng trong câu này."
+        },
+        {
+            id: 11,
+            question: "Choose the word with the underlined part pronounced differently:",
+            options: [
+                { id: "A", text: "ea<u>r</u>th", ipa: "/ɜːθ/", mean: "trái đất (n)", type: "ɜː" },
+                { id: "B", text: "lea<u>r</u>n", ipa: "/lɜːn/", mean: "học (v)", type: "ɜː" },
+                { id: "C", text: "clea<u>r</u>", ipa: "/klɪə(r)/", mean: "rõ ràng (adj)", type: "ɪə", correct: true },
+                { id: "D", text: "sea<u>r</u>ch", ipa: "/sɜːtʃ/", mean: "tìm kiếm (v)", type: "ɜː" }
+            ],
+            hint: "Phân biệt âm /ɜː/ và /ɪə/."
+        },
+        {
+            id: 12,
+            question: "Choose the word with the underlined part pronounced differently:",
+            options: [
+                { id: "A", text: "decl<u>are</u>", ipa: "/dɪˈkleə(r)/", mean: "tuyên bố (v)", type: "eə" },
+                { id: "B", text: "<u>air</u>port", ipa: "/ˈeəpɔːt/", mean: "sân bay (n)", type: "eə" },
+                { id: "C", text: "wh<u>ere</u>", ipa: "/weə(r)/", mean: "ở đâu (adv)", type: "eə" },
+                { id: "D", text: "engin<u>eer</u>", ipa: "/ˌendʒɪˈnɪə(r)/", mean: "kỹ sư (n)", type: "ɪə", correct: true }
+            ],
+            hint: "Kỹ sư (engineer) có âm đuôi là /ɪə/."
+        },
+        {
+            id: 13,
+            question: "Choose the word with the underlined part pronounced differently:",
+            options: [
+                { id: "A", text: "e<u>a</u>r", ipa: "/ɪə(r)/", mean: "cái tai (n)", type: "ɪə" },
+                { id: "B", text: "d<u>ea</u>r", ipa: "/dɪə(r)/", mean: "thân mến (adj)", type: "ɪə" },
+                { id: "C", text: "p<u>ea</u>r", ipa: "/peə(r)/", mean: "quả lê (n)", type: "eə", correct: true },
+                { id: "D", text: "cl<u>ea</u>r", ipa: "/klɪə(r)/", mean: "rõ ràng (adj)", type: "ɪə" }
+            ],
+            hint: "Quả lê (pear) có phát âm giống 'bear' hay 'wear' (/eə/)."
+        },
+        {
+            id: 14,
+            question: "Choose the word with the underlined part pronounced differently:",
+            options: [
+                { id: "A", text: "s<u>ee</u>", ipa: "/siː/", mean: "nhìn thấy (v)", type: "iː", correct: true },
+                { id: "B", text: "s<u>ee</u>r", ipa: "/sɪə(r)/", mean: "nhà tiên tri (n)", type: "ɪə" },
+                { id: "C", text: "l<u>ee</u>r", ipa: "/lɪə(r)/", mean: "liếc nhìn (v)", type: "ɪə" },
+                { id: "D", text: "b<u>ee</u>r", ipa: "/bɪə(r)/", mean: "bia (n)", type: "ɪə" }
+            ],
+            hint: "Phân biệt /i:/ và /ɪə/."
+        },
+        {
+            id: 15,
+            question: "Choose the word with the underlined part pronounced differently:",
+            options: [
+                { id: "A", text: "<u>a</u>rea", ipa: "/ˈeəriə/", mean: "khu vực (n)", type: "eə" },
+                { id: "B", text: "<u>a</u>rena", ipa: "/əˈriːnə/", mean: "đấu trường (n)", type: "ə", correct: true },
+                { id: "C", text: "p<u>a</u>rent", ipa: "/ˈpeərənt/", mean: "cha mẹ (n)", type: "eə" },
+                { id: "D", text: "v<u>a</u>rious", ipa: "/ˈveəriəs/", mean: "đa dạng (adj)", type: "eə" }
+            ],
+            hint: "Chú ý từ 'arena' có trọng âm rơi vào âm tiết thứ 2."
+        }
+    ];
+
+    let currentScore = 0;
+    const totalQuestions = quizData.length;
+    const answeredQuestions = new Set();
+
+    // AUDIO CONTEXT & SYNTH SOUNDS (No external files needed)
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    
+    function playSound(type) {
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        osc.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+
+        if (type === 'correct') {
+            // Ding sound (High sine wave)
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(523.25, audioCtx.currentTime); // C5
+            osc.frequency.exponentialRampToValueAtTime(1046.5, audioCtx.currentTime + 0.1); // C6
+            gainNode.gain.setValueAtTime(0.5, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.5);
+        } else {
+            // Buzz sound (Low saw wave)
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+            osc.frequency.linearRampToValueAtTime(100, audioCtx.currentTime + 0.3);
+            gainNode.gain.setValueAtTime(0.5, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.3);
+        }
+    }
+
+    // CONFETTI EFFECT
+    const canvas = document.getElementById('confetti-canvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    let particles = [];
+
+    function createParticles(x, y) {
+        for(let i=0; i<30; i++) {
+            particles.push({
+                x: x,
+                y: y,
+                vx: (Math.random() - 0.5) * 10,
+                vy: (Math.random() - 1) * 10,
+                color: `hsl(${Math.random() * 360}, 100%, 50%)`,
+                life: 100
+            });
+        }
+    }
+
+    function animateConfetti() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        particles.forEach((p, index) => {
+            p.x += p.vx;
+            p.y += p.vy;
+            p.vy += 0.2; // Gravity
+            p.life--;
+            ctx.fillStyle = p.color;
+            ctx.fillRect(p.x, p.y, 6, 6);
+            if(p.life <= 0) particles.splice(index, 1);
+        });
+        requestAnimationFrame(animateConfetti);
+    }
+    animateConfetti();
+
+    // RENDER QUIZ
+    function renderQuiz() {
+        const container = document.getElementById('quiz-container');
+        
+        quizData.forEach((q, index) => {
+            const card = document.createElement('div');
+            card.className = 'question-card';
+            card.id = `q-${index}`;
+
+            // Header of Card
+            const title = document.createElement('div');
+            title.className = 'question-title';
+            title.innerHTML = `
+                <span class="question-number">Question ${index + 1}</span>
+                <span>${q.question}</span>
+            `;
+
+            // Options Grid
+            const grid = document.createElement('div');
+            grid.className = 'options-grid';
+
+            q.options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.innerHTML = `${opt.id}. ${opt.text}`;
+                btn.onclick = (e) => checkAnswer(index, opt, btn, e);
+                grid.appendChild(btn);
+            });
+
+            // Explanation Box
+            const expl = document.createElement('div');
+            expl.className = 'explanation-box';
+            expl.id = `expl-${index}`;
+            
+            // Build Explanation Content (Ms Mai An Style)
+            let vocabListHTML = `<ul class="vocab-list">`;
+            q.options.forEach(o => {
+                vocabListHTML += `
+                    <li class="vocab-item">
+                        <div><span class="vocab-word">${o.id}. ${o.text.replace(/<\/?u>/g, '')}</span> <small>${o.ipa}</small></div>
+                        <span class="vocab-mean">${o.mean}</span>
+                    </li>
+                `;
+            });
+            vocabListHTML += `</ul>`;
+
+            const correctOpt = q.options.find(o => o.correct);
+            const othersType = q.options.find(o => !o.correct).type; // Assuming other 3 are same
+
+            expl.innerHTML = `
+                <div class="explanation-header">
+                    <i>👩‍🏫</i> <span>Cô Mai An giải thích chi tiết:</span>
+                </div>
+                <div class="explanation-content">
+                    <p><strong>1. Phân tích từ vựng & Phiên âm:</strong></p>
+                    ${vocabListHTML}
+                    <p style="margin-top: 10px;"><strong>2. Tại sao chọn đáp án ${correctOpt.id}?</strong></p>
+                    <p>Đáp án <strong>${correctOpt.text}</strong> có phần gạch chân phát âm là <strong style="color:var(--correct-green); font-size:1.2em">/${correctOpt.type}/</strong>.</p>
+                    <p>Trong khi đó, 3 đáp án còn lại đều phát âm là <strong style="color:var(--wrong-red)">/${othersType}/</strong>.</p>
+                    <p><em>💡 Mẹo nhỏ: ${q.hint}</em></p>
+                </div>
+            `;
+
+            card.appendChild(title);
+            card.appendChild(grid);
+            card.appendChild(expl);
+            container.appendChild(card);
+        });
+    }
+
+    // CHECK ANSWER LOGIC
+    function checkAnswer(qIndex, selectedOpt, btnElement, event) {
+        if (answeredQuestions.has(qIndex)) return; // Prevent re-answering
+        answeredQuestions.add(qIndex);
+
+        const card = document.getElementById(`q-${qIndex}`);
+        const allBtns = card.querySelectorAll('.option-btn');
+        const explanation = document.getElementById(`expl-${qIndex}`);
+
+        // Disable all buttons
+        allBtns.forEach(btn => btn.classList.add('disabled'));
+
+        if (selectedOpt.correct) {
+            // CORRECT
+            btnElement.classList.add('correct');
+            currentScore++;
+            playSound('correct');
+            createParticles(event.clientX, event.clientY); // Confetti at click
+            document.getElementById('current-score').innerText = currentScore;
+        } else {
+            // WRONG
+            btnElement.classList.add('wrong');
+            playSound('wrong');
+            // Highlight the correct one automatically
+            const correctBtn = Array.from(allBtns).find(btn => 
+                btn.innerText.includes(quizData[qIndex].options.find(o => o.correct).text.replace(/<\/?u>/g, ''))
+            );
+            if(correctBtn) correctBtn.classList.add('correct'); // Show correct answer even if wrong
+        }
+
+        // Show Explanation with animation
+        explanation.style.display = 'block';
+        explanation.animate([
+            { opacity: 0, transform: 'translateY(-10px)' },
+            { opacity: 1, transform: 'translateY(0)' }
+        ], { duration: 300 });
+    }
+
+    // SHOW FINAL RESULT
+    function showFinalResult() {
+        const modal = document.getElementById('result-modal');
+        const scoreDisplay = document.getElementById('final-score-display');
+        const feedback = document.getElementById('final-feedback');
+
+        scoreDisplay.innerText = `${currentScore} / ${totalQuestions}`;
+        
+        const percentage = (currentScore / totalQuestions) * 100;
+        if (percentage === 100) {
+            feedback.innerText = "🏆 Xuất sắc! Em là thiên tài ngữ âm!";
+            playSound('correct');
+            createParticles(window.innerWidth/2, window.innerHeight/2);
+        } else if (percentage >= 80) {
+            feedback.innerText = "🎉 Rất tốt! Chỉ sai một chút xíu thôi.";
+        } else if (percentage >= 50) {
+            feedback.innerText = "💪 Cố gắng lên! Em cần ôn lại các từ vựng nhé.";
+        } else {
+            feedback.innerText = "📚 Cần luyện tập thêm nhiều nha!";
+        }
+
+        modal.style.display = 'flex';
+    }
+
+    function closeModal() {
+        document.getElementById('result-modal').style.display = 'none';
+    }
+
+    // Initialize
+    renderQuiz();
+
+</script>
+</body>
+</html>

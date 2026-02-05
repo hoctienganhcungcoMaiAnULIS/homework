@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trắc nghiệm Giao tiếp & Giới từ - Ms Mai An ULIS</title>
+    <!-- Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <!-- Confetti Library -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        :root {
+            --primary: #8854C0; /* Tím Pastel */
+            --secondary: #00C9A7; /* Xanh ngọc */
+            --correct: #00D26A; /* Xanh lá */
+            --wrong: #FF4757; /* Đỏ cam */
+            --bg-pattern: #f0f3f8;
+            --text-main: #2f3542;
+            --white: #ffffff;
+            --shadow-color: rgba(0,0,0,0.15);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: #e5e5f7;
+            background-image:  radial-gradient(#8854c0 0.5px, transparent 0.5px), radial-gradient(#8854c0 0.5px, #e5e5f7 0.5px);
+            background-size: 20px 20px;
+            color: var(--text-main);
+            padding-bottom: 50px;
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 20px;
+            text-align: center;
+            border-bottom-left-radius: 30px;
+            border-bottom-right-radius: 30px;
+            box-shadow: 0 10px 20px -10px rgba(136, 84, 192, 0.5);
+            margin-bottom: 30px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header h1 {
+            font-weight: 800;
+            font-size: 1.8rem;
+            text-shadow: 2px 2px 0px rgba(0,0,0,0.1);
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            margin-top: 5px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 0 15px;
+        }
+
+        /* Question Card Style */
+        .card {
+            background: var(--white);
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 8px 0 rgba(0,0,0,0.05), 0 15px 20px rgba(0,0,0,0.05);
+            border: 2px solid #f1f1f1;
+            transition: transform 0.3s ease;
+            position: relative;
+        }
+
+        .question-badge {
+            display: inline-block;
+            background: var(--primary);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 0 rgba(0,0,0,0.2);
+        }
+
+        .question-text {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            line-height: 1.5;
+            color: #2c3e50;
+        }
+
+        /* Answer Grid */
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        @media (max-width: 600px) {
+            .options-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* 3D Button Style */
+        .option-btn {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 15px;
+            padding: 15px 20px;
+            font-family: 'Nunito', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #57606f;
+            cursor: pointer;
+            text-align: left;
+            position: relative;
+            transition: all 0.1s;
+            box-shadow: 0 5px 0 #d1d1d1;
+            outline: none;
+            display: flex;
+            align-items: center;
+        }
+
+        .option-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 7px 0 #d1d1d1;
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .option-btn:active:not(:disabled) {
+            transform: translateY(5px);
+            box-shadow: 0 0px 0 #d1d1d1;
+        }
+
+        /* Correct State */
+        .option-btn.correct {
+            background-color: var(--correct);
+            color: white;
+            border-color: #00b85c;
+            box-shadow: 0 5px 0 #00944a;
+        }
+
+        /* Wrong State */
+        .option-btn.wrong {
+            background-color: var(--wrong);
+            color: white;
+            border-color: #ff2e40;
+            box-shadow: 0 5px 0 #d61c2e;
+            animation: shake 0.5s;
+        }
+
+        /* Correct Answer Hint (when chose wrong) */
+        .option-btn.show-correct {
+            background-color: #fff;
+            border: 2px solid var(--correct);
+            color: var(--correct);
+            box-shadow: 0 5px 0 #00b85c;
+        }
+
+        /* Explanation Box */
+        .explanation {
+            margin-top: 20px;
+            background: #f8f9fa;
+            border-left: 5px solid var(--secondary);
+            border-radius: 10px;
+            padding: 20px;
+            display: none; /* Hidden by default */
+            animation: slideDown 0.4s ease-out;
+        }
+
+        .explanation.visible {
+            display: block;
+        }
+
+        .explanation h4 {
+            color: var(--primary);
+            margin-bottom: 10px;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .explanation-content {
+            font-size: 1rem;
+            line-height: 1.6;
+            white-space: pre-wrap; /* Keeps line breaks from data */
+        }
+        
+        .explanation-content strong {
+            color: #2f3542;
+            font-weight: 800;
+        }
+
+        /* Submit Button */
+        .submit-section {
+            text-align: center;
+            margin-top: 40px;
+        }
+
+        .submit-btn {
+            background: var(--primary);
+            color: white;
+            font-size: 1.5rem;
+            font-weight: 800;
+            padding: 15px 50px;
+            border: none;
+            border-radius: 50px;
+            box-shadow: 0 8px 0 #6c4299, 0 15px 20px rgba(0,0,0,0.2);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .submit-btn:active {
+            transform: translateY(8px);
+            box-shadow: 0 0px 0 #6c4299;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background: white;
+            padding: 40px;
+            border-radius: 30px;
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+            animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border: 5px solid var(--secondary);
+        }
+
+        .score-display {
+            font-size: 3rem;
+            font-weight: 900;
+            color: var(--primary);
+            margin: 20px 0;
+        }
+
+        /* Animations */
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-10px) rotate(-5deg); }
+            50% { transform: translateX(10px) rotate(5deg); }
+            75% { transform: translateX(-10px) rotate(-5deg); }
+            100% { transform: translateX(0); }
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes popIn {
+            from { opacity: 0; transform: scale(0.5); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>ENGLISH QUIZ</h1>
+        <p>Giáo viên: Ms Mai An (ULIS)</p>
+        <p>Unit: Communication & Prepositions (Grade 6)</p>
+    </div>
+
+    <div class="container" id="quiz-container">
+        <!-- Questions will be rendered here via JS -->
+    </div>
+
+    <div class="submit-section">
+        <button class="submit-btn" onclick="finishQuiz()">NỘP BÀI 📝</button>
+    </div>
+
+    <!-- Result Modal -->
+    <div class="modal-overlay" id="resultModal">
+        <div class="modal-content">
+            <h2>KẾT QUẢ BÀI LÀM</h2>
+            <div class="score-display" id="finalScore">0/30</div>
+            <p id="feedbackText" style="font-size: 1.2rem; color: #57606f; margin-bottom: 20px;">...</p>
+            <button class="submit-btn" onclick="closeModal()" style="font-size: 1rem; padding: 10px 30px;">Xem lại bài</button>
+        </div>
+    </div>
+
+    <!-- Audio Effects -->
+    <audio id="sound-correct" src="https://assets.mixkit.co/active_storage/sfx/2000/2000-preview.mp3"></audio>
+    <audio id="sound-wrong" src="https://assets.mixkit.co/active_storage/sfx/2003/2003-preview.mp3"></audio>
+
+<script>
+    // --- DỮ LIỆU ĐỀ BÀI (Giữ nguyên 100%) ---
+    const quizData = {
+        "questions": [
+            {
+            "questionNumber": 1,
+            "question": "We don’t know how we can _________ with him. He’s too far away.",
+            "answerOptions": [
+                {
+                "text": "A. keep in touch",
+                "rationale": "Dịch nghĩa: Chúng tôi không biết làm thế nào để **giữ liên lạc** với anh ấy. Anh ấy ở quá xa.\n\nPhân tích:\n- keep in touch (idiom): giữ liên lạc\n- cope (v): đối phó (thường đi với 'with')\n- catch up (v): bắt kịp\n- keep pace (v): theo kịp (tốc độ)\n\nGiải thích: Ngữ cảnh 'too far away' (quá xa) thì việc khó khăn nhất là 'giữ liên lạc'.",
+                "isCorrect": true
+                },
+                { "text": "B. cope", "isCorrect": false, "rationale": "Sai nghĩa." },
+                { "text": "C. catch up", "isCorrect": false, "rationale": "Sai nghĩa." },
+                { "text": "D. keep pace", "isCorrect": false, "rationale": "Sai nghĩa." }
+            ]
+            },
+            {
+            "questionNumber": 2,
+            "question": "Harry doesn’t understand the instruction on this website, so he has to use _________ messages.",
+            "answerOptions": [
+                {
+                "text": "A. instant",
+                "rationale": "Dịch nghĩa: Harry không hiểu hướng dẫn trên trang web này, vì vậy cậu ấy phải sử dụng tin nhắn **tức thời** (để hỏi hỗ trợ trực tuyến).\n\nPhân tích:\n- instant (adj): ngay lập tức/tức thời\n- online (adj): trực tuyến\n- non-verbal (adj): phi ngôn ngữ\n- verbal (adj): bằng lời nói\n\nGiải thích: Cụm từ 'instant messages' (tin nhắn tức thời/chat trực tuyến) rất phổ biến trong bối cảnh hỗ trợ trên website.",
+                "isCorrect": true
+                },
+                { "text": "B. online", "isCorrect": false, "rationale": "Không tạo thành cụm từ cố định mang nghĩa cụ thể như 'instant messages'." },
+                { "text": "C. non-verbal", "isCorrect": false, "rationale": "Sai nghĩa (nhắn tin là dùng ngôn ngữ)." },
+                { "text": "D. verbal", "isCorrect": false, "rationale": "Sai nghĩa." }
+            ]
+            },
+            {
+            "questionNumber": 3,
+            "question": "Sue doesn’t have the doctor’s telephone number to book a(n) _________ with him.",
+            "answerOptions": [
+                {
+                "text": "B. appointment",
+                "rationale": "Dịch nghĩa: Sue không có số điện thoại của bác sĩ để đặt một **cuộc hẹn** với ông ấy.\n\nPhân tích:\n- ticket (n): vé\n- appointment (n): cuộc hẹn (công việc, bác sĩ...)\n- lunch set (n): suất ăn trưa\n- seat (n): chỗ ngồi\n\nGiải thích: Đi gặp bác sĩ thì dùng 'book an appointment'.",
+                "isCorrect": true
+                },
+                { "text": "A. ticket", "isCorrect": false, "rationale": "Sai ngữ cảnh." },
+                { "text": "C. lunch set", "isCorrect": false, "rationale": "Sai ngữ cảnh." },
+                { "text": "D. seat", "isCorrect": false, "rationale": "Sai ngữ cảnh." }
+            ]
+            },
+            {
+            "questionNumber": 4,
+            "question": "Sending letters by post office has become _________ today, in comparison to email.",
+            "answerOptions": [
+                {
+                "text": "D. less popular",
+                "rationale": "Dịch nghĩa: Gửi thư qua bưu điện đã trở nên **ít phổ biến hơn** ngày nay, so với email.\n\nPhân tích:\n- more popular: phổ biến hơn\n- popular: phổ biến\n- much popularer: sai ngữ pháp (tính từ dài không thêm -er)\n- less popular: ít phổ biến hơn\n\nGiải thích: So với email (nhanh, tiện), thư tay rõ ràng 'kém phổ biến hơn'.",
+                "isCorrect": true
+                },
+                { "text": "A. more popular", "isCorrect": false, "rationale": "Sai thực tế." },
+                { "text": "B. popular", "isCorrect": false, "rationale": "Thiếu cấu trúc so sánh." },
+                { "text": "C. much popularer", "isCorrect": false, "rationale": "Sai ngữ pháp." }
+            ]
+            },
+            {
+            "questionNumber": 5,
+            "question": "_________, dancing and painting are examples of non-verbal communication.",
+            "answerOptions": [
+                {
+                "text": "B. Smiling",
+                "rationale": "Dịch nghĩa: **Mỉm cười**, nhảy múa và vẽ tranh là những ví dụ của giao tiếp phi ngôn ngữ.\n\nPhân tích:\n- Chatting (v): tán gẫu (dùng lời/chữ -> verbal)\n- Smiling (v): mỉm cười (ngôn ngữ cơ thể -> non-verbal)\n- Singing (v): hát (dùng lời -> verbal)\n- Emailing (v): gửi email (dùng chữ -> verbal)\n\nGiải thích: Chỉ có 'Smiling' là không dùng từ ngữ.",
+                "isCorrect": true
+                },
+                { "text": "A. Chatting", "isCorrect": false, "rationale": "Là giao tiếp ngôn ngữ." },
+                { "text": "C. Singing", "isCorrect": false, "rationale": "Là giao tiếp ngôn ngữ." },
+                { "text": "D. Emailing", "isCorrect": false, "rationale": "Là giao tiếp ngôn ngữ." }
+            ]
+            },
+            {
+            "questionNumber": 6,
+            "question": "We took part in a lot of interesting ___________ to make acquaintance with each other in the chat room.",
+            "answerOptions": [
+                {
+                "text": "B. activities",
+                "rationale": "Dịch nghĩa: Chúng tôi đã tham gia rất nhiều **hoạt động** thú vị để làm quen với nhau trong phòng chat.\n\nPhân tích:\n- communities (n): cộng đồng\n- activities (n): hoạt động\n- conferences (n): hội nghị\n- contests (n): cuộc thi\n\nGiải thích: Cụm từ 'take part in activities' (tham gia các hoạt động) là hợp lý nhất trong bối cảnh giao lưu làm quen.",
+                "isCorrect": true
+                },
+                { "text": "A. communities", "isCorrect": false, "rationale": "Sai nghĩa." },
+                { "text": "C. conferences", "isCorrect": false, "rationale": "Quá trang trọng cho phòng chat." },
+                { "text": "D. contests", "isCorrect": false, "rationale": "Cũng có thể, nhưng 'activities' bao quát hơn." }
+            ]
+            },
+            {
+            "questionNumber": 7,
+            "question": "The sign language provides the deaf more ___________ to communicate with those who are deaf or hard of hearing.",
+            "answerOptions": [
+                {
+                "text": "B. opportunities",
+                "rationale": "Dịch nghĩa: Ngôn ngữ ký hiệu cung cấp cho người khiếm thính nhiều **cơ hội** hơn để giao tiếp với những người bị điếc hoặc lãng tai.\n\nPhân tích:\n- options (n): lựa chọn\n- opportunities (n): cơ hội\n- situations (n): tình huống\n- activities (n): hoạt động\n\nGiải thích: Ngôn ngữ ký hiệu mở ra 'cơ hội' giao tiếp.",
+                "isCorrect": true
+                },
+                { "text": "A. options", "isCorrect": false, "rationale": "Sai nghĩa." },
+                { "text": "C. situations", "isCorrect": false, "rationale": "Sai nghĩa." },
+                { "text": "D. activities", "isCorrect": false, "rationale": "Sai nghĩa." }
+            ]
+            },
+            {
+            "questionNumber": 8,
+            "question": "Nowadays, our country creates more ___________ products to persuade customers from other countries to buy.",
+            "answerOptions": [
+                {
+                "text": "A. competitive",
+                "rationale": "Dịch nghĩa: Ngày nay, đất nước chúng ta tạo ra nhiều sản phẩm **có tính cạnh tranh** hơn để thuyết phục khách hàng từ các nước khác mua.\n\nPhân tích:\n- competitive (adj): có tính cạnh tranh (về giá, chất lượng...)\n- expensive (adj): đắt đỏ\n- luxurious (adj): sang trọng\n- beautiful (adj): đẹp\n\nGiải thích: Để 'persuade' (thuyết phục) khách quốc tế, sản phẩm cần có tính cạnh tranh cao.",
+                "isCorrect": true
+                },
+                { "text": "B. expensive", "isCorrect": false, "rationale": "Khó thuyết phục mua nếu chỉ đắt." },
+                { "text": "C. luxurious", "isCorrect": false, "rationale": "Hẹp nghĩa." },
+                { "text": "D. beautiful", "isCorrect": false, "rationale": "Hẹp nghĩa." }
+            ]
+            },
+            {
+            "questionNumber": 9,
+            "question": "The portable wireless devices or eReaders will be paper thin, flexible and have wireless __________ in the future.",
+            "answerOptions": [
+                {
+                "text": "B. connections",
+                "rationale": "Dịch nghĩa: Các thiết bị không dây cầm tay hoặc máy đọc sách điện tử sẽ mỏng như giấy, linh hoạt và có các **kết nối** không dây trong tương lai.\n\nPhân tích:\n- usages (n): cách sử dụng\n- connections (n): kết nối\n- Wi-Fi (n): mạng wifi\n- techniques (n): kỹ thuật\n\nGiải thích: 'Wireless connections' (kết nối không dây) là thuật ngữ chung. 'Wireless Wi-Fi' bị lặp từ (thừa wireless).",
+                "isCorrect": true
+                },
+                { "text": "A. usages", "isCorrect": false, "rationale": "Sai nghĩa." },
+                { "text": "C. Wi-Fi", "isCorrect": false, "rationale": "Lặp từ (Wireless Wi-Fi)." },
+                { "text": "D. techniques", "isCorrect": false, "rationale": "Sai nghĩa." }
+            ]
+            },
+            {
+            "questionNumber": 10,
+            "question": "Recent advancements in 3D imaging and scanning technologies are making your “virtual presence” a real __________.",
+            "answerOptions": [
+                {
+                "text": "A. possibility",
+                "rationale": "Dịch nghĩa: Những tiến bộ gần đây trong công nghệ quét và hình ảnh 3D đang biến 'sự hiện diện ảo' của bạn thành một **khả năng** thực tế.\n\nPhân tích:\n- possibility (n): khả năng/điều có thể xảy ra\n- creativity (n): sự sáng tạo\n- quality (n): chất lượng\n- identity (n): danh tính\n\nGiải thích: Cụm 'make something a real possibility' nghĩa là biến điều gì đó thành hiện thực.",
+                "isCorrect": true
+                },
+                { "text": "B. creativity", "isCorrect": false, "rationale": "Sai nghĩa." },
+                { "text": "C. quality", "isCorrect": false, "rationale": "Sai nghĩa." },
+                { "text": "D. identity", "isCorrect": false, "rationale": "Sai nghĩa." }
+            ]
+            },
+            {
+            "questionNumber": 11,
+            "question": "Which one is **not** correct to fill in the blank? Hand gestures are a type of ___________ which makes people listen to you.",
+            "answerOptions": [
+                {
+                "text": "A. verbal communication",
+                "rationale": "Dịch nghĩa: Câu nào **không đúng** để điền vào chỗ trống? Cử chỉ tay là một loại ___________ khiến mọi người lắng nghe bạn.\n\nPhân tích:\n- verbal communication: giao tiếp bằng lời nói -> **SAI** vì cử chỉ tay là phi ngôn ngữ.\n- body language: ngôn ngữ cơ thể -> ĐÚNG.\n- sign language: ngôn ngữ ký hiệu -> ĐÚNG (một dạng cử chỉ).\n- non-verbal communication: giao tiếp phi ngôn ngữ -> ĐÚNG.\n\nGiải thích: Đề bài yêu cầu chọn câu **KHÔNG ĐÚNG**.",
+                "isCorrect": true
+                },
+                { "text": "B. body language", "isCorrect": false, "rationale": "Đúng về mặt nghĩa (nhưng đề hỏi câu sai)." },
+                { "text": "C. sign language", "isCorrect": false, "rationale": "Đúng về mặt nghĩa." },
+                { "text": "D. non-verbal communication", "isCorrect": false, "rationale": "Đúng về mặt nghĩa." }
+            ]
+            },
+            {
+            "questionNumber": 12,
+            "question": "With mobile ___________, devices with solar power can be put in relatively remote locations, or can be free to roam.",
+            "answerOptions": [
+                {
+                "text": "B. connectivity",
+                "rationale": "Dịch nghĩa: Với **khả năng kết nối** di động, các thiết bị dùng năng lượng mặt trời có thể được đặt ở những vị trí tương đối xa xôi, hoặc có thể tự do di chuyển.\n\nPhân tích:\n- phones (n): điện thoại\n- connectivity (n): khả năng kết nối\n- vehicles (n): xe cộ\n- equipment (n): thiết bị\n\nGiải thích: 'Mobile connectivity' (kết nối di động) giúp thiết bị hoạt động ở xa mà vẫn truyền được dữ liệu.",
+                "isCorrect": true
+                },
+                { "text": "A. phones", "isCorrect": false, "rationale": "Sai nghĩa." },
+                { "text": "C. vehicles", "isCorrect": false, "rationale": "Sai nghĩa." },
+                { "text": "D. equipment", "isCorrect": false, "rationale": "Sai nghĩa." }
+            ]
+            },
+            {
+            "questionNumber": 13,
+            "question": "This webcam is focusing _____________ my forehead.",
+            "answerOptions": [
+                {
+                "text": "C. on",
+                "rationale": "Dịch nghĩa: Cái webcam này đang lấy nét **vào** trán tôi.\n\nPhân tích:\n- Cấu trúc: focus on something (tập trung vào cái gì).\n\nGiải thích: 'Focus' luôn đi với giới từ 'on'.",
+                "isCorrect": true
+                },
+                { "text": "A. at", "isCorrect": false, "rationale": "Sai giới từ." },
+                { "text": "B. in", "isCorrect": false, "rationale": "Sai giới từ." },
+                { "text": "D. by", "isCorrect": false, "rationale": "Sai giới từ." }
+            ]
+            },
+            {
+            "questionNumber": 14,
+            "question": "He texted me that he would come to the office _____________ twenty minutes.",
+            "answerOptions": [
+                {
+                "text": "C. in",
+                "rationale": "Dịch nghĩa: Anh ấy nhắn tin cho tôi rằng anh ấy sẽ đến văn phòng **trong vòng** 20 phút nữa.\n\nPhân tích:\n- in + khoảng thời gian: trong vòng (dùng cho tương lai, chỉ thời gian từ hiện tại đến lúc xảy ra sự việc).\n- for + khoảng thời gian: trong suốt (chỉ độ dài hành động).\n- by + mốc thời gian: trước lúc.\n- at + giờ cụ thể.\n\nGiải thích: 'Would come... in 20 mins' nghĩa là 20 phút nữa sẽ tới.",
+                "isCorrect": true
+                },
+                { "text": "A. for", "isCorrect": false, "rationale": "Sai (for dùng cho độ dài: học trong 20 phút)." },
+                { "text": "B. by", "isCorrect": false, "rationale": "Sai (by cần mốc thời gian, không phải khoảng thời gian)." },
+                { "text": "D. at", "isCorrect": false, "rationale": "Sai." }
+            ]
+            },
+            {
+            "questionNumber": 15,
+            "question": "I have studied how to play the guitar _____________ two months.",
+            "answerOptions": [
+                {
+                "text": "D. for",
+                "rationale": "Dịch nghĩa: Tôi đã học chơi guitar **được** hai tháng rồi.\n\nPhân tích:\n- Thì hiện tại hoàn thành (have studied) + for + khoảng thời gian.\n\nGiải thích: 'Two months' là một khoảng thời gian -> Dùng 'for'.",
+                "isCorrect": true
+                },
+                { "text": "A. on", "isCorrect": false, "rationale": "Sai." },
+                { "text": "B. at", "isCorrect": false, "rationale": "Sai." },
+                { "text": "C. by", "isCorrect": false, "rationale": "Sai." }
+            ]
+            },
+            {
+            "questionNumber": 16,
+            "question": "The workshop will start at 9:15. You should be ready _____________ 9:00.",
+            "answerOptions": [
+                {
+                "text": "A. by",
+                "rationale": "Dịch nghĩa: Buổi hội thảo sẽ bắt đầu lúc 9:15. Bạn nên sẵn sàng **trước** 9:00.\n\nPhân tích:\n- by + mốc thời gian: trước hoặc muộn nhất là vào lúc đó.\n- on: vào ngày.\n- for: trong khoảng.\n- in: trong vòng.\n\nGiải thích: Dùng 'by' để chỉ hạn chót (deadline).",
+                "isCorrect": true
+                },
+                { "text": "B. on", "isCorrect": false, "rationale": "Sai." },
+                { "text": "C. for", "isCorrect": false, "rationale": "Sai." },
+                { "text": "D. in", "isCorrect": false, "rationale": "Sai." }
+            ]
+            },
+            {
+            "questionNumber": 17,
+            "question": "There are a few strangers standing _____________ of my house.",
+            "answerOptions": [
+                {
+                "text": "B. in front",
+                "rationale": "Dịch nghĩa: Có một vài người lạ đang đứng **phía trước** nhà tôi.\n\nPhân tích:\n- Cấu trúc: in front of (ở phía trước).\n\nGiải thích: Đề bài đã có chữ 'of', nên chỉ cần điền 'in front'.",
+                "isCorrect": true
+                },
+                { "text": "A. between", "isCorrect": false, "rationale": "Sai (between cần 2 vật)." },
+                { "text": "C. under", "isCorrect": false, "rationale": "Sai (dưới nhà?)." },
+                { "text": "D. behind", "isCorrect": false, "rationale": "Sai (behind không đi với of)." }
+            ]
+            },
+            {
+            "questionNumber": 18,
+            "question": "The post office is _____________ to the open-air market.",
+            "answerOptions": [
+                {
+                "text": "B. next",
+                "rationale": "Dịch nghĩa: Bưu điện nằm **bên cạnh** khu chợ trời.\n\nPhân tích:\n- Cấu trúc: next to (bên cạnh).\n\nGiải thích: Có giới từ 'to' phía sau -> chọn 'next'.",
+                "isCorrect": true
+                },
+                { "text": "A. front", "isCorrect": false, "rationale": "Phải là 'in front of'." },
+                { "text": "C. opposite", "isCorrect": false, "rationale": "Opposite không đi với 'to' trong ngữ cảnh này." },
+                { "text": "D. between", "isCorrect": false, "rationale": "Between cần 'and'." }
+            ]
+            },
+            {
+            "questionNumber": 19,
+            "question": "He is working in the _____________ room.",
+            "answerOptions": [
+                {
+                "text": "D. opposite",
+                "rationale": "Dịch nghĩa: Anh ấy đang làm việc ở phòng **đối diện**.\n\nPhân tích:\n- opposite (adj): đối diện.\n- under, at, by: giới từ, không đứng trước danh từ 'room' như tính từ trong trường hợp này.\n\nGiải thích: 'The opposite room' là cụm danh từ hợp lý.",
+                "isCorrect": true
+                },
+                { "text": "A. under", "isCorrect": false, "rationale": "Sai loại từ/nghĩa." },
+                { "text": "B. at", "isCorrect": false, "rationale": "Sai loại từ." },
+                { "text": "C. by", "isCorrect": false, "rationale": "Sai loại từ." }
+            ]
+            },
+            {
+            "questionNumber": 20,
+            "question": "My school is _____________ the bookstore and the restaurant.",
+            "answerOptions": [
+                {
+                "text": "C. between",
+                "rationale": "Dịch nghĩa: Trường tôi nằm **giữa** hiệu sách và nhà hàng.\n\nPhân tích:\n- Cấu trúc: between A and B (giữa A và B).\n\nGiải thích: Có 'and' nối hai địa điểm -> Dùng 'between'.",
+                "isCorrect": true
+                },
+                { "text": "A. behind", "isCorrect": false, "rationale": "Sai cấu trúc." },
+                { "text": "B. under", "isCorrect": false, "rationale": "Sai nghĩa." },
+                { "text": "D. next to", "isCorrect": false, "rationale": "Sai cấu trúc." }
+            ]
+            },
+            {
+            "questionNumber": 21,
+            "question": "Players always sit _____________ each other in a chess game.",
+            "answerOptions": [
+                {
+                "text": "A. opposite",
+                "rationale": "Dịch nghĩa: Các người chơi luôn ngồi **đối diện** nhau trong một ván cờ vua.\n\nPhân tích:\n- opposite (prep): đối diện.\n- next to: bên cạnh.\n- in front of: phía trước (nhưng chess thường dùng opposite).\n- behind: phía sau.\n\nGiải thích: Trong cờ vua, hai người chơi ngồi đối mặt nhau qua bàn cờ -> Opposite.",
+                "isCorrect": true
+                },
+                { "text": "B. next to", "isCorrect": false, "rationale": "Sai thực tế." },
+                { "text": "C. in front of", "isCorrect": false, "rationale": "Opposite chính xác hơn cho vị trí mặt đối mặt qua bàn." },
+                { "text": "D. behind", "isCorrect": false, "rationale": "Sai thực tế." }
+            ]
+            },
+            {
+            "questionNumber": 22,
+            "question": "The doll is not on the bed. It’s _____________ the bed.",
+            "answerOptions": [
+                {
+                "text": "D. under",
+                "rationale": "Dịch nghĩa: Con búp bê không ở trên giường. Nó ở **dưới** gầm giường.\n\nPhân tích:\n- in: trong (giường? ít dùng).\n- front: thiếu 'in' và 'of'.\n- next: thiếu 'to'.\n- under: dưới.\n\nGiải thích: Vị trí đối lập với 'on' (trên) thường là 'under' (dưới).",
+                "isCorrect": true
+                },
+                { "text": "A. in", "isCorrect": false, "rationale": "Sai." },
+                { "text": "B. front", "isCorrect": false, "rationale": "Sai cấu trúc." },
+                { "text": "C. next", "isCorrect": false, "rationale": "Sai cấu trúc." }
+            ]
+            },
+            {
+            "questionNumber": 23,
+            "question": "The children are playing __________.",
+            "answerOptions": [
+                {
+                "text": "B. outside",
+                "rationale": "Dịch nghĩa: Bọn trẻ đang chơi **bên ngoài**.\n\nPhân tích:\n- outside (adv): bên ngoài (trời).\n- out: thường đi với cụm (go out) hoặc cần tân ngữ.\n- at/in: cần danh từ phía sau.\n\nGiải thích: 'Play outside' là cụm từ phổ biến.",
+                "isCorrect": true
+                },
+                { "text": "A. out", "isCorrect": false, "rationale": "Ít tự nhiên hơn outside." },
+                { "text": "C. at", "isCorrect": false, "rationale": "Thiếu danh từ." },
+                { "text": "D. in", "isCorrect": false, "rationale": "Thiếu danh từ." }
+            ]
+            },
+            {
+            "questionNumber": 24,
+            "question": "May comes __________ April.",
+            "answerOptions": [
+                {
+                "text": "B. after",
+                "rationale": "Dịch nghĩa: Tháng Năm đến **sau** tháng Tư.\n\nPhân tích:\n- before: trước.\n- after: sau.\n\nGiải thích: Thứ tự tháng: April -> May. Vậy May đến sau April.",
+                "isCorrect": true
+                },
+                { "text": "A. before", "isCorrect": false, "rationale": "Sai thực tế." },
+                { "text": "C. from", "isCorrect": false, "rationale": "Sai nghĩa." },
+                { "text": "D. against", "isCorrect": false, "rationale": "Sai nghĩa." }
+            ]
+            },
+            {
+            "questionNumber": 25,
+            "question": "There is a clock __________ the wall in my class.",
+            "answerOptions": [
+                {
+                "text": "C. on",
+                "rationale": "Dịch nghĩa: Có một chiếc đồng hồ **trên** tường trong lớp tôi.\n\nPhân tích:\n- on the wall: trên tường (bề mặt).\n\nGiải thích: Đồ vật treo trên bề mặt thẳng đứng dùng 'on'.",
+                "isCorrect": true
+                },
+                { "text": "A. near", "isCorrect": false, "rationale": "Không tự nhiên bằng 'on'." },
+                { "text": "B. across", "isCorrect": false, "rationale": "Sai nghĩa." },
+                { "text": "D. at", "isCorrect": false, "rationale": "Sai giới từ." }
+            ]
+            },
+            {
+            "questionNumber": 26,
+            "question": "Where is Susan? - She is sitting __________ Jim.",
+            "answerOptions": [
+                {
+                "text": "D. next to",
+                "rationale": "Dịch nghĩa: Susan đâu rồi? - Cô ấy đang ngồi **bên cạnh** Jim.\n\nPhân tích:\n- on: trên (Jim? -> không thể).\n- under: dưới (Jim? -> không thể).\n- between: cần 2 người.\n- next to: bên cạnh.\n\nGiải thích: Vị trí ngồi hợp lý nhất là bên cạnh.",
+                "isCorrect": true
+                },
+                { "text": "A. on", "isCorrect": false, "rationale": "Sai nghĩa." },
+                { "text": "B. under", "isCorrect": false, "rationale": "Sai nghĩa." },
+                { "text": "C. between", "isCorrect": false, "rationale": "Thiếu người thứ 2." }
+            ]
+            },
+            {
+            "questionNumber": 27,
+            "question": "We’re studying __________ Sai Gon University.",
+            "answerOptions": [
+                {
+                "text": "A. at",
+                "rationale": "Dịch nghĩa: Chúng tôi đang học **tại** Đại học Sài Gòn.\n\nPhân tích:\n- at + trường học/đại học (địa điểm cụ thể/tổ chức).\n\nGiải thích: Dùng 'at' cho University.",
+                "isCorrect": true
+            },
+                { "text": "B. in", "isCorrect": false, "rationale": "Thường dùng cho thành phố/quốc gia." },
+                { "text": "C. of", "isCorrect": false, "rationale": "Sai." },
+                { "text": "D. from", "isCorrect": false, "rationale": "Sai." }
+            ]
+            },
+            {
+            "questionNumber": 28,
+            "question": "There are 40 students __________ the class.",
+            "answerOptions": [
+                {
+                "text": "B. in",
+                "rationale": "Dịch nghĩa: Có 40 học sinh **trong** lớp học.\n\nPhân tích:\n- in the class: trong lớp (không gian chứa đựng).\n\nGiải thích: Dùng 'in' cho phòng học/lớp học.",
+                "isCorrect": true
+                },
+                { "text": "A. inside", "isCorrect": false, "rationale": "Nhấn mạnh quá mức vào phía bên trong." },
+                { "text": "C. at", "isCorrect": false, "rationale": "At class (không có 'the'), nhưng 'in the class' phổ biến hơn khi đếm số lượng.",
+                "isCorrect": false
+                },
+                { "text": "D. over", "isCorrect": false, "rationale": "Sai." }
+            ]
+            },
+            {
+            "questionNumber": 29,
+            "question": "My pen is __________ the books and the computer.",
+            "answerOptions": [
+                {
+                "text": "D. between",
+                "rationale": "Dịch nghĩa: Cây bút của tôi nằm **giữa** những cuốn sách và cái máy tính.\n\nPhân tích:\n- between A and B.\n\nGiải thích: Có 2 vật thể làm mốc (books và computer) -> Dùng 'between'.",
+                "isCorrect": true
+                },
+                { "text": "A. among", "isCorrect": false, "rationale": "Among dùng cho nhiều vật ( >2) không xác định rõ." },
+                { "text": "B. down", "isCorrect": false, "rationale": "Sai." },
+                { "text": "C. up", "isCorrect": false, "rationale": "Sai." }
+            ]
+            },
+            {
+            "questionNumber": 30,
+            "question": "I saw a mouse __________ the chair.",
+            "answerOptions": [
+                {
+                "text": "D. behind",
+                "rationale": "Dịch nghĩa: Tôi đã nhìn thấy một con chuột **phía sau** cái ghế.\n\nPhân tích:\n- among: sai (cần nhiều vật).\n- between: sai (cần 2 vật).\n- in: sai (trong ghế? hiếm gặp).\n- behind: phía sau (hợp lý vì chuột hay trốn).\n\nGiải thích: 'Behind' là vị trí hợp lý nhất trong các đáp án.",
+                "isCorrect": true
+                },
+                { "text": "A. among", "isCorrect": false, "rationale": "Sai." },
+                { "text": "B. between", "isCorrect": false, "rationale": "Sai." },
+                { "text": "C. in", "isCorrect": false, "rationale": "Sai." }
+            ]
+            }
+        ]
+    };
+
+    // --- LOGIC XỬ LÝ ---
+    let score = 0;
+    const totalQuestions = quizData.questions.length;
+    let questionsAnswered = 0;
+
+    // Âm thanh
+    const dingSound = document.getElementById('sound-correct');
+    const buzzSound = document.getElementById('sound-wrong');
+
+    // Hàm render bài thi
+    function renderQuiz() {
+        const container = document.getElementById('quiz-container');
+        
+        quizData.questions.forEach((q, index) => {
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.id = `q-${index}`;
+
+            // Badge
+            const badge = document.createElement('span');
+            badge.className = 'question-badge';
+            badge.innerText = `Câu ${q.questionNumber}`;
+            
+            // Question Text
+            const qText = document.createElement('div');
+            qText.className = 'question-text';
+            qText.innerText = q.question;
+
+            // Options Grid
+            const grid = document.createElement('div');
+            grid.className = 'options-grid';
+
+            // Find correct answer index for logic
+            const correctOptionIndex = q.answerOptions.findIndex(opt => opt.isCorrect);
+
+            q.answerOptions.forEach((opt, optIndex) => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.innerHTML = opt.text; // Use innerHTML in case of special chars
+                // CHANGE: We now pass the entire options array to checkAnswer to find the "detailed" rationale
+                btn.onclick = () => checkAnswer(btn, opt.isCorrect, q.answerOptions, index);
+                grid.appendChild(btn);
+            });
+
+            // Explanation Box
+            const explanation = document.createElement('div');
+            explanation.className = 'explanation';
+            explanation.id = `expl-${index}`;
+            // We set content dynamically on click, but let's pre-fill the structure
+            explanation.innerHTML = `
+                <h4><span style="font-size:1.5rem">💡</span> GIẢI THÍCH CHI TIẾT:</h4>
+                <div class="explanation-content" id="expl-content-${index}"></div>
+            `;
+
+            card.appendChild(badge);
+            card.appendChild(qText);
+            card.appendChild(grid);
+            card.appendChild(explanation);
+            container.appendChild(card);
+        });
+    }
+
+    // Hàm xử lý khi chọn đáp án
+    function checkAnswer(selectedBtn, isCorrect, allOptions, questionIndex) {
+        const card = document.getElementById(`q-${questionIndex}`);
+        const buttons = card.querySelectorAll('.option-btn');
+        const explanationBox = document.getElementById(`expl-${questionIndex}`);
+        const explanationContent = document.getElementById(`expl-content-${questionIndex}`);
+
+        // Disable all buttons in this card
+        buttons.forEach(btn => btn.disabled = true);
+
+        if (isCorrect) {
+            selectedBtn.classList.add('correct');
+            playSound(true);
+            triggerConfetti();
+            score++;
+        } else {
+            selectedBtn.classList.add('wrong');
+            playSound(false);
+            // Highlight correct answer
+            const correctOpt = allOptions.find(o => o.isCorrect);
+            buttons.forEach(btn => {
+                if(btn.innerText === correctOpt.text) {
+                    btn.classList.add('show-correct');
+                }
+            });
+        }
+
+        // --- NEW LOGIC FOR EXPLANATION ---
+        // Always get the rationale from the CORRECT option because it contains the full detailed analysis
+        const correctOptionData = allOptions.find(opt => opt.isCorrect);
+        const detailedRationale = correctOptionData.rationale;
+
+        // Format the explanation text: Convert \n to <br> and **text** to <strong>text</strong>
+        let formattedRationale = detailedRationale
+            .replace(/\n/g, '<br>')
+            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+        
+        explanationContent.innerHTML = formattedRationale;
+        explanationBox.classList.add('visible');
+
+        questionsAnswered++;
+    }
+
+    // Hàm chơi âm thanh
+    function playSound(isCorrect) {
+        if(isCorrect) {
+            dingSound.currentTime = 0;
+            dingSound.play().catch(e => console.log("Audio autoplay blocked"));
+        } else {
+            buzzSound.currentTime = 0;
+            buzzSound.play().catch(e => console.log("Audio autoplay blocked"));
+        }
+    }
+
+    // Hiệu ứng pháo giấy
+    function triggerConfetti() {
+        confetti({
+            particleCount: 100,
+            spread: 70,
+            origin: { y: 0.6 },
+            colors: ['#8854C0', '#00C9A7', '#00D26A', '#FF4757']
+        });
+    }
+
+    // Nộp bài
+    function finishQuiz() {
+        const modal = document.getElementById('resultModal');
+        const scoreDiv = document.getElementById('finalScore');
+        const feedback = document.getElementById('feedbackText');
+
+        scoreDiv.innerText = `${score}/${totalQuestions}`;
+
+        const percentage = (score / totalQuestions) * 100;
+        if (percentage === 100) {
+            feedback.innerText = "Tuyệt vời! Em là thiên tài tiếng Anh! 🌟";
+            triggerConfetti();
+        } else if (percentage >= 80) {
+            feedback.innerText = "Làm tốt lắm! Em rất nắm vững kiến thức! 🔥";
+        } else if (percentage >= 50) {
+            feedback.innerText = "Cố gắng lên nhé! Em cần ôn lại bài một chút! 📚";
+        } else {
+            feedback.innerText = "Đừng buồn nhé! Hãy xem kỹ lại phần giải thích chi tiết của cô nào! 💪";
+        }
+
+        modal.style.display = 'flex';
+    }
+
+    function closeModal() {
+        document.getElementById('resultModal').style.display = 'none';
+    }
+
+    // Khởi chạy
+    window.onload = renderQuiz;
+
+</script>
+
+</body>
+</html>

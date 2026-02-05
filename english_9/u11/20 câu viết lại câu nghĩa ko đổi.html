@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ms Mai An ULIS - Trắc nghiệm Viết lại câu (Technology Theme)</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root {
+            --primary-purple: #8854C0;
+            --primary-teal: #00C9A7;
+            --correct-green: #00D26A;
+            --wrong-red: #FF4757;
+            --bg-pastel: #F0F3F9;
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: var(--bg-pastel);
+            background-image: radial-gradient(#dbeafe 2px, transparent 2px), radial-gradient(#dbeafe 2px, transparent 2px);
+            background-size: 32px 32px;
+            background-position: 0 0, 16px 16px;
+            color: #2d3748;
+        }
+
+        /* 3D Button Effect */
+        .btn-3d {
+            transition: all 0.1s;
+            box-shadow: 0px 5px 0px 0px rgba(0,0,0,0.15);
+            transform: translateY(0);
+        }
+
+        .btn-3d:active {
+            transform: translateY(5px);
+            box-shadow: 0px 0px 0px 0px rgba(0,0,0,0.15);
+        }
+
+        /* Option Card Styles */
+        .option-card {
+            cursor: pointer;
+            border: 2px solid #e2e8f0;
+            transition: all 0.2s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .option-card:hover {
+            transform: scale(1.02);
+            border-color: var(--primary-purple);
+            background-color: #F3E8FF;
+        }
+
+        .option-card.correct {
+            background-color: #D1FAE5;
+            border-color: var(--correct-green);
+            color: #065F46;
+            box-shadow: 0px 4px 0px var(--correct-green);
+        }
+
+        .option-card.incorrect {
+            background-color: #FEE2E2;
+            border-color: var(--wrong-red);
+            color: #991B1B;
+            animation: shake 0.5s;
+            box-shadow: 0px 4px 0px var(--wrong-red);
+        }
+
+        /* Animations */
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            50% { transform: translateX(5px); }
+            75% { transform: translateX(-5px); }
+            100% { transform: translateX(0); }
+        }
+
+        @keyframes popIn {
+            0% { opacity: 0; transform: scale(0.8); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+
+        .explanation-box {
+            display: none;
+            animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border-left: 5px solid var(--primary-purple);
+        }
+
+        .teacher-badge {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #c0aede; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #8854C0; 
+        }
+    </style>
+</head>
+<body class="min-h-screen pb-20">
+
+    <!-- Header -->
+    <header class="bg-white shadow-lg sticky top-0 z-50 border-b-4 border-purple-200">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="teacher-badge text-white font-bold p-2 rounded-xl shadow-md text-xs md:text-sm">
+                    Ms Mai An ULIS
+                </div>
+                <h1 class="text-xl md:text-2xl font-extrabold text-purple-700 tracking-tight">
+                    Technology Quiz 🚀
+                </h1>
+            </div>
+            <div class="flex items-center gap-4">
+                <div class="bg-blue-100 text-blue-800 px-4 py-1 rounded-full font-bold shadow-sm">
+                    Score: <span id="score-display">0</span>/20
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-8 max-w-4xl" id="quiz-container">
+        <!-- Questions will be injected here via JS -->
+    </main>
+
+    <!-- Submit Button -->
+    <div class="fixed bottom-0 left-0 w-full bg-white p-4 shadow-[0_-5px_20px_rgba(0,0,0,0.1)] flex justify-center z-40">
+        <button onclick="finishQuiz()" class="btn-3d bg-gradient-to-r from-teal-400 to-teal-600 text-white font-bold py-3 px-12 rounded-full text-xl shadow-lg hover:from-teal-500 hover:to-teal-700">
+            NỘP BÀI & XEM KẾT QUẢ 🏆
+        </button>
+    </div>
+
+    <!-- Result Modal -->
+    <div id="result-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 backdrop-blur-sm">
+        <div class="bg-white rounded-3xl p-8 max-w-md w-full mx-4 text-center transform scale-100 shadow-2xl border-4 border-purple-300 relative overflow-hidden">
+            <div class="absolute top-0 left-0 w-full h-20 bg-gradient-to-r from-purple-400 to-pink-400 opacity-20"></div>
+            
+            <h2 class="text-3xl font-extrabold text-purple-800 mb-4 relative z-10">KẾT QUẢ</h2>
+            <div class="text-6xl font-black text-teal-500 mb-2 relative z-10" id="final-score">0</div>
+            <p class="text-gray-500 font-bold uppercase tracking-wide mb-6">Điểm số của bạn</p>
+            
+            <div id="feedback-message" class="text-lg font-bold text-gray-700 mb-8 italic">
+                "Cố gắng lên nhé!"
+            </div>
+
+            <button onclick="closeModal()" class="w-full btn-3d bg-purple-600 text-white font-bold py-3 rounded-xl shadow-md hover:bg-purple-700">
+                Xem lại bài làm
+            </button>
+        </div>
+    </div>
+
+    <!-- Audio Elements -->
+    <audio id="sound-ding" src="https://assets.mixkit.co/sfx/preview/mixkit-correct-answer-tone-2870.mp3"></audio>
+    <audio id="sound-buzz" src="https://assets.mixkit.co/sfx/preview/mixkit-wrong-answer-fail-notification-946.mp3"></audio>
+    <audio id="sound-cheer" src="https://assets.mixkit.co/sfx/preview/mixkit-winning-chimes-2015.mp3"></audio>
+
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+
+    <script>
+        // DATA SOURCE
+        const quizData = {
+          "questions": [
+            {
+              "questionNumber": 1,
+              "question": "Exercise 3 - Q1: The librarian said to me, “Please use headphones with your laptop.”",
+              "answerOptions": [
+                {
+                  "text": "The librarian kindly suggested turning off my laptop.",
+                  "rationale": "1. Phân tích: \n- turn off (phrasal verb): tắt.\n2. Dịch nghĩa: 'Thủ thư gợi ý một cách tử tế là nên tắt máy tính của tôi.'\n3. Giải thích: Sai nghĩa. Câu gốc yêu cầu dùng tai nghe, không phải tắt máy.",
+                  "isCorrect": false
+                },
+                {
+                  "text": "The librarian kindly suggested turning down the volume.",
+                  "rationale": "1. Phân tích: \n- turn down (phrasal verb): vặn nhỏ.\n- volume (n): âm lượng.\n2. Dịch nghĩa: 'Thủ thư gợi ý nên vặn nhỏ âm lượng.'\n3. Giải thích: Sai nghĩa. Câu gốc nói về việc dùng tai nghe.",
+                  "isCorrect": false
+                },
+                {
+                  "text": "The librarian kindly suggested I use headphones with my laptop.",
+                  "rationale": "1. Phân tích: \n- suggest (v) + S + (should) + V-bare: gợi ý ai đó nên làm gì (Cấu trúc giả định cách).\n- headphones (n): tai nghe.\n2. Dịch nghĩa: 'Thủ thư gợi ý một cách tử tế rằng tôi nên dùng tai nghe với máy tính của mình.'\n3. Giải thích: Đúng. Cấu trúc 'suggest + clause' dùng để tường thuật lại lời yêu cầu lịch sự 'Please...'.",
+                  "isCorrect": true
+                },
+                {
+                  "text": "The librarian warned that we don’t use headphones with our laptop.",
+                  "rationale": "1. Phân tích: \n- warn (v): cảnh báo.\n2. Dịch nghĩa: 'Thủ thư cảnh báo rằng chúng tôi không dùng tai nghe...'\n3. Giải thích: Sai nghĩa và sai thì. 'Warn' mang sắc thái quá mạnh so với từ 'Please', và mệnh đề sau sai ngữ pháp tường thuật.",
+                  "isCorrect": false
+                }
+              ],
+              "hint": "Câu trực tiếp dùng 'Please' thể hiện sự yêu cầu lịch sự hoặc gợi ý. Cấu trúc 'Suggest + S + V(nguyên thể)' thường dùng để viết lại."
+            },
+            {
+              "questionNumber": 2,
+              "question": "Exercise 3 - Q2: My teacher said, “It’s not good to use a tablet for taking note.”",
+              "answerOptions": [
+                {
+                  "text": "My teacher advised not using a tablet for taking note.",
+                  "rationale": "1. Phân tích:\n- Advise + not + V-ing: Khuyên không nên làm gì.\n- Tablet (n): máy tính bảng.\n2. Dịch nghĩa: 'Giáo viên của tôi khuyên không nên sử dụng máy tính bảng để ghi chép.'\n3. Giải thích: Đúng. Cấu trúc 'It's not good to...' (Không tốt khi làm gì) tương đương với lời khuyên ngăn 'Advise not doing something'.",
+                  "isCorrect": true
+                },
+                {
+                  "text": "My teacher advised us to take all our notes on a tablet.",
+                  "rationale": "1. Phân tích:\n- Advise + O + to V: Khuyên ai làm gì.\n2. Dịch nghĩa: 'Giáo viên khuyên chúng tôi ghi chép tất cả trên máy tính bảng.'\n3. Giải thích: Sai nghĩa (Ngược lại với câu gốc 'not good').",
+                  "isCorrect": false
+                },
+                {
+                  "text": "My teacher advised that we do not use a tablet for taking note.",
+                  "rationale": "1. Phân tích:\n- Advise + that + S + (should) + V: Khuyên rằng...\n2. Dịch nghĩa: 'Giáo viên khuyên rằng chúng tôi không dùng máy tính bảng...'\n3. Giải thích: Về ngữ pháp câu này chấp nhận được, nhưng đáp án A (Advise + V-ing) thường được ưu tiên hơn trong các bài tập viết lại câu khi chủ ngữ 'we' trong câu tường thuật là chung chung hoặc trùng với người nói.",
+                  "isCorrect": false
+                },
+                {
+                  "text": "My teacher advised that we should use a tablet for taking note.",
+                  "rationale": "1. Phân tích:\n- Should (modal verb): nên.\n2. Dịch nghĩa: 'Giáo viên khuyên rằng chúng tôi nên dùng máy tính bảng...'\n3. Giải thích: Sai nghĩa (Ngược lại với câu gốc).",
+                  "isCorrect": false
+                }
+              ],
+              "hint": "Cụm 'It's not good to...' mang nghĩa khuyên ngăn. Cấu trúc: Advise + (not) + V-ing."
+            },
+            {
+              "questionNumber": 3,
+              "question": "Exercise 3 - Q3: The teacher said, “Why not turn off notifications while studying?”",
+              "answerOptions": [
+                {
+                  "text": "The teacher encouraged keeping notifications on while studying.",
+                  "rationale": "1. Phân tích:\n- Encourage (v): khuyến khích.\n- Keep on (v): giữ nguyên/bật.\n2. Dịch nghĩa: 'Giáo viên khuyến khích việc bật thông báo khi học.'\n3. Giải thích: Sai nghĩa (Ngược lại với câu gốc 'turn off').",
+                  "isCorrect": false
+                },
+                {
+                  "text": "The teacher advised not turning off notifications while studying.",
+                  "rationale": "1. Phân tích:\n- Advise not turning off: Khuyên không tắt.\n2. Dịch nghĩa: 'Giáo viên khuyên không tắt thông báo...'\n3. Giải thích: Sai nghĩa (Ngược lại với câu gốc).",
+                  "isCorrect": false
+                },
+                {
+                  "text": "The teacher informed us that notifications are essential for studying.",
+                  "rationale": "1. Phân tích:\n- Inform (v): thông báo.\n- Essential (adj): thiết yếu.\n2. Dịch nghĩa: 'Giáo viên thông báo rằng thông báo là thiết yếu...'\n3. Giải thích: Sai hoàn toàn về nghĩa.",
+                  "isCorrect": false
+                },
+                {
+                  "text": "The teacher recommended turning off notifications while studying.",
+                  "rationale": "1. Phân tích:\n- Recommend + V-ing: Đề xuất/Khuyên làm gì.\n- Notifications (n): thông báo.\n2. Dịch nghĩa: 'Giáo viên đề xuất việc tắt thông báo trong khi học.'\n3. Giải thích: Đúng. Mẫu câu 'Why not...?' là một lời gợi ý (suggestion) hoặc lời khuyên (recommendation).",
+                  "isCorrect": true
+                }
+              ],
+              "hint": "Câu hỏi 'Why not...?' dùng để đưa ra lời gợi ý hoặc lời khuyên. Tương đương với Recommend/Suggest + V-ing."
+            },
+            {
+              "questionNumber": 4,
+              "question": "Exercise 3 - Q4: My mom said, “It’s good to take breaks from looking at computer screen.”",
+              "answerOptions": [
+                {
+                  "text": "My mom instructed me to stare at computer screen all the time.",
+                  "rationale": "1. Phân tích:\n- Instruct (v): hướng dẫn.\n- Stare at (v): nhìn chằm chằm.\n2. Dịch nghĩa: 'Mẹ hướng dẫn tôi nhìn chằm chằm vào màn hình suốt.'\n3. Giải thích: Sai nghĩa hoàn toàn.",
+                  "isCorrect": false
+                },
+                {
+                  "text": "My mom recommended taking breaks from looking at computer screen.",
+                  "rationale": "1. Phân tích:\n- Recommend (v): khuyên/đề xuất.\n- Take breaks (v): nghỉ ngơi.\n2. Dịch nghĩa: 'Mẹ tôi khuyên nên nghỉ ngơi, tránh nhìn vào màn hình máy tính.'\n3. Giải thích: Đúng. 'It's good to...' (Thật tốt để làm gì) là cách đưa ra lời khuyên, tương đương với 'Recommend + V-ing'.",
+                  "isCorrect": true
+                },
+                {
+                  "text": "My mom discouraged taking breaks while using the computer.",
+                  "rationale": "1. Phân tích:\n- Discourage (v): ngăn cản/không khuyến khích.\n2. Dịch nghĩa: 'Mẹ tôi không khuyến khích việc nghỉ ngơi...'\n3. Giải thích: Sai nghĩa (Ngược lại với câu gốc).",
+                  "isCorrect": false
+                },
+                {
+                  "text": "My mom thought staring at the screen was a good study habit.",
+                  "rationale": "1. Phân tích:\n- Habit (n): thói quen.\n2. Dịch nghĩa: 'Mẹ tôi nghĩ nhìn chằm chằm màn hình là thói quen tốt.'\n3. Giải thích: Sai nghĩa.",
+                  "isCorrect": false
+                }
+              ],
+              "hint": "'It's good to...' -> Recommend + V-ing (Khuyên nên làm gì)."
+            },
+            {
+              "questionNumber": 5,
+              "question": "Exercise 3 - Q5: The mechanic said, “You should get a cooling pad which prevents overheating.”",
+              "answerOptions": [
+                {
+                  "text": "The mechanic recommended getting a cooling pad which prevents overheating.",
+                  "rationale": "1. Phân tích:\n- Recommend + V-ing: Khuyên làm gì.\n- Cooling pad (n): đế tản nhiệt.\n- Overheating (n): quá nhiệt.\n2. Dịch nghĩa: 'Thợ sửa máy khuyên nên mua một cái đế tản nhiệt giúp ngăn chặn quá nhiệt.'\n3. Giải thích: Đúng. 'Should' (nên) dùng để đưa ra lời khuyên, chuyển sang tường thuật dùng động từ 'Recommended'.",
+                  "isCorrect": true
+                },
+                {
+                  "text": "The mechanic recommends to get a cooling pad which prevents overheating.",
+                  "rationale": "1. Phân tích:\n- Recommend + to V: Cấu trúc này sai ngữ pháp trong tiếng Anh chuẩn (thường là Recommend + V-ing hoặc Recommend + that clause).\n2. Dịch nghĩa: Sai ngữ pháp.\n3. Giải thích: Sai cấu trúc 'recommend to get'.",
+                  "isCorrect": false
+                },
+                {
+                  "text": "The mechanic suggested a cooling pad would prevent my computer’s overheating.",
+                  "rationale": "1. Phân tích:\n- Suggest (v): gợi ý.\n2. Dịch nghĩa: 'Thợ sửa máy gợi ý rằng đế tản nhiệt sẽ ngăn máy quá nhiệt.'\n3. Giải thích: Câu này biến lời khuyên hành động (mua đi) thành một câu dự đoán/nhận định về chức năng. Không sát nghĩa bằng A.",
+                  "isCorrect": false
+                },
+                {
+                  "text": "The mechanic asked if I should get a cooling pad which prevents overheating.",
+                  "rationale": "1. Phân tích:\n- Ask if (v): hỏi xem liệu.\n2. Dịch nghĩa: 'Thợ sửa máy hỏi xem liệu tôi có nên mua...'\n3. Giải thích: Sai. Câu gốc là câu khẳng định (lời khuyên), không phải câu hỏi.",
+                  "isCorrect": false
+                }
+              ],
+              "hint": "Lời khuyên 'You should...' thường được tường thuật lại bằng 'Recommend + V-ing' hoặc 'Advise + O + to V'."
+            },
+            {
+              "questionNumber": 6,
+              "question": "Exercise 3 - Q6: My friend said, “A camera with a good zoom lens is essential for capturing wildlife shots.”",
+              "answerOptions": [
+                {
+                  "text": "My friend advised getting a camera with a poor zoom lens for capturing wildlife shots.",
+                  "rationale": "1. Phân tích:\n- Poor (adj): kém.\n2. Dịch nghĩa: 'Bạn tôi khuyên mua máy ảnh có ống kính zoom kém...'\n3. Giải thích: Sai nghĩa (Good -> Poor).",
+                  "isCorrect": false
+                },
+                {
+                  "text": "My friend advised me to get a camera with a good zoom lens for capturing wildlife shots.",
+                  "rationale": "1. Phân tích:\n- Advise + O + to V: Khuyên ai làm gì.\n- Essential (adj): thiết yếu/quan trọng.\n2. Dịch nghĩa: 'Bạn tôi khuyên tôi nên mua một chiếc máy ảnh có ống kính zoom tốt để chụp ảnh hoang dã.'\n3. Giải thích: Đúng. Khi ai đó nói cái gì là 'essential' (thiết yếu) cho một mục đích, họ đang gián tiếp khuyên bạn nên trang bị nó.",
+                  "isCorrect": true
+                },
+                {
+                  "text": "My friend said a camera with a good zoom lens is essential for capturing wildlife shots.",
+                  "rationale": "1. Phân tích:\n- Đây là câu tường thuật giữ nguyên thì hiện tại.\n2. Dịch nghĩa: 'Bạn tôi nói rằng...'\n3. Giải thích: Tuy đúng về mặt ngữ pháp tường thuật trực tiếp, nhưng đề bài yêu cầu chọn câu có nghĩa tương đương (thường là chuyển đổi chức năng giao tiếp). Câu B thể hiện rõ chức năng 'lời khuyên' ẩn ý trong câu gốc hơn.",
+                  "isCorrect": false
+                },
+                {
+                  "text": "My friend said that I got a camera with a good zoom lens for capturing wildlife shots.",
+                  "rationale": "1. Phân tích:\n- Got (V2): đã có/đã mua.\n2. Dịch nghĩa: 'Bạn tôi nói rằng tôi đã mua...'\n3. Giải thích: Sai nghĩa. Câu gốc nói về sự cần thiết của máy ảnh, không nói về việc tôi đã mua nó.",
+                  "isCorrect": false
+                }
+              ],
+              "hint": "Khi nói 'X is essential for Y', người nói đang đưa ra lời khuyên -> Advise someone to use/get X."
+            },
+            {
+              "questionNumber": 7,
+              "question": "Exercise 3 - Q7: Technology can help us learn new things more easily.",
+              "answerOptions": [
+                {
+                  "text": "Technology makes learning new things inaccessible.",
+                  "rationale": "1. Phân tích:\n- Inaccessible (adj): không thể tiếp cận.\n2. Dịch nghĩa: 'Công nghệ làm cho việc học cái mới không thể tiếp cận.'\n3. Giải thích: Sai nghĩa (Trái ngược hoàn toàn).",
+                  "isCorrect": false
+                },
+                {
+                  "text": "Technology makes it easier to learn new things.",
+                  "rationale": "1. Phân tích:\n- Make it + adj + to V: Làm cho việc gì trở nên như thế nào.\n- Easier (adj - so sánh hơn): dễ dàng hơn.\n2. Dịch nghĩa: 'Công nghệ làm cho việc học những điều mới trở nên dễ dàng hơn.'\n3. Giải thích: Đúng. 'Help us learn... more easily' đồng nghĩa với 'Make it easier to learn...'.",
+                  "isCorrect": true
+                },
+                {
+                  "text": "Technology allows us to access a wider range of games.",
+                  "rationale": "1. Phân tích:\n- Games (n): trò chơi.\n2. Dịch nghĩa: 'Công nghệ cho phép tiếp cận nhiều trò chơi hơn.'\n3. Giải thích: Sai. Câu gốc nói về 'learning' (học tập), không phải 'games'.",
+                  "isCorrect": false
+                },
+                {
+                  "text": "Technology is the only way to learn new things easily.",
+                  "rationale": "1. Phân tích:\n- The only way (n): cách duy nhất.\n2. Dịch nghĩa: 'Công nghệ là cách duy nhất...'\n3. Giải thích: Sai. Câu gốc dùng 'can help' (có thể giúp), không khẳng định là duy nhất.",
+                  "isCorrect": false
+                }
+              ],
+              "hint": "Help + V + more easily = Make it + easier + to V."
+            },
+            {
+              "questionNumber": 8,
+              "question": "Exercise 3 - Q8: Using a smartphone is a great way to stay connected with family members, but it can also be distracting.",
+              "answerOptions": [
+                {
+                  "text": "Smartphones help connect with relatives; however, they are distracting.",
+                  "rationale": "1. Phân tích:\n- Connect with relatives (v): kết nối với người thân.\n- However: tuy nhiên.\n- Distracting (adj): gây xao nhãng.\n2. Dịch nghĩa: 'Điện thoại giúp kết nối với người thân; tuy nhiên, chúng gây xao nhãng.'\n3. Giải thích: Đúng. Câu này giữ nguyên hai vế ý nghĩa (lợi ích và tác hại) và dùng từ nối tương phản hợp lý.",
+                  "isCorrect": true
+                },
+                {
+                  "text": "Smartphones are the only way to stay connected with family, which can be distracting.",
+                  "rationale": "1. Phân tích:\n- The only way: cách duy nhất.\n2. Dịch nghĩa: 'Điện thoại là cách duy nhất...'\n3. Giải thích: Sai. Câu gốc là 'great way' (cách tuyệt vời), không phải 'only way'.",
+                  "isCorrect": false
+                },
+                {
+                  "text": "While smartphones help connect with family, they make it impossible to focus on anything else.",
+                  "rationale": "1. Phân tích:\n- Impossible to focus (adj): không thể tập trung.\n2. Dịch nghĩa: '...chúng làm cho việc tập trung vào thứ khác là không thể.'\n3. Giải thích: Sai mức độ. 'Distracting' (gây xao nhãng) nhẹ hơn nhiều so với 'impossible to focus' (hoàn toàn không thể tập trung).",
+                  "isCorrect": false
+                },
+                {
+                  "text": "Smartphones are a great way to stay connected, but they can damage family relationships.",
+                  "rationale": "1. Phân tích:\n- Damage relationships: hủy hoại mối quan hệ.\n2. Dịch nghĩa: '...nhưng chúng có thể hủy hoại mối quan hệ gia đình.'\n3. Giải thích: Sai. Câu gốc nói về 'distracting' (mất tập trung), không nói về việc hỏng mối quan hệ.",
+                  "isCorrect": false
+                }
+              ],
+              "hint": "Câu gốc có 2 vế tương phản (Lợi ích - 'but' - Tác hại). Chọn câu giữ nguyên ý nghĩa này."
+            },
+            {
+              "questionNumber": 9,
+              "question": "Exercise 3 - Q9: Spending too much time staring at screens can be bad for your health.",
+              "answerOptions": [
+                {
+                  "text": "A little screen time every day is healthy because it keeps your eyes engaged.",
+                  "rationale": "1. Phân tích:\n- Healthy (adj): khỏe mạnh.\n2. Dịch nghĩa: 'Một chút thời gian màn hình mỗi ngày là tốt...'\n3. Giải thích: Sai nghĩa. Câu gốc không đề cập đến lợi ích của 'ít thời gian màn hình'.",
+                  "isCorrect": false
+                },
+                {
+                  "text": "Looking at screens is the only way to damage your health.",
+                  "rationale": "1. Phân tích:\n- The only way: cách duy nhất.\n2. Dịch nghĩa: 'Nhìn màn hình là cách duy nhất gây hại sức khỏe.'\n3. Giải thích: Sai. Quá cực đoan.",
+                  "isCorrect": false
+                },
+                {
+                  "text": "Spending a great deal of time at the screen is harmful for your health.",
+                  "rationale": "1. Phân tích:\n- A great deal of time = Too much time (nhiều thời gian).\n- Harmful (adj) = Bad (có hại).\n2. Dịch nghĩa: 'Dành quá nhiều thời gian trước màn hình thì có hại cho sức khỏe.'\n3. Giải thích: Đúng. Sử dụng từ đồng nghĩa chuẩn xác.",
+                  "isCorrect": true
+                },
+                {
+                  "text": "Looking at screens in a short time makes you physically unhealthy.",
+                  "rationale": "1. Phân tích:\n- Short time: thời gian ngắn.\n2. Dịch nghĩa: 'Nhìn màn hình trong thời gian ngắn làm bạn ốm yếu.'\n3. Giải thích: Sai. Câu gốc nói về 'too much time' (quá nhiều).",
+                  "isCorrect": false
+                }
+              ],
+              "hint": "Tìm từ đồng nghĩa: 'Too much time' ~ 'A great deal of time'; 'Bad' ~ 'Harmful'."
+            },
+            {
+              "questionNumber": 10,
+              "question": "Exercise 3 - Q10: Using e-devices in moderation is preferable for students as it helps them stay focused and study more effectively.",
+              "answerOptions": [
+                {
+                  "text": "Students should avoid electronic devices altogether to maintain concentration and improve their ability to study.",
+                  "rationale": "1. Phân tích:\n- Avoid altogether (v): tránh hoàn toàn.\n2. Dịch nghĩa: 'Học sinh nên tránh hoàn toàn thiết bị điện tử...'\n3. Giải thích: Sai. Câu gốc khuyên dùng 'in moderation' (có chừng mực), không phải cấm hoàn toàn.",
+                  "isCorrect": false
+                },
+                {
+                  "text": "Focusing on studies moderately becomes easier for students when they have access to electronic devices.",
+                  "rationale": "1. Phân tích:\n- Focusing... moderately: Tập trung một cách chừng mực.\n2. Dịch nghĩa: 'Việc tập trung vào việc học một cách chừng mực trở nên dễ hơn...'\n3. Giải thích: Sai nghĩa. Câu gốc là 'dùng thiết bị chừng mực', không phải 'học chừng mực'.",
+                  "isCorrect": false
+                },
+                {
+                  "text": "By using electronic devices excessively, students can find information and collaborate with others, leading to better study results.",
+                  "rationale": "1. Phân tích:\n- Excessively (adv): quá mức/thừa mứa.\n2. Dịch nghĩa: 'Bằng việc dùng thiết bị quá mức...'\n3. Giải thích: Sai. Trái ngược với 'moderation'.",
+                  "isCorrect": false
+                },
+                {
+                  "text": "Moderation in using electronic devices is key for students, as it promotes focus and enhances their ability to study effectively.",
+                  "rationale": "1. Phân tích:\n- Moderation (n): sự điều độ/chừng mực.\n- Promote focus (v): thúc đẩy sự tập trung.\n- Enhance (v): nâng cao.\n2. Dịch nghĩa: 'Sự chừng mực trong việc dùng thiết bị điện tử là chìa khóa cho học sinh, vì nó thúc đẩy sự tập trung và nâng cao khả năng học hiệu quả.'\n3. Giải thích: Đúng. Viết lại dùng các từ đồng nghĩa cao cấp hơn (helps -> promotes/enhances).",
+                  "isCorrect": true
+                }
+              ],
+              "hint": "Key word: 'In moderation' (chừng mực/điều độ). Tránh các đáp án mang nghĩa cực đoan (avoid, excessively)."
+            },
+            {
+              "questionNumber": 11,
+              "question": "Exercise 3 - Q11: The latest Rob Sweep has simplified cleaning chores with its advanced features.",
+              "answerOptions": [
+                {
+                  "text": "The most recent Rob Sweep has cutting-edge features which make cleaning chores become much easier.",
+                  "rationale": "1. Phân tích:\n- Most recent = Latest (mới nhất).\n- Cutting-edge = Advanced (tiên tiến).\n- Make easier = Simplified (đơn giản hóa).\n2. Dịch nghĩa: 'Mẫu Rob Sweep mới nhất có các tính năng tiên tiến giúp việc dọn dẹp trở nên dễ dàng hơn nhiều.'\n3. Giải thích: Đúng. Sử dụng bộ từ đồng nghĩa hoàn hảo.",
+                  "isCorrect": true
+                },
+                {
+                  "text": "Recently, Rob Sweep models have made cleaning chores much simpler than ever.",
+                  "rationale": "1. Phân tích:\n- Than ever (so với trước nay).\n2. Dịch nghĩa: 'Gần đây, các mẫu Rob Sweep làm việc dọn dẹp đơn giản hơn bao giờ hết.'\n3. Giải thích: Hơi lệch nghĩa. Câu gốc nhấn mạnh vào 'advanced features' (tính năng) của model 'latest' (mới nhất), không chỉ nói chung về 'recently'.",
+                  "isCorrect": false
+                },
+                {
+                  "text": "The latest features of cleaning chores have been simplified with the help of robots.",
+                  "rationale": "1. Phân tích:\n- Features of cleaning chores: Tính năng của việc dọn dẹp.\n2. Dịch nghĩa: 'Các tính năng mới nhất của việc dọn dẹp đã được đơn giản hóa...'\n3. Giải thích: Sai chủ ngữ. 'Rob Sweep' có tính năng, không phải 'cleaning chores' có tính năng.",
+                  "isCorrect": false
+                },
+                {
+                  "text": "Due to the latest Rob Sweep, advanced features of cleaning chores have come out.",
+                  "rationale": "1. Phân tích:\n- Come out (v): xuất hiện/ra mắt.\n2. Dịch nghĩa: '...các tính năng tiên tiến của việc dọn dẹp đã ra mắt.'\n3. Giải thích: Sai nghĩa.",
+                  "isCorrect": false
+                }
+              ],
+              "hint": "Simplified = Make easier; Advanced = Cutting-edge; Latest = Most recent."
+            },
+            {
+              "questionNumber": 12,
+              "question": "Exercise 3 - Q12: Rob Sweep navigates through various floor surfaces with its advanced sensors.",
+              "answerOptions": [
+                {
+                  "text": "Rob Sweep has sensors which help it navigate upstairs and downstairs.",
+                  "rationale": "1. Phân tích:\n- Upstairs and downstairs: lên lầu xuống lầu.\n2. Dịch nghĩa: 'Rob Sweep có cảm biến giúp nó đi lên xuống lầu.'\n3. Giải thích: Sai. Câu gốc là 'various floor surfaces' (các bề mặt sàn khác nhau - gỗ, gạch, thảm...), không nói cụ thể là leo cầu thang.",
+                  "isCorrect": false
+                },
+                {
+                  "text": "Thanks to Rob Sweep, the floor sensors can be advanced.",
+                  "rationale": "1. Phân tích:\n2. Dịch nghĩa: 'Nhờ có Rob Sweep, cảm biến sàn nhà có thể trở nên tiên tiến.'\n3. Giải thích: Sai nghĩa. Cảm biến là bộ phận CỦA robot, không phải robot làm cho cảm biến trở nên tiên tiến.",
+                  "isCorrect": false
+                },
+                {
+                  "text": "The innovative sensor system helps Rob Sweep move efficiently on different floor surfaces.",
+                  "rationale": "1. Phân tích:\n- Innovative (adj) ~ Advanced (tiên tiến/đổi mới).\n- Move efficiently ~ Navigate (di chuyển/định vị).\n- Different ~ Various (khác nhau).\n2. Dịch nghĩa: 'Hệ thống cảm biến đổi mới giúp Rob Sweep di chuyển hiệu quả trên các bề mặt sàn khác nhau.'\n3. Giải thích: Đúng. Paraphrase (viết lại) chính xác nội dung.",
+                  "isCorrect": true
+                },
+                {
+                  "text": "The advanced floor sensors and surfaces are the most valuable parts of Rob Sweep.",
+                  "rationale": "1. Phân tích:\n- Valuable parts: bộ phận giá trị.\n2. Dịch nghĩa: 'Cảm biến và bề mặt sàn là bộ phận giá trị nhất...'\n3. Giải thích: Sai. Câu gốc không so sánh giá trị.",
+                  "isCorrect": false
+                }
+              ],
+              "hint": "Tìm câu diễn đạt lại ý: Cảm biến (sensors) giúp di chuyển (navigate) trên nhiều loại sàn (various surfaces)."
+            },
+            {
+              "questionNumber": 13,
+              "question": "Exercise 3 - Q13: Furthermore, Rob Sweep has a long-lasting battery, ensuring extended runtime.",
+              "answerOptions": [
+                {
+                  "text": "Moreover, Rob Sweep has a strong battery, so it makes cleaning safer.",
+                  "rationale": "1. Phân tích:\n- Safer (adj): an toàn hơn.\n2. Dịch nghĩa: '...làm cho việc dọn dẹp an toàn hơn.'\n3. Giải thích: Sai. Câu gốc nói về 'extended runtime' (thời gian chạy lâu), không nói về an toàn.",
+                  "isCorrect": false
+                },
+                {
+                  "text": "In contrast, extended running time requires the battery of Rob Sweep to have longer duration.",
+                  "rationale": "1. Phân tích:\n- In contrast: Ngược lại.\n2. Dịch nghĩa: 'Ngược lại, thời gian chạy dài yêu cầu pin phải lâu.'\n3. Giải thích: Sai từ nối (Furthermore vs In contrast).",
+                  "isCorrect": false
+                },
+                {
+                  "text": "Although Rob Sweep’s long-lasting battery helps it work longer, it does not do the cleaning better.",
+                  "rationale": "1. Phân tích:\n- Although: Mặc dù.\n2. Dịch nghĩa: 'Mặc dù pin lâu giúp làm việc lâu, nó không dọn sạch hơn.'\n3. Giải thích: Sai. Câu gốc không có ý phủ định khả năng làm sạch.",
+                  "isCorrect": false
+                },
+                {
+                  "text": "Besides, Rob sweep can operate in a longer period of time thanks to its battery efficiency.",
+                  "rationale": "1. Phân tích:\n- Besides ~ Furthermore (Hơn nữa/Ngoài ra).\n- Operate in a longer period ~ Extended runtime (Hoạt động lâu hơn).\n2. Dịch nghĩa: 'Ngoài ra, Rob Sweep có thể hoạt động trong thời gian dài hơn nhờ hiệu suất pin của nó.'\n3. Giải thích: Đúng. Giữ nguyên ý nghĩa và từ nối.",
+                  "isCorrect": true
+                }
+              ],
+              "hint": "Key words: Furthermore = Besides; Extended runtime = Operate in a longer period."
+            },
+            {
+              "questionNumber": 14,
+              "question": "Exercise 3 - Q14: With a smartphone app, the user can schedule cleaning sessions for Rob Sweep.",
+              "answerOptions": [
+                {
+                  "text": "A smartphone app can control Rob Sweep to clean the big surface.",
+                  "rationale": "1. Phân tích:\n- Big surface: bề mặt lớn.\n2. Dịch nghĩa: '...dọn dẹp bề mặt lớn.'\n3. Giải thích: Sai. Câu gốc nói về 'schedule' (lên lịch), không nói về kích thước bề mặt.",
+                  "isCorrect": false
+                },
+                {
+                  "text": "The Rob sweep app can schedule a session for the user to clean his/her smartphone.",
+                  "rationale": "1. Phân tích:\n- Clean his/her smartphone: lau điện thoại.\n2. Dịch nghĩa: '...lên lịch cho người dùng lau điện thoại.'\n3. Giải thích: Sai hoàn toàn nghĩa.",
+                  "isCorrect": false
+                },
+                {
+                  "text": "The user builds an app which can schedule Rob Sweep to complete cleaning sessions.",
+                  "rationale": "1. Phân tích:\n- Build an app: xây dựng/lập trình ứng dụng.\n2. Dịch nghĩa: 'Người dùng tự viết một ứng dụng...'\n3. Giải thích: Sai. Người dùng chỉ 'sử dụng' (with a smartphone app), không 'viết' app.",
+                  "isCorrect": false
+                },
+                {
+                  "text": "The user can use an app on his/ her smartphone to set time for Rob Sweep to do cleaning tasks.",
+                  "rationale": "1. Phân tích:\n- Set time ~ Schedule (cài đặt thời gian/lên lịch).\n- Do cleaning tasks ~ Cleaning sessions.\n2. Dịch nghĩa: 'Người dùng có thể dùng ứng dụng trên điện thoại để cài giờ cho Rob Sweep làm nhiệm vụ dọn dẹp.'\n3. Giải thích: Đúng. Diễn đạt lại chính xác hành động 'schedule'.",
+                  "isCorrect": true
+                }
+              ],
+              "hint": "Schedule (lên lịch) = Set time (cài đặt thời gian)."
+            },
+            {
+              "questionNumber": 15,
+              "question": "Exercise 3 - Q15: Everyone should have a Rob Sweep to enjoy a new invention in home cleaning technology.",
+              "answerOptions": [
+                {
+                  "text": "Everyone advises I should have a Rob Sweep and enjoy home cleaning.",
+                  "rationale": "1. Phân tích:\n- Everyone advises I...: Mọi người khuyên tôi...\n2. Dịch nghĩa: Sai chủ ngữ. Câu gốc là lời khuyên hướng tới 'Everyone' (mọi người), không phải mọi người khuyên tôi.",
+                  "isCorrect": false
+                },
+                {
+                  "text": "I recommend owning a Rob Sweep to experience the enjoyment of a new technology in home cleaning.",
+                  "rationale": "1. Phân tích:\n- I recommend...: Tôi đề xuất/khuyên.\n- Experience the enjoyment: trải nghiệm sự thích thú.\n2. Dịch nghĩa: 'Tôi khuyên nên sở hữu Rob Sweep để trải nghiệm sự thú vị của công nghệ mới...'\n3. Giải thích: Đúng. Câu gốc 'Everyone should have...' (Mọi người nên có...) thực chất là một lời khuyên/đề xuất (Recommendation) của người nói.",
+                  "isCorrect": true
+                },
+                {
+                  "text": "I suggest buying a Rob Sweep or you’ll miss the chance to join a home cleaning group.",
+                  "rationale": "1. Phân tích:\n- Cleaning group: nhóm dọn dẹp.\n2. Dịch nghĩa: '...hoặc bạn sẽ lỡ cơ hội tham gia nhóm dọn dẹp.'\n3. Giải thích: Sai. Thông tin 'nhóm dọn dẹp' không có trong bài.",
+                  "isCorrect": false
+                },
+                {
+                  "text": "Everyone should consider owning a Rob Sweep for the convenience that it brings about.",
+                  "rationale": "1. Phân tích:\n- Convenience: sự tiện lợi.\n2. Dịch nghĩa: 'Mọi người nên cân nhắc sở hữu Rob Sweep vì sự tiện lợi mà nó mang lại.'\n3. Giải thích: Cũng khá đúng về ý nghĩa tổng quát, nhưng đáp án B sát với từ ngữ của câu gốc hơn ('enjoy a new invention/technology'). Câu D tóm tắt thành 'convenience' làm mất đi ý nghĩa 'phát minh mới'.",
+                  "isCorrect": false
+                }
+              ],
+              "hint": "Lời khuyên chung 'Everyone should...' có thể viết lại bằng 'I recommend...'."
+            },
+            {
+              "questionNumber": 16,
+              "question": "Exercise 4 - Q1: I/ love/read books / my e-reader/ because/allow/me/carry/multiple books/one device /.",
+              "answerOptions": [
+                {
+                  "text": "I love reading books for my e-reader because it allows me to carry multiple books in one device.",
+                  "rationale": "1. Phân tích:\n- for my e-reader: cho máy đọc sách (sai giới từ).\n2. Dịch nghĩa: 'Tôi thích đọc sách cho máy đọc sách...'\n3. Giải thích: Sai giới từ. Phải dùng 'on' (trên thiết bị).",
+                  "isCorrect": false
+                },
+                {
+                  "text": "I love reading books on my e-reader because it allows me to carry multiple books in one device.",
+                  "rationale": "1. Phân tích:\n- on my e-reader: trên máy đọc sách (đúng).\n- allow sb TO do sth: cho phép ai làm gì (đúng).\n2. Dịch nghĩa: 'Tôi thích đọc sách trên máy đọc sách vì nó cho phép tôi mang theo nhiều sách trong một thiết bị.'\n3. Giải thích: Đúng ngữ pháp và giới từ.",
+                  "isCorrect": true
+                },
+                {
+                  "text": "I love reading books on my e-reader because it allows me carry multiple books one device.",
+                  "rationale": "1. Phân tích:\n- allows me carry: Sai cấu trúc (thiếu 'to').\n- books one device: Thiếu giới từ 'in'.\n2. Dịch nghĩa: Sai ngữ pháp.\n3. Giải thích: Sai cấu trúc Allow.",
+                  "isCorrect": false
+                },
+                {
+                  "text": "I love read books on my e-reader because it allow me to carry multiple books in one device.",
+                  "rationale": "1. Phân tích:\n- Love read: Sai (Phải là Love reading/to read).\n- It allow: Sai (Phải chia 'allows' số ít).\n2. Dịch nghĩa: Sai ngữ pháp.\n3. Giải thích: Sai chia động từ.",
+                  "isCorrect": false
+                }
+              ],
+              "hint": "Cấu trúc: Love + V-ing; Read ON a device; Allow sb TO do sth."
+            },
+            {
+              "questionNumber": 17,
+              "question": "Exercise 4 - Q2: My smartwatch / track / daily step / heart rate / send / me / notification / my phone /.",
+              "answerOptions": [
+                {
+                  "text": "My smartwatch tracks my daily steps, heart rate, and send me notifications from phone.",
+                  "rationale": "1. Phân tích:\n- tracks (đúng) ... and send (sai).\n2. Dịch nghĩa: Sai ngữ pháp.\n3. Giải thích: Chủ ngữ 'My smartwatch' (số ít) nên cả 2 động từ nối bằng 'and' đều phải chia số ít (tracks... sends). Ở đây 'send' chưa chia.",
+                  "isCorrect": false
+                },
+                {
+                  "text": "My smartwatch tracks daily steps, heart rate, and sends me notifications my phone.",
+                  "rationale": "1. Phân tích:\n- notifications my phone: Thiếu giới từ nguồn gốc 'from'.\n2. Dịch nghĩa: Thiếu từ kết nối.\n3. Giải thích: Thiếu giới từ.",
+                  "isCorrect": false
+                },
+                {
+                  "text": "My smartwatch tracks my daily steps, heart rate, and sends me notifications from my phone.",
+                  "rationale": "1. Phân tích:\n- Tracks (V-s): theo dõi.\n- Sends (V-s): gửi.\n- From my phone: từ điện thoại.\n2. Dịch nghĩa: 'Đồng hồ thông minh theo dõi bước chân, nhịp tim và gửi thông báo từ điện thoại cho tôi.'\n3. Giải thích: Đúng ngữ pháp (chia động từ số ít) và giới từ.",
+                  "isCorrect": true
+                },
+                {
+                  "text": "My smartwatch track my daily steps, heart rate, and send me notifications from my phone.",
+                  "rationale": "1. Phân tích:\n- Track / Send: Đều không chia động từ.\n2. Dịch nghĩa: Sai ngữ pháp.\n3. Giải thích: Chủ ngữ số ít phải chia động từ (thêm s/es).",
+                  "isCorrect": false
+                }
+              ],
+              "hint": "Chủ ngữ 'My smartwatch' là số ít -> Động từ thêm 's' (tracks, sends). Notifications FROM my phone."
+            },
+            {
+              "questionNumber": 18,
+              "question": "Exercise 4 - Q3: camcorder / record / family vacation I and / capture / all / of / precious moment /.",
+              "answerOptions": [
+                {
+                  "text": "The camcorder recorded our family vacation and captured all the precious moments.",
+                  "rationale": "1. Phân tích:\n- captured all the precious moments: bắt trọn mọi khoảnh khắc quý giá.\n2. Dịch nghĩa: Đúng nghĩa nhưng thiếu từ gợi ý.\n3. Giải thích: Đáp án này đúng ngữ pháp, nhưng đề bài cho từ gợi ý là 'capture / all / OF / precious moment'. Đáp án này thiếu chữ 'OF'.",
+                  "isCorrect": false
+                },
+                {
+                  "text": "The camcorder recorded our family vacation and captured all of the precious moments.",
+                  "rationale": "1. Phân tích:\n- All of the precious moments: Tất cả những khoảnh khắc quý giá.\n2. Dịch nghĩa: 'Chiếc máy quay đã ghi lại kỳ nghỉ gia đình và bắt trọn tất cả khoảnh khắc quý giá.'\n3. Giải thích: Đúng. Sử dụng đầy đủ các từ gợi ý (bao gồm 'of') và chia thì quá khứ (recorded/captured) phù hợp với ngữ cảnh kể lại kỳ nghỉ.",
+                  "isCorrect": true
+                },
+                {
+                  "text": "The camcorder recorded family vacation and captured all the precious moment.",
+                  "rationale": "1. Phân tích:\n- Precious moment (số ít): Sai, phải là số nhiều 'moments'.\n2. Dịch nghĩa: Sai ngữ pháp.\n3. Giải thích: Danh từ sau 'all' thường số nhiều.",
+                  "isCorrect": false
+                },
+                {
+                  "text": "Camcorder recorded our family vacation and captured all the precious moment.",
+                  "rationale": "1. Phân tích:\n- Thiếu mạo từ đầu câu (The/A).\n- Moment (số ít): Sai.\n2. Dịch nghĩa: Sai ngữ pháp.\n3. Giải thích: Thiếu mạo từ và sai danh từ số nhiều.",
+                  "isCorrect": false
+                }
+              ],
+              "hint": "Chú ý từ gợi ý 'OF' -> phải có cụm 'all of the'. Danh từ 'moment' phải ở số nhiều."
+            },
+            {
+              "questionNumber": 19,
+              "question": "Exercise 4 - Q4: Virtual reality technology / provide / amazing experience / which / allow user / explore new worlds /.",
+              "answerOptions": [
+                {
+                  "text": "Virtual reality technology provide an amazing experience which allows users to explore new worlds.",
+                  "rationale": "1. Phân tích:\n- Technology provide (không chia): Sai.\n2. Dịch nghĩa: Sai ngữ pháp.\n3. Giải thích: Chủ ngữ 'Technology' số ít -> Provide phải thêm 's'.",
+                  "isCorrect": false
+                },
+                {
+                  "text": "Virtual reality technology provides an amazing experience which allow users explore new worlds.",
+                  "rationale": "1. Phân tích:\n- Provides (đúng).\n- Which allow (sai): Đại từ quan hệ 'which' thay thế cho 'experience' (số ít) nên động từ 'allow' phải chia số ít -> 'allows'.\n- Allow users explore (sai): Thiếu 'to'.\n2. Dịch nghĩa: Sai ngữ pháp.\n3. Giải thích: Sai chia động từ sau 'which' và cấu trúc 'allow'.",
+                  "isCorrect": false
+                },
+                {
+                  "text": "Virtual reality technology provide an amazing experience which allows user explore new worlds.",
+                  "rationale": "1. Phân tích:\n- Provide (sai).\n- Allow user explore (sai - thiếu 'to').\n2. Dịch nghĩa: Sai ngữ pháp.\n3. Giải thích: Sai nhiều lỗi ngữ pháp.",
+                  "isCorrect": false
+                },
+                {
+                  "text": "Virtual reality technology provides an amazing experience which allows users to explore new worlds.",
+                  "rationale": "1. Phân tích:\n- Provides (V-s): cung cấp (đúng).\n- Which allows (V-s): cái mà cho phép (đúng, bổ nghĩa cho experience).\n- Allow sb TO do sth: cho phép ai làm gì (đúng).\n2. Dịch nghĩa: 'Công nghệ thực tế ảo cung cấp trải nghiệm tuyệt vời cho phép người dùng khám phá thế giới mới.'\n3. Giải thích: Đúng hoàn toàn ngữ pháp.",
+                  "isCorrect": true
+                }
+              ],
+              "hint": "Chia động từ 'provides' (số ít). Mệnh đề quan hệ 'which allows' (bổ nghĩa cho danh từ số ít). Allow sb TO do sth."
+            },
+            {
+              "questionNumber": 20,
+              "question": "Exercise 4 - Q5: touchscreen / my smartphone / make / it / easy / me / interact I apps and features /.",
+              "answerOptions": [
+                {
+                  "text": "The touchscreen on my smartphone makes it easy for me to interact with apps and features.",
+                  "rationale": "1. Phân tích:\n- Touchscreen ON my smartphone: Màn hình trên điện thoại.\n- Make it + adj + FOR sb + TO V: Làm cho việc gì trở nên ... đối với ai để làm gì.\n- Interact WITH: Tương tác với.\n2. Dịch nghĩa: 'Màn hình cảm ứng trên điện thoại giúp tôi dễ dàng tương tác với các ứng dụng và tính năng.'\n3. Giải thích: Đúng cấu trúc và giới từ.",
+                  "isCorrect": true
+                },
+                {
+                  "text": "The touchscreen my smartphone makes it easy for me to interact with apps and features.",
+                  "rationale": "1. Phân tích:\n- Touchscreen my smartphone: Thiếu giới từ kết nối (on/of).\n2. Dịch nghĩa: Thiếu từ.\n3. Giải thích: Cần giới từ chỉ vị trí.",
+                  "isCorrect": false
+                },
+                {
+                  "text": "The touchscreen on my smartphone makes it easy me to interact with apps and features.",
+                  "rationale": "1. Phân tích:\n- Easy me: Thiếu giới từ 'for'.\n2. Dịch nghĩa: Sai cấu trúc.\n3. Giải thích: Cấu trúc chuẩn là 'easy FOR me'.",
+                  "isCorrect": false
+                },
+                {
+                  "text": "The touchscreen on my smartphone makes it easy for me interact apps and features.",
+                  "rationale": "1. Phân tích:\n- Me interact: Thiếu 'to'.\n- Interact apps: Thiếu 'with'.\n2. Dịch nghĩa: Sai ngữ pháp.\n3. Giải thích: Thiếu 'to' và giới từ 'with'.",
+                  "isCorrect": false
+                }
+              ],
+              "hint": "Cấu trúc giả chủ ngữ: Make it + adj + FOR sb + TO V. Interact WITH sth."
+            }
+          ]
+        };
+
+        // GLOBAL VARIABLES
+        let currentScore = 0;
+        const totalQuestions = quizData.questions.length;
+
+        // FUNCTIONS
+        function renderQuiz() {
+            const container = document.getElementById('quiz-container');
+            container.innerHTML = '';
+
+            quizData.questions.forEach((q, index) => {
+                const questionCard = document.createElement('div');
+                questionCard.className = 'bg-white rounded-3xl p-6 mb-8 shadow-xl border-b-4 border-gray-200 relative overflow-hidden';
+                questionCard.innerHTML = `
+                    <div class="absolute top-0 right-0 p-4 opacity-10">
+                        <svg width="64" height="64" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z"/></svg>
+                    </div>
+                    
+                    <div class="mb-6 relative z-10">
+                        <span class="inline-block bg-teal-100 text-teal-700 text-xs font-bold px-3 py-1 rounded-full mb-2">Question ${index + 1}</span>
+                        <h3 class="text-xl md:text-2xl font-bold text-gray-800 leading-relaxed">${q.question}</h3>
+                        ${q.hint ? `<p class="text-sm text-gray-500 mt-2 italic flex items-center gap-1"><span class="bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded text-xs font-bold">HINT</span> ${q.hint}</p>` : ''}
+                    </div>
+
+                    <div class="grid grid-cols-1 gap-4" id="options-${index}">
+                        ${q.answerOptions.map((opt, optIndex) => `
+                            <div class="option-card rounded-2xl p-4 flex items-center gap-4 group" onclick="checkAnswer(${index}, ${optIndex}, this)">
+                                <div class="w-10 h-10 min-w-[2.5rem] rounded-full bg-gray-100 flex items-center justify-center font-bold text-gray-500 group-hover:bg-purple-100 group-hover:text-purple-600 transition-colors">
+                                    ${String.fromCharCode(65 + optIndex)}
+                                </div>
+                                <div class="text-gray-700 font-semibold group-hover:text-purple-800 text-lg leading-snug">
+                                    ${opt.text}
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+
+                    <div id="explanation-${index}" class="explanation-box mt-6 bg-purple-50 rounded-xl p-6 text-gray-700 relative">
+                        <div class="font-bold text-purple-700 mb-2 flex items-center gap-2">
+                             <span class="text-xl">👩‍🏫</span> Ms Mai An giải thích chi tiết:
+                        </div>
+                        <div class="space-y-4 text-sm md:text-base leading-relaxed" id="explanation-content-${index}">
+                            <!-- Content injected via JS -->
+                        </div>
+                    </div>
+                `;
+                container.appendChild(questionCard);
+            });
+        }
+
+        function checkAnswer(qIndex, optIndex, element) {
+            // Prevent multiple clicks
+            const parent = document.getElementById(`options-${qIndex}`);
+            if (parent.getAttribute('data-answered') === 'true') return;
+            parent.setAttribute('data-answered', 'true');
+
+            const question = quizData.questions[qIndex];
+            const selectedOption = question.answerOptions[optIndex];
+            const explanationBox = document.getElementById(`explanation-${qIndex}`);
+            const explanationContent = document.getElementById(`explanation-content-${qIndex}`);
+
+            // Logic styling
+            const options = parent.children;
+            let correctIndex = -1;
+
+            // Find correct index
+            question.answerOptions.forEach((opt, idx) => {
+                if (opt.isCorrect) correctIndex = idx;
+            });
+
+            if (selectedOption.isCorrect) {
+                // CORRECT
+                element.classList.add('correct');
+                playSound('sound-ding');
+                confettiEffect();
+                currentScore++;
+                updateScore();
+            } else {
+                // INCORRECT
+                element.classList.add('incorrect');
+                // Highlight correct one
+                options[correctIndex].classList.add('correct');
+                playSound('sound-buzz');
+            }
+
+            // GENERATE EXPLANATION CONTENT (Ms Mai An Style)
+            let rationaleHTML = `<p class="font-bold text-gray-900 border-b pb-2 mb-2">${question.question}</p>`;
+            
+            // Format the specific rationale from JSON
+            question.answerOptions.forEach((opt, i) => {
+                const label = String.fromCharCode(65 + i);
+                const isAnsCorrect = opt.isCorrect;
+                const colorClass = isAnsCorrect ? "text-green-600 font-bold" : "text-gray-600";
+                
+                // Convert newlines in rationale to <br>
+                let formattedRationale = opt.rationale.replace(/\n/g, '<br>').replace(/- /g, '• ');
+                
+                rationaleHTML += `
+                    <div class="mb-3 p-3 rounded-lg ${isAnsCorrect ? 'bg-green-50 border border-green-200' : 'bg-white border border-gray-100'}">
+                        <strong class="${colorClass}">Đáp án ${label}:</strong>
+                        <div class="mt-1 pl-2 text-gray-700">${formattedRationale}</div>
+                    </div>
+                `;
+            });
+
+            explanationContent.innerHTML = rationaleHTML;
+            explanationBox.style.display = 'block';
+        }
+
+        function updateScore() {
+            document.getElementById('score-display').innerText = currentScore;
+        }
+
+        function playSound(id) {
+            const audio = document.getElementById(id);
+            if (audio) {
+                audio.currentTime = 0;
+                audio.play().catch(e => console.log("Audio play failed interaction required"));
+            }
+        }
+
+        function confettiEffect() {
+            confetti({
+                particleCount: 100,
+                spread: 70,
+                origin: { y: 0.6 },
+                colors: ['#8854C0', '#00C9A7', '#FF4757']
+            });
+        }
+
+        function finishQuiz() {
+            const modal = document.getElementById('result-modal');
+            const finalScoreEl = document.getElementById('final-score');
+            const msgEl = document.getElementById('feedback-message');
+            
+            finalScoreEl.innerText = `${currentScore} / ${totalQuestions}`;
+            
+            const percentage = (currentScore / totalQuestions) * 100;
+            let msg = "";
+            
+            if (percentage === 100) msg = "Xuất sắc! Bạn là thiên tài tiếng Anh! 🌟";
+            else if (percentage >= 80) msg = "Giỏi lắm! Chỉ còn một chút xíu nữa thôi! 💪";
+            else if (percentage >= 50) msg = "Khá tốt! Hãy xem lại phần giải thích để tiến bộ hơn nhé! 📚";
+            else msg = "Đừng buồn! Thất bại là mẹ thành công. Cố lên! 🔥";
+
+            msgEl.innerText = msg;
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            
+            if (percentage >= 50) playSound('sound-cheer');
+            
+            confetti({
+                particleCount: 200,
+                spread: 100,
+                origin: { y: 0.5 }
+            });
+        }
+
+        function closeModal() {
+            document.getElementById('result-modal').classList.add('hidden');
+            document.getElementById('result-modal').classList.remove('flex');
+        }
+
+        // Initialize
+        renderQuiz();
+
+    </script>
+</body>
+</html>

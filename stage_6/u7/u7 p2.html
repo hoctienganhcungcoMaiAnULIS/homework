@@ -1,0 +1,900 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ms Mai An ULIS - Time Conjunctions Master</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary-pink: #8854C0;
+            --primary-teal: #00C9A7;
+            --correct-green: #00D26A;
+            --wrong-red: #FF4757;
+            --bg-pattern: radial-gradient(#e5e5f7 1px, transparent 1px);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: #f0f4f8;
+            background-image: var(--bg-pattern);
+            background-size: 20px 20px;
+            color: #333;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        h1 {
+            font-family: 'Quicksand', sans-serif;
+            color: var(--primary-pink);
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            text-align: center;
+            background: white;
+            padding: 10px 20px;
+            border-radius: 50px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border: 2px solid var(--primary-teal);
+        }
+
+        /* Progress Bar */
+        .progress-container {
+            width: 100%;
+            max-width: 700px;
+            background-color: #e0e0e0;
+            border-radius: 20px;
+            margin-bottom: 20px;
+            height: 15px;
+            overflow: hidden;
+            border: 2px solid #fff;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background-color: var(--primary-teal);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        /* Card Style */
+        .quiz-card {
+            background: white;
+            width: 100%;
+            max-width: 700px;
+            border-radius: 25px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(136, 84, 192, 0.2);
+            position: relative;
+            animation: slideIn 0.5s ease;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .question-text {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 25px;
+            line-height: 1.5;
+        }
+
+        /* Options Grid */
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        @media (max-width: 600px) {
+            .options-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .option-btn {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 15px;
+            padding: 15px 20px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            font-family: 'Nunito', sans-serif;
+            color: #555;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px 0 #e0e0e0;
+            text-align: left;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .option-btn:hover:not(.disabled) {
+            transform: scale(1.02);
+            border-color: var(--primary-pink);
+            color: var(--primary-pink);
+        }
+
+        .option-btn:active:not(.disabled) {
+            transform: translateY(4px);
+            box-shadow: none;
+        }
+
+        /* States */
+        .option-btn.correct {
+            background-color: var(--correct-green);
+            color: white;
+            border-color: #00b85c;
+            box-shadow: 0 4px 0 #00b85c;
+        }
+
+        .option-btn.wrong {
+            background-color: var(--wrong-red);
+            color: white;
+            border-color: #d63030;
+            box-shadow: 0 4px 0 #d63030;
+            animation: shake 0.5s;
+        }
+
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            50% { transform: translateX(5px); }
+            75% { transform: translateX(-5px); }
+            100% { transform: translateX(0); }
+        }
+
+        .disabled {
+            pointer-events: none;
+        }
+
+        /* Explanation Section */
+        .explanation-container {
+            margin-top: 25px;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-left: 5px solid var(--primary-pink);
+            border-radius: 10px;
+            display: none; /* Hidden by default */
+            animation: fadeIn 0.5s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .exp-header {
+            font-weight: 800;
+            color: var(--primary-pink);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .exp-content p {
+            margin-bottom: 8px;
+            line-height: 1.6;
+            font-size: 1rem;
+        }
+
+        .exp-label {
+            font-weight: 700;
+            color: #444;
+            text-decoration: underline;
+        }
+
+        .vocab-list {
+            background: #fff;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px dashed #ccc;
+            margin-bottom: 10px;
+        }
+
+        .vocab-item {
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        /* Navigation */
+        .nav-btn {
+            margin-top: 20px;
+            background-color: var(--primary-pink);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(136, 84, 192, 0.4);
+            display: none; /* Hidden until answer selected */
+            float: right;
+            transition: transform 0.2s;
+        }
+
+        .nav-btn:hover {
+            transform: scale(1.05);
+            background-color: #7044a0;
+        }
+
+        /* Popup Score */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 40px;
+            border-radius: 30px;
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            animation: popUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border: 4px solid var(--primary-teal);
+        }
+
+        @keyframes popUp {
+            from { transform: scale(0.5); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .score-display {
+            font-size: 3rem;
+            font-weight: 800;
+            color: var(--primary-pink);
+            margin: 20px 0;
+        }
+
+        .feedback-msg {
+            font-size: 1.2rem;
+            color: #555;
+            margin-bottom: 20px;
+        }
+
+        .restart-btn {
+            background: var(--primary-teal);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 50px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 4px 0 #009e82;
+        }
+        
+        /* Confetti Canvas */
+        #confetti-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 999;
+        }
+
+        /* Mobile specific adjustments */
+        @media (max-width: 480px) {
+            h1 { font-size: 1.2rem; }
+            .quiz-card { padding: 20px; }
+            .question-text { font-size: 1.1rem; }
+        }
+
+    </style>
+</head>
+<body>
+
+    <canvas id="confetti-canvas"></canvas>
+
+    <h1>Ms Mai An ULIS - Time Conjunctions Challenge</h1>
+
+    <div class="progress-container">
+        <div class="progress-bar" id="progress-bar"></div>
+    </div>
+
+    <div class="quiz-card" id="quiz-container">
+        <div id="question-area">
+            <div class="question-text" id="question-text">
+                Loading question...
+            </div>
+            <div class="options-grid" id="options-area">
+                </div>
+        </div>
+
+        <div class="explanation-container" id="explanation-area">
+            <div class="exp-header">
+                <span>👩‍🏫</span> Cô Mai An giải thích chi tiết:
+            </div>
+            <div class="exp-content" id="exp-text">
+                </div>
+        </div>
+
+        <button class="nav-btn" id="next-btn" onclick="nextQuestion()">Câu tiếp theo ➜</button>
+    </div>
+
+    <div class="modal-overlay" id="result-modal">
+        <div class="modal-content">
+            <h2>🎉 HOÀN THÀNH! 🎉</h2>
+            <div class="score-display" id="final-score">0/30</div>
+            <p class="feedback-msg" id="final-feedback">Bạn làm rất tốt!</p>
+            <button class="restart-btn" onclick="restartQuiz()">Làm lại bài thi</button>
+        </div>
+    </div>
+
+    <script>
+        /* =========================================
+           DATA SOURCE (30 QUESTIONS - SHUFFLED)
+           ========================================= */
+        const rawQuestions = [
+            {
+                q: "________ the earthquake is happening, don't move from where you are.",
+                options: ["While", "Until", "Before", "After"],
+                correct: 0,
+                exp: {
+                    vocab: "A. While (Trong khi); B. Until (Cho tới khi); C. Before (Trước khi); D. After (Sau khi).",
+                    trans: "Trong khi trận động đất đang xảy ra, đừng di chuyển khỏi chỗ của bạn.",
+                    correct: "A. While. Ta thấy động từ 'is happening' (tiếp diễn) -> diễn tả hành động đang xảy ra. Quy tắc: Dùng 'While' để nói về hai hành động xảy ra song song hoặc một hành động đang diễn ra.",
+                    wrong: "Loại B, C, D vì sai ngữ cảnh. Ta không thể đợi 'cho tới khi' hay 'sau khi' động đất xảy ra mới 'không di chuyển', mà phải làm ngay trong lúc nó đang diễn ra."
+                }
+            },
+            {
+                q: "________ the shaking starts, get down on your hands and knees immediately.",
+                options: ["As soon as", "While", "Until", "Before"],
+                correct: 0,
+                exp: {
+                    vocab: "A. As soon as (Ngay khi); B. While (Trong khi); C. Until (Cho tới khi); D. Before (Trước khi).",
+                    trans: "Ngay khi sự rung lắc bắt đầu, hãy quỳ xuống bằng tay và đầu gối ngay lập tức.",
+                    correct: "A. As soon as. Cụm từ 'immediately' (ngay lập tức) ở cuối câu là dấu hiệu nhận biết hành động phản xạ nhanh -> Dùng 'As soon as' (Vừa mới... thì...).",
+                    wrong: "B sai vì 'While' dùng cho hành động kéo dài. C sai vì không ai đợi đến khi hết rung mới quỳ. D sai vì ta không biết trước lúc nào rung lắc để quỳ trước."
+                }
+            },
+            {
+                q: "Stay inside ________ the shaking stops. Do not run outside!",
+                options: ["until", "while", "as soon as", "before"],
+                correct: 0,
+                exp: {
+                    vocab: "A. until (cho đến khi); B. while (trong khi); C. as soon as (ngay khi); D. before (trước khi).",
+                    trans: "Hãy ở yên trong nhà cho đến khi sự rung lắc dừng lại. Đừng chạy ra ngoài!",
+                    correct: "A. until. Câu mệnh lệnh 'Stay inside' (ở yên) yêu cầu duy trì hành động đó tới một giới hạn thời gian cụ thể (khi rung lắc dừng) -> Dùng 'Until' để chỉ điểm dừng.",
+                    wrong: "B sai vì nếu dùng 'while' nghĩa là chỉ ở trong nhà lúc rung lắc, nhưng sắc thái 'Until' nhấn mạnh giới hạn thời gian tốt hơn. C, D sai ngữ nghĩa hoàn toàn."
+                }
+            },
+            {
+                q: "Make sure you know what to do ________ an earthquake happens.",
+                options: ["before", "while", "until", "as soon as"],
+                correct: 0,
+                exp: {
+                    vocab: "A. before (trước khi); B. while (trong khi); C. until (cho đến khi); D. as soon as (ngay khi).",
+                    trans: "Hãy chắc chắn bạn biết phải làm gì trước khi một trận động đất xảy ra.",
+                    correct: "A. before. Việc 'chuẩn bị kiến thức' phải được thực hiện trước sự kiện -> Dùng 'Before' để chỉ thứ tự ưu tiên.",
+                    wrong: "B, C, D không hợp lý. Không ai đợi động đất đang xảy ra (while) hoặc xong rồi (after) mới đi học cách phòng tránh."
+                }
+            },
+            {
+                q: "________ an earthquake happens, there is usually a lot of damage.",
+                options: ["After", "Before", "While", "Until"],
+                correct: 0,
+                exp: {
+                    vocab: "A. After (Sau khi); B. Before (Trước khi); C. While (Trong khi); D. Until (Cho đến khi).",
+                    trans: "Sau khi trận động đất xảy ra, thường có rất nhiều thiệt hại.",
+                    correct: "A. After. 'Thiệt hại' (damage) là hậu quả, nên nó phải xuất hiện sau sự kiện -> Dùng 'After'.",
+                    wrong: "B sai vì chưa động đất thì chưa có thiệt hại. C sai vì 'While' dùng khi đang diễn ra, lúc đó chưa thống kê được thiệt hại."
+                }
+            },
+            {
+                q: "You can go outside ________ the storm stops.",
+                options: ["as soon as", "while", "until", "during"],
+                correct: 0,
+                exp: {
+                    vocab: "A. as soon as (ngay khi); B. while (trong khi); C. until (cho đến khi); D. during (trong suốt).",
+                    trans: "Bạn có thể ra ngoài ngay khi bão tan.",
+                    correct: "A. As soon as. Diễn tả hành động được phép làm ngay lập tức sau khi hành động kia kết thúc.",
+                    wrong: "B sai vì bão đang tan thì không nên ra. C sai nghĩa (bạn có thể ra ngoài cho tới khi bão tan -> nghĩa là bão tan thì phải vào nhà? Sai logic)."
+                }
+            },
+            {
+                q: "Chọn câu viết ĐÚNG chính tả (dấu câu):",
+                options: ["As soon as the shaking stops you can leave.", "As soon as, the shaking stops you can leave.", "As soon as the shaking stops, you can leave.", "As soon as the shaking stops; you can leave."],
+                correct: 2,
+                exp: {
+                    vocab: "Kiểm tra quy tắc dấu phẩy (Comma).",
+                    trans: "Ngay khi sự rung lắc dừng lại, bạn có thể rời đi.",
+                    correct: "C. As soon as the shaking stops, you can leave. Quy tắc: Khi từ nối (As soon as) đứng ĐẦU câu, bắt buộc phải có dấu phẩy (,) ngăn cách hai vế câu.",
+                    wrong: "A thiếu dấu phẩy. B đặt dấu phẩy sai vị trí (sau từ nối). D dùng dấu chấm phẩy (;) là sai."
+                }
+            },
+            {
+                q: "Chọn câu viết ĐÚNG chính tả (dấu câu):",
+                options: ["You can leave, as soon as the shaking stops.", "You can leave as soon as the shaking stops.", "You, can leave as soon as the shaking stops.", "You can leave as soon as, the shaking stops."],
+                correct: 1,
+                exp: {
+                    vocab: "Kiểm tra quy tắc dấu phẩy (Comma).",
+                    trans: "Bạn có thể rời đi ngay khi sự rung lắc dừng lại.",
+                    correct: "B. You can leave as soon as the shaking stops. Quy tắc: Khi từ nối (as soon as) đứng GIỮA câu, KHÔNG dùng dấu phẩy.",
+                    wrong: "A thừa dấu phẩy trước từ nối. C, D đặt dấu phẩy sai chỗ."
+                }
+            },
+            {
+                q: "I was cooking dinner ________ the phone rang.",
+                options: ["while", "until", "as soon as", "when"],
+                correct: 3,
+                exp: {
+                    vocab: "A. while; B. until; C. as soon as; D. when.",
+                    trans: "Tôi đang nấu bữa tối thì điện thoại reo.",
+                    correct: "D. when. (Lưu ý nâng cao: Mặc dù bài học tập trung vào While, nhưng ở đây hành động 'nấu ăn' đang xảy ra (was cooking) thì hành động 'điện thoại reo' cắt ngang -> Dùng When. Tuy nhiên, nếu bắt buộc chọn trong nhóm từ nối đã học, ta xét ngữ cảnh). *Ở câu này đáp án đúng nhất theo ngữ pháp kinh điển là When, nhưng trong bài này ta chọn đáp án phù hợp nhất nếu không có When* -> Nhưng đề bài cho D là When nên chọn D.",
+                    wrong: "A. While thường đi với V-ing (While I was cooking...). Nếu điền While vào đây: 'I was cooking While the phone rang' (Tôi đang nấu trong khi điện thoại reo) -> Nghe hơi gượng vì 'rang' là hành động ngắn."
+                }
+            },
+            {
+                q: "________ it is raining, we should stay inside.",
+                options: ["While", "Until", "Before", "After"],
+                correct: 0,
+                exp: {
+                    vocab: "A. While (Trong khi); B. Until (Cho tới khi); C. Before (Trước khi); D. After (Sau khi).",
+                    trans: "Trong khi trời đang mưa, chúng ta nên ở trong nhà.",
+                    correct: "A. While. Diễn tả bối cảnh đang diễn ra (is raining).",
+                    wrong: "B. 'Cho tới khi trời đang mưa' -> Sai ngữ pháp/ngữ nghĩa. C. 'Trước khi trời đang mưa' -> Sai thì tiếp diễn. D. 'Sau khi trời đang mưa' -> Sai thì."
+                }
+            },
+            {
+                q: "Don't open the door ________ the train stops completely.",
+                options: ["until", "while", "as soon as", "during"],
+                correct: 0,
+                exp: {
+                    vocab: "A. until (cho đến khi); B. while (trong khi); C. as soon as (ngay khi); D. during (trong suốt).",
+                    trans: "Đừng mở cửa cho đến khi tàu dừng hẳn.",
+                    correct: "A. until. Diễn tả giới hạn của hành động 'Don't open' (Không mở). Chờ đến điểm mốc 'tàu dừng' mới được mở.",
+                    wrong: "B sai vì không được mở 'trong khi' tàu dừng (quá trình dừng chưa xong). C sai logic (Đừng mở ngay khi tàu dừng -> Vậy bao giờ mới mở?)."
+                }
+            },
+            {
+                q: "Please wash your hands ________ you eat dinner.",
+                options: ["before", "after", "while", "until"],
+                correct: 0,
+                exp: {
+                    vocab: "A. before (trước khi); B. after (sau khi); C. while (trong khi); D. until (cho tới khi).",
+                    trans: "Làm ơn rửa tay trước khi bạn ăn tối.",
+                    correct: "A. before. Quy tắc vệ sinh và thứ tự hành động: Rửa tay -> Ăn.",
+                    wrong: "B. Ăn xong mới rửa tay thì không vệ sinh. C. Vừa ăn vừa rửa tay? Không thể. D. Rửa tay cho tới khi ăn -> Rửa quá lâu!"
+                }
+            },
+            {
+                q: "________ I finished my homework, I watched TV.",
+                options: ["After", "While", "Until", "During"],
+                correct: 0,
+                exp: {
+                    vocab: "A. After (Sau khi); B. While (Trong khi); C. Until (Cho tới khi); D. During (Trong suốt).",
+                    trans: "Sau khi tôi làm xong bài tập, tôi đã xem TV.",
+                    correct: "A. After. Diễn tả trình tự: Xong việc A rồi mới làm việc B.",
+                    wrong: "B. 'Trong khi tôi xong bài tập' -> 'Finished' là hành động chấm dứt, không kéo dài nên không dùng While. C. Sai nghĩa. D. During + Danh từ, không đi với mệnh đề."
+                }
+            },
+            {
+                q: "My dad reads the newspaper ________ he is drinking coffee.",
+                options: ["while", "until", "before", "after"],
+                correct: 0,
+                exp: {
+                    vocab: "A. while (trong khi); B. until (cho tới khi); C. before (trước khi); D. after (sau khi).",
+                    trans: "Bố tôi đọc báo trong khi ông ấy đang uống cà phê.",
+                    correct: "A. while. Hai hành động 'đọc báo' và 'uống cà phê' diễn ra song song cùng lúc (At the same time).",
+                    wrong: "B, C, D không diễn tả được ý nghĩa 'song song' của hai hành động này."
+                }
+            },
+            {
+                q: "We waited at the station ________ the bus arrived.",
+                options: ["until", "while", "as soon as", "before"],
+                correct: 0,
+                exp: {
+                    vocab: "A. until (cho tới khi); B. while (trong khi); C. as soon as (ngay khi); D. before (trước khi).",
+                    trans: "Chúng tôi đã đợi ở nhà ga cho đến khi xe buýt đến.",
+                    correct: "A. until. Hành động 'waited' (đợi) kéo dài và kết thúc tại thời điểm 'bus arrived'.",
+                    wrong: "B. Trong khi xe buýt đến (chỉ 1 khoảnh khắc). C. Ngay khi xe buýt đến (không hợp với động từ wait). D. Đợi trước khi xe đến (Hiển nhiên, nhưng Until rõ nghĩa giới hạn thời gian hơn)."
+                }
+            },
+            {
+                q: "She brushed her teeth ________ she went to bed.",
+                options: ["before", "after", "while", "until"],
+                correct: 0,
+                exp: {
+                    vocab: "A. before (trước khi); B. after (sau khi); C. while (trong khi); D. until (cho tới khi).",
+                    trans: "Cô ấy đánh răng trước khi đi ngủ.",
+                    correct: "A. before. Trình tự logic thông thường: Đánh răng -> Đi ngủ.",
+                    wrong: "B. Đi ngủ rồi mới đánh răng? C. Vừa ngủ vừa đánh răng? D. Đánh răng cho tới khi ngủ (nghe rất mệt!)."
+                }
+            },
+            {
+                q: "________ the teacher walked in, everyone stood up.",
+                options: ["As soon as", "While", "Until", "During"],
+                correct: 0,
+                exp: {
+                    vocab: "A. As soon as (Ngay khi); B. While (Trong khi); C. Until (Cho tới khi); D. During (Trong suốt).",
+                    trans: "Ngay khi giáo viên bước vào, mọi người đều đứng dậy.",
+                    correct: "A. As soon as. Diễn tả phản xạ tức thì, hành động nối tiếp nhau rất nhanh.",
+                    wrong: "B. 'Trong khi giáo viên bước vào' (kéo dài) -> mọi người đứng dậy (ngắn). Thường dùng When hoặc As soon as hợp hơn. C. Sai nghĩa."
+                }
+            },
+            {
+                q: "Do not touch the oven ________ it cools down.",
+                options: ["until", "while", "as soon as", "during"],
+                correct: 0,
+                exp: {
+                    vocab: "A. until (cho đến khi); B. while (trong khi); C. as soon as (ngay khi); D. during (trong suốt).",
+                    trans: "Đừng chạm vào lò nướng cho đến khi nó nguội đi.",
+                    correct: "A. until. Đặt giới hạn an toàn: Nóng -> Không chạm. Nguội (điểm dừng) -> Được chạm.",
+                    wrong: "B. Không chạm trong khi nó nguội (nghĩa là nguội rồi chạm được chưa? Chưa rõ). C. Đừng chạm ngay khi nó nguội (Sai, nguội rồi thì chạm được)."
+                }
+            },
+            {
+                q: "I will call you ________ I arrive at the airport.",
+                options: ["as soon as", "while", "until", "during"],
+                correct: 0,
+                exp: {
+                    vocab: "A. as soon as (ngay khi); B. while (trong khi); C. until (cho tới khi); D. during (trong suốt).",
+                    trans: "Tôi sẽ gọi cho bạn ngay khi tôi đến sân bay.",
+                    correct: "A. as soon as. Diễn tả hành động sẽ làm ngay lập tức khi đến nơi.",
+                    wrong: "B. Vừa đến vừa gọi (khó xảy ra, thường là đến xong mới gọi). C. Gọi cho tới khi đến (gọi suốt đường đi?)."
+                }
+            },
+            {
+                q: "Please clean your room ________ you go out with friends.",
+                options: ["before", "after", "while", "until"],
+                correct: 0,
+                exp: {
+                    vocab: "A. before (trước khi); B. after (sau khi); C. while (trong khi); D. until (cho tới khi).",
+                    trans: "Làm ơn dọn phòng trước khi đi chơi với bạn.",
+                    correct: "A. before. Điều kiện tiên quyết: Dọn phòng xong -> Mới được đi.",
+                    wrong: "B. Đi chơi về mới dọn (thường bố mẹ không thích điều này!). C. Vừa đi chơi vừa dọn? D. Dọn cho tới khi đi chơi."
+                }
+            },
+            {
+                q: "________ he was running, he dropped his wallet.",
+                options: ["While", "Until", "After", "As soon as"],
+                correct: 0,
+                exp: {
+                    vocab: "A. While (Trong khi); B. Until (Cho tới khi); C. After (Sau khi); D. As soon as (Ngay khi).",
+                    trans: "Trong khi anh ấy đang chạy, anh ấy đã làm rơi ví.",
+                    correct: "A. While. Mệnh đề 'was running' là quá khứ tiếp diễn -> Bối cảnh nền. Hành động 'dropped' chen ngang.",
+                    wrong: "B. Cho tới khi chạy... làm rơi (Sai nghĩa). C. Sau khi chạy... (Có thể, nhưng cấu trúc was running thường đi với While). D. Ngay khi đang chạy... (Ít dùng)."
+                }
+            },
+            {
+                q: "We stayed in the tent ________ the rain stopped.",
+                options: ["until", "while", "as soon as", "before"],
+                correct: 0,
+                exp: {
+                    vocab: "A. until (cho đến khi); B. while (trong khi); C. as soon as (ngay khi); D. before (trước khi).",
+                    trans: "Chúng tôi ở trong lều cho đến khi mưa tạnh.",
+                    correct: "A. until. Hành động 'stayed' kéo dài tới mốc thời gian 'rain stopped'.",
+                    wrong: "B. Trong khi mưa tạnh (Mưa tạnh là khoảnh khắc, không kéo dài). C. Ngay khi mưa tạnh (chúng tôi ở trong lều? Sai, tạnh rồi phải ra chứ)."
+                }
+            },
+            {
+                q: "You must fasten your seatbelt ________ the plane takes off.",
+                options: ["before", "after", "while", "until"],
+                correct: 0,
+                exp: {
+                    vocab: "A. before (trước khi); B. after (sau khi); C. while (trong khi); D. until (cho tới khi).",
+                    trans: "Bạn phải thắt dây an toàn trước khi máy bay cất cánh.",
+                    correct: "A. before. Quy tắc an toàn hàng không: Thắt dây -> Máy bay bay.",
+                    wrong: "B. Bay xong mới thắt (Quá muộn). C. Vừa bay vừa thắt (Nguy hiểm). D. Thắt cho tới khi cất cánh (Cất cánh xong tháo ra luôn? Sai quy tắc)."
+                }
+            },
+            {
+                q: "________ I saw the accident, I called the police.",
+                options: ["As soon as", "While", "Until", "Before"],
+                correct: 0,
+                exp: {
+                    vocab: "A. As soon as (Ngay khi); B. While (Trong khi); C. Until (Cho tới khi); D. Before (Trước khi).",
+                    trans: "Ngay khi tôi nhìn thấy tai nạn, tôi đã gọi cảnh sát.",
+                    correct: "A. As soon as. Hành động phản ứng khẩn cấp.",
+                    wrong: "B. Trong khi nhìn thấy (đang nhìn thì gọi). C. Cho tới khi nhìn thấy. D. Trước khi nhìn thấy (Tiên tri?)."
+                }
+            },
+            {
+                q: "Keep stirring the soup ________ it boils.",
+                options: ["until", "while", "as soon as", "before"],
+                correct: 0,
+                exp: {
+                    vocab: "A. until (cho đến khi); B. while (trong khi); C. as soon as (ngay khi); D. before (trước khi).",
+                    trans: "Hãy tiếp tục khuấy súp cho đến khi nó sôi.",
+                    correct: "A. until. Hành động 'stirring' (khuấy) liên tục tới điểm dừng 'boils' (sôi).",
+                    wrong: "B. Trong khi nó sôi (nó sôi rồi thì khuấy làm gì nữa hoặc khó khuấy). C. Ngay khi nó sôi. D. Trước khi nó sôi (Đúng, nhưng Until rõ nghĩa giới hạn hơn)."
+                }
+            },
+            {
+                q: "________ she finished reading, she closed the book.",
+                options: ["As soon as", "While", "Until", "Before"],
+                correct: 0,
+                exp: {
+                    vocab: "A. As soon as (Ngay khi); B. While (Trong khi); C. Until (Cho tới khi); D. Before (Trước khi).",
+                    trans: "Ngay khi cô ấy đọc xong, cô ấy gấp sách lại.",
+                    correct: "A. As soon as. Hai hành động nối tiếp nhau.",
+                    wrong: "B. Trong khi cô ấy xong (Sai ngữ pháp vì finish là động từ dứt điểm). C. Cho tới khi xong... gấp sách (Cấu trúc lạ). D. Trước khi xong... gấp sách (Vô lý)."
+                }
+            },
+            {
+                q: "My mother always checks the doors ________ going to bed.",
+                options: ["before", "after", "while", "until"],
+                correct: 0,
+                exp: {
+                    vocab: "A. before (trước khi); B. after (sau khi); C. while (trong khi); D. until (cho tới khi).",
+                    trans: "Mẹ tôi luôn kiểm tra cửa trước khi đi ngủ.",
+                    correct: "A. before. (Lưu ý: before + V-ing). Kiểm tra an toàn trước.",
+                    wrong: "B. Ngủ xong mới kiểm tra? C. Vừa ngủ vừa kiểm tra? D. Kiểm tra cho tới khi ngủ."
+                }
+            },
+            {
+                q: "Check spelling check: While I was studying, my brother was playing games.",
+                options: ["Correct", "Incorrect (Missing comma)", "Incorrect (Wrong word)", "Incorrect (No comma needed)"],
+                correct: 0,
+                exp: {
+                    vocab: "A. Đúng; B. Sai (Thiếu dấu phẩy); C. Sai (Sai từ); D. Sai (Không cần dấu phẩy).",
+                    trans: "Trong khi tôi đang học, em trai tôi đang chơi game.",
+                    correct: "A. Correct. Cấu trúc: While + S + V, S + V. Vì 'While' đứng đầu câu nên CẦN dấu phẩy ở giữa.",
+                    wrong: "Câu này viết hoàn toàn đúng chính tả và ngữ pháp."
+                }
+            },
+            {
+                q: "Check spelling check: My brother was playing games while I was studying.",
+                options: ["Correct", "Incorrect (Needs comma)", "Incorrect (Wrong order)", "Incorrect (Spelling error)"],
+                correct: 0,
+                exp: {
+                    vocab: "A. Đúng; B. Sai (Cần dấu phẩy); C. Sai (Sai trật tự); D. Sai (Lỗi chính tả).",
+                    trans: "Em trai tôi đang chơi game trong khi tôi đang học.",
+                    correct: "A. Correct. Cấu trúc: S + V + While + S + V. Vì 'While' đứng GIỮA câu nên KHÔNG CẦN dấu phẩy.",
+                    wrong: "B sai vì giữa câu không cần phẩy."
+                }
+            },
+            {
+                q: "________ the fire alarm rings, leave the building immediately.",
+                options: ["If/As soon as", "While", "Until", "Before"],
+                correct: 0,
+                exp: {
+                    vocab: "A. If/As soon as (Nếu/Ngay khi); B. While (Trong khi); C. Until (Cho tới khi); D. Before (Trước khi).",
+                    trans: "Ngay khi chuông báo cháy reo, hãy rời tòa nhà ngay lập tức.",
+                    correct: "A. As soon as. Tình huống khẩn cấp, cần hành động ngay.",
+                    wrong: "B. Trong khi chuông reo (cứ thong thả?). C. Cho tới khi chuông reo (mới rời đi? - Nghe có vẻ đúng nhưng As soon as mang tính mệnh lệnh khẩn cấp hơn). D. Trước khi chuông reo (Không ai biết trước)."
+                }
+            }
+        ];
+
+        /* =========================================
+           LOGIC & FUNCTIONS
+           ========================================= */
+        
+        // Sound Effects (Synthesized to keep single file small & reliable)
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        function playSound(type) {
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            const osc = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            osc.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+
+            if (type === 'correct') {
+                // Ding sound (High pitch sine wave fade out)
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(600, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.1);
+                gainNode.gain.setValueAtTime(0.5, audioCtx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.5);
+            } else if (type === 'wrong') {
+                // Buzz sound (Low pitch sawtooth wobbly)
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+                osc.frequency.linearRampToValueAtTime(100, audioCtx.currentTime + 0.3);
+                gainNode.gain.setValueAtTime(0.5, audioCtx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.4);
+            }
+        }
+
+        // Shuffle function
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        // Confetti Logic
+        const canvas = document.getElementById('confetti-canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        let confetti = [];
+
+        function fireConfetti() {
+            confetti = [];
+            for (let i = 0; i < 100; i++) {
+                confetti.push({
+                    x: window.innerWidth / 2,
+                    y: window.innerHeight / 2,
+                    w: Math.random() * 10 + 5,
+                    h: Math.random() * 10 + 5,
+                    vx: Math.random() * 20 - 10,
+                    vy: Math.random() * 20 - 10,
+                    c: `hsl(${Math.random() * 360}, 100%, 50%)`
+                });
+            }
+            animateConfetti();
+        }
+
+        function animateConfetti() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            confetti.forEach((p, i) => {
+                p.x += p.vx;
+                p.y += p.vy;
+                p.vy += 0.5; // Gravity
+                ctx.fillStyle = p.c;
+                ctx.fillRect(p.x, p.y, p.w, p.h);
+            });
+            confetti = confetti.filter(p => p.y < window.innerHeight);
+            if (confetti.length > 0) requestAnimationFrame(animateConfetti);
+        }
+
+        // Quiz State
+        let currentQuestions = [];
+        let currentIndex = 0;
+        let score = 0;
+        let isAnswered = false;
+
+        function initQuiz() {
+            // Clone and shuffle
+            currentQuestions = JSON.parse(JSON.stringify(rawQuestions));
+            shuffleArray(currentQuestions);
+            currentIndex = 0;
+            score = 0;
+            scoreDisplay = 0;
+            document.getElementById('result-modal').style.display = 'none';
+            renderQuestion();
+            updateProgress();
+        }
+
+        function updateProgress() {
+            const percent = ((currentIndex) / currentQuestions.length) * 100;
+            document.getElementById('progress-bar').style.width = `${percent}%`;
+        }
+
+        function renderQuestion() {
+            isAnswered = false;
+            const q = currentQuestions[currentIndex];
+            
+            // Render Text
+            document.getElementById('question-text').innerText = `Câu ${currentIndex + 1}/${currentQuestions.length}: ${q.q}`;
+            
+            // Render Options
+            const optionsHtml = q.options.map((opt, index) => 
+                `<button class="option-btn" onclick="checkAnswer(${index})">${String.fromCharCode(65 + index)}. ${opt}</button>`
+            ).join('');
+            document.getElementById('options-area').innerHTML = optionsHtml;
+
+            // Reset UI
+            document.getElementById('explanation-area').style.display = 'none';
+            document.getElementById('next-btn').style.display = 'none';
+            
+            // Scroll to top
+            window.scrollTo(0, 0);
+        }
+
+        function checkAnswer(selectedIndex) {
+            if (isAnswered) return;
+            isAnswered = true;
+
+            const q = currentQuestions[currentIndex];
+            const buttons = document.querySelectorAll('.option-btn');
+            
+            // Visual Feedback
+            if (selectedIndex === q.correct) {
+                buttons[selectedIndex].classList.add('correct');
+                playSound('correct');
+                fireConfetti();
+                score++;
+            } else {
+                buttons[selectedIndex].classList.add('wrong');
+                buttons[q.correct].classList.add('correct'); // Show correct answer
+                playSound('wrong');
+            }
+
+            // Disable all buttons
+            buttons.forEach(btn => btn.classList.add('disabled'));
+
+            // Show Explanation
+            showExplanation(q);
+
+            // Show Next Button
+            const nextBtn = document.getElementById('next-btn');
+            nextBtn.style.display = 'block';
+            
+            if (currentIndex === currentQuestions.length - 1) {
+                nextBtn.innerText = "Nộp bài & Xem điểm 🏁";
+            } else {
+                nextBtn.innerText = "Câu tiếp theo ➜";
+            }
+        }
+
+        function showExplanation(q) {
+            const expDiv = document.getElementById('explanation-area');
+            const expText = document.getElementById('exp-text');
+            
+            let html = `
+                <div class="vocab-list">
+                    <span class="vocab-item">📚 <b>Từ vựng:</b> ${q.exp.vocab}</span>
+                </div>
+                <p><span class="exp-label">Dịch câu:</span> "${q.exp.trans}"</p>
+                <hr style="margin: 10px 0; border: 0; border-top: 1px dashed #ccc;">
+                <p style="color: var(--correct-green);"><span class="exp-label">Tại sao ĐÚNG?</span> ${q.exp.correct}</p>
+                <p style="color: var(--wrong-red);"><span class="exp-label">Tại sao SAI?</span> ${q.exp.wrong}</p>
+            `;
+            
+            expText.innerHTML = html;
+            expDiv.style.display = 'block';
+            
+            // Auto scroll to explanation
+            expDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        function nextQuestion() {
+            if (currentIndex < currentQuestions.length - 1) {
+                currentIndex++;
+                updateProgress();
+                renderQuestion();
+            } else {
+                showResult();
+            }
+        }
+
+        function showResult() {
+            document.getElementById('result-modal').style.display = 'flex';
+            document.getElementById('final-score').innerText = `${score}/${currentQuestions.length}`;
+            
+            const msg = document.getElementById('final-feedback');
+            const percentage = (score / currentQuestions.length) * 100;
+            
+            if (percentage === 100) msg.innerText = "Xuất sắc! Bạn là thiên tài Time Conjunctions! 🌟";
+            else if (percentage >= 80) msg.innerText = "Giỏi lắm! Chỉ sai một chút thôi! 💪";
+            else if (percentage >= 50) msg.innerText = "Cố gắng lên! Bạn đã nắm được cơ bản rồi. 👍";
+            else msg.innerText = "Đừng buồn! Hãy xem lại giải thích và thử lại nhé! ❤️";
+            
+            fireConfetti();
+        }
+
+        function restartQuiz() {
+            initQuiz();
+        }
+
+        // Start
+        initQuiz();
+
+    </script>
+</body>
+</html>

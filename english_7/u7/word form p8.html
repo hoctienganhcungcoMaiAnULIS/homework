@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Word Form Quiz - Ms Mai An ULIS</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
+    <!-- Tailwind CSS for layout -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Confetti Library -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        :root {
+            --primary-pink: #8854C0;
+            --primary-teal: #00C9A7;
+            --correct-green: #00D26A;
+            --wrong-red: #FF4757;
+            --bg-light: #F0F4F8;
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: var(--bg-light);
+            background-image: radial-gradient(#8854C0 0.5px, transparent 0.5px), radial-gradient(#8854C0 0.5px, #F0F4F8 0.5px);
+            background-size: 20px 20px;
+            background-position: 0 0, 10px 10px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-x: hidden;
+        }
+
+        .header-teacher {
+            font-size: 0.8rem;
+            color: #666;
+            margin-top: 10px;
+            font-weight: 700;
+        }
+
+        .game-container {
+            width: 95%;
+            max-width: 800px;
+            margin: 20px auto;
+            perspective: 1000px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 12px 0px rgba(0,0,0,0.1);
+            padding: 30px;
+            position: relative;
+            transition: transform 0.3s;
+        }
+
+        .question-text {
+            font-size: 1.4rem;
+            font-weight: 900;
+            color: #2D3436;
+            line-height: 1.6;
+            margin-bottom: 25px;
+        }
+
+        .option-btn {
+            width: 100%;
+            background: white;
+            border: 3px solid #E2E8F0;
+            border-radius: 20px;
+            padding: 18px;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 6px 0px #E2E8F0;
+            text-align: left;
+            display: flex;
+            align-items: center;
+        }
+
+        .option-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            border-color: var(--primary-teal);
+            box-shadow: 0 8px 0px var(--primary-teal);
+            background-color: #F0FFFC;
+        }
+
+        .option-btn:active:not(:disabled) {
+            transform: translateY(4px);
+            box-shadow: 0 2px 0px var(--primary-teal);
+        }
+
+        .option-btn.correct {
+            background-color: var(--correct-green) !important;
+            color: white !important;
+            border-color: #00A955 !important;
+            box-shadow: 0 6px 0px #008141 !important;
+        }
+
+        .option-btn.wrong {
+            background-color: var(--wrong-red) !important;
+            color: white !important;
+            border-color: #D63031 !important;
+            box-shadow: 0 6px 0px #B32D2D !important;
+            animation: shake 0.5s;
+        }
+
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            50% { transform: translateX(10px); }
+            75% { transform: translateX(-10px); }
+            100% { transform: translateX(0); }
+        }
+
+        .explanation-box {
+            margin-top: 20px;
+            padding: 20px;
+            border-radius: 15px;
+            background-color: #F8F9FA;
+            border-left: 6px solid var(--primary-pink);
+            display: none;
+            animation: fadeIn 0.5s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .progress-bar-container {
+            width: 100%;
+            height: 15px;
+            background: #E2E8F0;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary-teal), var(--primary-pink));
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
+        /* Result Popup */
+        #result-modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 40px;
+            border-radius: 30px;
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 20px 0px var(--primary-pink);
+        }
+
+        .glossary-table {
+            width: 100%;
+            margin-top: 30px;
+            border-collapse: collapse;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+
+        .glossary-table th {
+            background-color: var(--primary-pink);
+            color: white;
+            padding: 12px;
+            text-align: left;
+        }
+
+        .glossary-table td {
+            background-color: white;
+            padding: 10px;
+            border-bottom: 1px solid #EEE;
+        }
+
+        .btn-next {
+            background: var(--primary-teal);
+            color: white;
+            padding: 15px 30px;
+            border-radius: 15px;
+            font-weight: 900;
+            box-shadow: 0 6px 0px #00A388;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .btn-next:hover { transform: translateY(-2px); }
+        .btn-next:active { transform: translateY(2px); box-shadow: 0 2px 0px #00A388; }
+
+        .btn-submit-final {
+            background: var(--primary-pink);
+            color: white;
+            padding: 15px 30px;
+            border-radius: 15px;
+            font-weight: 900;
+            box-shadow: 0 6px 0px #6A39A1;
+            margin-top: 20px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header-teacher">Giáo viên tạo: Ms Mai An ULIS</div>
+    
+    <div class="game-container">
+        <h1 class="text-center text-3xl font-black mb-6 text-[#8854C0]">WORD FORM MASTER 🔥</h1>
+        
+        <div class="progress-bar-container">
+            <div id="progress-bar" class="progress-bar-fill"></div>
+        </div>
+
+        <div id="quiz-app">
+            <div id="card" class="card">
+                <div id="question-count" class="mb-2 font-bold text-gray-500">Question 1/15</div>
+                <div id="question-text" class="question-text">Loading question...</div>
+                <div id="options-container"></div>
+                <div id="explanation" class="explanation-box"></div>
+                <button id="next-btn" class="btn-next w-full">CÂU TIẾP THEO ➔</button>
+            </div>
+        </div>
+
+        <!-- Glossary Section for Academic Words -->
+        <div id="glossary-section" class="mt-10">
+            <h2 class="text-2xl font-black text-[#00C9A7] mb-4">📚 BẢNG TỪ VỰNG MS MAI AN (B1-C2)</h2>
+            <table class="glossary-table">
+                <thead>
+                    <tr>
+                        <th>Từ vựng</th>
+                        <th>Loại từ</th>
+                        <th>Nghĩa tiếng Việt</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td>Cultural</td><td>Adjective</td><td>Thuộc về văn hóa</td></tr>
+                    <tr><td>Originally</td><td>Adverb</td><td>Ban đầu, khởi đầu</td></tr>
+                    <tr><td>Friendliness</td><td>Noun</td><td>Sự thân thiện</td></tr>
+                    <tr><td>Popularity</td><td>Noun</td><td>Sự phổ biến/ưa chuộng</td></tr>
+                    <tr><td>Equipment</td><td>Noun (U)</td><td>Thiết bị (Không đếm được)</td></tr>
+                    <tr><td>National Park</td><td>Compound Noun</td><td>Vườn quốc gia</td></tr>
+                    <tr><td>Attraction</td><td>Noun</td><td>Điểm thu hút/hấp dẫn</td></tr>
+                    <tr><td>Disadvantage</td><td>Noun</td><td>Nhược điểm, bất lợi</td></tr>
+                    <tr><td>Competitive</td><td>Adjective</td><td>Có tính cạnh tranh</td></tr>
+                    <tr><td>Widen</td><td>Verb</td><td>Mở rộng</td></tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="text-center mt-8">
+            <button id="final-submit" class="btn-submit-final" style="display: none;">NỘP BÀI TỔNG KẾT</button>
+        </div>
+    </div>
+
+    <!-- Result Modal -->
+    <div id="result-modal">
+        <div class="modal-content">
+            <h2 class="text-4xl font-black mb-4 text-[#8854C0]">KẾT QUẢ</h2>
+            <div id="score-text" class="text-6xl font-black mb-4 text-[#00C9A7]">0/15</div>
+            <div id="feedback-text" class="text-xl font-bold mb-6 text-gray-600">Tuyệt vời ông mặt trời!</div>
+            <button onclick="location.reload()" class="btn-submit-final">LÀM LẠI BÀI</button>
+        </div>
+    </div>
+
+    <!-- Audio assets (using standard UI sounds) -->
+    <audio id="sound-correct" src="https://assets.mixkit.co/active_storage/sfx/2013/2013-preview.mp3"></audio>
+    <audio id="sound-wrong" src="https://assets.mixkit.co/active_storage/sfx/2018/2018-preview.mp3"></audio>
+
+    <script>
+        const questions = [
+            {
+                q: "What I like about festivals is that they show the ________ values of different communities. (CULTURE)",
+                options: ["culture", "cultural", "culturally", "cultured"],
+                correct: 1,
+                explanation: `
+                    <strong>Cô Mai An giải thích:</strong><br>
+                    1. Phân tích từ vựng:<br>
+                    A. culture (n): văn hóa<br>
+                    B. cultural (adj): thuộc về văn hóa<br>
+                    C. culturally (adv): về phương diện văn hóa<br>
+                    D. cultured (adj): có học thức (thường dùng cho người)<br>
+                    2. Dịch câu: "Điều tôi thích ở các lễ hội là chúng thể hiện các giá trị văn hóa của các cộng đồng khác nhau."<br>
+                    3. Tại sao chọn B? Đứng trước danh từ 'values', ta cần một tính từ (Adjective) để bổ nghĩa.<br>
+                    4. Loại A vì là danh từ, C vì là trạng từ, D sai nghĩa ngữ cảnh.`
+            },
+            {
+                q: "The school was ________ very small. (ORIGINATE)",
+                options: ["origin", "original", "originally", "originate"],
+                correct: 2,
+                explanation: `
+                    <strong>Cô Mai An giải thích:</strong><br>
+                    1. Phân tích từ vựng:<br>
+                    A. origin (n): nguồn gốc<br>
+                    B. original (adj): nguyên bản<br>
+                    C. originally (adv): ban đầu, khởi đầu<br>
+                    D. originate (v): bắt nguồn<br>
+                    2. Dịch câu: "Ngôi trường ban đầu vốn rất nhỏ."<br>
+                    3. Tại sao chọn C? Cấu trúc: be + adverb + adjective. Trạng từ 'originally' bổ nghĩa cho tính từ 'small' để chỉ trạng thái thời gian.<br>
+                    4. Loại các phương án khác vì sai loại từ.`
+            },
+            {
+                q: "People in the countryside are ________. (FRIEND)",
+                options: ["friend", "friendship", "friendly", "friendliness"],
+                correct: 2,
+                explanation: `
+                    <strong>Cô Mai An giải thích:</strong><br>
+                    1. Phân tích từ vựng:<br>
+                    A. friend (n): người bạn<br>
+                    B. friendship (n): tình bạn<br>
+                    C. friendly (adj): thân thiện<br>
+                    D. friendliness (n): sự thân thiện<br>
+                    2. Dịch câu: "Người dân ở vùng nông thôn rất thân thiện."<br>
+                    3. Tại sao chọn C? Sau động từ to be 'are' cần một tính từ miêu tả đặc điểm/tính cách chủ ngữ.<br>
+                    4. Lưu ý: Mặc dù tận cùng là -ly nhưng 'friendly' là tính từ.`
+            },
+            {
+                q: "Mike couldn’t sleep last night. Today he was really tired, so he fell ________ in math class. (SLEEP)",
+                options: ["sleep", "asleep", "sleepy", "sleeping"],
+                correct: 1,
+                explanation: `
+                    <strong>Cô Mai An giải thích:</strong><br>
+                    1. Phân tích từ vựng:<br>
+                    A. sleep (v/n): ngủ<br>
+                    B. asleep (adj/adv): đang ngủ<br>
+                    C. sleepy (adj): buồn ngủ<br>
+                    D. sleeping (participle): đang ngủ<br>
+                    2. Dịch câu: "Mike không ngủ được tối qua. Hôm nay cậu ấy rất mệt, nên cậu ấy đã ngủ gật trong giờ toán."<br>
+                    3. Tại sao chọn B? Cụm từ cố định (Collocation): <strong>Fall asleep</strong> có nghĩa là bắt đầu ngủ thiếp đi.<br>
+                    4. Loại C (sleepy) vì 'fall sleepy' không phải cụm chuẩn trong ngữ cảnh này.`
+            },
+            {
+                q: "He’s well-known in the local ________. (COMMUNITY)",
+                options: ["commune", "common", "community", "communication"],
+                correct: 2,
+                explanation: `
+                    <strong>Cô Mai An giải thích:</strong><br>
+                    1. Phân tích từ vựng:<br>
+                    A. commune (n): xã<br>
+                    B. common (adj): chung/phổ biến<br>
+                    C. community (n): cộng đồng<br>
+                    D. communication (n): sự giao tiếp<br>
+                    2. Dịch câu: "Anh ấy rất nổi tiếng trong cộng đồng địa phương."<br>
+                    3. Tại sao chọn C? 'Local community' là một cụm danh từ cực kỳ phổ biến chỉ những người sống trong khu vực đó.<br>
+                    4. Loại các từ khác vì không hợp nghĩa.`
+            },
+            {
+                q: "Thanks to such festivals, traditional dishes of the country have increased in ________. (POPULAR)",
+                options: ["popular", "popularly", "popularity", "popularize"],
+                correct: 2,
+                explanation: `
+                    <strong>Cô Mai An giải thích:</strong><br>
+                    1. Phân tích từ vựng:<br>
+                    A. popular (adj): phổ biến<br>
+                    B. popularly (adv): một cách phổ biến<br>
+                    C. popularity (n): sự phổ biến, sự ưa chuộng<br>
+                    D. popularize (v): làm cho phổ biến<br>
+                    2. Dịch câu: "Nhờ những lễ hội như vậy, các món ăn truyền thống của quốc gia đã gia tăng mức độ phổ biến."<br>
+                    3. Tại sao chọn C? Sau giới từ 'in' ta cần một danh từ (Noun). Cụm từ: Increase in popularity.`
+            },
+            {
+                q: "Various roads will be ________ at the beginning of next year. (WIDE)",
+                options: ["wide", "width", "widen", "widened"],
+                correct: 3,
+                explanation: `
+                    <strong>Cô Mai An giải thích:</strong><br>
+                    1. Phân tích từ vựng:<br>
+                    A. wide (adj): rộng<br>
+                    B. width (n): chiều rộng<br>
+                    C. widen (v): mở rộng<br>
+                    D. widened (v-ed): được mở rộng<br>
+                    2. Dịch câu: "Nhiều con đường khác nhau sẽ được mở rộng vào đầu năm tới."<br>
+                    3. Tại sao chọn D? Câu ở dạng bị động thì tương lai đơn: Will be + V3/ed. Động từ 'widen' (mở rộng) thêm đuôi -ed thành 'widened'.`
+            },
+            {
+                q: "She is very ________ and active. (FITNESS)",
+                options: ["fit", "fitness", "fitted", "fitting"],
+                correct: 0,
+                explanation: `
+                    <strong>Cô Mai An giải thích:</strong><br>
+                    1. Phân tích từ vựng:<br>
+                    A. fit (adj): khỏe khoắn, vừa vặn<br>
+                    B. fitness (n): sự khỏe mạnh<br>
+                    C. fitted (v-ed): đã vừa<br>
+                    D. fitting (adj): thích hợp<br>
+                    2. Dịch câu: "Cô ấy rất khỏe khoắn và năng động."<br>
+                    3. Tại sao chọn A? Liên từ 'and' nối 2 từ cùng loại. 'Active' là tính từ nên từ cần điền cũng là tính từ miêu tả con người.`
+            },
+            {
+                q: "You need to pay 50 dollars to hire the safety ________ for rock climbing. (EQUIP)",
+                options: ["equip", "equipped", "equipment", "equipments"],
+                correct: 2,
+                explanation: `
+                    <strong>Cô Mai An giải thích:</strong><br>
+                    1. Phân tích từ vựng:<br>
+                    A. equip (v): trang bị<br>
+                    B. equipped (adj): được trang bị<br>
+                    C. equipment (n): thiết bị (không đếm được)<br>
+                    D. equipments (Sai ngữ pháp)<br>
+                    2. Dịch câu: "Bạn cần trả 50 đô để thuê thiết bị an toàn khi leo núi."<br>
+                    3. Tại sao chọn C? Đứng sau mạo từ 'the' và tính từ 'safety' cần một danh từ. Lưu ý: Equipment không bao giờ có 's'.`
+            },
+            {
+                q: "Yok Đôn is one of the biggest ________ parks in Vietnam. (NATION)",
+                options: ["nation", "national", "nationality", "nationally"],
+                correct: 1,
+                explanation: `
+                    <strong>Cô Mai An giải thích:</strong><br>
+                    1. Phân tích từ vựng:<br>
+                    A. nation (n): quốc gia<br>
+                    B. national (adj): thuộc quốc gia<br>
+                    C. nationality (n): quốc tịch<br>
+                    D. nationally (adv): trên toàn quốc<br>
+                    2. Dịch câu: "Yok Đôn là một trong những vườn quốc gia lớn nhất Việt Nam."<br>
+                    3. Tại sao chọn B? Cụm danh từ cố định: National Park (Vườn quốc gia).`
+            },
+            {
+                q: "Although the race was so ________, he really enjoyed the beautiful wild nature. (TIRED)",
+                options: ["tire", "tired", "tiring", "tiredness"],
+                correct: 2,
+                explanation: `
+                    <strong>Cô Mai An giải thích:</strong><br>
+                    1. Phân tích từ vựng:<br>
+                    A. tire (v): làm mệt<br>
+                    B. tired (adj): thấy mệt (cho người)<br>
+                    C. tiring (adj): gây mệt mỏi (cho sự vật)<br>
+                    D. tiredness (n): sự mệt mỏi<br>
+                    2. Dịch câu: "Mặc dù cuộc đua rất tốn sức/mệt mỏi, anh ấy thực sự tận hưởng thiên nhiên."<br>
+                    3. Tại sao chọn C? Chủ ngữ là 'the race' (cuộc đua) - một sự vật nên ta dùng tính từ đuôi -ing để chỉ tính chất.`
+            },
+            {
+                q: "It’s the best way to visit famous tourist ________ in Hà Nội. (ATTRACT)",
+                options: ["attract", "attractive", "attraction", "attractions"],
+                correct: 3,
+                explanation: `
+                    <strong>Cô Mai An giải thích:</strong><br>
+                    1. Phân tích từ vựng:<br>
+                    A. attract (v): thu hút<br>
+                    B. attractive (adj): hấp dẫn<br>
+                    C. attraction (n): sự thu hút/điểm thu hút<br>
+                    D. attractions (n-số nhiều): các điểm tham quan<br>
+                    2. Dịch câu: "Đó là cách tốt nhất để tham quan các điểm du lịch nổi tiếng ở Hà Nội."<br>
+                    3. Tại sao chọn D? 'Tourist attractions' là cụm từ chỉ các địa điểm tham quan. Vì Hà Nội có nhiều địa điểm nên dùng số nhiều.`
+            },
+            {
+                q: "One of the ________ of solar energy is that it can be expensive. (ADVANTAGE)",
+                options: ["advantage", "advantages", "disadvantage", "disadvantages"],
+                correct: 3,
+                explanation: `
+                    <strong>Cô Mai An giải thích:</strong><br>
+                    1. Phân tích từ vựng:<br>
+                    A. advantage (n): thuận lợi<br>
+                    B. advantages (n-số nhiều)<br>
+                    C. disadvantage (n): nhược điểm<br>
+                    D. disadvantages (n-số nhiều)<br>
+                    2. Dịch câu: "Một trong những nhược điểm của năng lượng mặt trời là nó đắt đỏ."<br>
+                    3. Tại sao chọn D? 'Expensive' là tiêu cực -> dùng 'disadvantage'. Cấu trúc 'One of the + N số nhiều' nên phải chọn 'disadvantages'.`
+            },
+            {
+                q: "It’s ________ to add a little salt to this sweet dessert. (NEED)",
+                options: ["need", "needs", "necessary", "necessarily"],
+                correct: 2,
+                explanation: `
+                    <strong>Cô Mai An giải thích:</strong><br>
+                    1. Phân tích từ vựng:<br>
+                    A. need (v/n): cần<br>
+                    B. needs (v-số ít)<br>
+                    C. necessary (adj): cần thiết<br>
+                    D. necessarily (adv): một cách tất yếu<br>
+                    2. Dịch câu: "Thêm một chút muối vào món tráng miệng này là điều cần thiết."<br>
+                    3. Tại sao chọn C? Cấu trúc giả định: It is + Adjective + to V.`
+            },
+            {
+                q: "During the Lazarim Carnival, there are singing ________. (COMPETE)",
+                options: ["compete", "competitive", "competitors", "competitions"],
+                correct: 3,
+                explanation: `
+                    <strong>Cô Mai An giải thích:</strong><br>
+                    1. Phân tích từ vựng:<br>
+                    A. compete (v): thi đấu<br>
+                    B. competitive (adj): tính cạnh tranh<br>
+                    C. competitors (n): người thi đấu<br>
+                    D. competitions (n): cuộc thi<br>
+                    2. Dịch câu: "Trong suốt lễ hội Lazarim, có các cuộc thi hát."<br>
+                    3. Tại sao chọn D? Sau tính từ 'singing' cần một danh từ chỉ sự việc/sự kiện. Vì có 'are' nên dùng danh từ số nhiều.`
+            }
+        ];
+
+        let currentQuestion = 0;
+        let score = 0;
+        let shuffledQuestions = [];
+
+        function shuffle(array) {
+            return array.sort(() => Math.random() - 0.5);
+        }
+
+        function initGame() {
+            shuffledQuestions = shuffle([...questions]);
+            showQuestion();
+        }
+
+        function showQuestion() {
+            const q = shuffledQuestions[currentQuestion];
+            document.getElementById('question-count').innerText = `Question ${currentQuestion + 1}/${shuffledQuestions.length}`;
+            document.getElementById('question-text').innerText = q.q;
+            
+            const optionsContainer = document.getElementById('options-container');
+            optionsContainer.innerHTML = '';
+            
+            q.options.forEach((opt, index) => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.innerHTML = `<span class="mr-3 text-gray-400">${String.fromCharCode(65 + index)}.</span> ${opt}`;
+                btn.onclick = () => checkAnswer(index, btn);
+                optionsContainer.appendChild(btn);
+            });
+
+            document.getElementById('explanation').style.display = 'none';
+            document.getElementById('next-btn').style.display = 'none';
+            updateProgressBar();
+        }
+
+        function checkAnswer(selectedIndex, clickedBtn) {
+            const q = shuffledQuestions[currentQuestion];
+            const allBtns = document.querySelectorAll('.option-btn');
+            
+            // Disable all buttons
+            allBtns.forEach(btn => btn.disabled = true);
+
+            if (selectedIndex === q.correct) {
+                clickedBtn.classList.add('correct');
+                score++;
+                document.getElementById('sound-correct').play();
+                triggerConfetti();
+            } else {
+                clickedBtn.classList.add('wrong');
+                allBtns[q.correct].classList.add('correct');
+                document.getElementById('sound-wrong').play();
+            }
+
+            // Show explanation
+            const expBox = document.getElementById('explanation');
+            expBox.innerHTML = q.explanation;
+            expBox.style.display = 'block';
+
+            // Show next or final button
+            if (currentQuestion < shuffledQuestions.length - 1) {
+                document.getElementById('next-btn').style.display = 'block';
+            } else {
+                document.getElementById('final-submit').style.display = 'inline-block';
+            }
+        }
+
+        function updateProgressBar() {
+            const progress = ((currentQuestion) / shuffledQuestions.length) * 100;
+            document.getElementById('progress-bar').style.width = `${progress}%`;
+        }
+
+        document.getElementById('next-btn').onclick = () => {
+            currentQuestion++;
+            showQuestion();
+        };
+
+        document.getElementById('final-submit').onclick = () => {
+            document.getElementById('progress-bar').style.width = `100%`;
+            showResult();
+        };
+
+        function triggerConfetti() {
+            confetti({
+                particleCount: 100,
+                spread: 70,
+                origin: { y: 0.6 },
+                colors: ['#8854C0', '#00C9A7', '#FFD93D']
+            });
+        }
+
+        function showResult() {
+            const modal = document.getElementById('result-modal');
+            const scoreText = document.getElementById('score-text');
+            const feedbackText = document.getElementById('feedback-text');
+            
+            modal.style.display = 'flex';
+            scoreText.innerText = `${score}/${shuffledQuestions.length}`;
+            
+            if (score === shuffledQuestions.length) {
+                feedbackText.innerText = "Tuyệt đỉnh! Em là thiên tài Word Form rồi đấy! 🏆";
+            } else if (score >= 10) {
+                feedbackText.innerText = "Làm tốt lắm! Chút xíu nữa là hoàn hảo rồi. 🌟";
+            } else {
+                feedbackText.innerText = "Cố gắng lên nhé, xem kỹ giải thích của cô Mai An nha! 💪";
+            }
+        }
+
+        window.onload = initGame;
+    </script>
+</body>
+</html>

@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vocabulary Quiz: Nature, Environment & Lifestyle - Ms Mai An ULIS</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Confetti JS -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    
+    <style>
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: #f0f4f8;
+            background-image: radial-gradient(#e2e8f0 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+
+        /* 3D Button Effect */
+        .btn-3d {
+            transition: all 0.1s;
+            transform: translateY(0);
+            border-bottom: 6px solid;
+        }
+        .btn-3d:active {
+            transform: translateY(4px);
+            border-bottom-width: 2px;
+        }
+        
+        /* Custom Colors based on Request */
+        .theme-pink { color: #8854C0; }
+        .bg-theme-pink { background-color: #8854C0; border-color: #6c429c; }
+        .bg-theme-teal { background-color: #00C9A7; border-color: #009e82; }
+        .bg-correct { background-color: #00D26A; border-color: #00a855; color: white; }
+        .bg-wrong { background-color: #FF4757; border-color: #d6303f; color: white; }
+
+        /* Animations */
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-5px) rotate(-5deg); }
+            50% { transform: translateX(5px) rotate(5deg); }
+            75% { transform: translateX(-5px) rotate(-5deg); }
+            100% { transform: translateX(0); }
+        }
+        .shake-animation {
+            animation: shake 0.4s ease-in-out;
+        }
+
+        .option-card:hover:not(:disabled) {
+            transform: scale(1.02) translateY(-2px);
+            filter: brightness(1.05);
+        }
+
+        /* Explanation Box Styling */
+        .explanation-box {
+            border-left: 5px solid #8854C0;
+            background-color: #fdf2ff;
+        }
+        
+        /* Markdown-like rendering helper */
+        .rationale-text strong {
+            color: #8854C0;
+            font-weight: 800;
+        }
+        .rationale-text ul {
+            list-style-type: none;
+            padding-left: 0;
+        }
+        .rationale-text li {
+            margin-bottom: 4px;
+        }
+    </style>
+</head>
+<body class="min-h-screen pb-20">
+
+    <!-- Header -->
+    <header class="bg-white shadow-lg sticky top-0 z-50 border-b-4 border-gray-200">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="bg-theme-teal text-white p-2 rounded-xl font-bold text-xl shadow-sm">
+                    Ms Mai An
+                </div>
+                <h1 class="text-gray-700 font-extrabold text-lg md:text-2xl hidden md:block">
+                    Vocabulary Quiz: Nature & Lifestyle
+                </h1>
+            </div>
+            <div class="flex items-center gap-4">
+                <div class="bg-blue-100 text-blue-800 px-4 py-2 rounded-full font-bold">
+                    Score: <span id="score-display">0</span>/25
+                </div>
+                <button onclick="resetQuiz()" class="text-gray-500 hover:text-gray-800 font-bold text-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg> Restart
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-8 max-w-4xl">
+        
+        <!-- Intro Banner -->
+        <div id="intro-banner" class="bg-gradient-to-r from-purple-500 to-pink-500 rounded-3xl p-6 mb-8 text-white shadow-xl flex flex-col md:flex-row items-center justify-between">
+            <div class="mb-4 md:mb-0">
+                <h2 class="text-3xl font-extrabold mb-2">Are you ready? 🚀</h2>
+                <p class="opacity-90">Đã kích hoạt chế độ: <strong>Xáo trộn đáp án ngẫu nhiên</strong></p>
+            </div>
+            <div class="bg-white/20 p-3 rounded-2xl backdrop-blur-sm">
+                <span class="text-2xl font-bold">Question: </span>
+                <span id="progress-display" class="text-2xl font-bold">1</span>
+                <span class="text-lg opacity-80">/ 25</span>
+            </div>
+        </div>
+
+        <!-- Quiz Container -->
+        <div id="quiz-container" class="space-y-8">
+            <!-- Questions will be injected here via JavaScript -->
+        </div>
+
+        <!-- Submit Button -->
+        <div class="mt-12 text-center">
+            <button onclick="finishQuiz()" class="btn-3d bg-theme-teal text-white font-extrabold text-2xl py-4 px-12 rounded-2xl w-full md:w-auto shadow-lg hover:bg-teal-400">
+                NỘP BÀI & XEM KẾT QUẢ 🏆
+            </button>
+        </div>
+    </main>
+
+    <!-- Result Modal -->
+    <div id="result-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl p-8 max-w-md w-full text-center shadow-2xl border-4 border-purple-200 transform scale-100 transition-transform">
+            <div class="mb-6">
+                <span class="text-6xl">🎉</span>
+            </div>
+            <h2 class="text-3xl font-extrabold text-gray-800 mb-2">Hoàn Thành!</h2>
+            <p class="text-gray-500 mb-6">Bạn đã làm rất tốt!</p>
+            
+            <div class="bg-gray-100 rounded-2xl p-6 mb-6">
+                <div class="text-sm text-gray-500 uppercase tracking-wide font-bold">Tổng điểm</div>
+                <div class="text-5xl font-extrabold text-theme-pink my-2">
+                    <span id="final-score">0</span><span class="text-2xl text-gray-400">/25</span>
+                </div>
+                <div id="final-message" class="text-green-600 font-bold mt-2">Tuyệt vời!</div>
+            </div>
+
+            <button onclick="closeModal()" class="btn-3d bg-gray-200 text-gray-700 font-bold py-3 px-8 rounded-xl w-full hover:bg-gray-300">
+                Xem lại bài làm
+            </button>
+        </div>
+    </div>
+
+    <!-- Data & Script -->
+    <script>
+        // --- DATA SOURCE ---
+        const rawData = {
+          "questions": [
+            {
+              "questionNumber": 1,
+              "question": "Living near the Grand Canyon has changed my family's _______ completely. We now spend more time outdoors.",
+              "answerOptions": [
+                { "text": "lifestyle", "rationale": "**Dịch & Loại từ:**\n- A. lifestyle (n): lối sống\n- B. memory (n): ký ức\n- C. homework (n): bài tập về nhà\n- D. recipe (n): công thức nấu ăn\n\n**Dịch câu:** Việc sống gần hẻm núi Grand Canyon đã thay đổi hoàn toàn **lối sống** của gia đình tôi. Bây giờ chúng tôi dành nhiều thời gian ở ngoài trời hơn.\n\n**Giải thích:** Câu sau giải thích việc 'dành nhiều thời gian ngoài trời', đây là sự thay đổi về thói quen sinh hoạt hay 'lối sống'.", "isCorrect": true },
+                { "text": "memory", "isCorrect": false },
+                { "text": "homework", "isCorrect": false },
+                { "text": "recipe", "isCorrect": false }
+              ]
+            },
+            {
+              "questionNumber": 2,
+              "question": "The local people _______ tourism for their income from visitors to Halong Bay.",
+              "answerOptions": [
+                { "text": "depend on", "rationale": "**Dịch & Loại từ:**\n- A. forget about (phr.v): quên đi\n- B. depend on (phr.v): phụ thuộc vào/dựa vào\n- C. run away (phr.v): chạy trốn\n- D. stand up (phr.v): đứng dậy\n\n**Dịch câu:** Người dân địa phương **phụ thuộc vào** du lịch để có thu nhập từ du khách đến Vịnh Hạ Long.\n\n**Giải thích:** Cụm từ 'depend on sth for sth' (dựa vào cái gì để có cái gì). Ở đây là dựa vào du lịch để có thu nhập.", "isCorrect": true },
+                { "text": "forget about", "isCorrect": false },
+                { "text": "run away", "isCorrect": false },
+                { "text": "stand up", "isCorrect": false }
+              ]
+            },
+            {
+              "questionNumber": 3,
+              "question": "Rangers use _______ to monitor wildlife in the Amazon rainforest from far away.",
+              "answerOptions": [
+                { "text": "electronic devices", "rationale": "**Dịch & Loại từ:**\n- A. wooden boxes (n.phr): hộp gỗ\n- B. paper maps (n.phr): bản đồ giấy\n- C. electronic devices (n.phr): thiết bị điện tử\n- D. stone tools (n.phr): công cụ bằng đá\n\n**Dịch câu:** Kiểm lâm sử dụng **các thiết bị điện tử** để giám sát động vật hoang dã trong rừng nhiệt đới Amazon từ xa.\n\n**Giải thích:** Để giám sát 'from far away' (từ xa) thì cần các thiết bị công nghệ (như camera, định vị...), bản đồ giấy hay hộp gỗ không làm được việc này.", "isCorrect": true },
+                { "text": "wooden boxes", "isCorrect": false },
+                { "text": "paper maps", "isCorrect": false },
+                { "text": "stone tools", "isCorrect": false }
+              ]
+            },
+            {
+              "questionNumber": 4,
+              "question": "The government should _______ local communities who protect natural wonders.",
+              "answerOptions": [
+                { "text": "support", "rationale": "**Dịch & Loại từ:**\n- A. ignore (v): phớt lờ\n- B. support (v): hỗ trợ/ủng hộ\n- C. destroy (v): phá hủy\n- D. remove (v): loại bỏ\n\n**Dịch câu:** Chính phủ nên **hỗ trợ** các cộng đồng địa phương, những người bảo vệ các kỳ quan thiên nhiên.\n\n**Giải thích:** Hành động 'protect natural wonders' (bảo vệ kỳ quan) là tốt, nên chính phủ cần 'support' (ủng hộ).", "isCorrect": true },
+                { "text": "ignore", "isCorrect": false },
+                { "text": "destroy", "isCorrect": false },
+                { "text": "remove", "isCorrect": false }
+              ]
+            },
+            {
+              "questionNumber": 5,
+              "question": "The _______ around Mount Everest are extremely harsh and dangerous for climbers.",
+              "answerOptions": [
+                { "text": "weather conditions", "rationale": "**Dịch & Loại từ:**\n- A. weather conditions (n.phr): điều kiện thời tiết\n- B. dancing skills (n.phr): kỹ năng khiêu vũ\n- C. cooking recipes (n.phr): công thức nấu ăn\n- D. shopping lists (n.phr): danh sách mua sắm\n\n**Dịch câu:** **Điều kiện thời tiết** xung quanh đỉnh Everest cực kỳ khắc nghiệt và nguy hiểm cho những người leo núi.\n\n**Giải thích:** Tính từ 'harsh and dangerous' (khắc nghiệt và nguy hiểm) ở vùng núi cao thường miêu tả về thời tiết/khí hậu.", "isCorrect": true },
+                { "text": "dancing skills", "isCorrect": false },
+                { "text": "cooking recipes", "isCorrect": false },
+                { "text": "shopping lists", "isCorrect": false }
+              ]
+            },
+            {
+              "questionNumber": 6,
+              "question": "Traditional boats in Vietnam _______ bamboo.",
+              "answerOptions": [
+                { "text": "are made from", "rationale": "**Dịch & Loại từ:**\n- A. are broken by (v): bị làm vỡ bởi\n- B. are painted with (v): được sơn với\n- C. are lost in (v): bị lạc trong\n- D. are made from (v): được làm từ\n\n**Dịch câu:** Thuyền truyền thống ở Việt Nam **được làm từ** tre.\n\n**Giải thích:** Cấu trúc 'be made from/of' chỉ nguyên liệu làm ra vật gì đó.", "isCorrect": true },
+                { "text": "are broken by", "isCorrect": false },
+                { "text": "are painted with", "isCorrect": false },
+                { "text": "are lost in", "isCorrect": false }
+              ]
+            },
+            {
+              "questionNumber": 7,
+              "question": "Visiting natural wonders gives young people the _______ to learn about nature.",
+              "answerOptions": [
+                { "text": "opportunity", "rationale": "**Dịch & Loại từ:**\n- A. opportunity (n): cơ hội\n- B. disease (n): bệnh tật\n- C. accident (n): tai nạn\n- D. mistake (n): sai lầm\n\n**Dịch câu:** Tham quan các kỳ quan thiên nhiên mang lại cho người trẻ **cơ hội** để tìm hiểu về thiên nhiên.\n\n**Giải thích:** 'Give opportunity to do sth' (Trao cơ hội làm gì). Các đáp án còn lại đều mang nghĩa tiêu cực.", "isCorrect": true },
+                { "text": "disease", "isCorrect": false },
+                { "text": "accident", "isCorrect": false },
+                { "text": "mistake", "isCorrect": false }
+              ]
+            },
+            {
+              "questionNumber": 8,
+              "question": "Wild animals in national parks have the _______ to roam without human interference.",
+              "answerOptions": [
+                { "text": "freedom", "rationale": "**Dịch & Loại từ:**\n- A. prison (n): nhà tù\n- B. freedom (n): sự tự do\n- C. homework (n): bài tập về nhà\n- D. illness (n): bệnh tật\n\n**Dịch câu:** Động vật hoang dã trong các vườn quốc gia có **sự tự do** đi lại mà không có sự can thiệp của con người.\n\n**Giải thích:** 'Roam without interference' (đi lại không bị can thiệp) đồng nghĩa với sự tự do (freedom).", "isCorrect": true },
+                { "text": "prison", "isCorrect": false },
+                { "text": "homework", "isCorrect": false },
+                { "text": "illness", "isCorrect": false }
+              ]
+            },
+            {
+              "questionNumber": 9,
+              "question": "The younger _______ needs to learn how to protect natural wonders for the future.",
+              "answerOptions": [
+                { "text": "generation", "rationale": "**Dịch & Loại từ:**\n- A. generation (n): thế hệ\n- B. vacation (n): kỳ nghỉ\n- C. situation (n): tình huống\n- D. invitation (n): lời mời\n\n**Dịch câu:** **Thế hệ** trẻ cần học cách bảo vệ các kỳ quan thiên nhiên cho tương lai.\n\n**Giải thích:** 'The younger generation' là cụm từ cố định chỉ lớp người trẻ tuổi.", "isCorrect": true },
+                { "text": "vacation", "isCorrect": false },
+                { "text": "situation", "isCorrect": false },
+                { "text": "invitation", "isCorrect": false }
+              ]
+            },
+            {
+              "questionNumber": 10,
+              "question": "Many scientists _______ research on coral reefs in Australia.",
+              "answerOptions": [
+                { "text": "pursue", "rationale": "**Dịch & Loại từ:**\n- A. pursue (v): theo đuổi/thực hiện\n- B. refuse (v): từ chối\n- C. confuse (v): gây bối rối\n- D. abuse (v): lạm dụng\n\n**Dịch câu:** Nhiều nhà khoa học **thực hiện/theo đuổi** nghiên cứu về các rạn san hô ở Úc.\n\n**Giải thích:** 'Pursue research' hoặc 'conduct research' mang nghĩa thực hiện việc nghiên cứu. Các từ còn lại mang nghĩa tiêu cực.", "isCorrect": true },
+                { "text": "refuse", "isCorrect": false },
+                { "text": "confuse", "isCorrect": false },
+                { "text": "abuse", "isCorrect": false }
+              ]
+            },
+            {
+              "questionNumber": 11,
+              "question": "The _______ government tried to control tourism at natural sites, but now it's more open.",
+              "answerOptions": [
+                { "text": "previous", "rationale": "**Dịch & Loại từ:**\n- A. current (adj): hiện tại\n- B. previous (adj): trước đây/cũ\n- C. invisible (adj): vô hình\n- D. impossible (adj): không thể\n\n**Dịch câu:** Chính phủ **trước đây** đã cố gắng kiểm soát du lịch tại các điểm thiên nhiên, nhưng bây giờ thì mở cửa hơn.\n\n**Giải thích:** Có sự đối lập giữa 'tried' (quá khứ) và 'now' (bây giờ). Do đó, cần một tính từ chỉ thời gian trong quá khứ là 'previous'.", "isCorrect": true },
+                { "text": "current", "isCorrect": false },
+                { "text": "invisible", "isCorrect": false },
+                { "text": "impossible", "isCorrect": false }
+              ]
+            },
+            {
+              "questionNumber": 12,
+              "question": "Tourists should _______ of the rules when visiting protected natural areas.",
+              "answerOptions": [
+                { "text": "take note", "rationale": "**Dịch & Loại từ:**\n- A. make fun (v.phr): chế giễu\n- B. take note (v.phr): ghi nhớ/chú ý\n- C. lose track (v.phr): mất dấu/quên\n- D. get rid (v.phr): loại bỏ\n\n**Dịch câu:** Du khách nên **chú ý/ghi nhớ** các quy định khi tham quan các khu vực thiên nhiên được bảo vệ.\n\n**Giải thích:** Cụm từ 'take note of' có nghĩa là chú ý đến, để tâm đến.", "isCorrect": true },
+                { "text": "make fun", "isCorrect": false },
+                { "text": "lose track", "isCorrect": false },
+                { "text": "get rid", "isCorrect": false }
+              ]
+            },
+            {
+              "questionNumber": 13,
+              "question": "Guides help visitors _______ important facts about the history of natural landmarks.",
+              "answerOptions": [
+                { "text": "memorise", "rationale": "**Dịch & Loại từ:**\n- A. memorise (v): ghi nhớ/học thuộc\n- B. criticise (v): phê bình/chỉ trích\n- C. advertise (v): quảng cáo\n- D. exercise (v): tập thể dục\n\n**Dịch câu:** Hướng dẫn viên giúp du khách **ghi nhớ** những sự kiện quan trọng về lịch sử của các danh thắng thiên nhiên.\n\n**Giải thích:** Hướng dẫn viên cung cấp thông tin để khách du lịch biết và nhớ (memorise).", "isCorrect": true },
+                { "text": "criticise", "isCorrect": false },
+                { "text": "advertise", "isCorrect": false },
+                { "text": "exercise", "isCorrect": false }
+              ]
+            },
+            {
+              "questionNumber": 14,
+              "question": "Cable cars might _______ traditional hiking paths to reach mountain peaks.",
+              "answerOptions": [
+                { "text": "replace", "rationale": "**Dịch & Loại từ:**\n- A. replace (v): thay thế\n- B. embrace (v): ôm/đón nhận\n- C. misplace (v): để nhầm chỗ\n- D. surface (v): nổi lên bề mặt\n\n**Dịch câu:** Cáp treo có thể **thay thế** các đường leo núi truyền thống để lên tới đỉnh núi.\n\n**Giải thích:** Cáp treo là phương tiện hiện đại, có thể làm người ta không dùng đường đi bộ cũ nữa (thay thế).", "isCorrect": true },
+                { "text": "embrace", "isCorrect": false },
+                { "text": "misplace", "isCorrect": false },
+                { "text": "surface", "isCorrect": false }
+              ]
+            },
+            {
+              "questionNumber": 15,
+              "question": "Countries with _______ systems let citizens vote on environmental protection laws.",
+              "answerOptions": [
+                { "text": "democratic", "rationale": "**Dịch & Loại từ:**\n- A. automatic (adj): tự động\n- B. democratic (adj): dân chủ\n- C. athletic (adj): thuộc về điền kinh/thể thao\n- D. dramatic (adj): kịch tính\n\n**Dịch câu:** Các quốc gia có hệ thống **dân chủ** cho phép công dân bỏ phiếu về các luật bảo vệ môi trường.\n\n**Giải thích:** 'Vote' (bỏ phiếu) là đặc trưng của hệ thống dân chủ (democratic).", "isCorrect": true },
+                { "text": "automatic", "isCorrect": false },
+                { "text": "athletic", "isCorrect": false },
+                { "text": "dramatic", "isCorrect": false }
+              ]
+            },
+            {
+              "questionNumber": 16,
+              "question": "National parks offer _______ activities like hiking, camping, and bird watching.",
+              "answerOptions": [
+                { "text": "various", "rationale": "**Dịch & Loại từ:**\n- A. various (adj): đa dạng/nhiều loại khác nhau\n- B. nervous (adj): lo lắng\n- C. jealous (adj): ghen tị\n- D. precious (adj): quý giá\n\n**Dịch câu:** Các vườn quốc gia cung cấp **đa dạng** các hoạt động như leo núi, cắm trại và ngắm chim.\n\n**Giải thích:** Câu liệt kê nhiều hoạt động khác nhau (hiking, camping, bird watching) nên dùng 'various'.", "isCorrect": true },
+                { "text": "nervous", "isCorrect": false },
+                { "text": "jealous", "isCorrect": false },
+                { "text": "precious", "isCorrect": false }
+              ]
+            },
+            {
+              "questionNumber": 17,
+              "question": "_______ communities near natural wonders often work together to protect their heritage.",
+              "answerOptions": [
+                { "text": "Family-oriented", "rationale": "**Dịch & Loại từ:**\n- A. Selfish (adj): ích kỷ\n- B. Isolated (adj): cô lập\n- C. Family-oriented (adj): hướng về gia đình/coi trọng gia đình\n- D. Careless (adj): bất cẩn\n\n**Dịch câu:** Các cộng đồng **coi trọng gia đình** gần các kỳ quan thiên nhiên thường làm việc cùng nhau để bảo vệ di sản của họ.\n\n**Giải thích:** Trong ngữ cảnh các bài học về xã hội (thường gặp trong SGK), các cộng đồng gắn kết thường được mô tả là 'family-oriented' hoặc 'community-oriented'. Việc 'work together' (làm việc cùng nhau) thể hiện sự đoàn kết tích cực. Các đáp án 'Selfish' và 'Careless' mang nghĩa tiêu cực. 'Isolated' (cô lập) không giải thích được lý do họ làm việc cùng nhau.", "isCorrect": true },
+                { "text": "Selfish", "isCorrect": false },
+                { "text": "Isolated", "isCorrect": false },
+                { "text": "Careless", "isCorrect": false }
+              ]
+            },
+            {
+              "questionNumber": 18,
+              "question": "Each visitor has their own _______ experience when seeing natural wonders.",
+              "answerOptions": [
+                { "text": "personal", "rationale": "**Dịch & Loại từ:**\n- A. national (adj): thuộc về quốc gia\n- B. personal (adj): cá nhân\n- C. criminal (adj): phạm tội/thuộc về tội phạm\n- D. fictional (adj): hư cấu\n\n**Dịch câu:** Mỗi du khách đều có trải nghiệm **cá nhân** của riêng mình khi ngắm nhìn các kỳ quan thiên nhiên.\n\n**Giải thích:** Cụm từ 'their own' (của riêng họ) chỉ sự riêng biệt, tương ứng với 'personal'.", "isCorrect": true },
+                { "text": "national", "isCorrect": false },
+                { "text": "criminal", "isCorrect": false },
+                { "text": "fictional", "isCorrect": false }
+              ]
+            },
+            {
+              "questionNumber": 19,
+              "question": "In villages near waterfalls, _______ often live together and share tourism income.",
+              "answerOptions": [
+                { "text": "extended families", "rationale": "**Dịch & Loại từ:**\n- A. extended families (n.phr): gia đình đa thế hệ\n- B. broken windows (n.phr): cửa sổ vỡ\n- C. empty bottles (n.phr): chai rỗng\n- D. lost keys (n.phr): chìa khóa bị mất\n\n**Dịch câu:** Tại các ngôi làng gần thác nước, **các gia đình đa thế hệ** thường sống cùng nhau và chia sẻ thu nhập từ du lịch.\n\n**Giải thích:** 'Extended families' là từ vựng chỉ gia đình có nhiều thế hệ (ông bà, cha mẹ, con cháu) sống chung, phù hợp với văn hóa làng xã.", "isCorrect": true },
+                { "text": "broken windows", "isCorrect": false },
+                { "text": "empty bottles", "isCorrect": false },
+                { "text": "lost keys", "isCorrect": false }
+              ]
+            },
+            {
+              "questionNumber": 20,
+              "question": "Backpackers prefer to travel _______ when exploring natural sites.",
+              "answerOptions": [
+                { "text": "independent", "rationale": "**Dịch & Loại từ:**\n- A. dependent (adj): phụ thuộc\n- B. redundant (adj): dư thừa\n- C. independent (adj): độc lập\n- D. abundant (adj): dồi dào\n\n**Dịch câu:** Dân du lịch bụi thích đi du lịch **tự túc/độc lập** khi khám phá các địa điểm thiên nhiên.\n\n**Giải thích:** Cấu trúc 'travel independent' (dùng tính từ như một bổ ngữ cho chủ ngữ hoặc trạng thái) mang nghĩa đi du lịch một cách tự lập, không theo tour. (Lưu ý: đúng ngữ pháp trạng từ là 'independently', nhưng trong bài trắc nghiệm này các lựa chọn đều là tính từ, nên chọn tính từ mang nghĩa phù hợp nhất).", "isCorrect": true },
+                { "text": "dependent", "isCorrect": false },
+                { "text": "redundant", "isCorrect": false },
+                { "text": "abundant", "isCorrect": false }
+              ]
+            },
+            {
+              "questionNumber": 21,
+              "question": "We should never _______ our efforts to protect endangered natural areas.",
+              "answerOptions": [
+                { "text": "give up", "rationale": "**Dịch & Loại từ:**\n- A. give up (phr.v): từ bỏ\n- B. wake up (phr.v): thức dậy\n- C. dress up (phr.v): ăn diện\n- D. make up (phr.v): trang điểm/bịa chuyện\n\n**Dịch câu:** Chúng ta không bao giờ nên **từ bỏ** những nỗ lực bảo vệ các khu vực thiên nhiên đang bị đe dọa.\n\n**Giải thích:** Cụm từ 'give up' (từ bỏ) là hợp lý nhất trong ngữ cảnh nỗ lực làm điều tốt.", "isCorrect": true },
+                { "text": "wake up", "isCorrect": false },
+                { "text": "dress up", "isCorrect": false },
+                { "text": "make up", "isCorrect": false }
+              ]
+            },
+            {
+              "questionNumber": 22,
+              "question": "Modern camps near natural wonders now have _______ for visitor comfort.",
+              "answerOptions": [
+                { "text": "hi-tech appliances", "rationale": "**Dịch & Loại từ:**\n- A. ancient ruins (n.phr): tàn tích cổ đại\n- B. hi-tech appliances (n.phr): thiết bị công nghệ cao\n- C. broken stones (n.phr): đá vỡ\n- D. dead trees (n.phr): cây chết\n\n**Dịch câu:** Các khu cắm trại hiện đại gần các kỳ quan thiên nhiên nay đã có **các thiết bị công nghệ cao** để phục vụ sự thoải mái của du khách.\n\n**Giải thích:** Từ khóa 'Modern' (hiện đại) và 'comfort' (tiện nghi) gợi ý đến 'hi-tech appliances'.", "isCorrect": true },
+                { "text": "ancient ruins", "isCorrect": false },
+                { "text": "broken stones", "isCorrect": false },
+                { "text": "dead trees", "isCorrect": false }
+              ]
+            },
+            {
+              "questionNumber": 23,
+              "question": "Some natural reserves have _______ areas where only researchers can enter.",
+              "answerOptions": [
+                { "text": "private", "rationale": "**Dịch & Loại từ:**\n- A. private (adj): riêng tư/nội bộ (hạn chế người ngoài)\n- B. creative (adj): sáng tạo\n- C. native (adj): bản địa\n- D. active (adj): năng động\n\n**Dịch câu:** Một số khu bảo tồn thiên nhiên có các khu vực **riêng biệt/hạn chế** nơi chỉ có các nhà nghiên cứu mới được vào.\n\n**Giải thích:** 'Only researchers can enter' nghĩa là khu vực đó không công khai, bị hạn chế, hay là khu vực 'private'.", "isCorrect": true },
+                { "text": "creative", "isCorrect": false },
+                { "text": "native", "isCorrect": false },
+                { "text": "active", "isCorrect": false }
+              ]
+            },
+            {
+              "questionNumber": 24,
+              "question": "Architects _______ eco-friendly visitor centers that blend with natural landscapes.",
+              "answerOptions": [
+                { "text": "design", "rationale": "**Dịch & Loại từ:**\n- A. design (v): thiết kế\n- B. resign (v): từ chức\n- C. assign (v): phân công\n- D. align (v): căn chỉnh\n\n**Dịch câu:** Các kiến trúc sư **thiết kế** các trung tâm du khách thân thiện với môi trường, hòa hợp với cảnh quan thiên nhiên.\n\n**Giải thích:** Công việc của 'Architects' (kiến trúc sư) là 'design' (thiết kế) công trình.", "isCorrect": true },
+                { "text": "resign", "isCorrect": false },
+                { "text": "assign", "isCorrect": false },
+                { "text": "align", "isCorrect": false }
+              ]
+            },
+            {
+              "questionNumber": 25,
+              "question": "The park ranger made a _______ to keep the trails clean for future visitors.",
+              "answerOptions": [
+                { "text": "promise", "rationale": "**Dịch & Loại từ:**\n- A. promise (n): lời hứa\n- B. premise (n): tiền đề\n- C. practice (n): sự thực hành\n- D. prejudice (n): định kiến\n\n**Dịch câu:** Người kiểm lâm đã đưa ra một **lời hứa** sẽ giữ cho các con đường mòn sạch sẽ cho du khách trong tương lai.\n\n**Giải thích:** Cụm từ 'make a promise' (hứa).", "isCorrect": true },
+                { "text": "premise", "isCorrect": false },
+                { "text": "practice", "isCorrect": false },
+                { "text": "prejudice", "isCorrect": false }
+              ]
+            }
+          ]
+        };
+
+        let currentQuestions = [];
+        let score = 0;
+        let answeredCount = 0;
+
+        // Sound Effects (using simple beep URLs or generated tones)
+        const soundCorrect = new Audio('https://assets.mixkit.co/sfx/preview/mixkit-correct-answer-tone-2870.mp3');
+        const soundWrong = new Audio('https://assets.mixkit.co/sfx/preview/mixkit-wrong-answer-fail-notification-946.mp3');
+        const soundConfetti = new Audio('https://assets.mixkit.co/sfx/preview/mixkit-winning-chimes-2015.mp3');
+
+        // Shuffle Function
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        // Initialize Quiz
+        function initQuiz() {
+            // Clone deep
+            currentQuestions = JSON.parse(JSON.stringify(rawData.questions));
+            
+            // 1. Shuffle Order of Questions
+            shuffleArray(currentQuestions);
+            
+            // 2. Shuffle Order of Options INSIDE each question
+            currentQuestions.forEach(q => {
+                shuffleArray(q.answerOptions);
+            });
+            
+            // Reset States
+            score = 0;
+            answeredCount = 0;
+            document.getElementById('score-display').innerText = score;
+            document.getElementById('quiz-container').innerHTML = '';
+            document.getElementById('result-modal').classList.add('hidden');
+            
+            // Render all questions
+            currentQuestions.forEach((q, index) => renderQuestion(q, index + 1));
+        }
+
+        // Parse Text for Markdown-like bolding AND Remove Hardcoded A/B/C/D prefixes in explanation
+        function formatText(text) {
+            if(!text) return "";
+            
+            // Remove "- A.", "- B." patterns to avoid confusion since we shuffled options
+            // Logic: Replace "- A. word" with "- <strong>word</strong>" or just bullet
+            let cleanText = text
+                // Replace "- A. word" with "• word"
+                .replace(/- [A-D]\.\s/g, '• ') 
+                // Bold formatting
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\n/g, '<br>');
+                
+            return cleanText;
+        }
+
+        // Render Single Question Card
+        function renderQuestion(qData, displayIndex) {
+            const container = document.getElementById('quiz-container');
+            
+            const qDiv = document.createElement('div');
+            qDiv.className = "bg-white rounded-3xl p-6 shadow-xl border-b-8 border-gray-200 relative overflow-hidden";
+            qDiv.id = `q-card-${qData.questionNumber}`;
+
+            let optionsHtml = '';
+            const labels = ['A', 'B', 'C', 'D'];
+            
+            // Use the ALREADY SHUFFLED qData.answerOptions
+            qData.answerOptions.forEach((opt, idx) => {
+                optionsHtml += `
+                    <button onclick="handleAnswer(this, ${qData.questionNumber}, ${opt.isCorrect}, '${labels[idx]}')" 
+                        class="option-btn group w-full text-left p-4 rounded-xl border-2 border-gray-100 mb-3 btn-3d bg-white hover:bg-gray-50 flex items-center gap-4 transition-colors"
+                        data-qid="${qData.questionNumber}" data-is-correct="${opt.isCorrect}">
+                        <div class="w-10 h-10 rounded-lg bg-gray-100 text-gray-500 font-bold flex items-center justify-center group-hover:bg-theme-pink group-hover:text-white transition-colors">
+                            ${labels[idx]}
+                        </div>
+                        <span class="font-semibold text-lg text-gray-700">${opt.text}</span>
+                    </button>
+                `;
+            });
+
+            // Find explanation text from the correct option (before shuffle or after, doesn't matter as object ref is same)
+            const correctOpt = qData.answerOptions.find(o => o.isCorrect);
+            const explanationText = correctOpt.rationale || "Chi tiết đang cập nhật.";
+
+            qDiv.innerHTML = `
+                <div class="mb-6">
+                    <span class="inline-block bg-purple-100 text-purple-700 text-xs font-bold px-3 py-1 rounded-full mb-2">Question ${displayIndex}</span>
+                    <h3 class="text-xl md:text-2xl font-bold text-gray-800 leading-snug">
+                        ${qData.question}
+                    </h3>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    ${optionsHtml}
+                </div>
+
+                <!-- Explanation Box (Hidden initially) -->
+                <div id="explain-${qData.questionNumber}" class="explanation-box hidden rounded-xl p-5 mt-6 animate-fade-in">
+                    <h4 class="font-bold text-theme-pink flex items-center gap-2 mb-3">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        Ms Mai An Giải Thích Chi Tiết:
+                    </h4>
+                    <div class="text-gray-700 text-sm md:text-base leading-relaxed rationale-text">
+                        ${formatText(explanationText)}
+                    </div>
+                </div>
+            `;
+            
+            container.appendChild(qDiv);
+        }
+
+        // Handle Answer Click
+        function handleAnswer(btn, qId, isCorrect, label) {
+            const parentCard = document.getElementById(`q-card-${qId}`);
+            const allBtns = parentCard.querySelectorAll('.option-btn');
+            
+            // Prevent multiple clicks
+            if (btn.classList.contains('disabled')) return;
+            
+            // Disable all buttons in this card
+            allBtns.forEach(b => {
+                b.classList.add('disabled', 'cursor-not-allowed', 'opacity-80');
+                b.onclick = null;
+            });
+
+            answeredCount++;
+            updateProgress();
+
+            if (isCorrect) {
+                // Correct styling
+                btn.classList.remove('bg-white', 'hover:bg-gray-50');
+                btn.classList.add('bg-correct', 'border-green-600');
+                btn.querySelector('div').classList.add('bg-green-700', 'text-white');
+                
+                // Sound & Confetti
+                soundCorrect.currentTime = 0;
+                soundCorrect.play();
+                confetti({
+                    particleCount: 100,
+                    spread: 70,
+                    origin: { y: 0.6 },
+                    colors: ['#00D26A', '#8854C0', '#00C9A7']
+                });
+                
+                score++;
+                animateScore();
+            } else {
+                // Wrong styling
+                btn.classList.remove('bg-white', 'hover:bg-gray-50');
+                btn.classList.add('bg-wrong', 'border-red-600');
+                btn.querySelector('div').classList.add('bg-red-700', 'text-white');
+                
+                // Add Shake Animation to the card
+                parentCard.classList.add('shake-animation');
+                
+                // Sound
+                soundWrong.currentTime = 0;
+                soundWrong.play();
+
+                // AUTOMATICALLY Highlight the correct answer so user knows
+                allBtns.forEach(b => {
+                    if(b.getAttribute('data-is-correct') === 'true') {
+                        b.classList.remove('bg-white');
+                        b.classList.add('bg-green-100', 'border-green-600', 'text-green-800');
+                        b.querySelector('div').classList.add('bg-green-600', 'text-white');
+                        // Optional: Add icon check?
+                    }
+                });
+            }
+            
+            // SHOW EXPLANATION
+            const explainDiv = document.getElementById(`explain-${qId}`);
+            explainDiv.classList.remove('hidden');
+            explainDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        function updateProgress() {
+            document.getElementById('progress-display').innerText = Math.min(answeredCount + 1, 25);
+        }
+
+        function animateScore() {
+            const scoreEl = document.getElementById('score-display');
+            scoreEl.innerText = score;
+            scoreEl.classList.add('scale-150', 'text-green-600');
+            setTimeout(() => scoreEl.classList.remove('scale-150', 'text-green-600'), 200);
+        }
+
+        // Finish Quiz
+        function finishQuiz() {
+            const modal = document.getElementById('result-modal');
+            const finalScoreEl = document.getElementById('final-score');
+            const msgEl = document.getElementById('final-message');
+            
+            finalScoreEl.innerText = score;
+            
+            if(score === 25) {
+                msgEl.innerText = "Tuyệt đỉnh! Bạn là thiên tài! 🌟";
+                soundConfetti.play();
+            } else if (score >= 20) {
+                msgEl.innerText = "Rất tốt! Cố chút nữa là hoàn hảo! 🔥";
+            } else if (score >= 15) {
+                msgEl.innerText = "Khá lắm! Hãy ôn lại các từ vựng nhé! 📚";
+            } else {
+                msgEl.innerText = "Cố gắng lên! Đừng nản chí nhé! 💪";
+            }
+            
+            modal.classList.remove('hidden');
+            confetti({ particleCount: 200, spread: 100, origin: { y: 0.6 } });
+        }
+
+        function closeModal() {
+            document.getElementById('result-modal').classList.add('hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function resetQuiz() {
+            if(confirm("Bạn có muốn làm lại từ đầu không?")) {
+                initQuiz();
+            }
+        }
+
+        // Auto Init
+        window.onload = initQuiz;
+
+    </script>
+</body>
+</html>

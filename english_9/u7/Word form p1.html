@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Word Form Challenge - Ms Mai An ULIS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        body {
+            font-family: 'Quicksand', sans-serif;
+            background-color: #f0fdf4;
+            background-image: radial-gradient(#00C9A7 1.5px, transparent 1.5px), radial-gradient(#8854C0 1.5px, #f0fdf4 1.5px);
+            background-size: 20px 20px;
+            background-position: 0 0, 10px 10px;
+            color: #333;
+            overflow-x: hidden;
+        }
+
+        .card-shadow {
+            box-shadow: 0 10px 0 #e2e8f0;
+            transition: all 0.2s;
+        }
+
+        .btn-option {
+            background-color: white;
+            border: 2px solid #e2e8f0;
+            box-shadow: 0 4px 0 #cbd5e1;
+            transition: all 0.1s ease-in-out;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-option:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 0 #cbd5e1;
+            border-color: #8854C0;
+        }
+
+        .btn-option:active:not(:disabled) {
+            transform: translateY(2px);
+            box-shadow: 0 0 0 #cbd5e1;
+        }
+
+        .btn-correct {
+            background-color: #d1fae5 !important;
+            border-color: #00D26A !important;
+            color: #065f46 !important;
+            box-shadow: 0 4px 0 #059669 !important;
+        }
+
+        .btn-wrong {
+            background-color: #ffe4e6 !important;
+            border-color: #FF4757 !important;
+            color: #881337 !important;
+            box-shadow: 0 4px 0 #be123c !important;
+            animation: shake 0.5s;
+        }
+
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            50% { transform: translateX(5px); }
+            75% { transform: translateX(-5px); }
+            100% { transform: translateX(0); }
+        }
+
+        .explanation-box {
+            animation: slideIn 0.4s ease-out forwards;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        @keyframes slideIn {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .progress-bar-fill {
+            transition: width 0.5s ease-in-out;
+        }
+
+        /* Custom Scrollbar for explanation */
+        .custom-scroll::-webkit-scrollbar {
+            width: 8px;
+        }
+        .custom-scroll::-webkit-scrollbar-track {
+            background: #f1f1f1; 
+            border-radius: 4px;
+        }
+        .custom-scroll::-webkit-scrollbar-thumb {
+            background: #c084fc; 
+            border-radius: 4px;
+        }
+        .custom-scroll::-webkit-scrollbar-thumb:hover {
+            background: #8854C0; 
+        }
+
+        .highlight-text {
+            background-color: #fef08a;
+            padding: 0 4px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        
+        .title-gradient {
+            background: linear-gradient(to right, #8854C0, #00C9A7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-center p-4">
+
+    <!-- Header -->
+    <header class="w-full max-w-3xl mb-4 flex justify-between items-center bg-white p-4 rounded-2xl shadow-lg border-b-4 border-purple-200">
+        <div>
+            <h1 class="text-2xl font-bold title-gradient">Word Form Practice</h1>
+            <p class="text-sm text-gray-500 font-semibold">Teacher: Ms Mai An (ULIS)</p>
+        </div>
+        <div class="text-right">
+            <div class="text-sm font-bold text-gray-400">SCORE</div>
+            <div class="text-3xl font-bold text-purple-600" id="score-display">0</div>
+        </div>
+    </header>
+
+    <!-- Progress Bar -->
+    <div class="w-full max-w-3xl bg-gray-200 rounded-full h-4 mb-6 border-2 border-white shadow-sm overflow-hidden">
+        <div id="progress-bar" class="progress-bar-fill bg-[#00C9A7] h-full rounded-full" style="width: 0%"></div>
+    </div>
+
+    <!-- Quiz Container -->
+    <main id="quiz-container" class="w-full max-w-3xl bg-white rounded-3xl p-6 md:p-8 card-shadow border-2 border-gray-100 relative min-h-[500px]">
+        <!-- Question Area -->
+        <div id="question-area">
+            <div class="flex justify-between items-center mb-4">
+                <span class="bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-sm font-bold">Question <span id="current-q-num">1</span>/<span id="total-q-num">16</span></span>
+                <span id="streak-counter" class="hidden text-orange-500 font-bold"><i class="fas fa-fire"></i> Streak x2</span>
+            </div>
+
+            <h2 id="question-text" class="text-xl md:text-2xl font-bold text-gray-800 mb-8 leading-relaxed">
+                Loading question...
+            </h2>
+
+            <!-- Options Grid -->
+            <div id="options-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <!-- Buttons will be injected here -->
+            </div>
+
+            <!-- Explanation Area (Initially Hidden) -->
+            <div id="explanation-area" class="hidden mt-6 bg-blue-50 border-l-4 border-blue-400 p-4 rounded-r-lg explanation-box">
+                <h3 class="font-bold text-blue-600 mb-2 flex items-center">
+                    <i class="fas fa-glasses mr-2"></i> Ms Mai An giải thích chi tiết:
+                </h3>
+                <div id="explanation-content" class="text-gray-700 text-sm md:text-base leading-relaxed whitespace-pre-line custom-scroll max-h-[300px] overflow-y-auto pr-2">
+                    <!-- Explanation content goes here -->
+                </div>
+                <div class="mt-4 text-right">
+                    <button id="next-btn" class="bg-[#00C9A7] hover:bg-[#00a085] text-white font-bold py-2 px-6 rounded-xl shadow-[0_4px_0_#008f72] active:shadow-none active:translate-y-1 transition-all">
+                        Câu tiếp theo <i class="fas fa-arrow-right ml-1"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Result Area (Initially Hidden) -->
+        <div id="result-area" class="hidden text-center py-10">
+            <div class="text-6xl mb-4">🏆</div>
+            <h2 class="text-3xl font-bold text-gray-800 mb-2">Hoàn thành bài thi!</h2>
+            <p id="final-message" class="text-gray-500 mb-8">Bạn làm rất tốt!</p>
+            
+            <div class="flex justify-center items-center gap-8 mb-8">
+                <div class="text-center">
+                    <p class="text-gray-400 text-sm font-bold uppercase">Điểm số</p>
+                    <p id="final-score" class="text-4xl font-bold text-purple-600">0</p>
+                </div>
+                <div class="text-center">
+                    <p class="text-gray-400 text-sm font-bold uppercase">Chính xác</p>
+                    <p id="final-percent" class="text-4xl font-bold text-[#00C9A7]">0%</p>
+                </div>
+            </div>
+
+            <button onclick="location.reload()" class="bg-[#8854C0] hover:bg-[#7044a0] text-white font-bold py-3 px-8 rounded-2xl shadow-[0_6px_0_#5b3684] active:shadow-none active:translate-y-1 transition-all text-lg">
+                <i class="fas fa-redo mr-2"></i> Làm lại bài
+            </button>
+        </div>
+    </main>
+
+    <!-- Audio Elements (Generated via JS to ensure single file integrity, but using placeholder logic for prompt) -->
+    
+    <script>
+        // --- DATA SOURCE ---
+        const rawData = {
+          "questions": [
+            {
+              "questionNumber": 15,
+              "question": "The package tour is good for people who are not ___________ about using apps. (CONFIDENCE)",
+              "answerOptions": [
+                { "text": "confident", "rationale": "**Phân tích đáp án:**\n- A. confident (adj): tự tin\n- B. confidence (n): sự tự tin\n- C. confidential (adj): bảo mật/tuyệt mật\n- D. confide (v): tâm sự/chia sẻ bí mật\n\n**Dịch câu:** Tour trọn gói rất tốt cho những người không tự tin về việc sử dụng các ứng dụng.\n\n**Giải thích:** Chỗ trống đứng sau động từ tobe 'are' và trước giới từ 'about'. Cấu trúc: *be confident about doing sth* (tự tin về việc làm gì).", "isCorrect": true },
+                { "text": "confidence", "isCorrect": false },
+                { "text": "confidential", "isCorrect": false },
+                { "text": "confide", "isCorrect": false }
+              ],
+              "hint": "Adjective describing a feeling of being sure."
+            },
+            {
+              "questionNumber": 16,
+              "question": "One disadvantage of this tour is you have to follow a __________ itinerary. (FIX)",
+              "answerOptions": [
+                { "text": "fixed", "rationale": "**Phân tích đáp án:**\n- A. fix (v): sửa chữa\n- B. fixed (adj/V3): cố định, đã được sắp đặt\n- C. fixation (n): sự cố định/ám ảnh\n- D. fixture (n): đồ đạc cố định\n\n**Dịch câu:** Một nhược điểm của tour này là bạn phải tuân theo một lịch trình cố định.\n\n**Giải thích:** Trước danh từ 'itinerary' (lịch trình) cần một tính từ. 'Fixed' mang nghĩa là đã được định sẵn, không thay đổi.", "isCorrect": true },
+                { "text": "fix", "isCorrect": false },
+                { "text": "fixture", "isCorrect": false },
+                { "text": "fixation", "isCorrect": false }
+              ]
+            },
+            {
+              "questionNumber": 17,
+              "question": "For self-guided tours, tourists can travel more ____________ than other tours. (FLEXIBILITY)",
+              "answerOptions": [
+                { "text": "flexibly", "rationale": "**Phân tích đáp án:**\n- A. flexible (adj): linh hoạt\n- B. flexibly (adv): một cách linh hoạt\n- C. flexibility (n): sự linh hoạt\n- D. flex (v): uốn cong\n\n**Dịch câu:** Đối với các tour tự hướng dẫn, du khách có thể đi du lịch một cách linh hoạt hơn so với các tour khác.\n\n**Giải thích:** Chỗ trống bổ nghĩa cho động từ 'travel'. Để bổ nghĩa cho động từ thường, ta cần một trạng từ (Adverb).", "isCorrect": true },
+                { "text": "flexible", "isCorrect": false },
+                { "text": "flexibility", "isCorrect": false },
+                { "text": "flex", "isCorrect": false }
+              ]
+            },
+            {
+              "questionNumber": 18,
+              "question": "Many ___________ buildings have become UNESCO World Heritage Sites. (RUIN)",
+              "answerOptions": [
+                { "text": "ruined", "rationale": "**Phân tích đáp án:**\n- A. ruin (v/n): phá hủy/tàn tích\n- B. ruined (adj/V3): bị tàn phá/đổ nát\n- C. ruining (V-ing): đang phá hủy\n- D. ruins (n): các tàn tích\n\n**Dịch câu:** Nhiều tòa nhà đổ nát đã trở thành Di sản Thế giới UNESCO.\n\n**Giải thích:** Trước danh từ 'buildings' cần một tính từ miêu tả trạng thái. 'Ruined' (bị hư hại, đổ nát) là đáp án phù hợp.", "isCorrect": true },
+                { "text": "ruin", "isCorrect": false },
+                { "text": "ruins", "isCorrect": false },
+                { "text": "ruining", "isCorrect": false }
+              ]
+            },
+            {
+              "questionNumber": 19,
+              "question": "There are many ______________ rivers in this area. (CHARM)",
+              "answerOptions": [
+                { "text": "charming", "rationale": "**Phân tích đáp án:**\n- A. charm (n/v): sự quyến rũ\n- B. charming (adj): quyến rũ, đẹp mê hồn\n- C. charmed (adj): bị mê hoặc\n- D. charmless (adj): không quyến rũ\n\n**Dịch câu:** Có rất nhiều dòng sông thơ mộng/quyến rũ ở khu vực này.\n\n**Giải thích:** Cần tính từ bổ nghĩa cho 'rivers'. Dùng V-ing (charming) để chỉ tính chất của sự vật (dòng sông mang lại vẻ đẹp).", "isCorrect": true },
+                { "text": "charm", "isCorrect": false },
+                { "text": "charmed", "isCorrect": false },
+                { "text": "charmless", "isCorrect": false }
+              ]
+            },
+            {
+              "questionNumber": 20,
+              "question": "We should protect the environment for a _______________ development. (SUSTAINABILITY)",
+              "answerOptions": [
+                { "text": "sustainable", "rationale": "**Phân tích đáp án:**\n- A. sustain (v): duy trì\n- B. sustainable (adj): bền vững\n- C. sustainably (adv): một cách bền vững\n- D. sustainability (n): sự bền vững\n\n**Dịch câu:** Chúng ta nên bảo vệ môi trường vì một sự phát triển bền vững.\n\n**Giải thích:** Trước danh từ 'development' cần một tính từ. 'Sustainable development' là cụm từ cố định (phát triển bền vững).", "isCorrect": true },
+                { "text": "sustain", "isCorrect": false },
+                { "text": "sustainably", "isCorrect": false },
+                { "text": "sustainability", "isCorrect": false }
+              ]
+            },
+            {
+              "questionNumber": 21,
+              "question": "It was __________ for him to climb the peak. (RISK)",
+              "answerOptions": [
+                { "text": "risky", "rationale": "**Phân tích đáp án:**\n- A. risk (n/v): rủi ro\n- B. risky (adj): đầy rủi ro, nguy hiểm\n- C. riskily (adv): một cách liều lĩnh\n- D. risked (v-ed): đã liều\n\n**Dịch câu:** Việc anh ấy leo lên đỉnh núi thật là mạo hiểm.\n\n**Giải thích:** Cấu trúc *It was + Adj + for sb to do sth*. Cần tính từ 'risky'.", "isCorrect": true },
+                { "text": "risk", "isCorrect": false },
+                { "text": "riskily", "isCorrect": false },
+                { "text": "risked", "isCorrect": false }
+              ]
+            },
+            {
+              "questionNumber": 22,
+              "question": "The best way to _________________ the Trang An is by boat. (EXPLORER)",
+              "answerOptions": [
+                { "text": "explore", "rationale": "**Phân tích đáp án:**\n- A. explore (v): khám phá\n- B. explorer (n): nhà thám hiểm\n- C. exploration (n): sự thám hiểm\n- D. exploratory (adj): có tính thám hiểm\n\n**Dịch câu:** Cách tốt nhất để khám phá Tràng An là đi bằng thuyền.\n\n**Giải thích:** Sau 'The best way to...' cần một động từ nguyên thể (infinitive).", "isCorrect": true },
+                { "text": "explorer", "isCorrect": false },
+                { "text": "exploration", "isCorrect": false },
+                { "text": "exploratory", "isCorrect": false }
+              ]
+            },
+            {
+              "questionNumber": 23,
+              "question": "Environmentalists ______________ support measures to save these heritage trees. (STRONG)",
+              "answerOptions": [
+                { "text": "strongly", "rationale": "**Phân tích đáp án:**\n- A. strength (n): sức mạnh\n- B. strong (adj): mạnh mẽ\n- C. strongly (adv): một cách mạnh mẽ\n- D. strengthen (v): củng cố\n\n**Dịch câu:** Các nhà môi trường ủng hộ mạnh mẽ các biện pháp cứu những cây di sản này.\n\n**Giải thích:** Chỗ trống đứng trước động từ 'support' để bổ sung mức độ cho hành động này -> Cần trạng từ (Adverb).", "isCorrect": true },
+                { "text": "strong", "isCorrect": false },
+                { "text": "strength", "isCorrect": false },
+                { "text": "strengthen", "isCorrect": false }
+              ]
+            },
+            {
+              "questionNumber": 24,
+              "question": "The government encourages people to protect the ____________ of their communities. (DIVERSE)",
+              "answerOptions": [
+                { "text": "diversity", "rationale": "**Phân tích đáp án:**\n- A. diverse (adj): đa dạng\n- B. diversity (n): sự đa dạng\n- C. diversify (v): đa dạng hóa\n- D. diversification (n): sự đa dạng hóa (thường dùng trong kinh doanh)\n\n**Dịch câu:** Chính phủ khuyến khích người dân bảo vệ sự đa dạng của cộng đồng họ.\n\n**Giải thích:** Sau mạo từ 'the' cần một danh từ. 'Diversity' (sự đa dạng văn hóa/sinh học) là từ phù hợp nhất.", "isCorrect": true },
+                { "text": "diverse", "isCorrect": false },
+                { "text": "diversify", "isCorrect": false },
+                { "text": "diversification", "isCorrect": false }
+              ]
+            },
+            {
+              "questionNumber": 25,
+              "question": "___________ between Israel and Jordan, the Dead Sea is the lowest place on Earth. (LOCATION)",
+              "answerOptions": [
+                { "text": "Located", "rationale": "**Phân tích đáp án:**\n- A. Locate (v): định vị\n- B. Locating (V-ing): đang định vị\n- C. Located (V3/adj): nằm ở/tọa lạc tại\n- D. Location (n): vị trí\n\n**Dịch câu:** Nằm giữa Israel và Jordan, Biển Chết là nơi thấp nhất trên Trái Đất.\n\n**Giải thích:** Đây là mệnh đề quan hệ rút gọn dạng bị động (Biển Chết *được* đặt tại...). Dạng đầy đủ: 'Because it is located...'. Rút gọn còn 'Located...'.", "isCorrect": true },
+                { "text": "Locating", "isCorrect": false },
+                { "text": "Location", "isCorrect": false },
+                { "text": "Locate", "isCorrect": false }
+              ]
+            },
+            {
+              "questionNumber": 26,
+              "question": "We need their ___________ to enter the cave. (PERMIT)",
+              "answerOptions": [
+                { "text": "permission", "rationale": "**Phân tích đáp án:**\n- A. permit (v/n): cho phép/giấy phép\n- B. permission (n): sự cho phép\n- C. permissive (adj): dễ dãi\n- D. permissibly (adv): chấp nhận được\n\n**Dịch câu:** Chúng tôi cần sự cho phép của họ để vào hang.\n\n**Giải thích:** 'Permit' (danh từ) là tờ giấy phép (vật lý), 'Permission' (danh từ) là sự cho phép (trừu tượng). Trong ngữ cảnh 'need their...' thường nói về quyền/sự cho phép.", "isCorrect": true },
+                { "text": "permit", "isCorrect": false },
+                { "text": "permissive", "isCorrect": false },
+                { "text": "permissibly", "isCorrect": false }
+              ]
+            },
+            {
+              "questionNumber": 27,
+              "question": "This place is an ideal destination for ____________. (ADVENTURE)",
+              "answerOptions": [
+                { "text": "adventure", "rationale": "**Phân tích đáp án:**\n- A. adventure (n): cuộc phiêu lưu (hoặc sự phiêu lưu)\n- B. adventurous (adj): thích phiêu lưu\n- C. adventurer (n): nhà thám hiểm\n- D. adventurously (adv): một cách mạo hiểm\n\n**Dịch câu:** Nơi này là điểm đến lý tưởng cho du lịch mạo hiểm (sự phiêu lưu).\n\n**Giải thích:** 'Destination for adventure' là cụm từ phổ biến. Nếu dùng chỉ người phải là 'adventurers' (số nhiều), nhưng 'adventure' (danh từ không đếm được chỉ hoạt động) cũng rất phù hợp.", "isCorrect": true },
+                { "text": "adventurous", "isCorrect": false },
+                { "text": "adventurer", "isCorrect": false },
+                { "text": "adventurously", "isCorrect": false }
+              ]
+            },
+            {
+              "questionNumber": 28,
+              "question": "It is one of the greatest tourist ___________ in the world. (ATTRACT)",
+              "answerOptions": [
+                { "text": "attractions", "rationale": "**Phân tích đáp án:**\n- A. attract (v): thu hút\n- B. attraction (n): sự thu hút (số ít)\n- C. attractions (n): các điểm thu hút (số nhiều)\n- D. attractive (adj): hấp dẫn\n\n**Dịch câu:** Đó là một trong những điểm thu hút khách du lịch lớn nhất thế giới.\n\n**Giải thích:** Cấu trúc *one of the... + Noun (plural)* (một trong những...). Do đó danh từ phải ở dạng số nhiều -> 'attractions'.", "isCorrect": true },
+                { "text": "attraction", "isCorrect": false },
+                { "text": "attractive", "isCorrect": false },
+                { "text": "attract", "isCorrect": false }
+              ]
+            },
+            {
+              "questionNumber": 29,
+              "question": "The mountain is so ____________. It is the most attractive mountain in the world. (MAJESTY)",
+              "answerOptions": [
+                { "text": "majestic", "rationale": "**Phân tích đáp án:**\n- A. majesty (n): vẻ uy nghi/bệ hạ\n- B. majestic (adj): hùng vĩ, tráng lệ\n- C. majestically (adv): một cách hùng vĩ\n- D. major (adj): chính/lớn\n\n**Dịch câu:** Ngọn núi thật hùng vĩ. Nó là ngọn núi hấp dẫn nhất thế giới.\n\n**Giải thích:** Sau động từ tobe 'is' và trạng từ 'so' cần một tính từ chỉ đặc điểm.", "isCorrect": true },
+                { "text": "majesty", "isCorrect": false },
+                { "text": "majestically", "isCorrect": false },
+                { "text": "major", "isCorrect": false }
+              ]
+            },
+            {
+              "questionNumber": 30,
+              "question": "When he reached the mountain peak, he found it covered with ___________ flags. (COUNT)",
+              "answerOptions": [
+                { "text": "countless", "rationale": "**Phân tích đáp án:**\n- A. count (v): đếm\n- B. countable (adj): có thể đếm được\n- C. countless (adj): vô số/không đếm xuể\n- D. counter (n): quầy hàng\n\n**Dịch câu:** Khi anh ấy lên đến đỉnh núi, anh thấy nó được bao phủ bởi vô số lá cờ.\n\n**Giải thích:** Dựa vào ngữ cảnh 'bao phủ', ta hiểu là rất nhiều cờ. 'Countless' (vô số) là tính từ phù hợp nhất.", "isCorrect": true },
+                { "text": "countable", "isCorrect": false },
+                { "text": "count", "isCorrect": false },
+                { "text": "counter", "isCorrect": false }
+              ]
+            },
+            {
+              "questionNumber": 31,
+              "question": "Natural wonders are our country’s valuable ____________. (POSSESS)",
+              "answerOptions": [
+                { "text": "possessions", "rationale": "**Phân tích đáp án:**\n- A. possess (v): sở hữu\n- B. possession (n): sự sở hữu/vật sở hữu (số ít)\n- C. possessions (n): tài sản/vật sở hữu (số nhiều)\n- D. possessive (adj): chiếm hữu\n\n**Dịch câu:** Các kỳ quan thiên nhiên là những tài sản quý giá của đất nước chúng ta.\n\n**Giải thích:** 'Natural wonders' là số nhiều, nên danh từ phía sau cũng nên ở dạng số nhiều để tương xứng -> 'possessions' (tài sản).", "isCorrect": true },
+                { "text": "possess", "isCorrect": false },
+                { "text": "possession", "isCorrect": false },
+                { "text": "possessive", "isCorrect": false }
+              ]
+            }
+          ]
+        };
+
+        // --- GAME LOGIC ---
+
+        let questions = [];
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let hasAnswered = false;
+
+        // Audio Context for Generating Sounds (No external files needed)
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        const audioCtx = new AudioContext();
+
+        function playSound(type) {
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            const osc = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            osc.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+
+            if (type === 'correct') {
+                // High pitch Ding
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(523.25, audioCtx.currentTime); // C5
+                osc.frequency.exponentialRampToValueAtTime(1046.5, audioCtx.currentTime + 0.1); // C6
+                gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.5);
+            } else {
+                // Low pitch Buzz
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+                osc.frequency.linearRampToValueAtTime(100, audioCtx.currentTime + 0.3);
+                gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.3);
+            }
+        }
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        // Initialize Game
+        function initGame() {
+            // Deep copy rawData to avoid mutating the original data structure
+            questions = JSON.parse(JSON.stringify(rawData.questions));
+            
+            // Shuffle questions order
+            questions = shuffleArray(questions);
+            
+            // Normalize data: Find rationale and SHUFFLE OPTIONS
+            questions.forEach(q => {
+                const correctOption = q.answerOptions.find(opt => opt.isCorrect);
+                q.rationale = correctOption ? correctOption.rationale : "No explanation available.";
+                
+                // FIX: Shuffle the answer options so correct answer is random (not always A)
+                q.answerOptions = shuffleArray(q.answerOptions);
+            });
+
+            currentQuestionIndex = 0;
+            score = 0;
+            updateUI();
+            renderQuestion();
+        }
+
+        function updateUI() {
+            document.getElementById('current-q-num').innerText = currentQuestionIndex + 1;
+            document.getElementById('total-q-num').innerText = questions.length;
+            document.getElementById('score-display').innerText = score;
+            
+            const progress = ((currentQuestionIndex) / questions.length) * 100;
+            document.getElementById('progress-bar').style.width = `${progress}%`;
+        }
+
+        function renderQuestion() {
+            hasAnswered = false;
+            const q = questions[currentQuestionIndex];
+            
+            // Reset UI
+            document.getElementById('question-area').classList.remove('hidden');
+            document.getElementById('result-area').classList.add('hidden');
+            document.getElementById('explanation-area').classList.add('hidden');
+            document.getElementById('next-btn').parentElement.classList.add('hidden'); // Hide Next button initially
+            
+            // Format Question Text: Bold the word in parentheses
+            let qText = q.question.replace(/\(([^)]+)\)/, '<span class="text-purple-600 font-bold">($1)</span>');
+            qText = qText.replace(/_+/g, '<span class="inline-block border-b-4 border-purple-300 w-24 mx-1"></span>');
+            document.getElementById('question-text').innerHTML = qText;
+
+            // Render Options
+            const optionsContainer = document.getElementById('options-grid');
+            optionsContainer.innerHTML = '';
+
+            // Map standard ABCD to the options (Assuming order in JSON is A, B, C, D)
+            const labels = ['A', 'B', 'C', 'D'];
+            
+            q.answerOptions.forEach((opt, index) => {
+                const btn = document.createElement('button');
+                btn.className = 'btn-option w-full py-4 px-6 rounded-2xl text-left text-lg font-semibold flex items-center text-gray-700';
+                btn.innerHTML = `
+                    <span class="bg-gray-100 w-8 h-8 flex items-center justify-center rounded-full mr-4 text-sm font-bold text-gray-500 group-hover:bg-purple-100 group-hover:text-purple-600 transition-colors">${labels[index]}</span>
+                    ${opt.text}
+                `;
+                btn.onclick = () => checkAnswer(opt.isCorrect, btn, q.rationale);
+                optionsContainer.appendChild(btn);
+            });
+        }
+
+        function checkAnswer(isCorrect, btnElement, rationale) {
+            if (hasAnswered) return;
+            hasAnswered = true;
+
+            const allButtons = document.querySelectorAll('.btn-option');
+            
+            // Find correct button to highlight it even if wrong was clicked
+            let correctBtn;
+            questions[currentQuestionIndex].answerOptions.forEach((opt, idx) => {
+                if (opt.isCorrect) correctBtn = allButtons[idx];
+            });
+
+            if (isCorrect) {
+                score += 10;
+                playSound('correct');
+                btnElement.classList.add('btn-correct');
+                // Confetti Effect
+                confetti({
+                    particleCount: 100,
+                    spread: 70,
+                    origin: { y: 0.6 },
+                    colors: ['#00C9A7', '#8854C0', '#F368E0']
+                });
+            } else {
+                playSound('wrong');
+                btnElement.classList.add('btn-wrong');
+                correctBtn.classList.add('btn-correct'); // Show correct answer
+            }
+
+            // Disable all buttons
+            allButtons.forEach(btn => btn.disabled = true);
+            updateUI();
+
+            // Show Explanation
+            showExplanation(rationale);
+        }
+
+        function showExplanation(rationaleText) {
+            const expArea = document.getElementById('explanation-area');
+            const expContent = document.getElementById('explanation-content');
+            const nextBtnContainer = document.getElementById('next-btn').parentElement;
+
+            // Format Markdown-style text to HTML
+            let formattedText = rationaleText
+                .replace(/\*\*(.*?)\*\*/g, '<b class="text-gray-900">$1</b>') // Bold
+                .replace(/- ([A-D]\.)/g, '<br><span class="font-bold text-purple-600">$1</span>') // Options A. B. C. D.
+                .replace(/\n/g, '<br>'); // Line breaks
+
+            expContent.innerHTML = formattedText;
+            
+            expArea.classList.remove('hidden');
+            nextBtnContainer.classList.remove('hidden'); // Reveal Next Button
+            
+            // Scroll to explanation on mobile
+            if(window.innerWidth < 768) {
+                expArea.scrollIntoView({behavior: 'smooth', block: 'start'});
+            }
+        }
+
+        document.getElementById('next-btn').addEventListener('click', () => {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < questions.length) {
+                renderQuestion();
+                // Update progress bar
+                const progress = ((currentQuestionIndex) / questions.length) * 100;
+                document.getElementById('progress-bar').style.width = `${progress}%`;
+            } else {
+                showResults();
+            }
+        });
+
+        function showResults() {
+            document.getElementById('quiz-container').classList.remove('card-shadow'); // Remove shadow for flat look
+            document.getElementById('question-area').classList.add('hidden');
+            document.getElementById('result-area').classList.remove('hidden');
+            document.getElementById('progress-bar').style.width = '100%';
+
+            document.getElementById('final-score').innerText = score;
+            const percent = Math.round((score / (questions.length * 10)) * 100);
+            document.getElementById('final-percent').innerText = `${percent}%`;
+
+            const message = document.getElementById('final-message');
+            if (percent === 100) {
+                message.innerText = "Tuyệt vời! Em là thiên tài ngữ pháp! 🌟";
+                message.className = "text-green-500 font-bold text-xl mb-8";
+                confetti({ particleCount: 200, spread: 100 });
+            } else if (percent >= 80) {
+                message.innerText = "Làm tốt lắm! Em rất nắm chắc bài! 🎉";
+                message.className = "text-purple-500 font-bold text-xl mb-8";
+            } else if (percent >= 50) {
+                message.innerText = "Cố gắng thêm chút nữa nhé! Em làm được mà! 💪";
+                message.className = "text-orange-500 font-bold text-xl mb-8";
+            } else {
+                message.innerText = "Đừng buồn, hãy xem lại phần giải thích và thử lại nhé! 📚";
+                message.className = "text-gray-500 font-bold text-xl mb-8";
+            }
+        }
+
+        // Start the game
+        initGame();
+
+    </script>
+</body>
+</html>

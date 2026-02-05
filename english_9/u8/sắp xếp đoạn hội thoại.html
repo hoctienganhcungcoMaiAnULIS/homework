@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ms Mai An ULIS - Sentence Rearrangement Practice</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <style>
+        :root {
+            --primary: #8854C0; /* Tím Pastel */
+            --secondary: #00C9A7; /* Xanh ngọc */
+            --accent: #FF9F43; /* Cam */
+            --correct: #00D26A; /* Xanh lá */
+            --wrong: #FF4757; /* Đỏ */
+            --bg-pattern: #F0F4F8;
+            --text-main: #2F3542;
+            --card-bg: #ffffff;
+        }
+
+        * {
+            box-sizing: border-box;
+            user-select: none; /* Ngăn chọn text để tập trung click */
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: var(--bg-pattern);
+            background-image: radial-gradient(#dfe4ea 15%, transparent 16%), radial-gradient(#dfe4ea 15%, transparent 16%);
+            background-size: 60px 60px;
+            background-position: 0 0, 30px 30px;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* --- HEADER --- */
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            background: white;
+            padding: 15px 30px;
+            border-radius: 50px;
+            box-shadow: 0 8px 0 rgba(0,0,0,0.1);
+            border: 2px solid var(--primary);
+            animation: float 3s ease-in-out infinite;
+        }
+
+        .header h1 {
+            margin: 0;
+            color: var(--primary);
+            font-size: 1.5rem;
+            font-weight: 800;
+        }
+
+        .header span {
+            color: var(--secondary);
+            font-size: 0.9rem;
+            font-weight: 700;
+        }
+
+        /* --- QUIZ CARD --- */
+        .quiz-container {
+            background: var(--card-bg);
+            width: 100%;
+            max-width: 800px;
+            border-radius: 25px;
+            padding: 30px;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+            position: relative;
+            overflow: hidden;
+            border-bottom: 8px solid #E1E1E1;
+        }
+
+        /* Progress Bar */
+        .progress-container {
+            width: 100%;
+            background-color: #f1f2f6;
+            border-radius: 20px;
+            margin-bottom: 25px;
+            height: 15px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--secondary), var(--primary));
+            width: 0%;
+            transition: width 0.5s ease;
+            border-radius: 20px;
+        }
+
+        /* Question Area */
+        .question-box {
+            margin-bottom: 25px;
+        }
+
+        .q-tag {
+            display: inline-block;
+            background: var(--accent);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 15px;
+            font-weight: bold;
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+            box-shadow: 0 4px 0 rgba(0,0,0,0.1);
+        }
+
+        .question-text {
+            font-size: 1.2rem;
+            color: var(--text-main);
+            font-weight: 700;
+            line-height: 1.6;
+            white-space: pre-line; /* Giữ định dạng xuống dòng của đề bài */
+        }
+
+        .hint-text {
+            color: #747d8c;
+            font-style: italic;
+            font-size: 0.95rem;
+            margin-top: 10px;
+            background: #f1f2f6;
+            padding: 10px;
+            border-radius: 10px;
+            border-left: 4px solid var(--accent);
+        }
+
+        /* Options Area */
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+        }
+
+        .option-btn {
+            background: white;
+            border: 2px solid #e1e1e1;
+            padding: 15px 20px;
+            border-radius: 15px;
+            font-family: 'Nunito', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-main);
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: left;
+            position: relative;
+            box-shadow: 0 6px 0 #dfe4ea;
+            display: flex;
+            align-items: center;
+        }
+
+        .option-btn .opt-label {
+            background: #dfe4ea;
+            color: #57606f;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            font-weight: 800;
+            flex-shrink: 0;
+        }
+
+        .option-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            border-color: var(--secondary);
+            box-shadow: 0 8px 0 #dfe4ea;
+        }
+
+        .option-btn:active:not(:disabled) {
+            transform: translateY(4px);
+            box-shadow: 0 2px 0 #dfe4ea;
+        }
+
+        /* State Classes */
+        .option-btn.correct {
+            background: #d1f7c4;
+            border-color: var(--correct);
+            box-shadow: 0 6px 0 #20bf6b !important;
+            color: #009432;
+        }
+        .option-btn.correct .opt-label {
+            background: var(--correct);
+            color: white;
+        }
+
+        .option-btn.wrong {
+            background: #ffcccc;
+            border-color: var(--wrong);
+            box-shadow: 0 6px 0 #eb3b5a !important;
+            color: #c0392b;
+            animation: shake 0.5s;
+        }
+        .option-btn.wrong .opt-label {
+            background: var(--wrong);
+            color: white;
+        }
+
+        /* --- EXPLANATION BOX (The Soul of the Immersive) --- */
+        .explanation-box {
+            margin-top: 25px;
+            background: #f8f9fa;
+            border: 2px solid var(--primary);
+            border-radius: 15px;
+            padding: 20px;
+            display: none; /* Hidden by default */
+            animation: slideDown 0.5s ease;
+        }
+
+        .exp-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            color: var(--primary);
+            font-weight: 800;
+            font-size: 1.1rem;
+            border-bottom: 1px dashed #ccc;
+            padding-bottom: 10px;
+        }
+
+        .exp-header i { margin-right: 10px; font-size: 1.3rem; }
+
+        .exp-content {
+            font-size: 1rem;
+            line-height: 1.6;
+            color: #2f3542;
+        }
+
+        .exp-section {
+            margin-bottom: 10px;
+        }
+        
+        .exp-section strong {
+            color: var(--primary);
+        }
+
+        .vocab-item {
+            display: inline-block;
+            background: #fff;
+            border: 1px solid #ddd;
+            padding: 2px 8px;
+            border-radius: 5px;
+            margin: 2px;
+            font-size: 0.9rem;
+        }
+
+        /* --- CONTROLS --- */
+        .controls {
+            margin-top: 25px;
+            text-align: right;
+        }
+
+        .next-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 6px 0 #5f27cd;
+            transition: all 0.2s;
+            display: none; /* Hidden initially */
+        }
+
+        .next-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 0 #5f27cd; }
+        .next-btn:active { transform: translateY(4px); box-shadow: 0 2px 0 #5f27cd; }
+
+        /* --- RESULT SCREEN --- */
+        .result-screen {
+            text-align: center;
+            display: none;
+        }
+        .score-circle {
+            width: 150px;
+            height: 150px;
+            background: var(--secondary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            font-size: 3rem;
+            font-weight: 800;
+            color: white;
+            border: 8px solid white;
+            box-shadow: 0 0 0 5px var(--secondary);
+        }
+        .feedback-text {
+            font-size: 1.5rem;
+            color: var(--primary);
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+
+        /* Animations */
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            50% { transform: translateX(10px); }
+            75% { transform: translateX(-10px); }
+            100% { transform: translateX(0); }
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            .quiz-container { padding: 20px; }
+            .header h1 { font-size: 1.2rem; }
+            .option-btn { font-size: 1rem; padding: 12px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <div class="header">
+        <h1>Ms Mai An ULIS</h1>
+        <span><i class="fas fa-star"></i> Sentence Rearrangement Master <i class="fas fa-star"></i></span>
+    </div>
+
+    <!-- Quiz Container -->
+    <div class="quiz-container" id="quiz-box">
+        <!-- Progress -->
+        <div class="progress-container">
+            <div class="progress-bar" id="progress"></div>
+        </div>
+
+        <!-- Question -->
+        <div class="question-box">
+            <div class="q-tag">Question <span id="q-number">1</span></div>
+            <div class="question-text" id="q-text">Loading question...</div>
+            <div class="hint-text" id="q-hint"></div>
+        </div>
+
+        <!-- Options -->
+        <div class="options-grid" id="options-area">
+            <!-- Options generated by JS -->
+        </div>
+
+        <!-- Explanation (The most important part) -->
+        <div class="explanation-box" id="explanation">
+            <div class="exp-header">
+                <i class="fas fa-chalkboard-teacher"></i>
+                Cô Mai An giải thích chi tiết:
+            </div>
+            <div class="exp-content" id="exp-content">
+                <!-- Content goes here -->
+            </div>
+        </div>
+
+        <!-- Controls -->
+        <div class="controls">
+            <button class="next-btn" id="next-btn" onclick="nextQuestion()">Tiếp theo <i class="fas fa-arrow-right"></i></button>
+        </div>
+    </div>
+
+    <!-- Result Screen -->
+    <div class="quiz-container result-screen" id="result-box">
+        <div class="score-circle">
+            <span id="final-score">0/0</span>
+        </div>
+        <div class="feedback-text" id="final-feedback">Tuyệt vời!</div>
+        <p>Bạn đã hoàn thành bài luyện tập Sắp xếp câu.</p>
+        <button class="next-btn" style="display:inline-block;" onclick="location.reload()">Làm lại bài <i class="fas fa-redo"></i></button>
+    </div>
+
+    <!-- AUDIO FILES (Base64 for Single File Requirement) -->
+    <script>
+        // Short beep for correct (Ding)
+        const sndCorrect = new Audio("data:audio/wav;base64,UklGRi4AAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA="); // Placeholder, will use generated beeps in JS logic for reliability if external links fail, but let's use a real trick with AudioContext for pure JS sounds to avoid large base64 strings.
+        
+        // Actually, let's use Web Audio API for synthesized sounds (Ding / Buzz) to ensure 0 external dependency and keep file size small.
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        function playDing() {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(523.25, audioCtx.currentTime); // C5
+            osc.frequency.exponentialRampToValueAtTime(1046.5, audioCtx.currentTime + 0.1); // C6
+            
+            gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+            
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.5);
+        }
+
+        function playBuzz() {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(150, audioCtx.currentTime); 
+            osc.frequency.linearRampToValueAtTime(100, audioCtx.currentTime + 0.3);
+            
+            gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+            gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+            
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.3);
+        }
+    </script>
+
+    <!-- Main Logic -->
+    <script>
+        // --- 1. DATA SOURCE (100% from user input) ---
+        const quizData = [
+    {
+      "questionNumber": 1,
+      "question": "Rearrange the sentences to make a complete letter:\n\na. We visited many famous places like the Eiffel Tower and the Louvre Museum, which were absolutely beautiful.\nb. Dear Anna, I hope you're doing well! I'm having a wonderful time in Paris with my family.\nc. The local food is delicious, especially the croissants and cheese that we have for breakfast every morning.\nd. Tomorrow we're going to Disneyland Paris, which I've been excited about since we planned this trip.\ne. I bought you a small souvenir from a shop near our hotel. See you soon! Love, Emily",
+      "hint": "Tìm câu chào mở đầu (Greeting) và câu chào kết thúc (Closing) trước. Sau đó sắp xếp thân bài theo trình tự: Hoạt động đã làm -> Đồ ăn -> Kế hoạch tương lai.",
+      "answerOptions": [
+        {
+          "text": "b – a – c – d – e",
+          "rationale": "Chính xác! Trình tự hợp lý của một lá thư:<br>1. <b>(b) Mở đầu:</b> Chào hỏi và nêu lý do viết (Đang ở Paris).<br>2. <b>(a) Quá khứ:</b> Kể về nơi đã đi (Eiffel, Louvre).<br>3. <b>(c) Hiện tại/Chi tiết:</b> Kể về đồ ăn (Croissants).<br>4. <b>(d) Tương lai:</b> Kế hoạch ngày mai (Disneyland).<br>5. <b>(e) Kết thư:</b> Nhắc đến quà và chào tạm biệt.<br><br><b>Dịch chi tiết:</b><br>* <b>b (Greeting):</b> <i>Dear Anna...</i> (Anna thân mến, tớ hy vọng cậu vẫn khỏe! Tớ đang có khoảng thời gian tuyệt vời ở Paris cùng gia đình.)<br>* <b>a (Activity):</b> <i>We visited (verb)...</i> (Chúng tớ đã thăm nhiều địa điểm nổi tiếng như Tháp Eiffel và Bảo tàng Louvre, những nơi cực kỳ xinh đẹp.)<br>* <b>c (Food):</b> <i>The local food (noun)...</i> (Đồ ăn địa phương rất ngon, đặc biệt là bánh sừng bò và phô mai mà chúng tớ ăn sáng mỗi ngày.)<br>* <b>d (Plan):</b> <i>Tomorrow (adv)...</i> (Ngày mai chúng tớ sẽ đi Disneyland Paris, nơi mà tớ đã rất háo hức kể từ khi lên kế hoạch chuyến đi này.)<br>* <b>e (Closing):</b> <i>I bought (verb)...</i> (Tớ đã mua cho cậu một món quà lưu niệm nhỏ từ một cửa hàng gần khách sạn. Hẹn sớm gặp lại! Thân ái, Emily.)",
+          "isCorrect": true
+        },
+        {
+          "text": "a – b – c – d – e",
+          "rationale": "Sai. Câu (a) kể lể chi tiết không thể đứng trước câu chào hỏi (b).",
+          "isCorrect": false
+        },
+        {
+          "text": "b – c – a – d – e",
+          "rationale": "Sai. Thường người ta kể về địa điểm tham quan chính (a) trước khi đi vào chi tiết đồ ăn (c), hoặc ít nhất (a) mang tính bao quát hơn.",
+          "isCorrect": false
+        },
+        {
+          "text": "e – b – a – c – d",
+          "rationale": "Sai. Câu (e) là câu kết thư, không thể đứng đầu.",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "questionNumber": 2,
+      "question": "Rearrange the sentences to make a logical paragraph about Phu Quoc Island:\n\na. The beach, which is famous for its white sand and clear water, attracts millions of visitors every year.\nb. Local restaurants serve fresh seafood that fishermen catch early in the morning.\nc. Phu Quoc Island is one of the most popular tourist destinations in Vietnam.\nd. Hotels and resorts along the coast offer various activities like snorkeling, diving, and island hopping tours.\ne. The best time to visit is from November to March when the weather is dry and sunny.",
+      "answerOptions": [
+        {
+          "text": "c – a – b – d – e",
+          "rationale": "Chính xác! Cấu trúc đoạn văn miêu tả địa điểm:<br>1. <b>(c) Câu chủ đề:</b> Giới thiệu chung về Phú Quốc.<br>2. <b>(a) Đặc điểm nổi bật:</b> Bãi biển (lý do chính hút khách).<br>3. <b>(b) Ẩm thực:</b> Nhà hàng và hải sản.<br>4. <b>(d) Hoạt động:</b> Khách sạn và các tour giải trí.<br>5. <b>(e) Lời khuyên:</b> Thời điểm đi tốt nhất (kết đoạn).<br><br><b>Dịch chi tiết:</b><br>* <b>c (Intro):</b> <i>Phu Quoc Island (noun)</i> (Đảo Phú Quốc là một trong những điểm đến du lịch phổ biến nhất tại Việt Nam.)<br>* <b>a (Landscape):</b> <i>The beach (noun)...</i> (Bãi biển, nơi nổi tiếng với cát trắng và nước trong xanh, thu hút hàng triệu du khách mỗi năm.)<br>* <b>b (Food):</b> <i>Local restaurants (noun)...</i> (Các nhà hàng địa phương phục vụ hải sản tươi sống mà ngư dân đánh bắt vào sáng sớm.)<br>* <b>d (Activities):</b> <i>Hotels and resorts (noun)...</i> (Các khách sạn và khu nghỉ dưỡng dọc bờ biển cung cấp nhiều hoạt động như lặn ống thở, lặn bình khí và tour tham quan các đảo.)<br>* <b>e (Advice):</b> <i>The best time (noun)...</i> (Thời điểm tốt nhất để ghé thăm là từ tháng 11 đến tháng 3 khi thời tiết khô ráo và có nắng.)",
+          "isCorrect": true
+        },
+        {
+          "text": "a – c – b – d – e",
+          "rationale": "Sai. Câu (a) nói về bãi biển là chi tiết cụ thể, cần câu (c) giới thiệu tổng quan \"Phú Quốc\" trước.",
+          "isCorrect": false
+        },
+        {
+          "text": "c – b – a – d – e",
+          "rationale": "Sai. Câu (a) nói về bãi biển (cảnh quan chính) nên đi ngay sau câu giới thiệu trước khi nói đến đồ ăn (b). Tuy nhiên, trật tự này cũng khá logic nhưng đáp án A phổ biến hơn trong văn mô tả du lịch.",
+          "isCorrect": false
+        },
+        {
+          "text": "e – c – a – b – d",
+          "rationale": "Sai. Lời khuyên về thời gian (e) thường nằm cuối đoạn văn.",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "questionNumber": 3,
+      "question": "Exercise 20 - Q1: Put the sentences (a-c) in the correct order to fill in the blank.\n\nContext: \"Our family trip to Hoi An Ancient Town was truly memorable. The local guide who showed us around was very knowledgeable about the town's history. ____________.\"\n\na. Later, she asked whether we wanted to visit the Japanese Covered Bridge, which was built in the 1590s.\nb. She first wondered if we knew that Hoi An used to be an important trading port in Southeast Asia.\nc. At the old houses, she questioned whether we had noticed the unique architecture that combines Vietnamese, Chinese, and Japanese styles.",
+      "hint": "Chú ý các từ chỉ trình tự thời gian: 'First' (Đầu tiên), 'Later' (Sau đó).",
+      "answerOptions": [
+        {
+          "text": "b - c - a",
+          "rationale": "Chính xác! Trình tự tường thuật:<br>1. <b>(b):</b> <i>She first wondered...</i> (Đầu tiên cô ấy tự hỏi liệu chúng tôi có biết... -> Giới thiệu lịch sử chung).<br>2. <b>(c):</b> <i>At the old houses...</i> (Tại những ngôi nhà cổ... -> Đi vào chi tiết kiến trúc).<br>3. <b>(a):</b> <i>Later...</i> (Sau đó... -> Chuyển sang địa điểm khác là Chùa Cầu).<br><br><b>Dịch chi tiết:</b><br>* <b>b:</b> Cô ấy <b>đầu tiên (first - adv)</b> tự hỏi liệu chúng tôi có biết Hội An từng là một thương cảng quan trọng ở Đông Nam Á không.<br>* <b>c:</b> Tại các ngôi nhà cổ, cô ấy hỏi liệu chúng tôi có để ý thấy kiến trúc <b>độc đáo (unique - adj)</b> kết hợp phong cách Việt, Hoa và Nhật không.<br>* <b>a:</b> <b>Sau đó (Later - adv)</b>, cô ấy hỏi liệu chúng tôi có muốn thăm Chùa Cầu Nhật Bản, nơi được xây dựng vào những năm 1590 không.",
+          "isCorrect": true
+        },
+        {
+          "text": "a - b - c",
+          "rationale": "Sai. 'Later' (Sau đó) không thể đứng đầu chuỗi hành động.",
+          "isCorrect": false
+        },
+        {
+          "text": "c - a - b",
+          "rationale": "Sai. 'First' (b) phải đứng trước.",
+          "isCorrect": false
+        },
+        {
+          "text": "b - a - c",
+          "rationale": "Sai. Về mặt logic tham quan, thường đi xem nhà cổ (c) rồi mới di chuyển sang Chùa Cầu (a - Later).",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "questionNumber": 4,
+      "question": "Exercise 20 - Q2: Choose the sentence that can END the text in Question 3 most appropriately.",
+      "hint": "Câu kết đoạn (Concluding sentence) thường tóm tắt cảm xúc hoặc nêu dự định tương lai, không đưa ra thông tin thực tế đơn thuần.",
+      "answerOptions": [
+        {
+          "text": "Hoi An is located in central Vietnam.",
+          "rationale": "Sai. Đây là câu giới thiệu vị trí địa lý, nên nằm ở mở bài.",
+          "isCorrect": false
+        },
+        {
+          "text": "We left Hoi An with wonderful memories and hundreds of photos, planning to return next year.",
+          "rationale": "Chính xác! Đây là câu kết hoàn hảo, tóm tắt cảm xúc (memories) và hành động kết thúc chuyến đi.<br><br><b>Dịch chi tiết:</b><br>Chúng tôi rời Hội An với những <b>kỷ niệm (memories - noun)</b> tuyệt vời và hàng trăm bức ảnh, lên kế hoạch quay lại vào năm sau.",
+          "isCorrect": true
+        },
+        {
+          "text": "The weather in Hoi An is usually hot and humid.",
+          "rationale": "Sai. Đây là thông tin về thời tiết, không phù hợp để kết thúc bài văn kể về trải nghiệm.",
+          "isCorrect": false
+        },
+        {
+          "text": "Tourists need to buy tickets to enter the old town.",
+          "rationale": "Sai. Đây là thông tin quy định, không mang tính tổng kết cảm xúc.",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "questionNumber": 5,
+      "question": "Exercise 9 - Q1: Arrange the conversation between Sarah and Tom about booking a hotel.\n\na. Tom: That's not too expensive. I'll book it online tonight.\nb. Sarah: Have you found a good hotel for our trip to Da Nang?\nc. Tom: How much is it per night?\nd. Sarah: Yes, I found a nice beach resort with great reviews.\ne. Sarah: It's about $50 for a double room with breakfast included.",
+      "hint": "Bắt đầu bằng câu hỏi mở đầu chủ đề (Have you found...?).",
+      "answerOptions": [
+        {
+          "text": "b - d - c - e - a",
+          "rationale": "Chính xác! Logic hội thoại:<br>1. <b>(b) Hỏi:</b> Đã tìm được khách sạn chưa?<br>2. <b>(d) Trả lời:</b> Rồi, tìm được resort đẹp.<br>3. <b>(c) Hỏi giá:</b> Bao nhiêu một đêm?<br>4. <b>(e) Báo giá:</b> 50 đô.<br>5. <b>(a) Chốt:</b> Không đắt, sẽ đặt luôn.<br><br><b>Dịch chi tiết:</b><br>* <b>b:</b> Cậu đã tìm được khách sạn tốt cho chuyến đi Đà Nẵng chưa?<br>* <b>d:</b> Rồi, tớ tìm thấy một khu nghỉ dưỡng biển đẹp với nhiều đánh giá tốt.<br>* <b>c:</b> Giá bao nhiêu một đêm?<br>* <b>e:</b> Khoảng 50 đô cho phòng đôi bao gồm ăn sáng.<br>* <b>a:</b> Thế thì không quá <b>đắt (expensive - adj)</b>. Tớ sẽ <b>đặt (book - verb)</b> online tối nay.",
+          "isCorrect": true
+        },
+        {
+          "text": "d - b - c - e - a",
+          "rationale": "Sai. Không thể trả lời 'Yes' (d) trước khi có người hỏi (b).",
+          "isCorrect": false
+        },
+        {
+          "text": "b - c - d - e - a",
+          "rationale": "Sai. Hỏi giá (c) ngay sau khi hỏi tìm được chưa (b) là hơi vội, cần bước xác nhận đã tìm được (d) trước.",
+          "isCorrect": false
+        },
+        {
+          "text": "a - b - d - c - e",
+          "rationale": "Sai. Câu chốt (a) không thể đứng đầu.",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "questionNumber": 6,
+      "question": "Exercise 9 - Q2: Arrange the conversation between a Guide and a Tourist.\n\na. Guide: First, we'll visit the ancient temples in the morning.\nb. Tourist: What's the plan for tomorrow's city tour?\nc. Guide: Then we'll have lunch at a traditional restaurant.\nd. Tourist: Sounds great! What time should we meet?\ne. Guide: Please be at the hotel lobby at 8 AM sharp.\nf. Tourist: Perfect! Should I bring anything special?",
+      "hint": "Khách hỏi kế hoạch -> Hướng dẫn viên trình bày (First... Then...) -> Khách hỏi giờ -> Hướng dẫn viên chốt giờ.",
+      "answerOptions": [
+        {
+          "text": "b - c - a - d - e - f",
+          "rationale": "Sai. 'Then' (c) không thể đứng trước 'First' (a).",
+          "isCorrect": false
+        },
+        {
+          "text": "b - a - c - d - e - f",
+          "rationale": "Chính xác! Logic hội thoại:<br>1. <b>(b) Hỏi kế hoạch:</b> Mai đi đâu?<br>2. <b>(a) Trình bày 1:</b> Sáng thăm đền (First).<br>3. <b>(c) Trình bày 2:</b> Sau đó ăn trưa (Then).<br>4. <b>(d) Hưởng ứng & Hỏi giờ:</b> Nghe tuyệt đấy! Mấy giờ gặp?<br>5. <b>(e) Chốt giờ:</b> 8 giờ đúng.<br>6. <b>(f) Hỏi thêm:</b> Tuyệt! Cần mang gì không?<br><br><b>Dịch chi tiết:</b><br>* <b>b:</b> Kế hoạch cho city tour ngày mai là gì?<br>* <b>a:</b> <b>Đầu tiên (First - adv)</b>, chúng ta sẽ thăm các ngôi đền cổ vào buổi sáng.<br>* <b>c:</b> <b>Sau đó (Then - adv)</b> chúng ta sẽ ăn trưa tại một nhà hàng truyền thống.<br>* <b>d:</b> Nghe tuyệt đấy! Mấy giờ chúng ta nên gặp nhau?<br>* <b>e:</b> Vui lòng có mặt tại <b>sảnh khách sạn (hotel lobby - noun)</b> lúc 8 giờ đúng.<br>* <b>f:</b> Hoàn hảo! Tôi có nên mang theo thứ gì <b>đặc biệt (special - adj)</b> không?",
+          "isCorrect": true
+        },
+        {
+          "text": "a - b - c - d - e - f",
+          "rationale": "Sai. Hướng dẫn viên tự nhiên trình bày (a) mà không có khách hỏi (b) trước là kém tự nhiên.",
+          "isCorrect": false
+        },
+        {
+          "text": "d - e - f - b - a - c",
+          "rationale": "Sai. Hỏi giờ (d) khi chưa biết đi đâu là không hợp lý.",
+          "isCorrect": false
+        }
+      ]
+    },
+    {
+      "questionNumber": 7,
+      "question": "Exercise 9 - Q3: Arrange the conversation between Mark and Lisa about a trip.\n\na. Lisa: The local people were so friendly and helpful!\nb. Mark: How was your backpacking trip to Vietnam?\nc. Lisa: They always smiled and tried to help even with the language barrier.\nd. Mark: That's wonderful! Did you have any problems with the language?\ne. Lisa: It was amazing! The best trip I've ever had.\nf. Lisa: Not really. I used a translation app and body language.",
+      "hint": "Hỏi tổng quan -> Khen hay -> Khen người dân -> Hỏi khó khăn ngôn ngữ -> Giải thích cách khắc phục.",
+      "answerOptions": [
+        {
+          "text": "b - e - a - c - d - f",
+          "rationale": "Chính xác! Logic hội thoại:<br>1. <b>(b) Hỏi thăm:</b> Chuyến đi thế nào?<br>2. <b>(e) Cảm nhận chung:</b> Tuyệt vời nhất từng đi.<br>3. <b>(a) Chi tiết:</b> Người dân thân thiện.<br>4. <b>(c) Chi tiết hơn:</b> Họ hay cười và giúp đỡ.<br>5. <b>(d) Hỏi sâu:</b> Có gặp rắc rối ngôn ngữ không? (Liên kết với ý 'language barrier' ở câu c).<br>6. <b>(f) Trả lời:</b> Không hẳn, dùng app dịch.<br><br><b>Dịch chi tiết:</b><br>* <b>b:</b> Chuyến du lịch bụi đến Việt Nam của cậu thế nào?<br>* <b>e:</b> Nó thật <b>tuyệt vời (amazing - adj)</b>! Chuyến đi tuyệt nhất tớ từng có.<br>* <b>a:</b> Người dân địa phương rất <b>thân thiện (friendly - adj)</b> và hay giúp đỡ!<br>* <b>c:</b> Họ luôn mỉm cười và cố gắng giúp ngay cả khi có <b>rào cản ngôn ngữ (language barrier - noun)</b>.<br>* <b>d:</b> Tuyệt quá! Cậu có gặp vấn đề gì với ngôn ngữ không?<br>* <b>f:</b> Không hẳn. Tớ đã dùng ứng dụng dịch thuật và <b>ngôn ngữ cơ thể (body language - noun)</b>.",
+          "isCorrect": true
+        },
+        {
+          "text": "a - c - b - e - d - f",
+          "rationale": "Sai. Không thể bắt đầu bằng việc khen người dân (a) khi chưa được hỏi về chuyến đi (b).",
+          "isCorrect": false
+        },
+        {
+          "text": "d - f - b - e - a - c",
+          "rationale": "Sai. Hỏi về ngôn ngữ (d) là chi tiết phụ, không thể đứng đầu hội thoại.",
+          "isCorrect": false
+        },
+        {
+          "text": "b - e - d - f - a - c",
+          "rationale": "Khá hợp lý, nhưng trật tự chuẩn thường là nói về trải nghiệm tốt (người dân a, c) dẫn dắt đến vấn đề ngôn ngữ (barrier) rồi mới hỏi về rắc rối ngôn ngữ (d). Đáp án A mạch lạc hơn.",
+          "isCorrect": false
+        }
+      ]
+    }
+  ];
+
+        // --- 2. GAME STATE ---
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let shuffledQuestions = [];
+
+        // --- 3. UTILITIES ---
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        // --- 4. GAME LOGIC ---
+        function initGame() {
+            // Shuffle questions but keep Q1, Q2 etc logical if needed. 
+            // For now, let's shuffle options within questions, but maybe keep question order fixed 
+            // OR shuffle questions too. Let's shuffle questions for variety.
+            shuffledQuestions = [...quizData]; 
+            // Actually, usually teachers want questions 1-7 in order for context.
+            // Let's keep question order FIXED, but shuffle OPTIONS.
+            
+            shuffledQuestions.forEach(q => {
+                q.shuffledOptions = shuffleArray([...q.answerOptions]);
+            });
+
+            currentQuestionIndex = 0;
+            score = 0;
+            document.getElementById("quiz-box").style.display = "block";
+            document.getElementById("result-box").style.display = "none";
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            const data = shuffledQuestions[currentQuestionIndex];
+            const qNum = currentQuestionIndex + 1;
+            const total = shuffledQuestions.length;
+
+            // Update Progress
+            const progressPercent = ((currentQuestionIndex) / total) * 100;
+            document.getElementById("progress").style.width = `${progressPercent}%`;
+
+            // Render Text
+            document.getElementById("q-number").innerText = `${qNum} / ${total}`;
+            document.getElementById("q-text").innerText = data.question;
+            
+            // Handle Hint
+            const hintBox = document.getElementById("q-hint");
+            if(data.hint) {
+                hintBox.innerHTML = `<i class="fas fa-lightbulb" style="color:#f1c40f"></i> <b>Gợi ý:</b> ${data.hint}`;
+                hintBox.style.display = "block";
+            } else {
+                hintBox.style.display = "none";
+            }
+
+            // Hide previous explanation and next button
+            document.getElementById("explanation").style.display = "none";
+            document.getElementById("next-btn").style.display = "none";
+
+            // Render Options
+            const optionsArea = document.getElementById("options-area");
+            optionsArea.innerHTML = "";
+            const labels = ['A', 'B', 'C', 'D'];
+
+            data.shuffledOptions.forEach((opt, index) => {
+                const btn = document.createElement("div");
+                btn.className = "option-btn";
+                // Only use labels if index < 4
+                const label = index < 4 ? labels[index] : "?"; 
+                btn.innerHTML = `<span class="opt-label">${label}</span> ${opt.text}`;
+                btn.onclick = () => checkAnswer(btn, opt, data);
+                optionsArea.appendChild(btn);
+            });
+        }
+
+        function checkAnswer(selectedBtn, optionData, questionData) {
+            // Disable all buttons
+            const buttons = document.querySelectorAll(".option-btn");
+            buttons.forEach(btn => {
+                btn.style.pointerEvents = "none"; // Disable clicks
+                btn.style.opacity = "0.7";
+            });
+            selectedBtn.style.opacity = "1";
+
+            const expContent = document.getElementById("exp-content");
+            const expBox = document.getElementById("explanation");
+            const nextBtn = document.getElementById("next-btn");
+
+            // Logic Correct/Wrong
+            if (optionData.isCorrect) {
+                selectedBtn.classList.add("correct");
+                playDing();
+                confetti({
+                    particleCount: 100,
+                    spread: 70,
+                    origin: { y: 0.6 }
+                });
+                score++;
+            } else {
+                selectedBtn.classList.add("wrong");
+                playBuzz();
+                // Highlight the correct one
+                // Use a loop to find the button that contains the correct text
+                buttons.forEach((btn, idx) => {
+                     // logic match by finding the correct option object in the shuffled array
+                     if(questionData.shuffledOptions[idx].isCorrect) {
+                         btn.classList.add("correct");
+                         btn.style.opacity = "1";
+                     }
+                });
+            }
+
+            // Show Explanation logic
+            // Build the explanation HTML based on the "Detailed Analysis" requirement
+            let html = ``;
+            
+            // 1. Phân tích 4 đáp án (Analysis of all options from Rationale)
+            // Since the user JSON only provides rationale per option, we construct it from there.
+            // But we must prioritize the Rationale of the CORRECT answer as it contains the full breakdown.
+            
+            // Find correct option rationale
+            const correctOpt = questionData.answerOptions.find(o => o.isCorrect);
+            
+            html += `<div class="exp-section">`;
+            html += `<strong><i class="fas fa-check-circle"></i> Phân tích chi tiết:</strong><br>`;
+            html += `${correctOpt.rationale}`; // This field in JSON already contains the detailed breakdown & translation
+            html += `</div>`;
+
+            // Add Specific Wrong reasons if selected wrong
+            if (!optionData.isCorrect) {
+                html += `<div class="exp-section" style="margin-top:15px; border-top:1px dashed #ccc; padding-top:10px;">`;
+                html += `<strong style="color:var(--wrong)"><i class="fas fa-times-circle"></i> Tại sao đáp án bạn chọn lại sai?</strong><br>`;
+                html += `${optionData.rationale}`;
+                html += `</div>`;
+            }
+
+            expContent.innerHTML = html;
+            expBox.style.display = "block";
+            nextBtn.style.display = "inline-block";
+        }
+
+        function nextQuestion() {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < shuffledQuestions.length) {
+                loadQuestion();
+            } else {
+                showResult();
+            }
+        }
+
+        function showResult() {
+            document.getElementById("quiz-box").style.display = "none";
+            document.getElementById("result-box").style.display = "block";
+            document.getElementById("final-score").innerText = `${score}/${shuffledQuestions.length}`;
+            
+            const percentage = (score / shuffledQuestions.length) * 100;
+            let feedback = "";
+            if (percentage === 100) feedback = "Xuất sắc! Bạn là thiên tài sắp xếp câu! 🌟";
+            else if (percentage >= 80) feedback = "Rất tốt! Bạn nắm rất vững cấu trúc! 🔥";
+            else if (percentage >= 50) feedback = "Khá lắm! Cố gắng thêm chút nữa nhé! 💪";
+            else feedback = "Đừng nản chí! Hãy xem lại phần giải thích và thử lại nhé! 🍀";
+            
+            document.getElementById("final-feedback").innerText = feedback;
+            
+            if (percentage >= 80) {
+                confetti({
+                    particleCount: 200,
+                    spread: 100,
+                    origin: { y: 0.6 }
+                });
+            }
+        }
+
+        // Start Game
+        window.onload = initGame;
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trắc nghiệm Từ vựng & Ngữ pháp - Ms Mai An ULIS</title>
+    <style>
+        :root {
+            --primary-color: #0056b3; /* Màu theo yêu cầu: Xanh đậm */
+            --primary-light: #e6f0ff;
+            --success-color: #28a745; /* Màu đúng */
+            --error-color: #dc3545;   /* Màu sai */
+            --warning-color: #ffc107; /* Màu cảnh báo */
+            --text-color: #333;
+            --bg-color: #f4f7f6;
+            --card-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            padding-bottom: 80px; /* Space for sticky footer */
+        }
+
+        /* Header */
+        header {
+            background-color: #fff;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            border-bottom: 3px solid var(--primary-color);
+        }
+
+        header h1 {
+            color: var(--primary-color);
+            font-size: 1.5rem;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+        }
+
+        header p {
+            color: #666;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        /* Container */
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 0 15px;
+        }
+
+        /* Question Card */
+        .question-card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: var(--card-shadow);
+            border-left: 5px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .question-card.answered-correct {
+            border-left-color: var(--success-color);
+        }
+
+        .question-card.answered-incorrect {
+            border-left-color: var(--error-color);
+        }
+
+        .q-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            align-items: center;
+        }
+
+        .q-number {
+            font-weight: bold;
+            color: #fff;
+            background-color: var(--primary-color);
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+        }
+
+        .q-text {
+            font-size: 1.1rem;
+            font-weight: 500;
+            margin-bottom: 20px;
+        }
+
+        /* Options */
+        .options-grid {
+            display: grid;
+            gap: 12px;
+        }
+
+        .option-label {
+            display: flex;
+            align-items: center;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .option-label:hover {
+            background-color: var(--primary-light);
+            border-color: var(--primary-color);
+        }
+
+        .option-label input[type="radio"] {
+            margin-right: 12px;
+            accent-color: var(--primary-color);
+            transform: scale(1.2);
+        }
+
+        /* States for options after check */
+        .option-label.correct {
+            background-color: #d4edda;
+            border-color: var(--success-color);
+            color: #155724;
+        }
+
+        .option-label.incorrect {
+            background-color: #f8d7da;
+            border-color: var(--error-color);
+            color: #721c24;
+        }
+
+        .option-label.dimmed {
+            opacity: 0.6;
+            background-color: #f9f9f9;
+        }
+
+        /* Check Button specific to card */
+        .btn-check-single {
+            margin-top: 20px;
+            padding: 8px 20px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.9rem;
+            display: inline-block;
+        }
+        
+        .btn-check-single:hover {
+            background-color: #004494;
+        }
+
+        .btn-check-single:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+
+        /* Explanation Box */
+        .explanation-box {
+            margin-top: 20px;
+            padding: 20px;
+            background-color: #f1f8ff;
+            border-radius: 8px;
+            border: 1px solid #cce5ff;
+            display: none; /* Hidden by default */
+            font-size: 0.95rem;
+        }
+
+        .explanation-box.show {
+            display: block;
+            animation: fadeIn 0.5s;
+        }
+
+        .exp-title {
+            font-weight: bold;
+            color: var(--primary-color);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .exp-content {
+            white-space: pre-line; /* Respect line breaks from JSON */
+        }
+
+        /* Sticky Footer */
+        .sticky-footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: white;
+            padding: 15px;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 900;
+        }
+
+        .score-preview {
+            font-weight: bold;
+            color: var(--text-color);
+        }
+
+        .btn-submit {
+            background-color: var(--success-color);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 30px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(40, 167, 69, 0.3);
+            transition: transform 0.2s;
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            background-color: #218838;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.6);
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background-color: white;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            animation: slideIn 0.3s;
+        }
+
+        .modal h2 {
+            color: var(--primary-color);
+            margin-bottom: 15px;
+        }
+
+        .score-circle {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: var(--primary-light);
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            font-weight: bold;
+            margin: 0 auto 20px;
+            border: 4px solid var(--primary-color);
+        }
+
+        .btn-close {
+            background-color: #6c757d;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 15px;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(-50px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 600px) {
+            .container { padding: 0 10px; }
+            .question-card { padding: 15px; }
+            header h1 { font-size: 1.2rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Bài Kiểm Tra Từ Vựng & Ngữ Pháp</h1>
+        <p>Giáo viên: Ms Mai An (ULIS)</p>
+    </header>
+
+    <div class="container" id="quiz-container">
+        <!-- Questions will be injected here by JS -->
+    </div>
+
+    <div class="sticky-footer">
+        <div class="score-preview" id="progress-text">Đã làm: 0/30</div>
+        <button class="btn-submit" onclick="submitQuiz()">NỘP BÀI</button>
+    </div>
+
+    <!-- Result Modal -->
+    <div id="resultModal" class="modal">
+        <div class="modal-content">
+            <h2>KẾT QUẢ</h2>
+            <div class="score-circle" id="final-score">0</div>
+            <p id="result-message">Bạn đã hoàn thành bài thi!</p>
+            <button class="btn-close" onclick="closeModal()">Xem lại bài làm</button>
+        </div>
+    </div>
+
+<script>
+    // Dữ liệu câu hỏi từ file JSON
+    const questionsData = [
+    {
+      "questionNumber": 1,
+      "question": "She started her __________________ as an EFL teacher in Egypt in 1996.",
+      "answerOptions": [
+        { "text": "work", "isCorrect": false },
+        { "text": "career", "isCorrect": true },
+        { "text": "employment", "isCorrect": false },
+        { "text": "occupation", "isCorrect": false }
+      ],
+      "rationale": "1. Phân tích từ vựng:\n- A. work (n): công việc (danh từ không đếm được/đếm được), tác phẩm.\n- B. career (n): sự nghiệp (công việc làm trong thời gian dài và có sự thăng tiến).\n- C. employment (n): sự thuê mướn, việc làm.\n- D. occupation (n): nghề nghiệp (tên gọi của nghề).\n\n2. Dịch nghĩa toàn câu: \"Cô ấy bắt đầu sự nghiệp của mình với tư cách là một giáo viên tiếng Anh (EFL) tại Ai Cập vào năm 1996.\"\n\n3. Giải thích chi tiết: \"Career\" là từ chính xác nhất để nói về quá trình làm việc chuyên nghiệp lâu dài trong một lĩnh vực cụ thể."
+    },
+    {
+      "questionNumber": 2,
+      "question": "______________ learning is considered very crucial when one wants to develop in his/ her career.",
+      "answerOptions": [
+        { "text": "Life-long", "isCorrect": true },
+        { "text": "Lifetime", "isCorrect": false },
+        { "text": "Life", "isCorrect": false },
+        { "text": "All-life", "isCorrect": false }
+      ],
+      "rationale": "1. Phân tích từ vựng:\n- A. Life-long (adj): suốt đời.\n- B. Lifetime (n/adj): cả đời.\n- C. Life (n): cuộc sống.\n\n2. Dịch nghĩa toàn câu: \"Học tập suốt đời được coi là rất quan trọng khi một người muốn phát triển sự nghiệp của mình.\"\n\n3. Giải thích chi tiết: Cụm từ cố định (collocation) là \"Life-long learning\" (học tập suốt đời)."
+    },
+    {
+      "questionNumber": 3,
+      "question": "Students who have more skills and knowledge can get a ______________ job in the future.",
+      "answerOptions": [
+        { "text": "high-payment", "isCorrect": false },
+        { "text": "poorly-paid", "isCorrect": false },
+        { "text": "well-paid", "isCorrect": true },
+        { "text": "good-pay", "isCorrect": false }
+      ],
+      "rationale": "1. Phân tích từ vựng:\n- A. high-payment (n): sự thanh toán cao.\n- B. poorly-paid (adj): được trả lương thấp.\n- C. well-paid (adj): được trả lương cao.\n- D. good-pay: sai cấu trúc.\n\n2. Dịch nghĩa toàn câu: \"Những học sinh có nhiều kỹ năng và kiến thức hơn có thể kiếm được một công việc lương cao trong tương lai.\"\n\n3. Giải thích chi tiết: \"Well-paid\" là tính từ ghép đúng nghĩa và ngữ pháp để bổ nghĩa cho \"job\". Ngữ cảnh tích cực (more skills) -> well-paid."
+    },
+    {
+      "questionNumber": 4,
+      "question": "Modern schools provide __________________ activities including sports, music and gym clubs.",
+      "answerOptions": [
+        { "text": "extra class", "isCorrect": false },
+        { "text": "extracurricular", "isCorrect": true },
+        { "text": "past-time", "isCorrect": false },
+        { "text": "overtime", "isCorrect": false }
+      ],
+      "rationale": "1. Phân tích từ vựng:\n- A. extra class: lớp học thêm.\n- B. extracurricular (adj): ngoại khóa.\n- C. past-time: thú tiêu khiển (viết sai pastime).\n- D. overtime: làm thêm giờ.\n\n2. Dịch nghĩa toàn câu: \"Các trường học hiện đại cung cấp các hoạt động ngoại khóa bao gồm thể thao, âm nhạc và câu lạc bộ thể hình.\"\n\n3. Giải thích chi tiết: \"Extracurricular activities\" là cụm từ cố định chỉ các hoạt động ngoại khóa."
+    },
+    {
+      "questionNumber": 5,
+      "question": "A university degree will give you a better chance to find a good ___________.",
+      "answerOptions": [
+        { "text": "employment", "isCorrect": false },
+        { "text": "task", "isCorrect": false },
+        { "text": "job", "isCorrect": true },
+        { "text": "work", "isCorrect": false }
+      ],
+      "rationale": "1. Phân tích từ vựng:\n- A. employment (n): việc làm (không đếm được).\n- B. task (n): nhiệm vụ.\n- C. job (n): công việc (đếm được).\n- D. work (n): công việc (không đếm được).\n\n2. Dịch nghĩa toàn câu: \"Bằng đại học sẽ cho bạn cơ hội tốt hơn để tìm được một công việc tốt.\"\n\n3. Giải thích chi tiết: \"Job\" là danh từ đếm được, phù hợp với mạo từ \"a\". Cụm \"find a job\" là collocation phổ biến."
+    },
+    {
+      "questionNumber": 6,
+      "question": "As a(n) __________________, he focuses on designing machinery that enhances efficiency in planting and harvesting.",
+      "answerOptions": [
+        { "text": "agricultural engineer", "isCorrect": true },
+        { "text": "assembly worker", "isCorrect": false },
+        { "text": "architect", "isCorrect": false },
+        { "text": "biologist", "isCorrect": false }
+      ],
+      "rationale": "1. Phân tích từ vựng:\n- A. agricultural engineer: kỹ sư nông nghiệp.\n- B. assembly worker: công nhân lắp ráp.\n- C. architect: kiến trúc sư.\n- D. biologist: nhà sinh học.\n\n2. Dịch nghĩa toàn câu: \"Là một kỹ sư nông nghiệp, anh ấy tập trung thiết kế máy móc giúp nâng cao hiệu quả trong việc gieo trồng và thu hoạch.\"\n\n3. Giải thích chi tiết: Từ khóa \"planting and harvesting\" (gieo trồng và thu hoạch) liên quan trực tiếp đến nông nghiệp."
+    },
+    {
+      "questionNumber": 7,
+      "question": "Most schools now ______________ digital records of students’ performance so students can ask for these when necessary.",
+      "answerOptions": [
+        { "text": "take", "isCorrect": false },
+        { "text": "make", "isCorrect": false },
+        { "text": "keep", "isCorrect": true },
+        { "text": "store", "isCorrect": false }
+      ],
+      "rationale": "1. Phân tích từ vựng:\n- A. take: lấy.\n- B. make: làm.\n- C. keep: giữ, lưu giữ.\n- D. store: lưu trữ.\n\n2. Dịch nghĩa toàn câu: \"Hầu hết các trường học hiện nay đều lưu giữ hồ sơ kỹ thuật số về thành tích của học sinh...\"\n\n3. Giải thích chi tiết: \"Keep records\" là collocation chuẩn chỉ việc lưu giữ hồ sơ, ghi chép lại thông tin một cách liên tục."
+    },
+    {
+      "questionNumber": 8,
+      "question": "To be able to choose a(n) ______________ path students may have to think carefully of their interests, abilities, skills, experience and even your core values.",
+      "answerOptions": [
+        { "text": "employment", "isCorrect": false },
+        { "text": "job", "isCorrect": false },
+        { "text": "career", "isCorrect": true },
+        { "text": "occupation", "isCorrect": false }
+      ],
+      "rationale": "1. Phân tích từ vựng:\n- A. employment: việc làm.\n- B. job: công việc.\n- C. career: sự nghiệp.\n- D. occupation: nghề nghiệp.\n\n2. Dịch nghĩa toàn câu: \"Để chọn một con đường sự nghiệp, học sinh phải suy nghĩ kỹ...\"\n\n3. Giải thích chi tiết: \"Career path\" (con đường sự nghiệp) là cụm từ cố định."
+    },
+    {
+      "questionNumber": 9,
+      "question": "School-leavers may consider taking a gap year to work for ______________ experience before entering a university.",
+      "answerOptions": [
+        { "text": "hands-on", "isCorrect": true },
+        { "text": "handful", "isCorrect": false },
+        { "text": "hand-made", "isCorrect": false },
+        { "text": "handy", "isCorrect": false }
+      ],
+      "rationale": "1. Phân tích từ vựng:\n- A. hands-on (adj): thực tế, thực hành.\n- B. handful (n): một nắm.\n- C. hand-made (adj): thủ công.\n- D. handy (adj): tiện dụng.\n\n2. Dịch nghĩa toàn câu: \"Học sinh mới tốt nghiệp có thể cân nhắc nghỉ một năm để làm việc lấy kinh nghiệm thực tế...\"\n\n3. Giải thích chi tiết: \"Hands-on experience\" là cụm từ cố định chỉ kinh nghiệm thực tiễn."
+    },
+    {
+      "questionNumber": 10,
+      "question": "Tim wants to become a ___________ because he loves fixing machines and vehicles.",
+      "answerOptions": [
+        { "text": "singer", "isCorrect": false },
+        { "text": "bartender", "isCorrect": false },
+        { "text": "teacher", "isCorrect": false },
+        { "text": "mechanic", "isCorrect": true }
+      ],
+      "rationale": "1. Phân tích từ vựng:\n- A. singer: ca sĩ.\n- B. bartender: nhân viên pha chế.\n- C. teacher: giáo viên.\n- D. mechanic: thợ cơ khí.\n\n2. Dịch nghĩa toàn câu: \"Tim muốn trở thành thợ cơ khí vì cậu ấy thích sửa chữa máy móc và xe cộ.\"\n\n3. Giải thích chi tiết: Từ khóa \"fixing machines and vehicles\" chỉ nghề thợ cơ khí."
+    },
+    {
+      "questionNumber": 11,
+      "question": "The talented __________________ in the restaurant can prepare a variety of dishes.",
+      "answerOptions": [
+        { "text": "chefs", "isCorrect": true },
+        { "text": "tailors", "isCorrect": false },
+        { "text": "cashiers", "isCorrect": false },
+        { "text": "managers", "isCorrect": false }
+      ],
+      "rationale": "1. Phân tích từ vựng:\n- A. chefs: đầu bếp.\n- B. tailors: thợ may.\n- C. cashiers: thu ngân.\n- D. managers: quản lý.\n\n2. Dịch nghĩa toàn câu: \"Những đầu bếp tài năng trong nhà hàng có thể chế biến đa dạng các món ăn.\"\n\n3. Giải thích chi tiết: Từ khóa \"restaurant\" và \"prepare dishes\" chỉ đầu bếp."
+    },
+    {
+      "questionNumber": 12,
+      "question": "Seeking __________ after graduating university is not an easy job for most students.",
+      "answerOptions": [
+        { "text": "employable", "isCorrect": false },
+        { "text": "employer", "isCorrect": false },
+        { "text": "employee", "isCorrect": false },
+        { "text": "employment", "isCorrect": true }
+      ],
+      "rationale": "1. Phân tích từ vựng:\n- A. employable (adj): có thể thuê được.\n- B. employer (n): ông chủ.\n- C. employee (n): nhân viên.\n- D. employment (n): việc làm.\n\n2. Dịch nghĩa toàn câu: \"Tìm kiếm việc làm sau khi tốt nghiệp đại học không phải là một việc dễ dàng...\"\n\n3. Giải thích chi tiết: Cụm \"Seeking employment\" (tìm kiếm việc làm) là cách diễn đạt trang trọng."
+    },
+    {
+      "questionNumber": 13,
+      "question": "Many of my friends are __________________. They are fashion designers, painters and musicians.",
+      "answerOptions": [
+        { "text": "skillful", "isCorrect": false },
+        { "text": "artistic", "isCorrect": true },
+        { "text": "patient", "isCorrect": false },
+        { "text": "technical", "isCorrect": false }
+      ],
+      "rationale": "1. Phân tích từ vựng:\n- A. skillful: khéo léo.\n- B. artistic: có khiếu nghệ thuật.\n- C. patient: kiên nhẫn.\n- D. technical: kỹ thuật.\n\n2. Dịch nghĩa toàn câu: \"Nhiều người bạn của tôi có khiếu nghệ thuật. Họ là nhà thiết kế thời trang, họa sĩ...\"\n\n3. Giải thích chi tiết: Các nghề nghiệp được liệt kê đều thuộc lĩnh vực nghệ thuật -> dùng \"artistic\"."
+    },
+    {
+      "questionNumber": 14,
+      "question": "The most ___________ part of this training course is a three-day field trip to Sa Pa.",
+      "answerOptions": [
+        { "text": "rewarding", "isCorrect": true },
+        { "text": "training", "isCorrect": false },
+        { "text": "designing", "isCorrect": false },
+        { "text": "demanding", "isCorrect": false }
+      ],
+      "rationale": "1. Phân tích từ vựng:\n- A. rewarding (adj): bổ ích, đáng giá.\n- B. training: đào tạo.\n- C. designing: thiết kế.\n- D. demanding: vất vả.\n\n2. Dịch nghĩa toàn câu: \"Phần bổ ích nhất của khóa đào tạo này là chuyến đi thực tế 3 ngày tới Sa Pa.\"\n\n3. Giải thích chi tiết: Chuyến đi thực tế (field trip) mang lại trải nghiệm thú vị -> \"rewarding\"."
+    },
+    {
+      "questionNumber": 15,
+      "question": "Students of grade 12 often have to burn the midnight oil to ______________ deadlines.",
+      "answerOptions": [
+        { "text": "meet", "isCorrect": true },
+        { "text": "take", "isCorrect": false },
+        { "text": "keep", "isCorrect": false },
+        { "text": "avoid", "isCorrect": false }
+      ],
+      "rationale": "1. Phân tích từ vựng:\n- A. meet: gặp, đáp ứng.\n- B. take: lấy.\n- C. keep: giữ.\n- D. avoid: tránh.\n\n2. Dịch nghĩa toàn câu: \"Học sinh lớp 12 thường phải thức khuya để kịp thời hạn.\"\n\n3. Giải thích chi tiết: \"Meet a deadline\" (kịp thời hạn) là collocation kinh điển."
+    },
+    {
+      "questionNumber": 16,
+      "question": "_________________ training is focused on building skills specific to an occupation or career field.",
+      "answerOptions": [
+        { "text": "Educational", "isCorrect": false },
+        { "text": "Theoretical", "isCorrect": false },
+        { "text": "Vocational", "isCorrect": true },
+        { "text": "Academic", "isCorrect": false }
+      ],
+      "rationale": "1. Phân tích từ vựng:\n- A. Educational: giáo dục.\n- B. Theoretical: lý thuyết.\n- C. Vocational: thuộc nghề nghiệp/dạy nghề.\n- D. Academic: học thuật.\n\n2. Dịch nghĩa toàn câu: \"Đào tạo nghề tập trung vào việc xây dựng các kỹ năng cụ thể cho một nghề nghiệp...\"\n\n3. Giải thích chi tiết: Định nghĩa của \"Vocational training\"."
+    },
+    {
+      "questionNumber": 17,
+      "question": "Teaching young children can be challenging, but the __________________ moments make it worthwhile.",
+      "answerOptions": [
+        { "text": "rewarding", "isCorrect": true },
+        { "text": "demanding", "isCorrect": false },
+        { "text": "repetitive", "isCorrect": false },
+        { "text": "boring", "isCorrect": false }
+      ],
+      "rationale": "1. Phân tích từ vựng:\n- A. rewarding: bổ ích, thỏa mãn.\n- B. demanding: đòi hỏi cao.\n- C. repetitive: lặp lại.\n- D. boring: chán.\n\n2. Dịch nghĩa toàn câu: \"Dạy trẻ nhỏ có thể đầy thách thức, nhưng những khoảnh khắc ý nghĩa khiến điều đó trở nên đáng giá.\"\n\n3. Giải thích chi tiết: Cần tính từ tích cực để đối lập với \"challenging\" và phù hợp với \"worthwhile\"."
+    },
+    {
+      "questionNumber": 18,
+      "question": "He intends to _________________ in medical school to qualify as a doctor and specialise in health care.",
+      "answerOptions": [
+        { "text": "enrol", "isCorrect": true },
+        { "text": "manage", "isCorrect": false },
+        { "text": "take", "isCorrect": false },
+        { "text": "promote", "isCorrect": false }
+      ],
+      "rationale": "1. Phân tích từ vựng:\n- A. enrol (v): đăng ký nhập học.\n- B. manage (v): quản lý.\n- C. take (v): lấy.\n- D. promote (v): thăng chức.\n\n2. Dịch nghĩa toàn câu: \"Anh ấy dự định đăng ký vào trường y...\"\n\n3. Giải thích chi tiết: \"Enrol in school\" là cấu trúc chuẩn."
+    },
+    {
+      "questionNumber": 19,
+      "question": "Matt works part-time at a hairdresser's to gain more ___________.  ",
+      "answerOptions": [
+        { "text": "experience", "isCorrect": true },
+        { "text": "lessons", "isCorrect": false },
+        { "text": "orientation", "isCorrect": false },
+        { "text": "salary", "isCorrect": false }
+      ],
+      "rationale": "1. Phân tích từ vựng:\n- A. experience: kinh nghiệm.\n- B. lessons: bài học.\n- C. orientation: định hướng.\n- D. salary: lương.\n\n2. Dịch nghĩa toàn câu: \"Matt làm việc bán thời gian... để tích lũy thêm kinh nghiệm.\"\n\n3. Giải thích chi tiết: Cụm \"gain experience\" (tích lũy kinh nghiệm) rất phổ biến."
+    },
+    {
+      "questionNumber": 20,
+      "question": "Susan decided to __________________ a course in art and design because it’s a good way to progress her career.",
+      "answerOptions": [
+        { "text": "teach", "isCorrect": false },
+        { "text": "run", "isCorrect": false },
+        { "text": "access", "isCorrect": false },
+        { "text": "take", "isCorrect": true }
+      ],
+      "rationale": "1. Phân tích từ vựng:\n- A. teach: dạy.\n- B. run: điều hành.\n- C. access: truy cập.\n- D. take: tham gia/học.\n\n2. Dịch nghĩa toàn câu: \"Susan quyết định tham gia một khóa học về nghệ thuật...\"\n\n3. Giải thích chi tiết: \"Take a course\" (tham gia khóa học) là cụm từ cố định."
+    },
+    {
+      "questionNumber": 21,
+      "question": "He tried to __________________ by teaching French in Harvard College.",
+      "answerOptions": [
+        { "text": "earn a living", "isCorrect": true },
+        { "text": "find a way", "isCorrect": false },
+        { "text": "do a job", "isCorrect": false },
+        { "text": "make a progress", "isCorrect": false }
+      ],
+      "rationale": "1. Phân tích từ vựng:\n- A. earn a living: kiếm sống.\n- B. find a way: tìm cách.\n- C. do a job: làm việc.\n- D. make a progress: sai ngữ pháp (progress không có 'a').\n\n2. Dịch nghĩa toàn câu: \"Anh ấy cố gắng kiếm sống bằng cách dạy tiếng Pháp...\"\n\n3. Giải thích chi tiết: \"Earn a living\" là thành ngữ chỉ việc làm việc để kiếm tiền trang trải cuộc sống."
+    },
+    {
+      "questionNumber": 22,
+      "question": "After leaving university, I wasn’t sure which career __________________ to choose.",
+      "answerOptions": [
+        { "text": "path", "isCorrect": true },
+        { "text": "route", "isCorrect": false },
+        { "text": "track", "isCorrect": false },
+        { "text": "road", "isCorrect": false }
+      ],
+      "rationale": "1. Phân tích từ vựng:\n- A. path: con đường (nghĩa bóng).\n- B. route: tuyến đường.\n- C. track: đường ray.\n- D. road: con đường (nghĩa đen).\n\n2. Dịch nghĩa toàn câu: \"Sau khi rời đại học, tôi không chắc nên chọn con đường sự nghiệp nào.\"\n\n3. Giải thích chi tiết: \"Career path\" là thuật ngữ chuẩn."
+    },
+    {
+      "questionNumber": 23,
+      "question": "______________ training is a program that focuses on the skills that a specific job requires.",
+      "answerOptions": [
+        { "text": "Work", "isCorrect": false },
+        { "text": "Job", "isCorrect": false },
+        { "text": "Employment", "isCorrect": false },
+        { "text": "Vocational", "isCorrect": true }
+      ],
+      "rationale": "1. Phân tích từ vựng:\n- A. Work: công việc.\n- B. Job: nghề nghiệp.\n- C. Employment: việc làm.\n- D. Vocational: thuộc nghề nghiệp/dạy nghề.\n\n2. Dịch nghĩa toàn câu: \"Đào tạo nghề là một chương trình tập trung vào các kỹ năng mà một công việc cụ thể yêu cầu.\"\n\n3. Giải thích chi tiết: Định nghĩa chuẩn của \"Vocational training\"."
+    },
+    {
+      "questionNumber": 24,
+      "question": "Despite long hours working with computers, a software engineer is often ___________. ",
+      "answerOptions": [
+        { "text": "creative", "isCorrect": false },
+        { "text": "stress-free", "isCorrect": false },
+        { "text": "well-paid", "isCorrect": true },
+        { "text": "decisive", "isCorrect": false }
+      ],
+      "rationale": "1. Phân tích từ vựng:\n- A. creative: sáng tạo.\n- B. stress-free: không căng thẳng.\n- C. well-paid: lương cao.\n- D. decisive: quyết đoán.\n\n2. Dịch nghĩa toàn câu: \"Mặc dù phải làm việc nhiều giờ... một kỹ sư phần mềm thường được trả lương cao.\"\n\n3. Giải thích chi tiết: Dùng \"well-paid\" để tạo sự đối lập (Despite) với sự vất vả (long hours)."
+    },
+    {
+      "questionNumber": 25,
+      "question": "Many parents tend to be worried when students spend more time on ______________ subjects.",
+      "answerOptions": [
+        { "text": "academic", "isCorrect": false },
+        { "text": "part-time", "isCorrect": false },
+        { "text": "extra", "isCorrect": false },
+        { "text": "non-academic", "isCorrect": true }
+      ],
+      "rationale": "1. Phân tích từ vựng:\n- A. academic: học thuật.\n- B. part-time: bán thời gian.\n- C. extra: thêm.\n- D. non-academic: phi học thuật.\n\n2. Dịch nghĩa toàn câu: \"Nhiều bậc cha mẹ có xu hướng lo lắng khi học sinh dành nhiều thời gian hơn cho các môn phi học thuật.\"\n\n3. Giải thích chi tiết: Phụ huynh thường lo lắng nếu con xao nhãng các môn chính (academic) để học các môn phụ (non-academic)."
+    },
+    {
+      "questionNumber": 26,
+      "question": "It’s ______________ for students to take part in school clubs to gain and improve social skills.",
+      "answerOptions": [
+        { "text": "rewarding", "isCorrect": true },
+        { "text": "award", "isCorrect": false },
+        { "text": "awarding", "isCorrect": false },
+        { "text": "reward", "isCorrect": false }
+      ],
+      "rationale": "1. Phân tích từ vựng:\n- A. rewarding (adj): bổ ích.\n- B. award (n/v): giải thưởng.\n- C. awarding (v-ing): trao thưởng.\n- D. reward (n/v): phần thưởng.\n\n2. Dịch nghĩa toàn câu: \"Thật bổ ích cho học sinh khi tham gia các câu lạc bộ...\"\n\n3. Giải thích chi tiết: Cấu trúc \"It is + adj + for smb...\" cần tính từ."
+    },
+    {
+      "questionNumber": 27,
+      "question": "________ it was so cold, he went out without an overcoat.",
+      "answerOptions": [
+        { "text": "Because", "isCorrect": false },
+        { "text": "Since", "isCorrect": false },
+        { "text": "Although", "isCorrect": true },
+        { "text": "If", "isCorrect": false }
+      ],
+      "rationale": "1. Phân tích từ vựng:\n- A. Because: Bởi vì.\n- B. Since: Bởi vì.\n- C. Although: Mặc dù.\n- D. If: Nếu.\n\n2. Dịch nghĩa toàn câu: \"Mặc dù trời rất lạnh, anh ấy vẫn đi ra ngoài mà không mặc áo khoác.\"\n\n3. Giải thích chi tiết: Hai vế đối lập (lạnh >< không mặc áo) -> Dùng \"Although\"."
+    },
+    {
+      "questionNumber": 28,
+      "question": "____________ Alice had a fear of heights, she bravely agreed to go rock climbing with her friends.",
+      "answerOptions": [
+        { "text": "So", "isCorrect": false },
+        { "text": "But", "isCorrect": false },
+        { "text": "Although", "isCorrect": true },
+        { "text": "However", "isCorrect": false }
+      ],
+      "rationale": "1. Phân tích từ vựng:\n- A. So: Vì vậy.\n- B. But: Nhưng.\n- C. Although: Mặc dù.\n- D. However: Tuy nhiên.\n\n2. Dịch nghĩa toàn câu: \"Mặc dù Alice mắc chứng sợ độ cao, cô ấy vẫn dũng cảm đồng ý đi leo núi...\"\n\n3. Giải thích chi tiết: Hai vế đối lập (sợ độ cao >< đi leo núi) -> Dùng \"Although\"."
+    },
+    {
+      "questionNumber": 29,
+      "question": "Lily didn't attend the job fair on Wednesday ________ she had an English test on that day.",
+      "answerOptions": [
+        { "text": "and", "isCorrect": false },
+        { "text": "so", "isCorrect": false },
+        { "text": "though", "isCorrect": false },
+        { "text": "because", "isCorrect": true }
+      ],
+      "rationale": "1. Phân tích từ vựng:\n- A. and: và.\n- B. so: vì vậy.\n- C. though: mặc dù.\n- D. because: bởi vì.\n\n2. Dịch nghĩa toàn câu: \"Lily đã không tham dự hội chợ việc làm... vì cô ấy có bài kiểm tra...\"\n\n3. Giải thích chi tiết: Vế sau giải thích nguyên nhân cho vế trước -> Dùng \"because\"."
+    },
+    {
+      "questionNumber": 30,
+      "question": "______________ university study offers students many opportunities for future jobs, vocational training has its benefits of hands-on experience.",
+      "answerOptions": [
+        { "text": "Although", "isCorrect": true },
+        { "text": "Yet", "isCorrect": false },
+        { "text": "But", "isCorrect": false },
+        { "text": "However", "isCorrect": false }
+      ],
+      "rationale": "1. Phân tích từ vựng:\n- A. Although: Mặc dù.\n- B. Yet: Tuy nhiên.\n- C. But: Nhưng.\n- D. However: Tuy nhiên.\n\n2. Dịch nghĩa toàn câu: \"Mặc dù học đại học mang lại... cơ hội... nhưng đào tạo nghề cũng có lợi ích...\"\n\n3. Giải thích chi tiết: Câu so sánh 2 vế đối lập nhẹ, \"Although\" đứng đầu câu là phù hợp nhất."
+    }
+    ];
+
+    const quizContainer = document.getElementById('quiz-container');
+    const progressText = document.getElementById('progress-text');
+    let userAnswers = new Array(questionsData.length).fill(null);
+    let checkedQuestions = new Array(questionsData.length).fill(false);
+
+    // Render Quiz
+    function renderQuiz() {
+        quizContainer.innerHTML = '';
+        questionsData.forEach((q, index) => {
+            const card = document.createElement('div');
+            card.className = 'question-card';
+            card.id = `q-card-${index}`;
+
+            let optionsHtml = '';
+            q.answerOptions.forEach((opt, optIndex) => {
+                optionsHtml += `
+                    <label class="option-label" id="lbl-${index}-${optIndex}">
+                        <input type="radio" name="question${index}" value="${optIndex}" onchange="selectOption(${index}, ${optIndex})">
+                        <span>${["A", "B", "C", "D"][optIndex]}. ${opt.text}</span>
+                    </label>
+                `;
+            });
+
+            card.innerHTML = `
+                <div class="q-header">
+                    <span class="q-number">Câu ${q.questionNumber}</span>
+                </div>
+                <div class="q-text">${q.question}</div>
+                <div class="options-grid">${optionsHtml}</div>
+                <button class="btn-check-single" id="btn-check-${index}" onclick="checkQuestion(${index})" disabled>KIỂM TRA CÂU NÀY</button>
+                <div class="explanation-box" id="exp-${index}">
+                    <div class="exp-title">📝 GIẢI THÍCH CHI TIẾT:</div>
+                    <div class="exp-content">${q.rationale}</div>
+                </div>
+            `;
+            quizContainer.appendChild(card);
+        });
+        updateProgress();
+    }
+
+    // Handle Selection
+    window.selectOption = function(qIndex, optIndex) {
+        if (checkedQuestions[qIndex]) return; // Prevent change after check
+        userAnswers[qIndex] = optIndex;
+        document.getElementById(`btn-check-${qIndex}`).disabled = false;
+        
+        // Update UI selection visually (optional, CSS handles radio check)
+        const labels = document.querySelectorAll(`#q-card-${qIndex} .option-label`);
+        labels.forEach(lbl => lbl.style.borderColor = '#e0e0e0');
+        document.getElementById(`lbl-${qIndex}-${optIndex}`).style.borderColor = 'var(--primary-color)';
+        
+        updateProgress();
+    };
+
+    // Check Single Question
+    window.checkQuestion = function(index) {
+        const selectedOptIndex = userAnswers[index];
+        if (selectedOptIndex === null) return;
+
+        checkedQuestions[index] = true;
+        const qData = questionsData[index];
+        const card = document.getElementById(`q-card-${index}`);
+        const btn = document.getElementById(`btn-check-${index}`);
+        const expBox = document.getElementById(`exp-${index}`);
+        const labels = document.querySelectorAll(`#q-card-${index} .option-label`);
+        const inputs = document.querySelectorAll(`#q-card-${index} input`);
+
+        // Disable interaction
+        inputs.forEach(input => input.disabled = true);
+        btn.style.display = 'none'; // Hide button after check
+
+        // Check Correctness
+        const isCorrect = qData.answerOptions[selectedOptIndex].isCorrect;
+        
+        if (isCorrect) {
+            card.classList.add('answered-correct');
+        } else {
+            card.classList.add('answered-incorrect');
+        }
+
+        // Colorize Options
+        qData.answerOptions.forEach((opt, idx) => {
+            const label = document.getElementById(`lbl-${index}-${idx}`);
+            if (opt.isCorrect) {
+                label.classList.add('correct'); // Always show correct answer
+            } else if (idx === selectedOptIndex && !isCorrect) {
+                label.classList.add('incorrect'); // Show selected wrong answer
+            } else {
+                label.classList.add('dimmed');
+            }
+        });
+
+        // Show Explanation
+        expBox.classList.add('show');
+    };
+
+    // Update Progress Text
+    function updateProgress() {
+        const answeredCount = userAnswers.filter(a => a !== null).length;
+        progressText.innerText = `Đã làm: ${answeredCount}/${questionsData.length}`;
+    }
+
+    // Submit Quiz
+    window.submitQuiz = function() {
+        let correctCount = 0;
+        let unanswered = 0;
+
+        // Auto check all unchecked questions
+        questionsData.forEach((q, index) => {
+            if (!checkedQuestions[index]) {
+                if (userAnswers[index] !== null) {
+                    checkQuestion(index);
+                } else {
+                    unanswered++;
+                    // Highlight unanswered
+                    const card = document.getElementById(`q-card-${index}`);
+                    card.style.borderLeftColor = 'var(--warning-color)';
+                    
+                    // Show correct answer for unanswered
+                     const labels = document.querySelectorAll(`#q-card-${index} .option-label`);
+                     const inputs = document.querySelectorAll(`#q-card-${index} input`);
+                     inputs.forEach(input => input.disabled = true);
+                     document.getElementById(`btn-check-${index}`).style.display = 'none';
+                     
+                     q.answerOptions.forEach((opt, idx) => {
+                        const label = document.getElementById(`lbl-${index}-${idx}`);
+                        if (opt.isCorrect) label.classList.add('correct');
+                        else label.classList.add('dimmed');
+                     });
+                     document.getElementById(`exp-${index}`).classList.add('show');
+                }
+            }
+            
+            // Calculate score
+            if (userAnswers[index] !== null && questionsData[index].answerOptions[userAnswers[index]].isCorrect) {
+                correctCount++;
+            }
+        });
+
+        // Show Result Modal
+        const modal = document.getElementById('resultModal');
+        const finalScore = document.getElementById('final-score');
+        const resultMsg = document.getElementById('result-message');
+        
+        finalScore.innerText = `${correctCount}`;
+        resultMsg.innerHTML = `Bạn trả lời đúng <b>${correctCount}</b> trên tổng số <b>${questionsData.length}</b> câu.<br>
+        ${unanswered > 0 ? `<span style="color:#ffc107">Có ${unanswered} câu chưa làm.</span>` : ''}`;
+        
+        modal.style.display = 'flex';
+    };
+
+    window.closeModal = function() {
+        document.getElementById('resultModal').style.display = 'none';
+        window.scrollTo(0, 0);
+    };
+
+    // Initialize
+    renderQuiz();
+</script>
+
+</body>
+</html>

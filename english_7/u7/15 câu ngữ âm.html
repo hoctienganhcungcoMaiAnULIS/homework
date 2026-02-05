@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>English Quiz - Ms Mai An ULIS</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <!-- Confetti Library -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        :root {
+            --primary-purple: #8854C0;
+            --primary-green: #00C9A7;
+            --correct-green: #00D26A;
+            --wrong-red: #FF4757;
+            --bg-light: #F0F2F5;
+            --text-dark: #2D3436;
+            --shadow-3d: 0 8px 0 rgba(0,0,0,0.1);
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: 'Nunito', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-light);
+            background-image: 
+                radial-gradient(circle at 2px 2px, #ddd 1px, transparent 0);
+            background-size: 40px 40px;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            color: var(--text-dark);
+        }
+
+        /* Header & Brand */
+        header {
+            width: 100%;
+            background: white;
+            padding: 10px 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .brand-container {
+            text-align: center;
+        }
+
+        .brand-name {
+            font-size: 14px;
+            color: var(--primary-purple);
+            font-weight: 800;
+            margin: 0;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .app-title {
+            font-size: 1.2rem;
+            margin: 0;
+            color: var(--text-dark);
+        }
+
+        /* Container */
+        .main-container {
+            width: 95%;
+            max-width: 650px;
+            padding: 20px 0;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Progress Bar */
+        .progress-container {
+            width: 100%;
+            height: 16px;
+            background: #E0E0E0;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            overflow: hidden;
+            border: 2px solid white;
+        }
+
+        #progress-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, var(--primary-green), #55efc4);
+            transition: width 0.4s ease;
+        }
+
+        /* Card Animation */
+        .card {
+            background: white;
+            padding: 30px;
+            border-radius: 25px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.05);
+            border: 4px solid white;
+            position: relative;
+            animation: slideIn 0.5s ease;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .shake {
+            animation: shake 0.4s ease-in-out;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            50% { transform: translateX(10px); }
+            75% { transform: translateX(-10px); }
+        }
+
+        .question-header {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #636e72;
+            margin-bottom: 10px;
+        }
+
+        .question-text {
+            font-size: 1.5rem;
+            font-weight: 800;
+            line-height: 1.4;
+            margin-bottom: 25px;
+            color: var(--text-dark);
+        }
+
+        /* Options */
+        .options-grid {
+            display: grid;
+            gap: 15px;
+        }
+
+        .option-btn {
+            background: white;
+            border: 3px solid #E0E0E0;
+            border-bottom: 8px solid #E0E0E0;
+            border-radius: 18px;
+            padding: 15px 20px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            cursor: pointer;
+            text-align: left;
+            transition: all 0.1s ease;
+            display: flex;
+            align-items: center;
+        }
+
+        .option-btn:hover {
+            transform: translateY(-2px);
+            border-color: var(--primary-purple);
+        }
+
+        .option-btn:active {
+            transform: translateY(4px);
+            border-bottom-width: 3px;
+        }
+
+        .option-btn.correct {
+            background-color: #e8fbf3;
+            border-color: var(--correct-green);
+            border-bottom-color: #00a352;
+            color: #007d3f;
+        }
+
+        .option-btn.wrong {
+            background-color: #fff2f2;
+            border-color: var(--wrong-red);
+            border-bottom-color: #d63031;
+            color: #c0392b;
+        }
+
+        .option-label {
+            width: 35px;
+            height: 35px;
+            border-radius: 10px;
+            background: #f1f2f6;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-right: 15px;
+            font-size: 0.9rem;
+            color: #747d8c;
+        }
+
+        /* Explanation Box */
+        .explanation-box {
+            margin-top: 25px;
+            padding: 20px;
+            border-radius: 20px;
+            background: #F9F9F9;
+            border: 2px dashed #DDD;
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .explanation-title {
+            display: flex;
+            align-items: center;
+            font-weight: 800;
+            color: var(--primary-purple);
+            margin-bottom: 10px;
+        }
+
+        .explanation-content {
+            font-size: 1rem;
+            line-height: 1.6;
+            color: #444;
+        }
+
+        .explanation-content b {
+            color: var(--primary-purple);
+        }
+
+        .explanation-section {
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #EEE;
+        }
+
+        .explanation-section:last-child {
+            border-bottom: none;
+        }
+
+        /* Next Button */
+        #next-btn {
+            margin-top: 25px;
+            background: var(--primary-purple);
+            color: white;
+            border: none;
+            border-bottom: 6px solid #6c3da0;
+            padding: 15px 40px;
+            font-size: 1.2rem;
+            font-weight: 800;
+            border-radius: 50px;
+            cursor: pointer;
+            width: 100%;
+            display: none;
+            transition: all 0.2s;
+        }
+
+        #next-btn:hover {
+            filter: brightness(1.1);
+        }
+
+        #next-btn:active {
+            transform: translateY(4px);
+            border-bottom-width: 2px;
+        }
+
+        /* Result Popup */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            padding: 20px;
+        }
+
+        .result-card {
+            background: white;
+            border-radius: 30px;
+            padding: 40px;
+            text-align: center;
+            width: 100%;
+            max-width: 450px;
+            animation: zoomIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes zoomIn {
+            from { transform: scale(0.5); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .result-score {
+            font-size: 4rem;
+            font-weight: 900;
+            color: var(--primary-purple);
+            margin: 10px 0;
+        }
+
+        .result-msg {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 25px;
+        }
+
+        .restart-btn {
+            background: var(--primary-green);
+            color: white;
+            border: none;
+            border-bottom: 6px solid #00a388;
+            padding: 15px 30px;
+            border-radius: 20px;
+            font-size: 1.2rem;
+            font-weight: 800;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        u {
+            text-decoration-color: var(--primary-purple);
+            text-decoration-thickness: 3px;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="brand-container">
+        <p class="brand-name">Giáo viên tạo: Ms Mai An ULIS</p>
+        <h1 class="app-title">Exercise 2: Pronunciation Quiz</h1>
+    </div>
+</header>
+
+<div class="main-container">
+    <div class="progress-container">
+        <div id="progress-fill"></div>
+    </div>
+
+    <div id="quiz-card" class="card">
+        <div class="question-header">Question <span id="q-num">1</span> of 15</div>
+        <div id="question-text" class="question-text">
+            Choose the word with a different underlined pronunciation:
+        </div>
+
+        <div id="options-grid" class="options-grid">
+            <!-- Options injected by JS -->
+        </div>
+
+        <div id="explanation-box" class="explanation-box">
+            <div class="explanation-title">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right:8px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                Cô Mai An giải thích:
+            </div>
+            <div id="explanation-content" class="explanation-content">
+                <!-- Content injected by JS -->
+            </div>
+        </div>
+
+        <button id="next-btn">CÂU TIẾP THEO ➜</button>
+    </div>
+</div>
+
+<!-- Modal Kết quả -->
+<div id="result-modal" class="modal-overlay">
+    <div class="result-card">
+        <div id="result-emoji" style="font-size: 5rem;">🏆</div>
+        <h2 style="font-size: 2rem; margin: 10px 0;">TUYỆT VỜI!</h2>
+        <p class="result-msg" id="result-text">Bạn đã hoàn thành bài thi!</p>
+        <div class="result-score" id="final-score">15/15</div>
+        <button class="restart-btn" onclick="location.reload()">LÀM LẠI BÀI THI</button>
+    </div>
+</div>
+
+<script>
+    // Dữ liệu câu hỏi với nhãn phát âm gạch chân (u tag)
+    const rawQuestions = [
+        {
+            id: 1,
+            question: "Choose the word with a different underlined pronunciation:",
+            options: [
+                { text: "f<u>i</u>ne", val: "A" },
+                { text: "th<u>i</u>n", val: "B" },
+                { text: "beh<u>i</u>nd", val: "C" },
+                { text: "n<u>i</u>ce", val: "D" }
+            ],
+            correctIndex: 1,
+            translate: "Chọn từ có phần gạch chân được phát âm khác với các từ còn lại:",
+            meanings: "A. fine (adj): tốt/khỏe; B. thin (adj): mỏng/gầy; C. behind (prep): phía sau; D. nice (adj): đẹp/tốt.",
+            analysis: "Phần gạch chân của 'thin' được phát âm là /ɪ/ (âm i ngắn). Trong khi đó, các từ 'fine', 'behind', và 'nice' đều có phần gạch chân phát âm là /aɪ/ (âm i dài/nguyên âm đôi).",
+            whyWrong: "Cần loại A, C, D vì chúng thuộc nhóm âm /aɪ/."
+        },
+        {
+            id: 2,
+            question: "Choose the word with a different underlined pronunciation:",
+            options: [
+                { text: "k<u>i</u>ng", val: "A" },
+                { text: "k<u>i</u>ck", val: "B" },
+                { text: "f<u>i</u>t", val: "C" },
+                { text: "ch<u>i</u>ld", val: "D" }
+            ],
+            correctIndex: 3,
+            translate: "Chọn từ có phần gạch chân được phát âm khác với các từ còn lại:",
+            meanings: "A. king (n): vua; B. kick (v): đá; C. fit (adj): vừa vặn; D. child (n): đứa trẻ.",
+            analysis: "Chữ 'i' trong 'child' phát âm là /aɪ/. Ba từ còn lại phát âm là /ɪ/.",
+            whyWrong: "A, B, C đều có âm /ɪ/ ngắn, không phù hợp với yêu cầu tìm từ khác biệt."
+        },
+        {
+            id: 3,
+            question: "Choose the word with a different underlined pronunciation:",
+            options: [
+                { text: "l<u>a</u>nd", val: "A" },
+                { text: "l<u>a</u>te", val: "B" },
+                { text: "s<u>a</u>fe", val: "C" },
+                { text: "w<u>a</u>y", val: "D" }
+            ],
+            correctIndex: 0,
+            translate: "Chọn từ có phần gạch chân được phát âm khác với các từ còn lại:",
+            meanings: "A. land (n): đất đai; B. late (adj): muộn; C. safe (adj): an toàn; D. way (n): đường đi/cách thức.",
+            analysis: "'land' phát âm là /æ/ (a bẹt). Các từ còn lại phát âm là /eɪ/.",
+            whyWrong: "Late, safe, way đều có âm /eɪ/ rất rõ rệt."
+        },
+        {
+            id: 4,
+            question: "Choose the word with a different underlined pronunciation:",
+            options: [
+                { text: "b<u>a</u>nd", val: "A" },
+                { text: "f<u>a</u>n", val: "B" },
+                { text: "c<u>a</u>ptain", val: "C" },
+                { text: "d<u>a</u>te", val: "D" }
+            ],
+            correctIndex: 3,
+            translate: "Chọn từ có phần gạch chân được phát âm khác với các từ còn lại:",
+            meanings: "A. band (n): ban nhạc; B. fan (n): người hâm mộ; C. captain (n): đội trưởng; D. date (n): ngày tháng.",
+            analysis: "'date' phát âm là /eɪ/. Các từ band, fan, captain phát âm là /æ/.",
+            whyWrong: "Các từ còn lại đều có âm miệng mở rộng (/æ/)."
+        },
+        {
+            id: 5,
+            question: "Choose the word with a different underlined pronunciation:",
+            options: [
+                { text: "st<u>ea</u>k", val: "A" },
+                { text: "gr<u>ea</u>t", val: "B" },
+                { text: "h<u>ea</u>d", val: "C" },
+                { text: "br<u>ea</u>k", val: "D" }
+            ],
+            correctIndex: 2,
+            translate: "Chọn từ có phần gạch chân được phát âm khác với các từ còn lại:",
+            meanings: "A. steak (n): bít tết; B. great (adj): tuyệt vời; C. head (n): cái đầu; D. break (v): làm vỡ.",
+            analysis: "'head' phát âm là /hed/ (âm e ngắn). Các từ còn lại phát âm là /eɪ/.",
+            whyWrong: "Đây là nhóm từ 'ea' đặc biệt, đa số là /eɪ/ trừ head là /e/."
+        },
+        {
+            id: 6,
+            question: "Choose the word with a different underlined pronunciation:",
+            options: [
+                { text: "r<u>ai</u>n", val: "A" },
+                { text: "p<u>ai</u>nt", val: "B" },
+                { text: "s<u>ai</u>d", val: "C" },
+                { text: "t<u>ai</u>l", val: "D" }
+            ],
+            correctIndex: 2,
+            translate: "Chọn từ có phần gạch chân được phát âm khác với các từ còn lại:",
+            meanings: "A. rain (n): mưa; B. paint (v): vẽ; C. said (v2): đã nói; D. tail (n): cái đuôi.",
+            analysis: "'said' phát âm là /sed/ (âm e ngắn). Các từ còn lại phát âm là /eɪ/.",
+            whyWrong: "'said' là trường hợp ngoại lệ cực kỳ phổ biến trong các bài thi."
+        },
+        {
+            id: 7,
+            question: "Choose the word with a different underlined pronunciation:",
+            options: [
+                { text: "g<u>a</u>te", val: "A" },
+                { text: "ch<u>a</u>nge", val: "B" },
+                { text: "h<u>a</u>nd", val: "C" },
+                { text: "d<u>a</u>nger", val: "D" }
+            ],
+            correctIndex: 2,
+            translate: "Chọn từ có phần gạch chân được phát âm khác với các từ còn lại:",
+            meanings: "A. gate (n): cổng; B. change (v): thay đổi; C. hand (n): bàn tay; D. danger (n): nguy hiểm.",
+            analysis: "'hand' phát âm là /hænd/ (âm /æ/). Các từ còn lại phát âm là /eɪ/.",
+            whyWrong: "Danger, gate, change đều tạo ra âm /eɪ/."
+        },
+        {
+            id: 8,
+            question: "Choose the word with a different underlined pronunciation:",
+            options: [
+                { text: "tr<u>ai</u>n", val: "A" },
+                { text: "<u>ai</u>r", val: "B" },
+                { text: "p<u>ai</u>r", val: "C" },
+                { text: "st<u>ai</u>r", val: "D" }
+            ],
+            correctIndex: 0,
+            translate: "Chọn từ có phần gạch chân được phát âm khác với các từ còn lại:",
+            meanings: "A. train (n): tàu hỏa; B. air (n): không khí; C. pair (n): đôi; D. stair (n): cầu thang.",
+            analysis: "'train' phát âm là /treɪn/ (/eɪ/). Các từ còn lại đi kèm âm 'r' tạo thành âm /eə/.",
+            whyWrong: "Nhóm 'air' ở cuối từ thường đọc là /eə/."
+        },
+        {
+            id: 9,
+            question: "Choose the word with a different underlined pronunciation:",
+            options: [
+                { text: "<u>ei</u>ght", val: "A" },
+                { text: "<u>ei</u>ther", val: "B" },
+                { text: "h<u>ei</u>ght", val: "C" },
+                { text: "n<u>ei</u>ther", val: "D" }
+            ],
+            correctIndex: 0,
+            translate: "Chọn từ có phần gạch chân được phát âm khác với các từ còn lại:",
+            meanings: "A. eight (n): số 8; B. either (conj): hoặc; C. height (n): chiều cao; D. neither (conj): không.",
+            analysis: "'eight' phát âm là /eɪt/ (âm /eɪ/). Các từ còn lại phát âm là /aɪ/.",
+            whyWrong: "Height, either, neither thường nằm trong nhóm âm /aɪ/."
+        },
+        {
+            id: 10,
+            question: "Choose the word with a different underlined pronunciation:",
+            options: [
+                { text: "p<u>ie</u>", val: "A" },
+                { text: "l<u>ie</u>", val: "B" },
+                { text: "t<u>ie</u>", val: "C" },
+                { text: "th<u>ie</u>f", val: "D" }
+            ],
+            correctIndex: 3,
+            translate: "Chọn từ có phần gạch chân được phát âm khác với các từ còn lại:",
+            meanings: "A. pie (n): bánh; B. lie (v): nằm/nói dối; C. tie (v): thắt; D. thief (n): kẻ trộm.",
+            analysis: "'thief' phát âm là /θiːf/ (âm /iː/ dài). Các từ còn lại phát âm là /aɪ/.",
+            whyWrong: "Pie, lie, tie đều có âm /aɪ/."
+        },
+        {
+            id: 11,
+            question: "Choose the word with a different underlined pronunciation:",
+            options: [
+                { text: "k<u>i</u>te", val: "A" },
+                { text: "n<u>i</u>ne", val: "B" },
+                { text: "inqu<u>i</u>re", val: "C" },
+                { text: "d<u>i</u>nner", val: "D" }
+            ],
+            correctIndex: 3,
+            translate: "Chọn từ có phần gạch chân được phát âm khác với các từ còn lại:",
+            meanings: "A. kite (n): diều; B. nine (n): số 9; C. inquire (v): hỏi; D. dinner (n): bữa tối.",
+            analysis: "'dinner' phát âm là /ˈdɪn.ər/ (âm /ɪ/ ngắn). Các từ còn lại phát âm là /aɪ/.",
+            whyWrong: "Kite, nine, inquire đều nhấn vào âm 'i' dài (/aɪ/)."
+        },
+        {
+            id: 12,
+            question: "Choose the word with a different underlined pronunciation:",
+            options: [
+                { text: "m<u>y</u>", val: "A" },
+                { text: "st<u>y</u>le", val: "B" },
+                { text: "bic<u>y</u>cle", val: "C" },
+                { text: "t<u>y</u>pe", val: "D" }
+            ],
+            correctIndex: 2,
+            translate: "Chọn từ có phần gạch chân được phát âm khác với các từ còn lại:",
+            meanings: "A. my: của tôi; B. style: phong cách; C. bicycle: xe đạp; D. type: loại.",
+            analysis: "Trong 'bicycle', chữ 'y' thứ 2 là âm tiết không nhấn trọng âm, đọc là /ɪ/. Các từ khác là /aɪ/.",
+            whyWrong: "Trọng âm của bicycle rơi vào âm tiết đầu, làm âm tiết sau biến thành /ɪ/."
+        },
+        {
+            id: 13,
+            question: "Choose the word with a different underlined pronunciation:",
+            options: [
+                { text: "qu<u>i</u>te", val: "A" },
+                { text: "qu<u>i</u>t", val: "B" },
+                { text: "b<u>u</u>y", val: "C" },
+                { text: "requ<u>i</u>re", val: "D" }
+            ],
+            correctIndex: 1,
+            translate: "Chọn từ có phần gạch chân được phát âm khác với các từ còn lại:",
+            meanings: "A. quite (adv): khá; B. quit (v): bỏ; C. buy (v): mua; D. require (v): yêu cầu.",
+            analysis: "'quit' phát âm là /kwɪt/ (âm /ɪ/ ngắn). Các từ còn lại phát âm là /aɪ/.",
+            whyWrong: "Phân biệt 'quite' (/aɪ/) và 'quit' (/ɪ/) là bài học kinh điển."
+        },
+        {
+            id: 14,
+            question: "Choose the word with a different underlined pronunciation:",
+            options: [
+                { text: "th<u>ey</u>", val: "A" },
+                { text: "fr<u>ei</u>ght", val: "B" },
+                { text: "sl<u>ei</u>ght", val: "C" },
+                { text: "ob<u>ey</u>", val: "D" }
+            ],
+            correctIndex: 2,
+            translate: "Chọn từ có phần gạch chân được phát âm khác với các từ còn lại:",
+            meanings: "A. they: họ; B. freight: hàng hóa; C. sleight: sự khéo léo; D. obey: vâng lời.",
+            analysis: "'sleight' phát âm là /slaɪt/ (âm /aɪ/). Các từ còn lại phát âm là /eɪ/.",
+            whyWrong: "'sleight of hand' (nhanh tay) là cụm từ chứa âm /aɪ/ duy nhất ở đây."
+        },
+        {
+            id: 15,
+            question: "Choose the word with a different underlined pronunciation:",
+            options: [
+                { text: "n<u>a</u>tion", val: "A" },
+                { text: "m<u>a</u>nsion", val: "B" },
+                { text: "inv<u>a</u>sion", val: "C" },
+                { text: "transl<u>a</u>tion", val: "D" }
+            ],
+            correctIndex: 1,
+            translate: "Chọn từ có phần gạch chân được phát âm khác với các từ còn lại:",
+            meanings: "A. nation (n): quốc gia; B. mansion (n): biệt thự; C. invasion (n): xâm lược; D. translation (n): dịch thuật.",
+            analysis: "'mansion' phát âm là /ˈmæn.ʃən/ (âm /æ/). Các từ còn lại phát âm là /eɪ/.",
+            whyWrong: "Mansion đọc giống 'man', các từ khác có hậu tố mang âm /eɪ/."
+        }
+    ];
+
+    let currentQuestionIndex = 0;
+    let score = 0;
+    let isAnswered = false;
+    let shuffledQuestions = [];
+
+    // Sounds using Web Audio API for better reliability
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    
+    function playSound(type) {
+        const oscillator = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        oscillator.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+
+        if (type === 'correct') {
+            oscillator.type = 'sine';
+            oscillator.frequency.setValueAtTime(523.25, audioCtx.currentTime); // C5
+            oscillator.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.1); // A5
+            gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+            oscillator.start();
+            oscillator.stop(audioCtx.currentTime + 0.3);
+        } else {
+            oscillator.type = 'sawtooth';
+            oscillator.frequency.setValueAtTime(150, audioCtx.currentTime);
+            oscillator.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.2);
+            gainNode.gain.setValueAtTime(0.2, audioCtx.currentTime);
+            gainNode.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+            oscillator.start();
+            oscillator.stop(audioCtx.currentTime + 0.4);
+        }
+    }
+
+    function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+    }
+
+    function initQuiz() {
+        shuffledQuestions = shuffleArray([...rawQuestions]);
+        renderQuestion();
+    }
+
+    function renderQuestion() {
+        const q = shuffledQuestions[currentQuestionIndex];
+        isAnswered = false;
+        
+        // Update UI
+        document.getElementById('q-num').innerText = currentQuestionIndex + 1;
+        document.getElementById('question-text').innerText = q.question;
+        document.getElementById('progress-fill').style.width = `${((currentQuestionIndex) / 15) * 100}%`;
+        
+        const optionsGrid = document.getElementById('options-grid');
+        optionsGrid.innerHTML = '';
+        
+        const labels = ['A', 'B', 'C', 'D'];
+        q.options.forEach((opt, index) => {
+            const btn = document.createElement('button');
+            btn.className = 'option-btn';
+            btn.innerHTML = `<span class="option-label">${labels[index]}</span> ${opt.text}`;
+            btn.onclick = () => checkAnswer(index, btn);
+            optionsGrid.appendChild(btn);
+        });
+
+        document.getElementById('explanation-box').style.display = 'none';
+        document.getElementById('next-btn').style.display = 'none';
+        document.getElementById('quiz-card').classList.remove('shake');
+    }
+
+    function checkAnswer(selectedIndex, btn) {
+        if (isAnswered) return;
+        isAnswered = true;
+        
+        const q = shuffledQuestions[currentQuestionIndex];
+        const allBtns = document.querySelectorAll('.option-btn');
+        
+        if (selectedIndex === q.correctIndex) {
+            btn.classList.add('correct');
+            score++;
+            playSound('correct');
+            confetti({
+                particleCount: 100,
+                spread: 70,
+                origin: { y: 0.6 },
+                colors: ['#8854C0', '#00C9A7', '#00D26A']
+            });
+        } else {
+            btn.classList.add('wrong');
+            allBtns[q.correctIndex].classList.add('correct');
+            document.getElementById('quiz-card').classList.add('shake');
+            playSound('wrong');
+        }
+
+        // Show Explanation
+        showExplanation(q);
+        
+        document.getElementById('next-btn').style.display = 'block';
+        document.getElementById('progress-fill').style.width = `${((currentQuestionIndex + 1) / 15) * 100}%`;
+    }
+
+    function showExplanation(q) {
+        const content = document.getElementById('explanation-content');
+        content.innerHTML = `
+            <div class="explanation-section">
+                <b>1. Dịch câu hỏi:</b><br>
+                <i>"${q.translate}"</i>
+            </div>
+            <div class="explanation-section">
+                <b>2. Phân tích từ vựng 4 đáp án:</b><br>
+                ${q.meanings}
+            </div>
+            <div class="explanation-section">
+                <b>3. Tại sao chọn?</b><br>
+                ${q.analysis}
+            </div>
+            <div class="explanation-section">
+                <b>4. Loại trừ:</b><br>
+                ${q.whyWrong}
+            </div>
+            <div style="font-weight:800; color:var(--correct-green); margin-top:10px">
+                ➜ Đáp án đúng: ${['A','B','C','D'][q.correctIndex]}
+            </div>
+        `;
+        document.getElementById('explanation-box').style.display = 'block';
+    }
+
+    document.getElementById('next-btn').onclick = () => {
+        currentQuestionIndex++;
+        if (currentQuestionIndex < shuffledQuestions.length) {
+            renderQuestion();
+        } else {
+            showFinalResult();
+        }
+    };
+
+    function showFinalResult() {
+        document.getElementById('result-modal').style.display = 'flex';
+        document.getElementById('final-score').innerText = `${score}/15`;
+        
+        let emoji = '🏆';
+        let msg = 'TUYỆT VỜI! BẠN LÀ THIÊN TÀI PHÁT ÂM!';
+        
+        if (score < 8) {
+            emoji = '😅';
+            msg = 'Cố gắng lên nhé, luyện tập thêm thôi!';
+        } else if (score < 12) {
+            emoji = '✨';
+            msg = 'Làm tốt lắm, bạn rất có tiềm năng!';
+        }
+        
+        document.getElementById('result-emoji').innerText = emoji;
+        document.getElementById('result-text').innerText = msg;
+    }
+
+    // Initialize
+    window.onload = initQuiz;
+</script>
+
+</body>
+</html>

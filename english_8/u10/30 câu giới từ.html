@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bài Kiểm Tra Giới Từ - Ms Mai An ULIS</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Confetti Effect -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <style>
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: #F0F4F8;
+            background-image: radial-gradient(#E2E8F0 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+        
+        /* Custom Colors & Shadows for Gamification */
+        .btn-3d {
+            transition: all 0.1s;
+            box-shadow: 0px 6px 0px 0px rgba(0,0,0,0.2);
+            transform: translateY(0);
+        }
+        .btn-3d:active {
+            transform: translateY(6px);
+            box-shadow: 0px 0px 0px 0px rgba(0,0,0,0.2);
+        }
+        
+        .card-shadow {
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Animations */
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            50% { transform: translateX(5px); }
+            75% { transform: translateX(-5px); }
+            100% { transform: translateX(0); }
+        }
+        .shake-animation {
+            animation: shake 0.4s ease-in-out;
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0.8); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .pop-in {
+            animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        /* Status Colors */
+        .correct-bg { background-color: #00D26A !important; border-color: #00B85C !important; color: white !important; }
+        .wrong-bg { background-color: #FF4757 !important; border-color: #E03B4B !important; color: white !important; }
+        
+        .choice-btn {
+            border: 2px solid #E2E8F0;
+        }
+        .choice-btn:hover:not(:disabled) {
+            transform: scale(1.02);
+            background-color: #EDF2F7;
+        }
+
+        /* Explanations */
+        .explanation-box {
+            display: none;
+            border-left: 5px solid #8854C0;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #C4C4C4; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #A0A0A0; 
+        }
+    </style>
+</head>
+<body class="min-h-screen text-gray-800 pb-20">
+
+    <!-- Header -->
+    <header class="bg-[#8854C0] text-white py-6 shadow-lg sticky top-0 z-50">
+        <div class="container mx-auto px-4 text-center">
+            <h1 class="text-3xl md:text-4xl font-extrabold font-['Quicksand'] tracking-wide">
+                🎓 BÀI KIỂM TRA GIỚI TỪ
+            </h1>
+            <p class="text-lg mt-2 opacity-90">Prepositions: In, On, At...</p>
+            <div class="mt-2 text-sm font-bold bg-white/20 inline-block px-4 py-1 rounded-full">
+                Giáo viên: Ms Mai An ULIS
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 mt-8 max-w-4xl">
+        
+        <!-- Score Board (Sticky Small) -->
+        <div class="fixed top-24 right-4 z-40 hidden lg:block">
+            <div class="bg-white p-4 rounded-xl shadow-xl border-2 border-purple-100 text-center">
+                <p class="text-xs text-gray-500 uppercase font-bold">Điểm số</p>
+                <p id="live-score" class="text-3xl font-bold text-[#00C9A7]">0/0</p>
+            </div>
+        </div>
+
+        <div id="quiz-container" class="space-y-8">
+            <!-- Questions will be injected here by JS -->
+        </div>
+
+        <!-- Submit Button -->
+        <div class="mt-12 text-center">
+            <button onclick="finishQuiz()" class="btn-3d bg-[#00C9A7] hover:bg-[#00b596] text-white font-bold text-xl py-4 px-12 rounded-2xl shadow-[0_6px_0_#009e86] transition-all transform active:translate-y-1 active:shadow-none w-full md:w-auto">
+                🎉 NỘP BÀI & XEM KẾT QUẢ
+            </button>
+        </div>
+
+    </main>
+
+    <!-- Result Modal -->
+    <div id="result-modal" class="fixed inset-0 bg-black/60 z-[100] hidden flex items-center justify-center backdrop-blur-sm p-4">
+        <div class="bg-white rounded-3xl p-8 max-w-md w-full text-center relative pop-in shadow-2xl border-4 border-[#8854C0]">
+            <div class="absolute -top-12 left-1/2 transform -translate-x-1/2 bg-[#FFD700] rounded-full p-4 border-4 border-white shadow-lg">
+                <span class="text-4xl">🏆</span>
+            </div>
+            <h2 class="text-3xl font-extrabold text-[#8854C0] mt-6 mb-2 font-['Quicksand']">Kết Quả</h2>
+            <p id="final-message" class="text-gray-600 mb-6 font-semibold">Bạn đã làm rất tốt!</p>
+            
+            <div class="bg-gray-100 rounded-xl p-6 mb-8">
+                <div class="text-5xl font-bold text-[#00C9A7] mb-2" id="final-score">0/30</div>
+                <div class="text-sm text-gray-500 font-bold uppercase tracking-wider">Câu trả lời đúng</div>
+            </div>
+
+            <button onclick="closeModal()" class="w-full btn-3d bg-[#FF4757] text-white font-bold py-3 rounded-xl shadow-[0_4px_0_#d63030]">
+                Xem lại bài làm
+            </button>
+        </div>
+    </div>
+
+    <!-- Audio Elements -->
+    <audio id="sound-correct" src="https://assets.mixkit.co/sfx/preview/mixkit-correct-answer-tone-2870.mp3" preload="auto"></audio>
+    <audio id="sound-wrong" src="https://assets.mixkit.co/sfx/preview/mixkit-wrong-answer-fail-notification-946.mp3" preload="auto"></audio>
+    <audio id="sound-finish" src="https://assets.mixkit.co/sfx/preview/mixkit-winning-chimes-2015.mp3" preload="auto"></audio>
+
+    <script>
+        // --- DATA ---
+        const quizData = {
+            "questions": [
+                {
+                    "questionNumber": 1,
+                    "question": "Ex 4 - Q1: Are you (at/ in) school now?",
+                    "answerOptions": [
+                        { "text": "at", "isCorrect": true, "rationale": "<b>Dịch nghĩa:</b> Bây giờ bạn có đang <b>ở</b> trường không?<br><br><b>Phân tích:</b><br>- <b>at school</b>: ở trường (chỉ vị trí địa điểm chung hoặc đang tham gia hoạt động tại trường).<br>- <b>in school</b>: đang đi học (chỉ tình trạng là học sinh/sinh viên, không nhất thiết đang ở vị trí trường).<br><br><b>Giải thích:</b> Trong ngữ cảnh hỏi vị trí hiện tại 'now', 'at school' là cách dùng chính xác nhất để hỏi ai đó có đang hiện diện ở địa điểm trường học hay không." },
+                        { "text": "in", "isCorrect": false, "rationale": "<b>Tại sao SAI:</b> 'In school' thường dùng để nói về việc ai đó đang ở độ tuổi đi học hoặc là học sinh, ít dùng để chỉ vị trí cụ thể ngay lúc này." }
+                    ]
+                },
+                {
+                    "questionNumber": 2,
+                    "question": "Ex 4 - Q2: The spaghetti is (for/ on) lunch.",
+                    "answerOptions": [
+                        { "text": "for", "isCorrect": true, "rationale": "<b>Dịch nghĩa:</b> Món mì Ý là <b>cho</b> bữa trưa.<br><br><b>Phân tích:</b><br>- <b>for lunch/dinner/breakfast</b>: cho bữa trưa/tối/sáng (chỉ mục đích).<br>- <b>on</b>: trên (chỉ vị trí bề mặt).<br><br><b>Giải thích:</b> Dùng giới từ 'for' để chỉ mục đích món ăn dành cho bữa nào." },
+                        { "text": "on", "isCorrect": false, "rationale": "<b>Tại sao SAI:</b> 'On lunch' không có nghĩa. Ta có thể nói 'on the table' (trên bàn) nhưng không nói món ăn 'trên bữa trưa'." }
+                    ]
+                },
+                {
+                    "questionNumber": 3,
+                    "question": "Ex 4 - Q3: She can’t soak (in/ under) the water for too long.",
+                    "answerOptions": [
+                        { "text": "in", "isCorrect": true, "rationale": "<b>Dịch nghĩa:</b> Cô ấy không thể ngâm mình <b>trong</b> nước quá lâu.<br><br><b>Phân tích:</b><br>- <b>soak in water</b>: ngâm mình trong nước.<br>- <b>under</b>: ở bên dưới.<br><br><b>Giải thích:</b> 'In the water' diễn tả trạng thái cơ thể được bao bọc bởi nước xung quanh." },
+                        { "text": "under", "isCorrect": false, "rationale": "<b>Tại sao SAI:</b> 'Under water' là lặn hẳn xuống dưới mặt nước, còn hành động 'soak' (ngâm) thường dùng với giới từ 'in'." }
+                    ]
+                },
+                {
+                    "questionNumber": 4,
+                    "question": "Ex 4 - Q4: He came and sat (between/ next to) me.",
+                    "answerOptions": [
+                        { "text": "next to", "isCorrect": true, "rationale": "<b>Dịch nghĩa:</b> Anh ấy đến và ngồi <b>bên cạnh</b> tôi.<br><br><b>Phân tích:</b><br>- <b>next to + O</b>: bên cạnh ai/cái gì.<br>- <b>between</b>: giữa (thường đi với cấu trúc 'between A and B').<br><br><b>Giải thích:</b> Ở đây chỉ có 1 tân ngữ 'me', không có đối tượng thứ 2 để kẹp giữa, nên dùng 'next to'." },
+                        { "text": "between", "isCorrect": false, "rationale": "<b>Tại sao SAI:</b> 'Between' cần ít nhất 2 đối tượng hoặc danh từ số nhiều (Ví dụ: between us, between Lan and Mai)." }
+                    ]
+                },
+                {
+                    "questionNumber": 5,
+                    "question": "Ex 4 - Q5: Is her house (between/ behind) Van Lang University?",
+                    "answerOptions": [
+                        { "text": "behind", "isCorrect": true, "rationale": "<b>Dịch nghĩa:</b> Nhà cô ấy có phải ở <b>phía sau</b> Đại học Văn Lang không?<br><br><b>Phân tích:</b><br>- <b>behind + địa điểm</b>: ở phía sau.<br>- <b>between</b>: ở giữa.<br><br><b>Giải thích:</b> Chỉ có 1 địa điểm làm mốc là 'Van Lang University', nên dùng 'behind'. Nếu dùng 'between' phải có 2 địa điểm." },
+                        { "text": "between", "isCorrect": false, "rationale": "<b>Tại sao SAI:</b> Thiếu địa điểm thứ 2 để tạo thành cấu trúc 'ở giữa'." }
+                    ]
+                },
+                {
+                    "questionNumber": 6,
+                    "question": "Ex 4 - Q6: She twirled around (under/ in front of) the mirror.",
+                    "answerOptions": [
+                        { "text": "in front of", "isCorrect": true, "rationale": "<b>Dịch nghĩa:</b> Cô ấy xoay vòng <b>trước</b> gương.<br><br><b>Phân tích:</b><br>- <b>in front of</b>: ở phía trước.<br>- <b>under</b>: ở bên dưới.<br><br><b>Giải thích:</b> Hành động soi gương hoặc ngắm mình trong gương thì phải đứng 'trước' gương." },
+                        { "text": "under", "isCorrect": false, "rationale": "<b>Tại sao SAI:</b> 'Under the mirror' nghĩa là chui xuống gầm gương, không hợp lý với ngữ cảnh xoay vòng ngắm nghía." }
+                    ]
+                },
+                {
+                    "questionNumber": 7,
+                    "question": "Ex 4 - Q7: We often play basketball (at/ in) break time.",
+                    "answerOptions": [
+                        { "text": "at", "isCorrect": true, "rationale": "<b>Dịch nghĩa:</b> Chúng tôi thường chơi bóng rổ <b>vào</b> giờ giải lao.<br><br><b>Phân tích:</b><br>- <b>at break time / at lunchtime</b>: vào giờ nghỉ/giờ trưa.<br><br><b>Giải thích:</b> Đây là cụm từ cố định chỉ thời điểm cụ thể trong ngày." },
+                        { "text": "in", "isCorrect": false, "rationale": "<b>Tại sao SAI:</b> Không dùng 'in break time'. Ta có thể dùng 'in the break' nhưng phổ biến nhất là 'at break time'." }
+                    ]
+                },
+                {
+                    "questionNumber": 8,
+                    "question": "Ex 4 - Q8: I think smart phones will change (on/ in) ten years.",
+                    "answerOptions": [
+                        { "text": "in", "isCorrect": true, "rationale": "<b>Dịch nghĩa:</b> Tôi nghĩ điện thoại thông minh sẽ thay đổi <b>trong vòng</b> mười năm nữa.<br><br><b>Phân tích:</b><br>- <b>in + khoảng thời gian</b>: dùng cho thì tương lai để chỉ 'trong bao lâu nữa'.<br><br><b>Giải thích:</b> Để diễn tả sự việc sẽ xảy ra sau một khoảng thời gian trong tương lai, ta dùng giới từ 'in'." },
+                        { "text": "on", "isCorrect": false, "rationale": "<b>Tại sao SAI:</b> 'On' thường dùng cho ngày, thứ, hoặc bề mặt, không dùng cho khoảng thời gian tương lai." }
+                    ]
+                },
+                {
+                    "questionNumber": 9,
+                    "question": "Ex 4 - Q9: My room is (behind/ between) Lan’s and Mai’s.",
+                    "answerOptions": [
+                        { "text": "between", "isCorrect": true, "rationale": "<b>Dịch nghĩa:</b> Phòng tôi nằm <b>giữa</b> phòng của Lan và phòng của Mai.<br><br><b>Phân tích:</b><br>- <b>between A and B</b>: giữa A và B.<br><br><b>Giải thích:</b> Có 2 đối tượng xác định là 'Lan's' (phòng Lan) và 'Mai's' (phòng Mai), nên dùng 'between' là chính xác." },
+                        { "text": "behind", "isCorrect": false, "rationale": "<b>Tại sao SAI:</b> 'Behind' nghĩa là phía sau, nếu dùng 'behind' thường không đi với cấu trúc 'and' liệt kê 2 bên như vậy." }
+                    ]
+                },
+                {
+                    "questionNumber": 10,
+                    "question": "Ex 4 - Q10: Can you find that small village (on/ at) the map?",
+                    "answerOptions": [
+                        { "text": "on", "isCorrect": true, "rationale": "<b>Dịch nghĩa:</b> Bạn có thể tìm thấy ngôi làng nhỏ đó <b>trên</b> bản đồ không?<br><br><b>Phân tích:</b><br>- <b>on the map</b>: trên bản đồ.<br><br><b>Giải thích:</b> Bản đồ được xem là một bề mặt phẳng, nên ta dùng giới từ 'on'." },
+                        { "text": "at", "isCorrect": false, "rationale": "<b>Tại sao SAI:</b> 'At the map' thường chỉ vị trí người đứng tại chỗ tấm bản đồ treo tường, không dùng để chỉ thông tin in 'trên' bản đồ." }
+                    ]
+                },
+                {
+                    "questionNumber": 11,
+                    "question": "Ex 4 - Q11: She is doing yoga (on/ at) the club.",
+                    "answerOptions": [
+                        { "text": "at", "isCorrect": true, "rationale": "<b>Dịch nghĩa:</b> Cô ấy đang tập yoga <b>tại</b> câu lạc bộ.<br><br><b>Phân tích:</b><br>- <b>at the club</b>: tại câu lạc bộ (địa điểm/tổ chức).<br><br><b>Giải thích:</b> Dùng 'at' để chỉ một địa điểm, điểm đến cụ thể cho một hoạt động." },
+                        { "text": "on", "isCorrect": false, "rationale": "<b>Tại sao SAI:</b> 'On the club' nghĩa là ở trên nóc câu lạc bộ, không hợp lý." }
+                    ]
+                },
+                {
+                    "questionNumber": 12,
+                    "question": "Ex 4 - Q12: The math finished (at/ on) 3 o’clock.",
+                    "answerOptions": [
+                        { "text": "at", "isCorrect": true, "rationale": "<b>Dịch nghĩa:</b> Tiết toán kết thúc <b>lúc</b> 3 giờ.<br><br><b>Phân tích:</b><br>- <b>at + giờ cụ thể</b> (at 3 o'clock, at 5pm).<br><br><b>Giải thích:</b> Quy tắc cơ bản: Giờ dùng AT, Ngày dùng ON, Tháng/Năm dùng IN." },
+                        { "text": "on", "isCorrect": false, "rationale": "<b>Tại sao SAI:</b> 'On' dùng cho ngày (on Monday, on May 1st), không dùng cho giờ." }
+                    ]
+                },
+                {
+                    "questionNumber": 13,
+                    "question": "Ex 4 - Q13: Her brother learned English (in/ at) the USA.",
+                    "answerOptions": [
+                        { "text": "in", "isCorrect": true, "rationale": "<b>Dịch nghĩa:</b> Anh trai cô ấy đã học tiếng Anh <b>ở</b> Mỹ.<br><br><b>Phân tích:</b><br>- <b>in + đất nước/thành phố</b>.<br><br><b>Giải thích:</b> USA (Mỹ) là một quốc gia, không gian rộng lớn nên dùng 'in'." },
+                        { "text": "at", "isCorrect": false, "rationale": "<b>Tại sao SAI:</b> 'At' dùng cho địa điểm nhỏ, cụ thể (sân bay, trường học), không dùng cho tên quốc gia." }
+                    ]
+                },
+                {
+                    "questionNumber": 14,
+                    "question": "Ex 4 - Q14: He is watching a movie with his girlfriend (at/ in) the moment.",
+                    "answerOptions": [
+                        { "text": "at", "isCorrect": true, "rationale": "<b>Dịch nghĩa:</b> Anh ấy đang xem phim với bạn gái <b>vào lúc này</b>.<br><br><b>Phân tích:</b><br>- <b>at the moment</b> = now (ngay bây giờ).<br><br><b>Giải thích:</b> Đây là cụm từ cố định (Fixed Expression/Idiom)." },
+                        { "text": "in", "isCorrect": false, "rationale": "<b>Tại sao SAI:</b> 'In a moment' nghĩa là 'trong chốc lát nữa' (tương lai gần), nhưng cụm từ phổ biến chỉ hiện tại tiếp diễn là 'at the moment'." }
+                    ]
+                },
+                {
+                    "questionNumber": 15,
+                    "question": "Ex 4 - Q15: My clothes aren’t (in/ on) the sofa. Where are they?",
+                    "answerOptions": [
+                        { "text": "on", "isCorrect": true, "rationale": "<b>Dịch nghĩa:</b> Quần áo của tôi không có ở <b>trên</b> ghế sofa. Chúng đâu rồi?<br><br><b>Phân tích:</b><br>- <b>on the sofa</b>: trên bề mặt ghế sofa.<br><br><b>Giải thích:</b> Quần áo thường được đặt/vứt lên trên mặt ghế." },
+                        { "text": "in", "isCorrect": false, "rationale": "<b>Tại sao SAI:</b> Dùng 'in the sofa' khi vật gì đó bị kẹt vào khe ghế hoặc ghế có ngăn chứa đồ bên trong, ít phổ biến với quần áo để bình thường." }
+                    ]
+                },
+                {
+                    "questionNumber": 16,
+                    "question": "Ex 4 - Q16: What happened (at/ on) your school yesterday morning?",
+                    "answerOptions": [
+                        { "text": "at", "isCorrect": true, "rationale": "<b>Dịch nghĩa:</b> Chuyện gì đã xảy ra <b>ở</b> trường bạn sáng hôm qua vậy?<br><br><b>Phân tích:</b><br>- <b>at school</b>: ở trường (địa điểm).<br><br><b>Giải thích:</b> School được xem là một điểm đến/địa điểm cụ thể nên dùng 'at'." },
+                        { "text": "on", "isCorrect": false, "rationale": "<b>Tại sao SAI:</b> 'On' không dùng cho school trừ khi nói 'on the school roof' (trên mái trường)." }
+                    ]
+                },
+                {
+                    "questionNumber": 17,
+                    "question": "Ex 4 - Q17: We will have a big party (on/ in) our wedding day.",
+                    "answerOptions": [
+                        { "text": "on", "isCorrect": true, "rationale": "<b>Dịch nghĩa:</b> Chúng tôi sẽ có một bữa tiệc lớn <b>vào</b> ngày cưới.<br><br><b>Phân tích:</b><br>- <b>on + Day/Date</b> (ngày).<br><br><b>Giải thích:</b> Vì có từ 'day' (ngày) nên bắt buộc dùng giới từ 'on'." },
+                        { "text": "in", "isCorrect": false, "rationale": "<b>Tại sao SAI:</b> 'In' dùng cho tháng, năm, mùa, buổi (in the morning), không dùng cho một ngày cụ thể." }
+                    ]
+                },
+                {
+                    "questionNumber": 18,
+                    "question": "Ex 4 - Q18: He was born (in/ at) the spring of 2012.",
+                    "answerOptions": [
+                        { "text": "in", "isCorrect": true, "rationale": "<b>Dịch nghĩa:</b> Cậu ấy sinh <b>vào</b> mùa xuân năm 2012.<br><br><b>Phân tích:</b><br>- <b>in + mùa</b> (in spring, in summer...).<br><br><b>Giải thích:</b> Spring (mùa xuân) là một mùa trong năm, dùng giới từ 'in'." },
+                        { "text": "at", "isCorrect": false, "rationale": "<b>Tại sao SAI:</b> 'At' không dùng cho mùa." }
+                    ]
+                },
+                {
+                    "questionNumber": 19,
+                    "question": "Ex 4 - Q19: We don’t have maths (on/ in) Tuesdays and Fridays.",
+                    "answerOptions": [
+                        { "text": "on", "isCorrect": true, "rationale": "<b>Dịch nghĩa:</b> Chúng tôi không có môn toán <b>vào</b> các ngày thứ Ba và thứ Sáu.<br><br><b>Phân tích:</b><br>- <b>on + Thứ trong tuần</b>.<br><br><b>Giải thích:</b> Tuesdays, Fridays là các thứ trong tuần, quy tắc bắt buộc dùng 'on'." },
+                        { "text": "in", "isCorrect": false, "rationale": "<b>Tại sao SAI:</b> Sai quy tắc ngữ pháp cơ bản." }
+                    ]
+                },
+                {
+                    "questionNumber": 20,
+                    "question": "Ex 4 - Q20: His graduation party is held (on/ at) a restaurant (in/ on) District 1.",
+                    "answerOptions": [
+                        { "text": "at / in", "isCorrect": true, "rationale": "<b>Dịch nghĩa:</b> Tiệc tốt nghiệp của anh ấy được tổ chức <b>tại</b> một nhà hàng <b>ở</b> Quận 1.<br><br><b>Phân tích:</b><br>- <b>at a restaurant</b>: tại một địa điểm cụ thể.<br>- <b>in District 1</b>: trong một quận (khu vực hành chính rộng).<br><br><b>Giải thích:</b> Vị trí 1 là điểm cụ thể -> At. Vị trí 2 là khu vực -> In." },
+                        { "text": "on / at", "isCorrect": false, "rationale": "<b>Tại sao SAI:</b> 'On a restaurant' sai (trên nhà hàng). 'At District 1' sai (Quận là vùng rộng, dùng In)." }
+                    ]
+                },
+                {
+                    "questionNumber": 21,
+                    "question": "Ex 5 - Q1: They were __________________ home yesterday.",
+                    "answerOptions": [
+                        { "text": "at", "isCorrect": true, "rationale": "<b>Dịch nghĩa:</b> Họ đã <b>ở</b> nhà ngày hôm qua.<br><br><b>Phân tích:</b><br>- <b>at home</b>: ở nhà.<br><br><b>Giải thích:</b> Đây là cụm từ cố định chỉ vị trí tại gia đình." },
+                        { "text": "in", "isCorrect": false, "rationale": "<b>Tại sao SAI:</b> Không dùng 'in home'." },
+                        { "text": "on", "isCorrect": false, "rationale": "<b>Tại sao SAI:</b> Không dùng 'on home'." }
+                    ]
+                },
+                {
+                    "questionNumber": 22,
+                    "question": "Ex 5 - Q2: Her café is __________________ the end of the street.",
+                    "answerOptions": [
+                        { "text": "at", "isCorrect": true, "rationale": "<b>Dịch nghĩa:</b> Quán cà phê của cô ấy ở <b>cuối</b> phố.<br><br><b>Phân tích:</b><br>- <b>at the end of...</b>: ở phần cuối của cái gì đó.<br><br><b>Giải thích:</b> Cụm từ chỉ vị trí điểm cuối cùng của con đường." },
+                        { "text": "in", "isCorrect": false, "rationale": "<b>Tại sao SAI:</b> 'In the end' mang nghĩa là 'cuối cùng thì' (chỉ kết quả), không chỉ vị trí địa lý." },
+                        { "text": "on", "isCorrect": false, "rationale": "<b>Tại sao SAI:</b> Sai cấu trúc." }
+                    ]
+                },
+                {
+                    "questionNumber": 23,
+                    "question": "Ex 5 - Q3: Can you see the green hat __________________ that shelf?",
+                    "answerOptions": [
+                        { "text": "on", "isCorrect": true, "rationale": "<b>Dịch nghĩa:</b> Bạn có thấy cái mũ xanh <b>trên</b> cái kệ kia không?<br><br><b>Phân tích:</b><br>- <b>on the shelf</b>: trên kệ.<br><br><b>Giải thích:</b> Kệ (shelf) là một bề mặt để đồ vật lên trên -> Dùng 'on'." },
+                        { "text": "in", "isCorrect": false, "rationale": "<b>Tại sao SAI:</b> Dùng 'in' nếu là tủ có cửa đóng kín hoặc hộc tủ." },
+                        { "text": "at", "isCorrect": false, "rationale": "<b>Tại sao SAI:</b> Sai giới từ." }
+                    ]
+                },
+                {
+                    "questionNumber": 24,
+                    "question": "Ex 5 - Q4: Mary lives __________________ Ho Chi Minh City.",
+                    "answerOptions": [
+                        { "text": "in", "isCorrect": true, "rationale": "<b>Dịch nghĩa:</b> Mary sống <b>ở</b> TP. Hồ Chí Minh.<br><br><b>Phân tích:</b><br>- <b>in + Thành phố lớn/Đất nước</b>.<br><br><b>Giải thích:</b> TP.HCM là một thành phố lớn, dùng giới từ 'in'." },
+                        { "text": "at", "isCorrect": false, "rationale": "<b>Tại sao SAI:</b> 'At' dùng cho địa chỉ nhà cụ thể (có số nhà)." },
+                        { "text": "on", "isCorrect": false, "rationale": "<b>Tại sao SAI:</b> 'On' dùng cho tên đường (không có số nhà)." }
+                    ]
+                },
+                {
+                    "questionNumber": 25,
+                    "question": "Ex 5 - Q5: I often surf the Internet when I’m __________________ the bus.",
+                    "answerOptions": [
+                        { "text": "on", "isCorrect": true, "rationale": "<b>Dịch nghĩa:</b> Tôi thường lướt web khi ở <b>trên</b> xe buýt.<br><br><b>Phân tích:</b><br>- <b>on the bus/train/plane</b>: trên xe buýt/tàu/máy bay.<br><br><b>Giải thích:</b> Với các phương tiện công cộng lớn, có sàn để đi lại, ta dùng 'on'." },
+                        { "text": "in", "isCorrect": false, "rationale": "<b>Tại sao SAI:</b> 'In' dùng cho phương tiện cá nhân nhỏ, phải cúi người khi vào như 'in the car', 'in a taxi'." },
+                        { "text": "at", "isCorrect": false, "rationale": "<b>Tại sao SAI:</b> Sai giới từ." }
+                    ]
+                },
+                {
+                    "questionNumber": 26,
+                    "question": "Ex 5 - Q6: My family were __________________ Canada last summer.",
+                    "answerOptions": [
+                        { "text": "in", "isCorrect": true, "rationale": "<b>Dịch nghĩa:</b> Gia đình tôi đã ở Canada mùa hè năm ngoái.<br><br><b>Phân tích:</b><br>- <b>in + Đất nước</b>.<br><br><b>Giải thích:</b> Canada là quốc gia -> Dùng 'in'." },
+                        { "text": "at", "isCorrect": false, "rationale": "<b>Tại sao SAI:</b> Sai." },
+                        { "text": "on", "isCorrect": false, "rationale": "<b>Tại sao SAI:</b> Sai." }
+                    ]
+                },
+                {
+                    "questionNumber": 27,
+                    "question": "Ex 5 - Q7: Turn right and the supermarket is __________________ the left.",
+                    "answerOptions": [
+                        { "text": "on", "isCorrect": true, "rationale": "<b>Dịch nghĩa:</b> Rẽ phải và siêu thị nằm ở <b>bên</b> trái.<br><br><b>Phân tích:</b><br>- <b>on the left/right</b>: ở bên trái/phải.<br><br><b>Giải thích:</b> Cụm từ chỉ phương hướng cố định." },
+                        { "text": "at", "isCorrect": false, "rationale": "<b>Tại sao SAI:</b> Sai." },
+                        { "text": "in", "isCorrect": false, "rationale": "<b>Tại sao SAI:</b> Sai." }
+                    ]
+                },
+                {
+                    "questionNumber": 28,
+                    "question": "Ex 5 - Q8: All the stories __________________ the book are very interesting.",
+                    "answerOptions": [
+                        { "text": "in", "isCorrect": true, "rationale": "<b>Dịch nghĩa:</b> Tất cả những câu chuyện <b>trong</b> cuốn sách đều rất thú vị.<br><br><b>Phân tích:</b><br>- <b>in the book</b>: trong sách (chỉ nội dung bên trong).<br><br><b>Giải thích:</b> Câu chuyện nằm chứa đựng bên trong cuốn sách." },
+                        { "text": "on", "isCorrect": false, "rationale": "<b>Tại sao SAI:</b> Dùng 'on the book' nếu nói về vật gì đặt trên bìa sách (ví dụ: bụi, cái bút)." },
+                        { "text": "at", "isCorrect": false, "rationale": "<b>Tại sao SAI:</b> Sai." }
+                    ]
+                },
+                {
+                    "questionNumber": 29,
+                    "question": "Ex 5 - Q9: She was __________________ the airport one hour ago.",
+                    "answerOptions": [
+                        { "text": "at", "isCorrect": true, "rationale": "<b>Dịch nghĩa:</b> Cô ấy đã ở sân bay một giờ trước.<br><br><b>Phân tích:</b><br>- <b>at the airport</b>: tại sân bay.<br><br><b>Giải thích:</b> Sân bay là một điểm trung chuyển/địa điểm cụ thể, dùng 'at'." },
+                        { "text": "in", "isCorrect": false, "rationale": "<b>Tại sao SAI:</b> Ít dùng, trừ khi muốn nhấn mạnh đang ở bên trong tòa nhà ga (inside the terminal)." },
+                        { "text": "on", "isCorrect": false, "rationale": "<b>Tại sao SAI:</b> Sai." }
+                    ]
+                },
+                {
+                    "questionNumber": 30,
+                    "question": "Ex 5 - Q10: He works __________________ 58 Hai Ba Trung street.",
+                    "answerOptions": [
+                        { "text": "at", "isCorrect": true, "rationale": "<b>Dịch nghĩa:</b> Anh ấy làm việc <b>tại</b> số 58 đường Hai Bà Trưng.<br><br><b>Phân tích:</b><br>- <b>at + Số nhà + Tên đường</b>.<br><br><b>Giải thích:</b> Vì có số nhà cụ thể (58) nên dùng 'at'." },
+                        { "text": "on", "isCorrect": false, "rationale": "<b>Tại sao SAI:</b> Dùng 'on + Tên đường' khi KHÔNG có số nhà (Ex: on Hai Ba Trung street)." },
+                        { "text": "in", "isCorrect": false, "rationale": "<b>Tại sao SAI:</b> Sai." }
+                    ]
+                }
+            ]
+        };
+
+        // --- GAME STATE ---
+        let currentScore = 0;
+        const totalQuestions = quizData.questions.length;
+        const soundCorrect = document.getElementById('sound-correct');
+        const soundWrong = document.getElementById('sound-wrong');
+        const soundFinish = document.getElementById('sound-finish');
+
+        // --- RENDER LOGIC ---
+        function renderQuiz() {
+            const container = document.getElementById('quiz-container');
+            
+            quizData.questions.forEach((q, index) => {
+                const card = document.createElement('div');
+                card.className = "bg-white rounded-2xl p-6 md:p-8 card-shadow border-2 border-transparent hover:border-purple-100 transition-all relative overflow-hidden";
+                card.id = `card-${index}`;
+
+                // Question Header
+                const header = document.createElement('div');
+                header.className = "flex items-start gap-4 mb-6";
+                
+                const qNum = document.createElement('div');
+                qNum.className = "flex-shrink-0 w-10 h-10 md:w-12 md:h-12 bg-[#8854C0] text-white rounded-full flex items-center justify-center font-bold text-lg md:text-xl shadow-md";
+                qNum.innerText = q.questionNumber;
+
+                const qText = document.createElement('h3');
+                qText.className = "text-lg md:text-2xl font-bold text-gray-800 leading-snug pt-1";
+                qText.innerHTML = q.question; // Allow HTML just in case
+
+                header.appendChild(qNum);
+                header.appendChild(qText);
+                card.appendChild(header);
+
+                // Answer Options Container
+                const optionsGrid = document.createElement('div');
+                optionsGrid.className = "grid grid-cols-1 md:grid-cols-2 gap-4 mb-6";
+
+                q.answerOptions.forEach((opt, optIndex) => {
+                    const btn = document.createElement('button');
+                    btn.className = `choice-btn btn-3d w-full py-4 px-6 rounded-xl text-left font-bold text-lg text-gray-700 bg-white transition-all`;
+                    btn.innerText = opt.text;
+                    btn.setAttribute('data-q-index', index);
+                    btn.setAttribute('data-is-correct', opt.isCorrect);
+                    
+                    // Click Event
+                    btn.onclick = (e) => handleAnswerClick(e, btn, index, opt.isCorrect, q);
+                    
+                    optionsGrid.appendChild(btn);
+                });
+
+                card.appendChild(optionsGrid);
+
+                // Explanation Box (Hidden initially)
+                const explanation = document.createElement('div');
+                explanation.id = `explanation-${index}`;
+                explanation.className = "explanation-box bg-purple-50 p-5 rounded-r-xl text-gray-700 text-base md:text-lg leading-relaxed shadow-inner mt-4";
+                
+                // Content will be injected when answered to keep DOM light initially or standard text
+                // Actually we can inject it now but hide it.
+                // Find the correct rationale
+                const correctOpt = q.answerOptions.find(o => o.isCorrect);
+                let explanationHTML = `<div class="font-bold text-[#8854C0] mb-2 uppercase text-sm tracking-widest">📝 Giải thích chi tiết của Cô Mai An:</div>`;
+                
+                // Combine correct rationale and basic info
+                explanationHTML += correctOpt.rationale;
+                
+                explanation.innerHTML = explanationHTML;
+                card.appendChild(explanation);
+
+                container.appendChild(card);
+            });
+
+            // Update Score Display
+            updateScoreBoard();
+        }
+
+        // --- INTERACTION HANDLERS ---
+        function handleAnswerClick(e, btn, index, isCorrect, questionData) {
+            // Prevent multiple clicks on the same question
+            const card = document.getElementById(`card-${index}`);
+            const buttons = card.querySelectorAll('button');
+            
+            // If already answered, do nothing
+            if (card.getAttribute('data-answered') === 'true') return;
+
+            // Mark as answered
+            card.setAttribute('data-answered', 'true');
+            buttons.forEach(b => b.disabled = true); // Disable all buttons
+
+            // Reveal correctness
+            if (isCorrect) {
+                btn.classList.add('correct-bg');
+                btn.innerHTML += ' <span class="float-right">✨</span>';
+                playSound(soundCorrect);
+                fireConfetti(btn);
+                currentScore++;
+            } else {
+                btn.classList.add('wrong-bg', 'shake-animation');
+                btn.innerHTML += ' <span class="float-right">😢</span>';
+                playSound(soundWrong);
+                
+                // Highlight the correct answer
+                buttons.forEach(b => {
+                    if (b.getAttribute('data-is-correct') === 'true') {
+                        b.classList.add('correct-bg', 'opacity-75'); // Dim correct one slightly to focus on user error? No, highlight it properly.
+                        b.classList.remove('opacity-75');
+                        b.style.border = "2px solid #00D26A";
+                    }
+                });
+            }
+
+            updateScoreBoard();
+
+            // Show Explanation with animation
+            const expBox = document.getElementById(`explanation-${index}`);
+            expBox.style.display = 'block';
+            expBox.classList.add('pop-in');
+        }
+
+        function playSound(audio) {
+            audio.currentTime = 0;
+            audio.play().catch(e => console.log("Audio play failed interaction required"));
+        }
+
+        function fireConfetti(element) {
+            const rect = element.getBoundingClientRect();
+            // Normalize coordinates to 0-1 range for confetti
+            const x = (rect.left + rect.width / 2) / window.innerWidth;
+            const y = (rect.top + rect.height / 2) / window.innerHeight;
+
+            confetti({
+                particleCount: 60,
+                spread: 70,
+                origin: { x: x, y: y },
+                colors: ['#00C9A7', '#8854C0', '#FFD700'],
+                disableForReducedMotion: true
+            });
+        }
+
+        function updateScoreBoard() {
+            document.getElementById('live-score').innerText = `${currentScore}/${totalQuestions}`;
+        }
+
+        function finishQuiz() {
+            const modal = document.getElementById('result-modal');
+            const scoreText = document.getElementById('final-score');
+            const message = document.getElementById('final-message');
+            
+            scoreText.innerText = `${currentScore}/${totalQuestions}`;
+            
+            const percentage = (currentScore / totalQuestions) * 100;
+            
+            if (percentage === 100) {
+                message.innerText = "Xuất sắc! Bạn là thiên tài giới từ! 🌟";
+                playSound(soundFinish);
+                confetti({ particleCount: 200, spread: 100, origin: { y: 0.6 } });
+            } else if (percentage >= 80) {
+                message.innerText = "Giỏi lắm! Chỉ sai một xíu thôi! 💪";
+                playSound(soundFinish);
+            } else if (percentage >= 50) {
+                message.innerText = "Cố gắng thêm nhé! Hãy xem lại phần giải thích! 📚";
+            } else {
+                message.innerText = "Đừng buồn! Làm lại để nhớ lâu hơn nhé! 🔥";
+            }
+
+            modal.classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('result-modal').classList.add('hidden');
+        }
+
+        // Initialize
+        window.onload = renderQuiz;
+
+    </script>
+</body>
+</html>

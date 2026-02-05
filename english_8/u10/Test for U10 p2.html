@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unit 10: Error Correction & Word Forms - Ms Mai An ULIS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <style>
+        :root {
+            --primary-purple: #8854C0;
+            --primary-teal: #00C9A7;
+            --correct-green: #00D26A;
+            --wrong-red: #FF4757;
+            --bg-pattern: #f0f3f9;
+            --card-bg: #ffffff;
+            --text-dark: #2c3e50;
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: var(--bg-pattern);
+            background-image: radial-gradient(var(--primary-purple) 0.5px, transparent 0.5px), radial-gradient(var(--primary-purple) 0.5px, #f0f3f9 0.5px);
+            background-size: 20px 20px;
+            background-position: 0 0, 10px 10px;
+            margin: 0;
+            padding: 0;
+            color: var(--text-dark);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* --- Header --- */
+        header {
+            background: white;
+            width: 100%;
+            padding: 15px 0;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-bottom: 5px solid var(--primary-teal);
+        }
+
+        .teacher-brand {
+            font-family: 'Quicksand', sans-serif;
+            font-size: 1.2rem;
+            color: var(--primary-purple);
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .exam-title {
+            font-size: 1.5rem;
+            color: var(--text-dark);
+            margin: 5px 0 0 0;
+            font-weight: 900;
+        }
+
+        /* --- Main Container --- */
+        .container {
+            width: 90%;
+            max-width: 800px;
+            margin: 30px auto 100px auto;
+        }
+
+        /* --- Question Card --- */
+        .question-card {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 40px;
+            box-shadow: 0 8px 0 rgba(0,0,0,0.1), 0 0 20px rgba(0,0,0,0.05);
+            position: relative;
+            transition: transform 0.3s ease;
+            border: 2px solid #eee;
+        }
+
+        .question-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .q-tag {
+            background: var(--primary-purple);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            box-shadow: 0 3px 0 rgba(0,0,0,0.2);
+        }
+
+        .q-part {
+            background: var(--primary-teal);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: 700;
+        }
+
+        .question-text {
+            font-size: 1.3rem;
+            font-weight: 700;
+            line-height: 1.6;
+            margin-bottom: 25px;
+            color: #333;
+        }
+
+        /* Highlight keywords inside question */
+        .question-text span.highlight-q {
+            color: var(--primary-purple);
+            border-bottom: 2px dashed var(--primary-purple);
+        }
+
+        /* --- Options Grid --- */
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        @media (max-width: 600px) {
+            .options-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .option-btn {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 15px;
+            padding: 15px 20px;
+            font-family: 'Nunito', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: left;
+            position: relative;
+            box-shadow: 0 4px 0 #e0e0e0;
+            display: flex;
+            align-items: center;
+        }
+
+        .option-btn:active {
+            transform: translateY(4px);
+            box-shadow: none;
+        }
+
+        .option-btn:hover:not(.disabled) {
+            border-color: var(--primary-purple);
+            background-color: #f8f0ff;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 0 #dcdcdc;
+        }
+
+        .option-circle {
+            width: 30px;
+            height: 30px;
+            background: #eee;
+            color: #777;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 12px;
+            font-weight: 800;
+            font-size: 0.9rem;
+            flex-shrink: 0;
+        }
+
+        /* States */
+        .option-btn.correct {
+            background-color: var(--correct-green);
+            color: white;
+            border-color: #00a855;
+            box-shadow: 0 4px 0 #00a855;
+        }
+        .option-btn.correct .option-circle {
+            background: white;
+            color: var(--correct-green);
+        }
+
+        .option-btn.incorrect {
+            background-color: var(--wrong-red);
+            color: white;
+            border-color: #d63031;
+            box-shadow: 0 4px 0 #d63031;
+            animation: shake 0.5s;
+        }
+        .option-btn.incorrect .option-circle {
+            background: white;
+            color: var(--wrong-red);
+        }
+
+        .option-btn.disabled {
+            pointer-events: none;
+            opacity: 0.7;
+        }
+
+        /* --- Explanation Box --- */
+        .explanation-box {
+            display: none; /* Hidden by default */
+            margin-top: 25px;
+            background: #f0fcfeb0;
+            border: 2px solid var(--primary-teal);
+            border-radius: 15px;
+            padding: 20px;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        .exp-header {
+            display: flex;
+            align-items: center;
+            color: var(--primary-teal);
+            font-weight: 800;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+
+        .exp-header i {
+            margin-right: 10px;
+            font-size: 1.3rem;
+        }
+
+        .exp-content {
+            font-size: 1rem;
+            line-height: 1.6;
+            color: #444;
+            white-space: pre-wrap; /* Preserve formatting from JSON */
+        }
+        
+        .exp-content strong {
+            color: var(--primary-purple);
+        }
+
+        /* --- Footer / Controls --- */
+        .footer-controls {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: white;
+            padding: 15px;
+            box-shadow: 0 -5px 20px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: center;
+            z-index: 99;
+        }
+
+        .submit-btn {
+            background: var(--primary-purple);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.2rem;
+            border-radius: 30px;
+            font-weight: 800;
+            cursor: pointer;
+            box-shadow: 0 5px 0 #6c429c;
+            transition: all 0.2s;
+            font-family: 'Quicksand', sans-serif;
+            text-transform: uppercase;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 0 #6c429c;
+        }
+        
+        .submit-btn:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 #6c429c;
+        }
+
+        /* --- Animations --- */
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            50% { transform: translateX(10px); }
+            75% { transform: translateX(-10px); }
+            100% { transform: translateX(0); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* --- Result Modal --- */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background: white;
+            padding: 40px;
+            border-radius: 30px;
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            border: 5px solid var(--primary-purple);
+            animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes popIn {
+            from { transform: scale(0.5); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .score-display {
+            font-size: 4rem;
+            font-weight: 900;
+            color: var(--primary-purple);
+            margin: 20px 0;
+            text-shadow: 3px 3px 0px #eee;
+        }
+
+        .feedback-msg {
+            font-size: 1.4rem;
+            color: #555;
+            margin-bottom: 30px;
+        }
+
+        .reset-btn {
+            background: var(--primary-teal);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 1.1rem;
+            border-radius: 25px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 4px 0 #009e82;
+        }
+        
+        .reset-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 0 #009e82;
+        }
+
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="teacher-brand"><i class="fas fa-graduation-cap"></i> Ms Mai An ULIS</div>
+        <div class="exam-title">UNIT 10: ERROR CORRECTION & WORD FORMS</div>
+    </header>
+
+    <div class="container" id="quiz-container">
+        <!-- Questions will be injected here via JavaScript -->
+    </div>
+
+    <div class="footer-controls">
+        <button class="submit-btn" onclick="finishExam()">Nộp Bài & Xem Điểm</button>
+    </div>
+
+    <!-- Result Modal -->
+    <div class="modal-overlay" id="resultModal">
+        <div class="modal-content">
+            <h2 style="color: var(--primary-teal); margin:0;">KẾT QUẢ BÀI THI</h2>
+            <div class="score-display" id="finalScore">0/30</div>
+            <p class="feedback-msg" id="feedbackMsg">Bạn làm rất tốt!</p>
+            <button class="reset-btn" onclick="location.reload()"><i class="fas fa-redo"></i> Làm lại bài</button>
+            <button class="reset-btn" style="background: #ccc; box-shadow: 0 4px 0 #999; margin-left:10px" onclick="closeModal()">Xem lại bài</button>
+        </div>
+    </div>
+
+    <!-- Audio Effects (Base64 placeholders to ensure single file function) -->
+    <!-- Sound Effects using public URLs for reliability -->
+    <audio id="sound-correct" src="https://assets.mixkit.co/sfx/preview/mixkit-correct-answer-tone-2870.mp3"></audio>
+    <audio id="sound-wrong" src="https://assets.mixkit.co/sfx/preview/mixkit-wrong-answer-fail-notification-946.mp3"></audio>
+    <audio id="sound-finish" src="https://assets.mixkit.co/sfx/preview/mixkit-winning-chimes-2015.mp3"></audio>
+
+<script>
+    // --- DATA SOURCE ---
+    const quizData = [
+        {
+            "id": 1,
+            "type": "Error Correction",
+            "question": "Choose the mistake: A friend of [my] is very good at [making] [three-dimensional] [images].",
+            "options": ["my", "is", "making", "images"],
+            "correctIndex": 0,
+            "explanation": "<b>1. Phân tích lỗi sai:</b>\n- A. my (tính từ sở hữu): của tôi -> <b>Sai</b>, vì 'my' luôn phải đi kèm danh từ ngay phía sau (ví dụ: my friend).\n- B. making (V-ing): làm -> Đúng (sau giới từ 'at').\n- C. three-dimensional (adj): ba chiều -> Đúng.\n- D. images (noun): hình ảnh -> Đúng.\n\n<b>2. Dịch nghĩa:</b> \"Một người bạn của tôi rất giỏi trong việc tạo ra các hình ảnh ba chiều.\"\n\n<b>3. Tại sao chọn A?</b>\n- Cấu trúc sở hữu kép (Double Possessive): A friend of + Đại từ sở hữu (mine/yours/hers...) hoặc Sở hữu cách (Tom's).\n- <b>Sửa:</b> my -> mine."
+        },
+        {
+            "id": 2,
+            "type": "Error Correction",
+            "question": "Choose the mistake: The computer room, [where] you [take] your online test, is [in] the end of this [hall].",
+            "options": ["in", "where", "take", "hall"],
+            "correctIndex": 0,
+            "explanation": "<b>1. Phân tích lỗi sai:</b>\n- A. where (trạng từ quan hệ): nơi mà -> Đúng.\n- B. take (verb): làm (bài kiểm tra) -> Đúng.\n- C. in (prep): trong -> <b>Sai</b>.\n- D. hall (noun): hành lang -> Đúng.\n\n<b>2. Dịch nghĩa:</b> \"Phòng máy tính, nơi bạn làm bài kiểm tra trực tuyến, nằm ở cuối hành lang này.\"\n\n<b>3. Tại sao chọn C?</b>\n- Cụm từ cố định (Idiom): 'At the end of' (ở điểm cuối/tận cùng của cái gì), không dùng 'in the end of'. ('In the end' đứng một mình nghĩa là 'cuối cùng thì/kết cục').\n- <b>Sửa:</b> in -> at."
+        },
+        {
+            "id": 3,
+            "type": "Error Correction",
+            "question": "Choose the mistake: Electronic mail is [the] [popular] method of communication these days because it's fast, [efficient], and [expensive].",
+            "options": ["expensive", "the", "popular", "efficient"],
+            "correctIndex": 0,
+            "explanation": "<b>1. Phân tích lỗi sai:</b>\n- A. the (mạo từ) -> Đúng.\n- B. popular (adj): phổ biến -> Đúng.\n- C. efficient (adj): hiệu quả -> Đúng.\n- D. expensive (adj): đắt đỏ -> <b>Sai về logic nghĩa</b>.\n\n<b>2. Dịch nghĩa:</b> \"Thư điện tử là phương thức giao tiếp phổ biến ngày nay vì nó nhanh, hiệu quả và... (đắt tiền??).\"\n\n<b>3. Tại sao chọn D?</b>\n- Email phổ biến vì nó rẻ (cheap/inexpensive). Hơn nữa, các tính từ 'fast', 'efficient' mang nghĩa tích cực, từ nối 'and' yêu cầu từ tiếp theo cũng phải cùng trường nghĩa tích cực/lợi ích.\n- <b>Sửa:</b> expensive -> inexpensive / cheap."
+        },
+        {
+            "id": 4,
+            "type": "Error Correction",
+            "question": "Choose the mistake: Two of [theirs] employees are [presenting] new [functions] of Facebook at the [moment].",
+            "options": ["theirs", "presenting", "functions", "moment"],
+            "correctIndex": 0,
+            "explanation": "<b>1. Phân tích lỗi sai:</b>\n- A. theirs (đại từ sở hữu): cái của họ -> <b>Sai</b>.\n- B. presenting (V-ing): đang thuyết trình -> Đúng.\n- C. functions (noun): tính năng -> Đúng.\n- D. moment (noun): lúc này -> Đúng.\n\n<b>2. Dịch nghĩa:</b> \"Hai trong số các nhân viên của họ đang trình bày các tính năng mới của Facebook vào lúc này.\"\n\n<b>3. Tại sao chọn A?</b>\n- Phía sau là danh từ 'employees'. Trước danh từ phải dùng Tính từ sở hữu (Possessive Adjective).\n- <b>Sửa:</b> theirs -> their."
+        },
+        {
+            "id": 5,
+            "type": "Error Correction",
+            "question": "Choose the mistake: He decided [to not] apply [for] that job [because] he didn't meet all the qualifications.",
+            "options": ["to not", "for", "because", "meet"],
+            "correctIndex": 0,
+            "explanation": "<b>1. Phân tích lỗi sai:</b>\n- A. to not -> <b>Sai trật tự từ</b>.\n- B. for (prep): ứng tuyển cho -> Đúng (apply for).\n- C. because (conj): bởi vì -> Đúng.\n- D. meet (verb): đáp ứng -> Đúng.\n\n<b>2. Dịch nghĩa:</b> \"Anh ấy quyết định không nộp đơn cho công việc đó vì anh ấy không đáp ứng đủ các bằng cấp.\"\n\n<b>3. Tại sao chọn A?</b>\n- Cấu trúc phủ định của To-infinitive là: not + to V.\n- <b>Sửa:</b> to not -> not to."
+        },
+        {
+            "id": 6,
+            "type": "Error Correction",
+            "question": "Choose the mistake: [While] overseas, I use iMessage and FaceTime to keep [on] touch [with] family and [friends].",
+            "options": ["on", "While", "with", "friends"],
+            "correctIndex": 0,
+            "explanation": "<b>1. Phân tích lỗi sai:</b>\n- A. While (conj): trong khi -> Đúng.\n- B. on (prep) -> <b>Sai</b>.\n- C. with (prep) -> Đúng.\n- D. friends (noun) -> Đúng.\n\n<b>2. Dịch nghĩa:</b> \"Trong khi ở nước ngoài, tôi dùng iMessage và FaceTime để giữ liên lạc với gia đình và bạn bè.\"\n\n<b>3. Tại sao chọn B?</b>\n- Thành ngữ (Idiom): 'keep in touch with' (giữ liên lạc với), không dùng 'on'.\n- <b>Sửa:</b> on -> in."
+        },
+        {
+            "id": 7,
+            "type": "Error Correction",
+            "question": "Choose the mistake: [Most] teenagers say they'd rather [to talk] to their friends [online] than see them [in person].",
+            "options": ["to talk", "Most", "online", "in person"],
+            "correctIndex": 0,
+            "explanation": "<b>1. Phân tích lỗi sai:</b>\n- A. Most (adj): Hầu hết -> Đúng.\n- B. to talk -> <b>Sai</b>.\n- C. online (adv/adj) -> Đúng.\n- D. in person (idiom): trực tiếp -> Đúng.\n\n<b>2. Dịch nghĩa:</b> \"Hầu hết thanh thiếu niên nói rằng họ thà nói chuyện với bạn bè trực tuyến hơn là gặp mặt trực tiếp.\"\n\n<b>3. Tại sao chọn B?</b>\n- Cấu trúc: Would rather + V_bare (nguyên mẫu không to) ... than ...\n- <b>Sửa:</b> to talk -> talk."
+        },
+        {
+            "id": 8,
+            "type": "Error Correction",
+            "question": "Choose the mistake: [Because] social media networks, we are now able to [interact] [with] thousands of people all [over] the world.",
+            "options": ["Because", "interact", "with", "over"],
+            "correctIndex": 0,
+            "explanation": "<b>1. Phân tích lỗi sai:</b>\n- A. Because (conj) -> <b>Sai</b>.\n- B. interact (verb): tương tác -> Đúng.\n- C. with (prep) -> Đúng.\n- D. over (prep) -> Đúng.\n\n<b>2. Dịch nghĩa:</b> \"Nhờ có các mạng xã hội, chúng ta giờ đây có thể tương tác với hàng ngàn người trên khắp thế giới.\"\n\n<b>3. Tại sao chọn A?</b>\n- 'social media networks' là một cụm danh từ (Noun Phrase). 'Because' phải đi với một mệnh đề (S + V). Đi với cụm danh từ phải dùng 'Because of' hoặc 'Due to'.\n- <b>Sửa:</b> Because -> Because of."
+        },
+        {
+            "id": 9,
+            "type": "Error Correction",
+            "question": "Choose the mistake: Emojis [and] abbreviations are [common] used [in] text messages [among] teenagers.",
+            "options": ["common", "and", "in", "among"],
+            "correctIndex": 0,
+            "explanation": "<b>1. Phân tích lỗi sai:</b>\n- A. and (conj) -> Đúng.\n- B. common (adj): phổ biến -> <b>Sai từ loại</b>.\n- C. in (prep) -> Đúng.\n- D. among (prep): giữa/trong số -> Đúng.\n\n<b>2. Dịch nghĩa:</b> \"Emoji và từ viết tắt được sử dụng phổ biến trong tin nhắn văn bản của thanh thiếu niên.\"\n\n<b>3. Tại sao chọn B?</b>\n- 'Used' ở đây là động từ (dạng bị động). Để bổ nghĩa cho động từ/tính từ, ta cần một Trạng từ (Adverb).\n- <b>Sửa:</b> common -> commonly."
+        },
+        {
+            "id": 10,
+            "type": "Error Correction",
+            "question": "Choose the mistake: We [planned] to stay [in the bay] [in] a few days, and then [sail] for New York.",
+            "options": ["in", "planned", "in the bay", "sail"],
+            "correctIndex": 0,
+            "explanation": "<b>1. Phân tích lỗi sai:</b>\n- A. planned (verb) -> Đúng.\n- B. in the bay (prep phrase) -> Đúng (ở trong vịnh).\n- C. in (prep) -> <b>Sai</b>.\n- D. sail (verb) -> Đúng (planned to stay... and then [to] sail).\n\n<b>2. Dịch nghĩa:</b> \"Chúng tôi đã lên kế hoạch ở lại trong vịnh vài ngày, và sau đó đi thuyền đến New York.\"\n\n<b>3. Tại sao chọn C?</b>\n- 'In a few days' thường dùng cho tương lai (trong vài ngày tới sẽ xảy ra việc gì). Để chỉ độ dài thời gian lưu trú (duration), ta dùng giới từ 'for'.\n- <b>Sửa:</b> in -> for (for a few days)."
+        },
+        {
+            "id": 11,
+            "type": "Verb Form",
+            "question": "Thirty years ago, very few people ______ in the possibility of telepathy.",
+            "options": ["believed", "believe", "have believed", "were believing"],
+            "correctIndex": 0,
+            "explanation": "<b>1. Phân tích thì:</b>\n- Dấu hiệu: 'Thirty years ago' (30 năm trước) -> Thời điểm xác định trong quá khứ -> Quá khứ đơn (Past Simple).\n\n<b>2. Dịch nghĩa:</b> \"30 năm trước, rất ít người tin vào khả năng của thần giao cách cảm.\"\n\n<b>3. Tại sao chọn đáp án này?</b>\n- Động từ 'believe' (tin) ở quá khứ đơn là 'believed'."
+        },
+        {
+            "id": 12,
+            "type": "Verb Form",
+            "question": "While I ______ the email, the computer suddenly went off.",
+            "options": ["was writing", "wrote", "am writing", "have written"],
+            "correctIndex": 0,
+            "explanation": "<b>1. Phân tích thì:</b>\n- Cấu trúc: While + Past Continuous (hành động đang xảy ra), Past Simple (hành động xen vào).\n- Hành động xen vào: 'went off' (tắt ngấm - Quá khứ đơn).\n\n<b>2. Dịch nghĩa:</b> \"Trong khi tôi đang viết email, máy tính đột nhiên tắt ngấm.\"\n\n<b>3. Tại sao chọn đáp án này?</b>\n- Hành động 'viết' đang diễn ra trong quá khứ -> was writing."
+        },
+        {
+            "id": 13,
+            "type": "Verb Form",
+            "question": "I ______ your phone because I was taking a shower.",
+            "options": ["didn't answer", "don't answer", "haven't answered", "not answer"],
+            "correctIndex": 0,
+            "explanation": "<b>1. Phân tích thì:</b>\n- Vế sau: 'because I was taking a shower' (vì tôi đang tắm - Quá khứ tiếp diễn).\n- Vế trước: Kết quả trong quá khứ -> Quá khứ đơn (Past Simple).\n\n<b>2. Dịch nghĩa:</b> \"Tôi đã không nghe điện thoại của bạn vì lúc đó tôi đang tắm.\"\n\n<b>3. Tại sao chọn đáp án này?</b>\n- Phủ định quá khứ đơn: didn't + V_inf -> didn't answer."
+        },
+        {
+            "id": 14,
+            "type": "Verb Form",
+            "question": "You can visit me right now. I ______ anything important.",
+            "options": ["am not doing", "don't do", "didn't do", "haven't done"],
+            "correctIndex": 0,
+            "explanation": "<b>1. Phân tích thì:</b>\n- Dấu hiệu: 'right now' (ngay bây giờ) -> Hiện tại tiếp diễn (Present Continuous).\n\n<b>2. Dịch nghĩa:</b> \"Bạn có thể đến thăm tôi ngay bây giờ. Tôi đang không làm gì quan trọng cả.\"\n\n<b>3. Tại sao chọn đáp án này?</b>\n- Cấu trúc: am/is/are + not + V-ing -> am not doing."
+        },
+        {
+            "id": 15,
+            "type": "Verb Form",
+            "question": "The conference ______ at 8 a.m. Don't be late!",
+            "options": ["begins", "is beginning", "began", "has begun"],
+            "correctIndex": 0,
+            "explanation": "<b>1. Phân tích thì:</b>\n- Ngữ cảnh: Lịch trình, thời gian biểu cố định (timetable/schedule) -> Hiện tại đơn (Present Simple) mang nghĩa tương lai.\n\n<b>2. Dịch nghĩa:</b> \"Hội nghị bắt đầu lúc 8 giờ sáng. Đừng đến muộn!\"\n\n<b>3. Tại sao chọn đáp án này?</b>\n- Conference (số ít) -> begins."
+        },
+        {
+            "id": 16,
+            "type": "Verb Form",
+            "question": "In the future people ______ brain-to-brain using telepathy.",
+            "options": ["will communicate", "communicate", "communicated", "are communicating"],
+            "correctIndex": 0,
+            "explanation": "<b>1. Phân tích thì:</b>\n- Dấu hiệu: 'In the future' (Trong tương lai) -> Tương lai đơn (Future Simple).\n\n<b>2. Dịch nghĩa:</b> \"Trong tương lai, con người sẽ giao tiếp từ não đến não bằng thần giao cách cảm.\"\n\n<b>3. Tại sao chọn đáp án này?</b>\n- Cấu trúc: will + V_inf -> will communicate."
+        },
+        {
+            "id": 17,
+            "type": "Verb Form",
+            "question": "Jimmy and I ______ games on my smartphone when my friend sent me a message.",
+            "options": ["were playing", "played", "are playing", "was playing"],
+            "correctIndex": 0,
+            "explanation": "<b>1. Phân tích thì:</b>\n- Cấu trúc: When + Past Simple (hành động cắt ngang - 'sent'), Past Continuous (hành động đang xảy ra).\n\n<b>2. Dịch nghĩa:</b> \"Jimmy và tôi đang chơi game trên điện thoại thì bạn tôi gửi tin nhắn.\"\n\n<b>3. Tại sao chọn đáp án này?</b>\n- Hành động chơi đang diễn ra -> were playing (Jimmy and I là số nhiều)."
+        },
+        {
+            "id": 18,
+            "type": "Verb Form",
+            "question": "At present, people ______ more time \"connecting\" online and less time engaging in face-to-face.",
+            "options": ["are spending", "spend", "spent", "have spent"],
+            "correctIndex": 0,
+            "explanation": "<b>1. Phân tích thì:</b>\n- Dấu hiệu: 'At present' (Hiện tại/Lúc này) -> Hiện tại tiếp diễn (Present Continuous) để chỉ xu hướng đang diễn ra.\n\n<b>2. Dịch nghĩa:</b> \"Hiện tại, mọi người đang dành nhiều thời gian 'kết nối' trực tuyến hơn và ít thời gian tham gia gặp mặt trực tiếp hơn.\"\n\n<b>3. Tại sao chọn đáp án này?</b>\n- Cấu trúc: are + V-ing -> are spending."
+        },
+        {
+            "id": 19,
+            "type": "Verb Form",
+            "question": "We intend ______ to Australia next year to visit our daughter.",
+            "options": ["to go", "going", "go", "went"],
+            "correctIndex": 0,
+            "explanation": "<b>1. Phân tích cấu trúc:</b>\n- Intend + to V: Có ý định làm gì.\n\n<b>2. Dịch nghĩa:</b> \"Chúng tôi dự định đi Úc vào năm tới để thăm con gái.\"\n\n<b>3. Tại sao chọn đáp án này?</b>\n- Theo sau động từ 'intend' là to-infinitive -> to go."
+        },
+        {
+            "id": 20,
+            "type": "Verb Form",
+            "question": "There's no point ______ for her to change her mind.",
+            "options": ["waiting", "to wait", "wait", "waited"],
+            "correctIndex": 0,
+            "explanation": "<b>1. Phân tích cấu trúc:</b>\n- There's no point (in) + V-ing: Chẳng có ích gì khi làm gì.\n\n<b>2. Dịch nghĩa:</b> \"Chẳng có ích gì khi chờ đợi cô ấy thay đổi quyết định.\"\n\n<b>3. Tại sao chọn đáp án này?</b>\n- Cấu trúc cố định yêu cầu Gerund (V-ing) -> waiting."
+        },
+        {
+            "id": 21,
+            "type": "Word Form",
+            "question": "Twitter or Facebook is like a small ______ where people can voice their opinion.",
+            "options": ["society", "social", "socialize", "socialism"],
+            "correctIndex": 0,
+            "explanation": "<b>1. Phân tích từ vựng:</b>\n- A. society (noun): xã hội.\n- B. social (adj): thuộc xã hội.\n- C. socialize (verb): xã hội hóa/giao lưu.\n- D. socialism (noun): chủ nghĩa xã hội.\n\n<b>2. Dịch nghĩa:</b> \"Twitter hay Facebook giống như một xã hội thu nhỏ nơi mọi người có thể lên tiếng.\"\n\n<b>3. Tại sao chọn A?</b>\n- Vị trí: Sau 'a small...' -> Cần Danh từ (Noun) hợp nghĩa 'một xã hội'."
+        },
+        {
+            "id": 22,
+            "type": "Word Form",
+            "question": "Don't pay any ______ to what they say.",
+            "options": ["attention", "attend", "attendance", "attentive"],
+            "correctIndex": 0,
+            "explanation": "<b>1. Phân tích từ vựng:</b>\n- A. attention (noun): sự chú ý.\n- B. attend (verb): tham dự/chú ý.\n- C. attendance (noun): sự có mặt/điểm danh.\n- D. attentive (adj): chăm chú.\n\n<b>2. Dịch nghĩa:</b> \"Đừng chú ý đến những gì họ nói.\"\n\n<b>3. Tại sao chọn A?</b>\n- Cụm từ cố định: Pay attention to (Chú ý đến)."
+        },
+        {
+            "id": 23,
+            "type": "Word Form",
+            "question": "Being able to communicate ______ is the most important of all life skills.",
+            "options": ["effectively", "effective", "effect", "effectiveness"],
+            "correctIndex": 0,
+            "explanation": "<b>1. Phân tích từ vựng:</b>\n- A. effectively (adv): một cách hiệu quả.\n- B. effective (adj): hiệu quả.\n- C. effect (noun): tác động/hiệu quả.\n- D. effectiveness (noun): sự hiệu quả.\n\n<b>2. Dịch nghĩa:</b> \"Có khả năng giao tiếp hiệu quả là kỹ năng sống quan trọng nhất.\"\n\n<b>3. Tại sao chọn A?</b>\n- Vị trí: Bổ nghĩa cho động từ 'communicate' -> Cần Trạng từ (Adverb)."
+        },
+        {
+            "id": 24,
+            "type": "Word Form",
+            "question": "All that ______ can be conveyed in a simple diagram.",
+            "options": ["information", "inform", "informative", "informant"],
+            "correctIndex": 0,
+            "explanation": "<b>1. Phân tích từ vựng:</b>\n- A. information (noun): thông tin.\n- B. inform (verb): thông báo.\n- C. informative (adj): nhiều thông tin.\n- D. informant (noun): người cung cấp tin.\n\n<b>2. Dịch nghĩa:</b> \"Tất cả thông tin đó có thể được truyền tải trong một sơ đồ đơn giản.\"\n\n<b>3. Tại sao chọn A?</b>\n- Vị trí: Chủ ngữ của mệnh đề quan hệ (that information) -> Cần Danh từ (Noun)."
+        },
+        {
+            "id": 25,
+            "type": "Word Form",
+            "question": "______ with others online can be fun, as long as your teen knows how to stay safe.",
+            "options": ["Chatting", "Chat", "Chatter", "Chatty"],
+            "correctIndex": 0,
+            "explanation": "<b>1. Phân tích từ vựng:</b>\n- A. Chatting (Gerund): Việc tán gẫu.\n- B. Chat (Verb): tán gẫu.\n- C. Chatter (Noun): tiếng hót/nói luyên thuyên.\n- D. Chatty (Adj): hay nói.\n\n<b>2. Dịch nghĩa:</b> \"Việc tán gẫu với người khác trực tuyến có thể rất vui, miễn là con bạn biết cách giữ an toàn.\"\n\n<b>3. Tại sao chọn A?</b>\n- Vị trí: Chủ ngữ của câu -> Cần Danh động từ (Gerund/V-ing)."
+        },
+        {
+            "id": 26,
+            "type": "Word Form",
+            "question": "Scientists are working on highly ______ technology to communicate with animals.",
+            "options": ["advanced", "advance", "advancement", "advancing"],
+            "correctIndex": 0,
+            "explanation": "<b>1. Phân tích từ vựng:</b>\n- A. advanced (adj): tiên tiến/cao cấp.\n- B. advance (verb/noun): tiến bộ.\n- C. advancement (noun): sự tiến bộ.\n- D. advancing (V-ing): đang tiến lên.\n\n<b>2. Dịch nghĩa:</b> \"Các nhà khoa học đang nghiên cứu công nghệ tiên tiến cao để giao tiếp với động vật.\"\n\n<b>3. Tại sao chọn A?</b>\n- Vị trí: Sau trạng từ 'highly' và trước danh từ 'technology' -> Cần Tính từ (Adj). 'Advanced' hợp nghĩa hơn 'advancing'."
+        },
+        {
+            "id": 27,
+            "type": "Word Form",
+            "question": "The speaker asked questions to maintain the ______ between him and his audience.",
+            "options": ["interaction", "interact", "interactive", "interactively"],
+            "correctIndex": 0,
+            "explanation": "<b>1. Phân tích từ vựng:</b>\n- A. interaction (noun): sự tương tác.\n- B. interact (verb): tương tác.\n- C. interactive (adj): có tính tương tác.\n- D. interactively (adv): một cách tương tác.\n\n<b>2. Dịch nghĩa:</b> \"Diễn giả đã đặt câu hỏi để duy trì sự tương tác giữa ông ấy và khán giả.\"\n\n<b>3. Tại sao chọn A?</b>\n- Vị trí: Sau mạo từ 'the' -> Cần Danh từ (Noun)."
+        },
+        {
+            "id": 28,
+            "type": "Word Form",
+            "question": "Some animals, such as whales, have developed ______ ability.",
+            "options": ["communicative", "communication", "communicate", "communicator"],
+            "correctIndex": 0,
+            "explanation": "<b>1. Phân tích từ vựng:</b>\n- A. communicative (adj): thuộc về giao tiếp.\n- B. communication (noun): sự giao tiếp.\n- C. communicate (verb): giao tiếp.\n- D. communicator (noun): người giao tiếp.\n\n<b>2. Dịch nghĩa:</b> \"Một số loài động vật, như cá voi, đã phát triển khả năng giao tiếp.\"\n\n<b>3. Tại sao chọn A?</b>\n- Vị trí: Trước danh từ 'ability' -> Cần Tính từ (Adj) để bổ nghĩa."
+        },
+        {
+            "id": 29,
+            "type": "Word Form",
+            "question": "Smiling and frowning are examples of facial ______.",
+            "options": ["expressions", "expression", "expressive", "expressly"],
+            "correctIndex": 0,
+            "explanation": "<b>1. Phân tích từ vựng:</b>\n- A. expressions (noun - plural): các biểu cảm.\n- B. expression (noun - singular): sự biểu cảm.\n- C. expressive (adj): biểu cảm.\n- D. expressly (adv): rõ ràng.\n\n<b>2. Dịch nghĩa:</b> \"Cười và cau mày là những ví dụ của biểu cảm khuôn mặt.\"\n\n<b>3. Tại sao chọn A?</b>\n- Vị trí: Sau tính từ 'facial' -> Cần Danh từ. Có 2 ví dụ (smiling và frowning) nên dùng số nhiều Expressions."
+        },
+        {
+            "id": 30,
+            "type": "Word Form",
+            "question": "Video conferencing ______ people in various places to have a meeting.",
+            "options": ["enables", "ability", "unable", "disable"],
+            "correctIndex": 0,
+            "explanation": "<b>1. Phân tích từ vựng:</b>\n- A. enables (verb): làm cho có thể/cho phép.\n- B. ability (noun): khả năng.\n- C. unable (adj): không thể.\n- D. disable (verb): vô hiệu hóa.\n\n<b>2. Dịch nghĩa:</b> \"Hội nghị truyền hình cho phép mọi người ở nhiều nơi khác nhau có thể họp hành.\"\n\n<b>3. Tại sao chọn A?</b>\n- Vị trí: Đứng sau chủ ngữ 'Video conferencing' -> Cần Động từ chính (Verb). Chủ ngữ số ít -> Enables."
+        }
+    ];
+
+    let userScore = 0;
+    const totalQuestions = quizData.length;
+    let answeredQuestions = new Array(totalQuestions).fill(false);
+
+    const quizContainer = document.getElementById('quiz-container');
+    const soundCorrect = document.getElementById('sound-correct');
+    const soundWrong = document.getElementById('sound-wrong');
+    const soundFinish = document.getElementById('sound-finish');
+
+    // --- RENDER QUESTIONS ---
+    function renderQuiz() {
+        quizData.forEach((item, index) => {
+            // Clean up question text for display (remove bracket markers for display if preferred, 
+            // but keeping them helps identify the error parts. For Q1-10, bold the brackets).
+            let displayQuestion = item.question.replace(/\[/g, '<span class="highlight-q">').replace(/\]/g, '</span>');
+
+            const card = document.createElement('div');
+            card.className = 'question-card';
+            card.id = `question-${index}`;
+
+            // Button Options Generation
+            let optionsHTML = '';
+            const labels = ['A', 'B', 'C', 'D'];
+            item.options.forEach((opt, optIndex) => {
+                optionsHTML += `
+                    <div class="option-btn" onclick="checkAnswer(${index}, ${optIndex}, this)">
+                        <div class="option-circle">${labels[optIndex]}</div>
+                        ${opt}
+                    </div>
+                `;
+            });
+
+            card.innerHTML = `
+                <div class="question-header">
+                    <span class="q-tag">Question ${index + 1}</span>
+                    <span class="q-part">${item.type}</span>
+                </div>
+                <div class="question-text">${displayQuestion}</div>
+                <div class="options-grid" id="options-${index}">
+                    ${optionsHTML}
+                </div>
+                <div class="explanation-box" id="explanation-${index}">
+                    <div class="exp-header"><i class="fas fa-chalkboard-teacher"></i> Ms Mai An giải thích:</div>
+                    <div class="exp-content">${item.explanation}</div>
+                </div>
+            `;
+            quizContainer.appendChild(card);
+        });
+    }
+
+    // --- CHECK ANSWER LOGIC ---
+    function checkAnswer(questionIndex, selectedIndex, btnElement) {
+        if (answeredQuestions[questionIndex]) return; // Prevent re-answering
+        answeredQuestions[questionIndex] = true;
+
+        const currentQuestion = quizData[questionIndex];
+        const optionsDiv = document.getElementById(`options-${questionIndex}`);
+        const allButtons = optionsDiv.querySelectorAll('.option-btn');
+        const explanationBox = document.getElementById(`explanation-${questionIndex}`);
+
+        // Disable all buttons
+        allButtons.forEach(btn => btn.classList.add('disabled'));
+
+        if (selectedIndex === currentQuestion.correctIndex) {
+            // CORRECT
+            btnElement.classList.add('correct');
+            userScore++;
+            soundCorrect.currentTime = 0;
+            soundCorrect.play();
+            triggerConfetti(btnElement);
+        } else {
+            // WRONG
+            btnElement.classList.add('incorrect');
+            // Highlight the correct one
+            allButtons[currentQuestion.correctIndex].classList.add('correct');
+            soundWrong.currentTime = 0;
+            soundWrong.play();
+        }
+
+        // Show Explanation
+        explanationBox.style.display = 'block';
+    }
+
+    // --- CONFETTI EFFECT ---
+    function triggerConfetti(element) {
+        const rect = element.getBoundingClientRect();
+        const x = (rect.left + rect.width / 2) / window.innerWidth;
+        const y = (rect.top + rect.height / 2) / window.innerHeight;
+
+        confetti({
+            particleCount: 60,
+            spread: 70,
+            origin: { x: x, y: y },
+            colors: ['#8854C0', '#00C9A7', '#FF4757'],
+            disableForReducedMotion: true
+        });
+    }
+
+    // --- FINISH EXAM ---
+    function finishExam() {
+        const unanswered = answeredQuestions.filter(x => x === false).length;
+        if (unanswered > 0) {
+            if(!confirm(`Bạn còn ${unanswered} câu chưa làm. Bạn có chắc muốn nộp bài không?`)) {
+                return;
+            }
+        }
+
+        soundFinish.play();
+        const scoreDisplay = document.getElementById('finalScore');
+        const feedbackMsg = document.getElementById('feedbackMsg');
+        const modal = document.getElementById('resultModal');
+
+        scoreDisplay.innerText = `${userScore}/${totalQuestions}`;
+        
+        const percentage = (userScore / totalQuestions) * 100;
+        if (percentage === 100) feedbackMsg.innerText = "Tuyệt vời! Bạn là thiên tài tiếng Anh! 🌟";
+        else if (percentage >= 80) feedbackMsg.innerText = "Làm tốt lắm! Bạn nắm rất chắc kiến thức. 👏";
+        else if (percentage >= 50) feedbackMsg.innerText = "Khá tốt! Hãy xem lại phần giải thích để hiểu rõ hơn nhé. 💪";
+        else feedbackMsg.innerText = "Cố gắng lên! Hãy ôn tập lại kỹ hơn nhé. 📚";
+
+        modal.style.display = 'flex';
+        
+        // Final big confetti
+        confetti({
+            particleCount: 200,
+            spread: 160,
+            origin: { y: 0.6 }
+        });
+    }
+
+    function closeModal() {
+        document.getElementById('resultModal').style.display = 'none';
+        // Scroll to top
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // Initialize
+    renderQuiz();
+
+</script>
+</body>
+</html>

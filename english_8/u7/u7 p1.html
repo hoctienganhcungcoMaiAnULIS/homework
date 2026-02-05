@@ -1,0 +1,887 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ms Mai An ULIS - English Master Test</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    
+    <style>
+        :root {
+            --primary-pink: #8854C0;
+            --primary-teal: #00C9A7;
+            --correct-green: #00D26A;
+            --wrong-red: #FF4757;
+            --bg-color: #F0F4F8;
+            --card-bg: #FFFFFF;
+            --text-main: #2D3436;
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: var(--primary-pink);
+            background-image: radial-gradient(var(--primary-teal) 15%, transparent 16%),
+            radial-gradient(var(--primary-teal) 15%, transparent 16%);
+            background-size: 60px 60px;
+            background-position: 0 0, 30px 30px;
+            margin: 0;
+            padding: 20px;
+            color: var(--text-main);
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        /* HEADER */
+        header {
+            text-align: center;
+            background: white;
+            padding: 15px;
+            border-radius: 20px;
+            box-shadow: 0 8px 0 rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            position: relative;
+            border: 4px solid var(--primary-teal);
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            color: var(--primary-pink);
+            margin: 0;
+            font-weight: 900;
+            text-transform: uppercase;
+        }
+
+        .score-board {
+            margin-top: 10px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--primary-teal);
+        }
+
+        /* CARD STYLE */
+        .card {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 0 rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+            position: relative;
+            border: 2px solid #eee;
+        }
+
+        .question-title {
+            font-size: 1.1rem;
+            color: #636e72;
+            margin-bottom: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            border-bottom: 2px dashed #dfe6e9;
+            padding-bottom: 5px;
+        }
+
+        .question-text {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        .question-text u {
+            color: var(--primary-pink);
+            text-decoration-thickness: 3px;
+            text-underline-offset: 4px;
+        }
+
+        /* OPTIONS GRID */
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        @media (max-width: 600px) {
+            .options-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .option-btn {
+            background: white;
+            border: 2px solid #dfe6e9;
+            border-radius: 15px;
+            padding: 15px 20px;
+            font-size: 1.1rem;
+            font-family: 'Nunito', sans-serif;
+            font-weight: 700;
+            color: var(--text-main);
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px 0 #dfe6e9;
+            text-align: left;
+            position: relative;
+        }
+
+        .option-btn:hover:not(.disabled) {
+            transform: scale(1.02);
+            border-color: var(--primary-teal);
+        }
+
+        .option-btn:active:not(.disabled) {
+            transform: translateY(4px);
+            box-shadow: none;
+        }
+
+        /* STATES */
+        .option-btn.correct {
+            background-color: var(--correct-green);
+            color: white;
+            border-color: #00b85c;
+            box-shadow: 0 4px 0 #00b85c;
+        }
+
+        .option-btn.wrong {
+            background-color: var(--wrong-red);
+            color: white;
+            border-color: #ff3344;
+            box-shadow: 0 4px 0 #ff3344;
+            animation: shake 0.5s;
+        }
+
+        .option-btn.disabled {
+            cursor: default;
+            opacity: 0.7;
+            pointer-events: none;
+        }
+
+        /* EXPLANATION BOX */
+        .explanation {
+            display: none;
+            margin-top: 20px;
+            background: #f1faff;
+            border: 2px solid var(--primary-teal);
+            border-radius: 15px;
+            padding: 20px;
+            animation: slideDown 0.4s ease-out;
+        }
+
+        .exp-header {
+            font-weight: 900;
+            color: var(--primary-pink);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+        }
+
+        .exp-content p {
+            margin: 8px 0;
+            line-height: 1.6;
+        }
+
+        .exp-translation {
+            color: #2d3436;
+            font-style: italic;
+            background: #fff;
+            padding: 10px;
+            border-radius: 10px;
+            border-left: 4px solid var(--primary-teal);
+            margin-bottom: 15px;
+        }
+
+        .vocab-list {
+            list-style: none;
+            padding: 0;
+            margin: 10px 0;
+        }
+
+        .vocab-item {
+            background: white;
+            padding: 8px 12px;
+            margin-bottom: 5px;
+            border-radius: 8px;
+            border: 1px solid #eee;
+            font-size: 0.95rem;
+        }
+
+        .vocab-word {
+            font-weight: 800;
+            color: var(--primary-pink);
+        }
+
+        .why-correct {
+            color: var(--correct-green);
+            font-weight: bold;
+        }
+
+        .why-wrong {
+            color: var(--wrong-red);
+            font-size: 0.9rem;
+        }
+
+        /* SUBMIT BUTTON */
+        .submit-section {
+            text-align: center;
+            margin-top: 40px;
+            padding-bottom: 50px;
+        }
+
+        .btn-submit {
+            background: var(--primary-pink);
+            color: white;
+            font-size: 1.5rem;
+            padding: 15px 50px;
+            border: none;
+            border-radius: 50px;
+            font-family: 'Nunito', sans-serif;
+            font-weight: 900;
+            cursor: pointer;
+            box-shadow: 0 8px 0 #6c429c;
+            transition: all 0.2s;
+        }
+
+        .btn-submit:hover {
+            transform: scale(1.05);
+        }
+
+        .btn-submit:active {
+            transform: translateY(8px);
+            box-shadow: none;
+        }
+
+        /* ANIMATIONS */
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            50% { transform: translateX(10px); }
+            75% { transform: translateX(-10px); }
+            100% { transform: translateX(0); }
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Ms Mai An ULIS - Bài Kiểm Tra Tương Tác</h1>
+        <div class="score-board">Điểm số: <span id="currentScore">0</span> / <span id="totalQuestions">0</span></div>
+    </header>
+
+    <div id="quiz-container">
+        </div>
+
+    <div class="submit-section">
+        <button class="btn-submit" onclick="finishQuiz()">Nộp Bài & Xem Tổng Kết</button>
+    </div>
+</div>
+
+<script>
+    // --- DATABASE: NỘI DUNG ĐỀ BÀI VÀ GIẢI THÍCH ---
+    const quizData = [
+        // --- EXERCISE 4: CLOSEST MEANING ---
+        {
+            id: "4-1",
+            type: "closest",
+            title: "Exercise 4: CLOSEST MEANING",
+            question: "It is <u>important</u> to contain and properly dispose of hazardous materials to prevent environmental contamination.",
+            options: [
+                { id: "A", text: "crucial", meaning: "quan trọng, cốt yếu", type: "adj" },
+                { id: "B", text: "unnecessary", meaning: "không cần thiết", type: "adj" },
+                { id: "C", text: "unimportant", meaning: "không quan trọng", type: "adj" },
+                { id: "D", text: "careful", meaning: "cẩn thận", type: "adj" }
+            ],
+            correct: "A",
+            translation: "Việc chứa và xử lý đúng cách các vật liệu nguy hiểm để ngăn ngừa ô nhiễm môi trường là rất quan trọng.",
+            explanation: "Từ được gạch chân (dựa vào ngữ cảnh các đáp án) là 'important'. <br><b>Crucial</b> (quan trọng/cốt yếu) đồng nghĩa với <b>Important</b>. Các đáp án B và C trái nghĩa. D không phù hợp ngữ nghĩa."
+        },
+        {
+            id: "4-2",
+            type: "closest",
+            title: "Exercise 4: CLOSEST MEANING",
+            question: "The government should strictly regulate and <u>permit</u> industrial activities to minimize their impact on the environment.",
+            options: [
+                { id: "A", text: "dismiss", meaning: "sa thải, bác bỏ", type: "v" },
+                { id: "B", text: "allow", meaning: "cho phép", type: "v" },
+                { id: "C", text: "protect", meaning: "bảo vệ", type: "v" },
+                { id: "D", text: "reduce", meaning: "giảm bớt", type: "v" }
+            ],
+            correct: "B",
+            translation: "Chính phủ nên quy định nghiêm ngặt và cấp phép cho các hoạt động công nghiệp để giảm thiểu tác động của chúng lên môi trường.",
+            explanation: "Từ gạch chân là 'permit' (cho phép). <br><b>Allow</b> đồng nghĩa với <b>Permit</b>. <br>Dismiss (bác bỏ) và Reduce (giảm) sai nghĩa hoàn toàn."
+        },
+        {
+            id: "4-3",
+            type: "closest",
+            title: "Exercise 4: CLOSEST MEANING",
+            question: "The residents of the community actively <u>participate in</u> environmental conservation efforts.",
+            options: [
+                { id: "A", text: "throw", meaning: "ném", type: "v" },
+                { id: "B", text: "ignore", meaning: "phớt lờ", type: "v" },
+                { id: "C", text: "impact", meaning: "tác động", type: "v" },
+                { id: "D", text: "take part", meaning: "tham gia", type: "v" }
+            ],
+            correct: "D",
+            translation: "Cư dân trong cộng đồng tích cực tham gia vào các nỗ lực bảo tồn môi trường.",
+            explanation: "Cụm từ <b>participate in</b> đồng nghĩa với <b>take part (in)</b> (tham gia). <br>Ignore (phớt lờ) là trái nghĩa."
+        },
+        {
+            id: "4-4",
+            type: "closest",
+            title: "Exercise 4: CLOSEST MEANING",
+            question: "Protecting the environment is crucial for maintaining a <u>diverse</u> range of ecosystems.",
+            options: [
+                { id: "A", text: "varied", meaning: "đa dạng, nhiều loại", type: "adj" },
+                { id: "B", text: "same", meaning: "giống nhau", type: "adj" },
+                { id: "C", text: "similar", meaning: "tương tự", type: "adj" },
+                { id: "D", text: "polluted", meaning: "bị ô nhiễm", type: "adj" }
+            ],
+            correct: "A",
+            translation: "Bảo vệ môi trường là rất quan trọng để duy trì một loạt các hệ sinh thái đa dạng.",
+            explanation: "Từ 'diverse' nghĩa là đa dạng. <br><b>Varied</b> (đa dạng/khác nhau) là từ đồng nghĩa gần nhất. <br>Same và Similar mang nghĩa giống nhau (ngược lại)."
+        },
+        {
+            id: "4-5",
+            type: "closest",
+            title: "Exercise 4: CLOSEST MEANING",
+            question: "The release of <u>toxic</u> chemicals into the environment poses a serious threat to ecosystems and human health.",
+            options: [
+                { id: "A", text: "cause", meaning: "nguyên nhân", type: "n/v" },
+                { id: "B", text: "deadly", meaning: "chết người, độc hại", type: "adj" },
+                { id: "C", text: "coral", meaning: "san hô", type: "n" },
+                { id: "D", text: "volunteer", meaning: "tình nguyện viên", type: "n" }
+            ],
+            correct: "B",
+            translation: "Việc thải các hóa chất độc hại ra môi trường gây ra mối đe dọa nghiêm trọng cho hệ sinh thái và sức khỏe con người.",
+            explanation: "Từ 'toxic' nghĩa là độc hại. <br><b>Deadly</b> (gây chết người) có nghĩa gần nhất trong ngữ cảnh này. <br>Coral và Volunteer không liên quan về loại từ và nghĩa."
+        },
+
+        // --- EXERCISE 5: OPPOSITE MEANING ---
+        {
+            id: "5-1",
+            type: "opposite",
+            title: "Exercise 5: OPPOSITE MEANING",
+            question: "We should <u>save</u> energy by using energy-efficient appliances and adopting sustainable practices.",
+            options: [
+                { id: "A", text: "store", meaning: "lưu trữ", type: "v" },
+                { id: "B", text: "waste", meaning: "lãng phí", type: "v" },
+                { id: "C", text: "renew", meaning: "làm mới", type: "v" },
+                { id: "D", text: "resident", meaning: "cư dân", type: "n" }
+            ],
+            correct: "B",
+            translation: "Chúng ta nên tiết kiệm năng lượng bằng cách sử dụng các thiết bị tiết kiệm điện và áp dụng các thói quen bền vững.",
+            explanation: "<b>Save</b> (tiết kiệm) >< <b>Waste</b> (lãng phí). <br>Store là lưu trữ (gần nghĩa). Resident là danh từ (sai loại từ)."
+        },
+        {
+            id: "5-2",
+            type: "opposite",
+            title: "Exercise 5: OPPOSITE MEANING",
+            question: "It is our responsibility to <u>protect</u> the environment and preserve it for future generations.",
+            options: [
+                { id: "A", text: "destroy", meaning: "phá hủy", type: "v" },
+                { id: "B", text: "cover", meaning: "che phủ", type: "v" },
+                { id: "C", text: "little", meaning: "nhỏ/ít", type: "adj" },
+                { id: "D", text: "contain", meaning: "chứa đựng/kìm hãm", type: "v" }
+            ],
+            correct: "A",
+            translation: "Trách nhiệm của chúng ta là bảo vệ môi trường và giữ gìn nó cho các thế hệ tương lai.",
+            explanation: "<b>Protect</b> (bảo vệ) >< <b>Destroy</b> (phá hủy). <br>Các từ còn lại không tạo thành cặp trái nghĩa hợp lý."
+        },
+        {
+            id: "5-3",
+            type: "opposite",
+            title: "Exercise 5: OPPOSITE MEANING",
+            question: "Implementing measures to <u>reduce</u> greenhouse gas emissions is crucial in combating climate change.",
+            options: [
+                { id: "A", text: "decrease", meaning: "giảm", type: "v" },
+                { id: "B", text: "cut down", meaning: "cắt giảm", type: "v" },
+                { id: "C", text: "minimize", meaning: "giảm thiểu", type: "v" },
+                { id: "D", text: "increase", meaning: "tăng lên", type: "v" }
+            ],
+            correct: "D",
+            translation: "Thực hiện các biện pháp để giảm lượng khí thải nhà kính là rất quan trọng trong việc chống biến đổi khí hậu.",
+            explanation: "<b>Reduce</b> (giảm) >< <b>Increase</b> (tăng). <br>Decrease, Cut down, Minimize đều là từ đồng nghĩa với Reduce."
+        },
+        {
+            id: "5-4",
+            type: "opposite",
+            title: "Exercise 5: OPPOSITE MEANING",
+            question: "Remember to <u>turn off</u> lights and electronic devices when they are not in use to conserve energy.",
+            options: [
+                { id: "A", text: "switch on", meaning: "bật lên", type: "v" },
+                { id: "B", text: "turn down", meaning: "vặn nhỏ", type: "v" },
+                { id: "C", text: "go over", meaning: "kiểm tra kỹ", type: "v" },
+                { id: "D", text: "go away", meaning: "đi khỏi", type: "v" }
+            ],
+            correct: "A",
+            translation: "Hãy nhớ tắt đèn và các thiết bị điện tử khi không sử dụng để tiết kiệm năng lượng.",
+            explanation: "<b>Turn off</b> (tắt) >< <b>Switch on</b> (bật). <br>Turn down là vặn nhỏ âm lượng/nhiệt độ."
+        },
+        {
+            id: "5-5",
+            type: "opposite",
+            title: "Exercise 5: OPPOSITE MEANING",
+            question: "Cleaning up <u>polluted</u> water sources is a challenging task that requires collaboration and expertise.",
+            options: [
+                { id: "A", text: "contaminated", meaning: "bị nhiễm bẩn", type: "adj" },
+                { id: "B", text: "forget", meaning: "quên", type: "v" },
+                { id: "C", text: "pure", meaning: "tinh khiết, sạch", type: "adj" },
+                { id: "D", text: "non-living", meaning: "vô tri vô giác", type: "adj" }
+            ],
+            correct: "C",
+            translation: "Làm sạch các nguồn nước bị ô nhiễm là một nhiệm vụ đầy thách thức đòi hỏi sự hợp tác và chuyên môn.",
+            explanation: "<b>Polluted</b> (ô nhiễm) >< <b>Pure</b> (tinh khiết/sạch). <br>Contaminated là từ đồng nghĩa."
+        },
+
+        // --- EXERCISE 7: GAP FILL / GRAMMAR ---
+        {
+            id: "7-1",
+            type: "grammar",
+            title: "Exercise 7: Choose the correct word",
+            question: "You should wait here ______ your parents come back.",
+            options: [
+                { id: "A", text: "when", meaning: "khi", type: "conj" },
+                { id: "B", text: "until", meaning: "cho đến khi", type: "conj" },
+                { id: "C", text: "while", meaning: "trong khi", type: "conj" },
+                { id: "D", text: "if", meaning: "nếu", type: "conj" }
+            ],
+            correct: "B",
+            translation: "Bạn nên đợi ở đây cho đến khi bố mẹ bạn quay lại.",
+            explanation: "Dùng <b>Until</b> để chỉ một hành động kéo dài đến một thời điểm cụ thể. <br>When/While không diễn tả ý nghĩa 'đợi đến lúc đó' tốt bằng Until trong ngữ cảnh này."
+        },
+        {
+            id: "7-2",
+            type: "grammar",
+            title: "Exercise 7: Choose the correct word",
+            question: "______ the party, there was a lot of food left.",
+            options: [
+                { id: "A", text: "While", meaning: "Trong khi", type: "conj" },
+                { id: "B", text: "After", meaning: "Sau khi", type: "conj" },
+                { id: "C", text: "Before", meaning: "Trước khi", type: "conj" },
+                { id: "D", text: "If", meaning: "Nếu", type: "conj" }
+            ],
+            correct: "B",
+            translation: "Sau bữa tiệc, còn thừa rất nhiều đồ ăn.",
+            explanation: "Dùng <b>After</b> vì ngữ cảnh nói về kết quả (thừa đồ ăn) xảy ra khi bữa tiệc đã kết thúc. <br>While thường đi với mệnh đề (S + V) chứ không đi trực tiếp với danh từ 'the party' theo nghĩa này."
+        },
+        {
+            id: "7-3",
+            type: "grammar",
+            title: "Exercise 7: Choose the correct word",
+            question: "My sister was sleeping ______ I was studying for the test last night.",
+            options: [
+                { id: "A", text: "when", meaning: "khi", type: "conj" },
+                { id: "B", text: "as soon as", meaning: "ngay khi", type: "conj" },
+                { id: "C", text: "while", meaning: "trong khi", type: "conj" },
+                { id: "D", text: "until", meaning: "cho đến khi", type: "conj" }
+            ],
+            correct: "C",
+            translation: "Chị tôi đang ngủ trong khi tôi đang ôn thi tối qua.",
+            explanation: "Hai hành động xảy ra song song cùng lúc trong quá khứ -> Dùng <b>While</b>. <br>Cấu trúc: Past Continuous + while + Past Continuous."
+        },
+        {
+            id: "7-4",
+            type: "grammar",
+            title: "Exercise 7: Choose the correct word",
+            question: "______ I left home for school, It rained heavily.",
+            options: [
+                { id: "A", text: "As soon as", meaning: "Ngay khi", type: "conj" },
+                { id: "B", text: "While", meaning: "Trong khi", type: "conj" },
+                { id: "C", text: "After", meaning: "Sau khi", type: "conj" },
+                { id: "D", text: "Until", meaning: "Cho đến khi", type: "conj" }
+            ],
+            correct: "A",
+            translation: "Ngay khi tôi rời nhà đi học thì trời mưa to.",
+            explanation: "<b>As soon as</b> diễn tả một hành động xảy ra ngay lập tức sau hành động khác. Ngữ cảnh này nhấn mạnh sự tức thời."
+        },
+        {
+            id: "7-5",
+            type: "grammar",
+            title: "Exercise 7: Choose the correct word",
+            question: "The train arrived ______ Elle was having lunch.",
+            options: [
+                { id: "A", text: "while", meaning: "trong khi", type: "conj" },
+                { id: "B", text: "as soon as", meaning: "ngay khi", type: "conj" },
+                { id: "C", text: "before", meaning: "trước khi", type: "conj" },
+                { id: "D", text: "after", meaning: "sau khi", type: "conj" }
+            ],
+            correct: "A",
+            translation: "Tàu đến trong lúc Elle đang ăn trưa.",
+            explanation: "Hành động xen ngang (tàu đến - quá khứ đơn) xảy ra khi hành động khác đang diễn ra (ăn trưa - quá khứ tiếp diễn) -> Dùng <b>While</b>."
+        },
+        {
+            id: "7-6",
+            type: "grammar",
+            title: "Exercise 7: Choose the correct word",
+            question: "______ the water is very cold in January, they go swimming anyway.",
+            options: [
+                { id: "A", text: "Because", meaning: "Bởi vì", type: "conj" },
+                { id: "B", text: "Although", meaning: "Mặc dù", type: "conj" },
+                { id: "C", text: "If", meaning: "Nếu", type: "conj" },
+                { id: "D", text: "When", meaning: "Khi", type: "conj" }
+            ],
+            correct: "B",
+            translation: "Mặc dù nước rất lạnh vào tháng Giêng, họ vẫn đi bơi.",
+            explanation: "Hai mệnh đề tương phản nhau (lạnh >< đi bơi) -> Dùng <b>Although</b>."
+        },
+        {
+            id: "7-7",
+            type: "grammar",
+            title: "Exercise 7: Choose the correct word",
+            question: "My father goes jogging every morning ______ he gets ready for work.",
+            options: [
+                { id: "A", text: "before", meaning: "trước khi", type: "conj" },
+                { id: "B", text: "after", meaning: "sau khi", type: "conj" },
+                { id: "C", text: "until", meaning: "cho đến khi", type: "conj" },
+                { id: "D", text: "while", meaning: "trong khi", type: "conj" }
+            ],
+            correct: "A",
+            translation: "Bố tôi đi chạy bộ mỗi sáng trước khi ông ấy chuẩn bị đi làm.",
+            explanation: "Trình tự logic: Chạy bộ -> Chuẩn bị đi làm. Nên dùng <b>Before</b> (trước khi đi làm)."
+        },
+        {
+            id: "7-8",
+            type: "grammar",
+            title: "Exercise 7: Choose the correct word",
+            question: "I learned a lot about wildlife ______ I visited Cuc Phuong National Park yesterday.",
+            options: [
+                { id: "A", text: "until", meaning: "cho đến khi", type: "conj" },
+                { id: "B", text: "after", meaning: "sau khi", type: "conj" },
+                { id: "C", text: "as soon as", meaning: "ngay khi", type: "conj" },
+                { id: "D", text: "when", meaning: "khi", type: "conj" }
+            ],
+            correct: "D",
+            translation: "Tôi đã học được rất nhiều về động vật hoang dã khi tôi đến thăm Vườn Quốc gia Cúc Phương hôm qua.",
+            explanation: "Dùng <b>When</b> (khi) để chỉ thời điểm xảy ra sự việc trong quá khứ."
+        },
+        {
+            id: "7-9",
+            type: "grammar",
+            title: "Exercise 7: Choose the correct word",
+            question: "I usually drink a glass of warm milk ______ I go to bed.",
+            options: [
+                { id: "A", text: "after", meaning: "sau khi", type: "conj" },
+                { id: "B", text: "until", meaning: "cho đến khi", type: "conj" },
+                { id: "C", text: "before", meaning: "trước khi", type: "conj" },
+                { id: "D", text: "while", meaning: "trong khi", type: "conj" }
+            ],
+            correct: "C",
+            translation: "Tôi thường uống một ly sữa ấm trước khi đi ngủ.",
+            explanation: "Uống sữa giúp ngủ ngon -> Hành động xảy ra <b>Before</b> (trước khi) đi ngủ."
+        },
+        {
+            id: "7-10",
+            type: "grammar",
+            title: "Exercise 7: Choose the correct word",
+            question: "Who takes care of the baby ______ your mother is away?",
+            options: [
+                { id: "A", text: "when", meaning: "khi", type: "conj" },
+                { id: "B", text: "after", meaning: "sau khi", type: "conj" },
+                { id: "C", text: "before", meaning: "trước khi", type: "conj" },
+                { id: "D", text: "until", meaning: "cho đến khi", type: "conj" }
+            ],
+            correct: "A",
+            translation: "Ai trông em bé khi mẹ bạn đi vắng?",
+            explanation: "Dùng <b>When</b> (khi) để diễn tả khoảng thời gian mẹ vắng nhà."
+        },
+        {
+            id: "7-11",
+            type: "grammar",
+            title: "Exercise 7: Choose the correct word",
+            question: "______ we receive your confirmation email, we will send you a link to download the program.",
+            options: [
+                { id: "A", text: "After", meaning: "Sau khi", type: "conj" },
+                { id: "B", text: "Before", meaning: "Trước khi", type: "conj" },
+                { id: "C", text: "While", meaning: "Trong khi", type: "conj" },
+                { id: "D", text: "Until", meaning: "Cho đến khi", type: "conj" }
+            ],
+            correct: "A",
+            translation: "Sau khi chúng tôi nhận được email xác nhận của bạn, chúng tôi sẽ gửi liên kết tải xuống.",
+            explanation: "Trình tự: Nhận email -> Gửi link. Dùng <b>After</b>."
+        },
+        {
+            id: "7-12",
+            type: "grammar",
+            title: "Exercise 7: Choose the correct word",
+            question: "I have to wait ______ my mum comes home.",
+            options: [
+                { id: "A", text: "while", meaning: "trong khi", type: "conj" },
+                { id: "B", text: "before", meaning: "trước khi", type: "conj" },
+                { id: "C", text: "until", meaning: "cho đến khi", type: "conj" },
+                { id: "D", text: "if", meaning: "nếu", type: "conj" }
+            ],
+            correct: "C",
+            translation: "Tôi phải đợi cho đến khi mẹ tôi về nhà.",
+            explanation: "Đợi (wait) thường đi với <b>Until</b> (cho đến khi) sự việc kết thúc."
+        },
+        {
+            id: "7-13",
+            type: "grammar",
+            title: "Exercise 7: Choose the correct word",
+            question: "______ she is ready, we will leave.",
+            options: [
+                { id: "A", text: "Before", meaning: "Trước khi", type: "conj" },
+                { id: "B", text: "When", meaning: "Khi", type: "conj" },
+                { id: "C", text: "While", meaning: "Trong khi", type: "conj" },
+                { id: "D", text: "Until", meaning: "Cho đến khi", type: "conj" }
+            ],
+            correct: "B",
+            translation: "Khi cô ấy sẵn sàng, chúng tôi sẽ rời đi.",
+            explanation: "Dùng <b>When</b> (hoặc As soon as) để chỉ điều kiện về thời gian cho hành động 'rời đi'."
+        },
+        {
+            id: "7-14",
+            type: "grammar",
+            title: "Exercise 7: Choose the correct word",
+            question: "I'll send you a text message ______ I hear from Nam.",
+            options: [
+                { id: "A", text: "until", meaning: "cho đến khi", type: "conj" },
+                { id: "B", text: "as soon as", meaning: "ngay khi", type: "conj" },
+                { id: "C", text: "before", meaning: "trước khi", type: "conj" },
+                { id: "D", text: "while", meaning: "trong khi", type: "conj" }
+            ],
+            correct: "B",
+            translation: "Tôi sẽ nhắn tin cho bạn ngay khi tôi nhận được tin từ Nam.",
+            explanation: "<b>As soon as</b> diễn tả sự việc xảy ra liền ngay sau đó."
+        },
+        {
+            id: "7-15",
+            type: "grammar",
+            title: "Exercise 7: Choose the correct word",
+            question: "______ she goes, she will turn off all the computers.",
+            options: [
+                { id: "A", text: "Before", meaning: "Trước khi", type: "conj" },
+                { id: "B", text: "After", meaning: "Sau khi", type: "conj" },
+                { id: "C", text: "While", meaning: "Trong khi", type: "conj" },
+                { id: "D", text: "Until", meaning: "Cho đến khi", type: "conj" }
+            ],
+            correct: "A",
+            translation: "Trước khi cô ấy đi về, cô ấy sẽ tắt tất cả máy tính.",
+            explanation: "Hành động tắt máy phải xảy ra <b>Before</b> (trước khi) hành động rời đi."
+        },
+        {
+            id: "7-16",
+            type: "grammar",
+            title: "Exercise 7: Choose the correct word",
+            question: "He will send them an email ______ he arrives in London.",
+            options: [
+                { id: "A", text: "before", meaning: "trước khi", type: "conj" },
+                { id: "B", text: "until", meaning: "cho đến khi", type: "conj" },
+                { id: "C", text: "as soon as", meaning: "ngay khi", type: "conj" },
+                { id: "D", text: "while", meaning: "trong khi", type: "conj" }
+            ],
+            correct: "C",
+            translation: "Anh ấy sẽ gửi email cho họ ngay khi anh ấy đến London.",
+            explanation: "Dùng <b>As soon as</b> hợp lý nhất về ngữ nghĩa (thông báo tin đến nơi)."
+        },
+        {
+            id: "7-17",
+            type: "grammar",
+            title: "Exercise 7: Choose the correct word",
+            question: "I will give you my reply ______ I leave this afternoon.",
+            options: [
+                { id: "A", text: "before", meaning: "trước khi", type: "conj" },
+                { id: "B", text: "by", meaning: "trước (thời điểm)", type: "prep" },
+                { id: "C", text: "this time", meaning: "lần này", type: "n" },
+                { id: "D", text: "until", meaning: "cho đến khi", type: "conj" }
+            ],
+            correct: "A",
+            translation: "Tôi sẽ đưa câu trả lời cho bạn trước khi tôi rời đi chiều nay.",
+            explanation: "<b>Before</b> + Mệnh đề (I leave...). By + Mốc thời gian (By 5pm...). Ở đây có mệnh đề 'I leave' nên dùng Before."
+        },
+        {
+            id: "7-18",
+            type: "grammar",
+            title: "Exercise 7: Choose the correct word",
+            question: "I'll go online ______ I get home.",
+            options: [
+                { id: "A", text: "while", meaning: "trong khi", type: "conj" },
+                { id: "B", text: "as soon as", meaning: "ngay khi", type: "conj" },
+                { id: "C", text: "until", meaning: "cho đến khi", type: "conj" },
+                { id: "D", text: "before", meaning: "trước khi", type: "conj" }
+            ],
+            correct: "B",
+            translation: "Tôi sẽ lên mạng ngay khi tôi về đến nhà.",
+            explanation: "<b>As soon as</b> (ngay khi) chỉ hành động xảy ra tiếp nối."
+        },
+        {
+            id: "7-19",
+            type: "grammar",
+            title: "Exercise 7: Choose the correct word",
+            question: "______ Mr. Tan phones, please let me know.",
+            options: [
+                { id: "A", text: "Before", meaning: "Trước khi", type: "conj" },
+                { id: "B", text: "Until", meaning: "Cho đến khi", type: "conj" },
+                { id: "C", text: "When", meaning: "Khi", type: "conj" },
+                { id: "D", text: "While", meaning: "Trong khi", type: "conj" }
+            ],
+            correct: "C",
+            translation: "Khi ông Tân gọi điện, làm ơn cho tôi biết.",
+            explanation: "Đây là câu mệnh lệnh đi kèm mệnh đề thời gian. Dùng <b>When</b> (khi có sự việc xảy ra)."
+        },
+        {
+            id: "7-20",
+            type: "grammar",
+            title: "Exercise 7: Choose the correct word",
+            question: "Let's play with the children ______ it is time to go.",
+            options: [
+                { id: "A", text: "after", meaning: "sau khi", type: "conj" },
+                { id: "B", text: "until", meaning: "cho đến khi", type: "conj" },
+                { id: "C", text: "while", meaning: "trong khi", type: "conj" },
+                { id: "D", text: "before", meaning: "trước khi", type: "conj" }
+            ],
+            correct: "B",
+            translation: "Hãy chơi với bọn trẻ cho đến khi đến giờ phải đi.",
+            explanation: "Chơi liên tục -> Đến mốc thời gian phải đi. Dùng <b>Until</b>."
+        }
+    ];
+
+    let currentScore = 0;
+    const totalQuestions = quizData.length;
+    document.getElementById('totalQuestions').innerText = totalQuestions;
+
+    // --- RENDER QUESTIONS ---
+    const container = document.getElementById('quiz-container');
+
+    quizData.forEach((q, index) => {
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.innerHTML = `
+            <div class="question-title">${q.title} - Question ${index + 1}</div>
+            <div class="question-text">${q.question}</div>
+            
+            <div class="options-grid" id="options-${index}">
+                ${q.options.map((opt, optIndex) => `
+                    <button class="option-btn" onclick="checkAnswer(${index}, '${opt.id}', this)">
+                        ${opt.id}. ${opt.text}
+                    </button>
+                `).join('')}
+            </div>
+
+            <div class="explanation" id="exp-${index}">
+                <div class="exp-header">
+                    <span>👩‍🏫</span> Cô Mai An giải thích:
+                </div>
+                <div class="exp-content">
+                    <div class="exp-translation">
+                        🗣 <b>Dịch câu hỏi:</b> "${q.translation}"
+                    </div>
+                    
+                    <p><b>🔍 Phân tích đáp án:</b></p>
+                    <ul class="vocab-list">
+                        ${q.options.map(opt => `
+                            <li class="vocab-item">
+                                <span class="vocab-word">${opt.text}</span> 
+                                <i>(${opt.type || 'word'})</i>: ${opt.meaning}
+                            </li>
+                        `).join('')}
+                    </ul>
+
+                    <p class="why-correct">✅ Tại sao chọn ${q.correct}? <br> ${q.explanation}</p>
+                </div>
+            </div>
+        `;
+        container.appendChild(card);
+    });
+
+    // --- AUDIO SYSTEM (Web Audio API - No External Files) ---
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+    function playSound(type) {
+        const osc = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        osc.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+
+        if (type === 'correct') {
+            // Ding sound (High pitch, fast decay)
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(600, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.1);
+            gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.5);
+        } else {
+            // Buzz sound (Low saw, wobble)
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+            osc.frequency.linearRampToValueAtTime(100, audioCtx.currentTime + 0.3);
+            gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.3);
+        }
+    }
+
+    // --- LOGIC CHECK ANSWER ---
+    function checkAnswer(questionIndex, selectedId, btnElement) {
+        const question = quizData[questionIndex];
+        const optionsDiv = document.getElementById(`options-${questionIndex}`);
+        const allButtons = optionsDiv.querySelectorAll('.option-btn');
+        const expDiv = document.getElementById(`exp-${questionIndex}`);
+
+        // Prevent re-clicking
+        if (btnElement.classList.contains('disabled')) return;
+
+        // Disable all buttons in this question
+        allButtons.forEach(btn => btn.classList.add('disabled'));
+
+        if (selectedId === question.correct) {
+            // CORRECT
+            btnElement.classList.add('correct');
+            playSound('correct');
+            currentScore++;
+            document.getElementById('currentScore').innerText = currentScore;
+            
+            // Confetti Effect
+            confetti({
+                particleCount: 100,
+                spread: 70,
+                origin: { y: 0.6 },
+                colors: ['#00D26A', '#8854C0', '#00C9A7']
+            });
+        } else {
+            // WRONG
+            btnElement.classList.add('wrong');
+            playSound('wrong');
+            
+            // Highlight correct answer
+            allButtons.forEach(btn => {
+                if (btn.innerText.startsWith(question.correct)) {
+                    btn.classList.add('correct');
+                }
+            });
+        }
+
+        // Show Explanation
+        expDiv.style.display = 'block';
+    }
+
+    // --- FINISH QUIZ ---
+    function finishQuiz() {
+        let message = "";
+        const percentage = (currentScore / totalQuestions) * 100;
+
+        if (percentage === 100) message = "🎉 Xuất sắc! Em là thiên tài tiếng Anh!";
+        else if (percentage >= 80) message = "🌟 Giỏi lắm! Cố gắng thêm một chút nữa là hoàn hảo!";
+        else if (percentage >= 50) message = "📚 Khá tốt! Em nhớ xem lại phần giải thích nhé!";
+        else message = "💪 Đừng buồn! Hãy xem kỹ giải thích để làm tốt hơn lần sau nhé!";
+
+        alert(`KẾT QUẢ CỦA BẠN:\n\nSố câu đúng: ${currentScore} / ${totalQuestions}\n\n${message}`);
+    }
+
+</script>
+
+</body>
+</html>

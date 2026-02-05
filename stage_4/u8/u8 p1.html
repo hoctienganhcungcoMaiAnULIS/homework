@@ -1,0 +1,932 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>English Tenses Challenge - Ms Mai An</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <style>
+        :root {
+            --primary: #8854C0; /* Tím hồng */
+            --secondary: #00C9A7; /* Xanh ngọc */
+            --correct: #00D26A; /* Xanh lá */
+            --wrong: #FF4757; /* Đỏ cam */
+            --bg-pattern: #f0f3f5;
+            --text-color: #2c3e50;
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: #dfe6e9;
+            background-image: radial-gradient(#8854C0 1px, transparent 1px), radial-gradient(#00C9A7 1px, transparent 1px);
+            background-size: 20px 20px;
+            background-position: 0 0, 10px 10px;
+            margin: 0;
+            padding: 20px;
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            overflow: hidden;
+            position: relative;
+            padding-bottom: 20px;
+        }
+
+        /* Header nhỏ gọn */
+        .header-info {
+            background: var(--primary);
+            color: white;
+            padding: 8px 20px;
+            font-size: 14px;
+            font-weight: 700;
+            text-align: left;
+            border-bottom: 4px solid #6c4299;
+        }
+
+        /* Progress Bar */
+        .progress-container {
+            height: 10px;
+            background: #eee;
+            width: 100%;
+        }
+        .progress-bar {
+            height: 100%;
+            background: var(--secondary);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        /* Question Area */
+        .question-box {
+            padding: 30px;
+            text-align: center;
+        }
+
+        .question-text {
+            font-size: 24px;
+            font-weight: 800;
+            color: var(--primary);
+            margin-bottom: 25px;
+            line-height: 1.4;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        @media (max-width: 600px) {
+            .options-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* 3D Button Style */
+        .option-btn {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 15px;
+            padding: 15px;
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-color);
+            cursor: pointer;
+            transition: all 0.1s;
+            box-shadow: 0 5px 0 #cccccc;
+            position: relative;
+            outline: none;
+        }
+
+        .option-btn:hover {
+            transform: scale(1.02);
+            background-color: #f9f9f9;
+        }
+
+        .option-btn:active {
+            transform: translateY(4px);
+            box-shadow: 0 1px 0 #cccccc;
+        }
+
+        /* States */
+        .option-btn.correct {
+            background-color: var(--correct);
+            color: white;
+            border-color: #00b85c;
+            box-shadow: 0 5px 0 #00b85c;
+        }
+        
+        .option-btn.wrong {
+            background-color: var(--wrong);
+            color: white;
+            border-color: #e0404f;
+            box-shadow: 0 5px 0 #e0404f;
+            animation: shake 0.5s;
+        }
+
+        .option-btn.disabled {
+            pointer-events: none;
+            opacity: 0.7;
+        }
+
+        /* Explanation Box */
+        .explanation-box {
+            display: none;
+            margin: 20px;
+            background: #f0fdf4;
+            border: 2px solid var(--correct);
+            border-radius: 15px;
+            padding: 20px;
+            text-align: left;
+            animation: slideIn 0.5s ease;
+        }
+        
+        .explanation-box.wrong-mode {
+            background: #fff5f5;
+            border-color: var(--wrong);
+        }
+
+        .exp-title {
+            font-weight: 800;
+            font-size: 18px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .exp-content p {
+            margin: 5px 0;
+            line-height: 1.5;
+        }
+
+        .exp-tag {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 5px;
+            font-size: 12px;
+            font-weight: bold;
+            color: white;
+            margin-right: 5px;
+        }
+        .tag-green { background: var(--correct); }
+        .tag-red { background: var(--wrong); }
+        .tag-blue { background: var(--primary); }
+
+        .vocab-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            background: white;
+            font-size: 14px;
+        }
+        .vocab-table th, .vocab-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        .vocab-table th {
+            background-color: #f2f2f2;
+            color: var(--primary);
+        }
+
+        /* Next Button */
+        .next-btn {
+            display: none;
+            margin: 20px auto;
+            background: var(--secondary);
+            color: white;
+            border: none;
+            padding: 12px 40px;
+            font-size: 20px;
+            font-weight: 800;
+            border-radius: 30px;
+            box-shadow: 0 5px 0 #00a388;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+        .next-btn:active {
+            transform: translateY(4px);
+            box-shadow: 0 1px 0 #00a388;
+        }
+
+        /* Modal Kết quả */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+            animation: pop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .score-display {
+            font-size: 48px;
+            font-weight: 900;
+            color: var(--primary);
+            margin: 20px 0;
+        }
+
+        /* Animations */
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            50% { transform: translateX(10px); }
+            75% { transform: translateX(-10px); }
+            100% { transform: translateX(0); }
+        }
+        @keyframes pop {
+            0% { transform: scale(0.5); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header-info">
+        Giáo viên tạo: Ms Mai An ULIS
+    </div>
+    <div class="progress-container">
+        <div class="progress-bar" id="progressBar"></div>
+    </div>
+
+    <div class="question-box">
+        <div id="quiz-area">
+            <div class="question-text" id="questionText">Loading...</div>
+            <div class="options-grid" id="optionsContainer">
+                </div>
+        </div>
+        
+        <div class="explanation-box" id="explanationBox">
+            <div class="exp-title" id="expTitle"></div>
+            <div class="exp-content" id="expContent"></div>
+        </div>
+
+        <button class="next-btn" id="nextBtn" onclick="nextQuestion()">Câu tiếp theo ➜</button>
+    </div>
+</div>
+
+<div class="modal-overlay" id="resultModal">
+    <div class="modal-content">
+        <h2 style="color: var(--secondary);">TỔNG KẾT ĐIỂM SỐ</h2>
+        <div class="score-display" id="finalScore">0/30</div>
+        <p id="teacherComment" style="font-size: 18px; margin-bottom: 20px;"></p>
+        <button class="next-btn" style="display:inline-block;" onclick="location.reload()">Làm lại bài thi</button>
+    </div>
+</div>
+
+<audio id="soundCorrect" src="https://assets.mixkit.co/active_storage/sfx/2000/2000-preview.mp3"></audio>
+<audio id="soundWrong" src="https://assets.mixkit.co/active_storage/sfx/2003/2003-preview.mp3"></audio>
+<audio id="soundFinish" src="https://assets.mixkit.co/active_storage/sfx/1435/1435-preview.mp3"></audio>
+
+<script>
+    // DỮ LIỆU CÂU HỎI (30 Câu - Mixed Tenses - Grade 3-4 Level)
+    const questionsDB = [
+        {
+            q: "Look! The boys ______ football in the playground.",
+            options: ["plays", "are playing", "played", "will play"],
+            correct: 1, // Index của đáp án đúng (0, 1, 2, 3)
+            exp: {
+                trans: "Nhìn kìa! Các bạn nam đang chơi đá bóng trong sân chơi.",
+                vocab: [
+                    {w: "plays", t: "v (s/es)", m: "chơi (thường xuyên)"},
+                    {w: "are playing", t: "v (be V-ing)", m: "đang chơi"},
+                    {w: "played", t: "v (ed)", m: "đã chơi"},
+                    {w: "will play", t: "v (future)", m: "sẽ chơi"}
+                ],
+                whyCorrect: "Có dấu hiệu 'Look!' (Nhìn kìa!) đứng đầu câu ➔ Dùng thì **Hiện tại tiếp diễn** để diễn tả hành động đang xảy ra ngay lúc nói.",
+                whyWrong: "Các đáp án khác sai thì: 'plays' (hiện tại đơn - thói quen), 'played' (quá khứ), 'will play' (tương lai)."
+            }
+        },
+        {
+            q: "My mother ______ to the market every morning.",
+            options: ["go", "going", "goes", "went"],
+            correct: 2,
+            exp: {
+                trans: "Mẹ của tớ đi chợ mỗi buổi sáng.",
+                vocab: [
+                    {w: "go", t: "v", m: "đi (nguyên thể)"},
+                    {w: "going", t: "v-ing", m: "đang đi"},
+                    {w: "goes", t: "v (es)", m: "đi (chia số ít)"},
+                    {w: "went", t: "v (past)", m: "đã đi"}
+                ],
+                whyCorrect: "Có dấu hiệu 'every morning' (mỗi sáng) ➔ Thói quen ➔ Thì **Hiện tại đơn**. Chủ ngữ 'My mother' là số ít (she) nên động từ thêm 'es'.",
+                whyWrong: "A sai vì thiếu 'es'. B sai ngữ pháp (thiếu to be). D sai vì là quá khứ."
+            }
+        },
+        {
+            q: "Where ______ you go yesterday?",
+            options: ["do", "did", "are", "will"],
+            correct: 1,
+            exp: {
+                trans: "Bạn đã đi đâu ngày hôm qua?",
+                vocab: [
+                    {w: "do", t: "trợ ĐT", m: "làm (hiện tại)"},
+                    {w: "did", t: "trợ ĐT", m: "đã làm (quá khứ)"},
+                    {w: "are", t: "to be", m: "thì, là, ở"},
+                    {w: "will", t: "modal", m: "sẽ"}
+                ],
+                whyCorrect: "Có dấu hiệu 'yesterday' (hôm qua) ➔ Thì **Quá khứ đơn**. Câu hỏi với động từ thường 'go' cần mượn trợ động từ quá khứ là 'Did'.",
+                whyWrong: "'Do' dùng cho hiện tại. 'Are' không đi với 'go' nguyên thể. 'Will' dùng cho tương lai."
+            }
+        },
+        {
+            q: "I ______ my homework right now. Don't disturb me.",
+            options: ["do", "am doing", "did", "have done"],
+            correct: 1,
+            exp: {
+                trans: "Tớ đang làm bài tập về nhà ngay bây giờ. Đừng làm phiền tớ.",
+                vocab: [
+                    {w: "do", t: "v", m: "làm"},
+                    {w: "am doing", t: "v", m: "đang làm"},
+                    {w: "did", t: "v", m: "đã làm"},
+                    {w: "have done", t: "v", m: "đã làm xong"}
+                ],
+                whyCorrect: "Có dấu hiệu 'right now' (ngay bây giờ) ➔ Thì **Hiện tại tiếp diễn** (S + am/is/are + V-ing). Chủ ngữ 'I' đi với 'am doing'.",
+                whyWrong: "A chỉ thói quen. C chỉ quá khứ. D chỉ hành động đã hoàn thành."
+            }
+        },
+        {
+            q: "She ______ Ha Long Bay last summer.",
+            options: ["visits", "visited", "visiting", "will visit"],
+            correct: 1,
+            exp: {
+                trans: "Cô ấy đã thăm Vịnh Hạ Long mùa hè năm ngoái.",
+                vocab: [
+                    {w: "visits", t: "v", m: "thăm (hiện tại)"},
+                    {w: "visited", t: "v", m: "đã thăm (quá khứ)"},
+                    {w: "visiting", t: "v-ing", m: "đang thăm"},
+                    {w: "will visit", t: "v", m: "sẽ thăm"}
+                ],
+                whyCorrect: "Có dấu hiệu 'last summer' (mùa hè trước) ➔ Hành động đã kết thúc trong quá khứ ➔ Thì **Quá khứ đơn** (V-ed).",
+                whyWrong: "A sai thì hiện tại. C thiếu to be. D sai thì tương lai."
+            }
+        },
+        {
+            q: "We ______ a test tomorrow.",
+            options: ["have", "had", "will have", "has"],
+            correct: 2,
+            exp: {
+                trans: "Chúng tớ sẽ có một bài kiểm tra vào ngày mai.",
+                vocab: [
+                    {w: "have", t: "v", m: "có"},
+                    {w: "had", t: "v", m: "đã có"},
+                    {w: "will have", t: "v", m: "sẽ có"},
+                    {w: "has", t: "v", m: "có (số ít)"}
+                ],
+                whyCorrect: "Có dấu hiệu 'tomorrow' (ngày mai) ➔ Sự việc chưa xảy ra ➔ Thì **Tương lai đơn** (will + V nguyên thể).",
+                whyWrong: "A, D là hiện tại. B là quá khứ."
+            }
+        },
+        {
+            q: "He ______ English for 3 years.",
+            options: ["learns", "learned", "has learned", "is learning"],
+            correct: 2,
+            exp: {
+                trans: "Anh ấy đã học tiếng Anh được 3 năm rồi (và vẫn còn học).",
+                vocab: [
+                    {w: "learns", t: "v", m: "học (thường xuyên)"},
+                    {w: "learned", t: "v", m: "đã học (xong rồi)"},
+                    {w: "has learned", t: "v", m: "đã và đang học"},
+                    {w: "is learning", t: "v", m: "đang học (lúc này)"}
+                ],
+                whyCorrect: "Có dấu hiệu 'for 3 years' (khoảng thời gian) ➔ Hành động bắt đầu trong quá khứ kéo dài đến hiện tại ➔ Thì **Hiện tại hoàn thành** (has + V3/ed).",
+                whyWrong: "A là hiện tại đơn. B là quá khứ đơn (đã chấm dứt). D là đang diễn ra nhất thời."
+            }
+        },
+        {
+            q: "Listen! Someone ______ the piano.",
+            options: ["play", "plays", "is playing", "played"],
+            correct: 2,
+            exp: {
+                trans: "Nghe kìa! Ai đó đang chơi đàn piano.",
+                vocab: [
+                    {w: "play/plays", t: "v", m: "chơi (thói quen)"},
+                    {w: "is playing", t: "v", m: "đang chơi"},
+                    {w: "played", t: "v", m: "đã chơi"}
+                ],
+                whyCorrect: "Có từ 'Listen!' (Nghe kìa!) là câu mệnh lệnh cảnh báo sự việc đang diễn ra ➔ Thì **Hiện tại tiếp diễn**.",
+                whyWrong: "A, B dùng cho thói quen. D dùng cho quá khứ."
+            }
+        },
+        {
+            q: "They ______ football at the moment.",
+            options: ["don't play", "aren't playing", "didn't play", "won't play"],
+            correct: 1,
+            exp: {
+                trans: "Họ đang không chơi bóng đá vào lúc này.",
+                vocab: [
+                    {w: "don't play", t: "v", m: "không chơi (thói quen)"},
+                    {w: "aren't playing", t: "v", m: "đang không chơi"},
+                    {w: "didn't play", t: "v", m: "đã không chơi"},
+                    {w: "won't play", t: "v", m: "sẽ không chơi"}
+                ],
+                whyCorrect: "Có dấu hiệu 'at the moment' (ngay lúc này) ➔ Thì **Hiện tại tiếp diễn**. Câu phủ định: aren't + V-ing.",
+                whyWrong: "A sai thì hiện tại đơn. C sai thì quá khứ. D sai thì tương lai."
+            }
+        },
+        {
+            q: "Nam often ______ TV in the evening.",
+            options: ["watch", "watches", "watching", "watched"],
+            correct: 1,
+            exp: {
+                trans: "Nam thường xem TV vào buổi tối.",
+                vocab: [
+                    {w: "watch", t: "v", m: "xem (số nhiều)"},
+                    {w: "watches", t: "v", m: "xem (số ít)"},
+                    {w: "watching", t: "v", m: "đang xem"},
+                    {w: "watched", t: "v", m: "đã xem"}
+                ],
+                whyCorrect: "Có trạng từ tần suất 'often' (thường) ➔ Thì **Hiện tại đơn**. Chủ ngữ 'Nam' (He) là số ít nên động từ thêm 'es'.",
+                whyWrong: "A thiếu 'es'. C thiếu to be. D là quá khứ."
+            }
+        },
+        {
+            q: "______ you visit your grandparents next week?",
+            options: ["Do", "Did", "Will", "Are"],
+            correct: 2,
+            exp: {
+                trans: "Bạn sẽ đi thăm ông bà vào tuần tới chứ?",
+                vocab: [
+                    {w: "Do", t: "trợ từ", m: "Hiện tại"},
+                    {w: "Did", t: "trợ từ", m: "Quá khứ"},
+                    {w: "Will", t: "trợ từ", m: "Tương lai (Sẽ)"},
+                    {w: "Are", t: "to be", m: "Thì/Là"}
+                ],
+                whyCorrect: "Có dấu hiệu 'next week' (tuần tới) ➔ Thì **Tương lai đơn**. Cấu trúc câu hỏi: Will + S + V?",
+                whyWrong: "A, B sai thì. D sai ngữ pháp (Are you visit -> sai, phải là Are you visiting)."
+            }
+        },
+        {
+            q: "I ______ this film yesterday evening.",
+            options: ["see", "saw", "seen", "seeing"],
+            correct: 1,
+            exp: {
+                trans: "Tớ đã xem bộ phim này tối hôm qua.",
+                vocab: [
+                    {w: "see", t: "v", m: "nhìn/xem (hiện tại)"},
+                    {w: "saw", t: "v", m: "đã nhìn/xem (quá khứ)"},
+                    {w: "seen", t: "v", m: "phân từ 2"},
+                    {w: "seeing", t: "v", m: "đang nhìn"}
+                ],
+                whyCorrect: "'Yesterday evening' (tối qua) là thời gian xác định trong quá khứ ➔ Thì **Quá khứ đơn**. V2 của 'see' là 'saw'.",
+                whyWrong: "A là hiện tại. C và D không đứng một mình làm động từ chính trong thì đơn."
+            }
+        },
+        {
+            q: "Keep silent! The baby ______.",
+            options: ["sleeps", "slept", "is sleeping", "will sleep"],
+            correct: 2,
+            exp: {
+                trans: "Giữ im lặng nào! Em bé đang ngủ.",
+                vocab: [
+                    {w: "sleeps", t: "v", m: "ngủ (thói quen)"},
+                    {w: "slept", t: "v", m: "đã ngủ"},
+                    {w: "is sleeping", t: "v", m: "đang ngủ"},
+                    {w: "will sleep", t: "v", m: "sẽ ngủ"}
+                ],
+                whyCorrect: "'Keep silent!' (Im lặng!) là dấu hiệu mệnh lệnh ➔ Hành động đang xảy ra ➔ Thì **Hiện tại tiếp diễn**.",
+                whyWrong: "A, B, D sai thì."
+            }
+        },
+        {
+            q: "We ______ to the zoo two days ago.",
+            options: ["went", "go", "are going", "have gone"],
+            correct: 0,
+            exp: {
+                trans: "Chúng tớ đã đi sở thú cách đây 2 ngày.",
+                vocab: [
+                    {w: "went", t: "v", m: "đã đi"},
+                    {w: "go", t: "v", m: "đi"},
+                    {w: "are going", t: "v", m: "đang đi"},
+                    {w: "have gone", t: "v", m: "đã đi (chưa về)"}
+                ],
+                whyCorrect: "Dấu hiệu 'ago' (cách đây) ➔ Thì **Quá khứ đơn**. V2 của 'go' là 'went'.",
+                whyWrong: "B là hiện tại. C là tiếp diễn. D là hoàn thành (không dùng với ago)."
+            }
+        },
+        {
+            q: "I have lived in Hanoi ______ 2015.",
+            options: ["for", "since", "in", "at"],
+            correct: 1,
+            exp: {
+                trans: "Tớ đã sống ở Hà Nội từ năm 2015.",
+                vocab: [
+                    {w: "for", t: "giới từ", m: "khoảng (thời gian)"},
+                    {w: "since", t: "giới từ", m: "kể từ (mốc thời gian)"},
+                    {w: "in/at", t: "giới từ", m: "trong/tại"}
+                ],
+                whyCorrect: "Trong thì **Hiện tại hoàn thành** (have lived), dùng 'SINCE' + Mốc thời gian (2015).",
+                whyWrong: "'For' + Khoảng thời gian (ví dụ: for 10 years). In/At không dùng làm dấu hiệu thì hoàn thành ở vị trí này."
+            }
+        },
+        {
+            q: "Tom ______ his bike to school every day.",
+            options: ["ride", "rides", "riding", "is riding"],
+            correct: 1,
+            exp: {
+                trans: "Tom đạp xe đến trường mỗi ngày.",
+                vocab: [
+                    {w: "ride", t: "v", m: "đạp xe"},
+                    {w: "rides", t: "v", m: "đạp xe (số ít)"},
+                    {w: "riding", t: "v", m: "đang đạp"},
+                    {w: "is riding", t: "v", m: "đang đạp"}
+                ],
+                whyCorrect: "'Every day' ➔ Thói quen ➔ Thì **Hiện tại đơn**. Tom (ngôi thứ 3 số ít) ➔ Động từ thêm 's'.",
+                whyWrong: "A thiếu 's'. C, D là tiếp diễn."
+            }
+        },
+        {
+            q: "What ______ you doing now?",
+            options: ["do", "are", "did", "will"],
+            correct: 1,
+            exp: {
+                trans: "Bạn đang làm gì bây giờ thế?",
+                vocab: [
+                    {w: "do", t: "trợ từ", m: "làm"},
+                    {w: "are", t: "to be", m: "là/đang"},
+                    {w: "did", t: "trợ từ", m: "đã"},
+                    {w: "will", t: "trợ từ", m: "sẽ"}
+                ],
+                whyCorrect: "'Now' ➔ Thì **Hiện tại tiếp diễn** (V-ing). Cấu trúc câu hỏi: Wh + to be + S + V-ing? ➔ Cần 'Are'.",
+                whyWrong: "Do/Did/Will không đi trực tiếp với 'doing' trong câu hỏi thì này."
+            }
+        },
+        {
+            q: "They ______ new shoes tomorrow.",
+            options: ["buy", "bought", "will buy", "buys"],
+            correct: 2,
+            exp: {
+                trans: "Họ sẽ mua giày mới vào ngày mai.",
+                vocab: [
+                    {w: "buy", t: "v", m: "mua"},
+                    {w: "bought", t: "v", m: "đã mua"},
+                    {w: "will buy", t: "v", m: "sẽ mua"},
+                    {w: "buys", t: "v", m: "mua (số ít)"}
+                ],
+                whyCorrect: "'Tomorrow' ➔ Tương lai đơn ➔ Will + V.",
+                whyWrong: "A, D là hiện tại. B là quá khứ."
+            }
+        },
+        {
+            q: "She ______ very happy yesterday.",
+            options: ["is", "are", "was", "were"],
+            correct: 2,
+            exp: {
+                trans: "Cô ấy đã rất vui vào hôm qua.",
+                vocab: [
+                    {w: "is/are", t: "to be", m: "thì/là (hiện tại)"},
+                    {w: "was", t: "to be", m: "đã là (quá khứ số ít)"},
+                    {w: "were", t: "to be", m: "đã là (quá khứ số nhiều)"}
+                ],
+                whyCorrect: "'Yesterday' ➔ Quá khứ đơn. Chủ ngữ 'She' (số ít) đi với động từ to be quá khứ là 'was'.",
+                whyWrong: "Is/Are là hiện tại. Were dùng cho số nhiều (They/We/You)."
+            }
+        },
+        {
+            q: "______ he play football? - No, he plays badminton.",
+            options: ["Do", "Does", "Is", "Will"],
+            correct: 1,
+            exp: {
+                trans: "Cậu ấy có chơi bóng đá không? - Không, cậu ấy chơi cầu lông.",
+                vocab: [
+                    {w: "Do", t: "trợ từ", m: "dùng cho I/You/We/They"},
+                    {w: "Does", t: "trợ từ", m: "dùng cho He/She/It"},
+                    {w: "Is", t: "to be", m: "dùng cho tiếp diễn"},
+                    {w: "Will", t: "trợ từ", m: "tương lai"}
+                ],
+                whyCorrect: "Câu hỏi về thói quen/sự thật ➔ **Hiện tại đơn**. Chủ ngữ 'He' mượn trợ động từ 'Does'.",
+                whyWrong: "Do sai ngôi. Is không đi với 'play' nguyên thể. Will sai thì."
+            }
+        },
+        {
+            q: "We ______ just ______ our dinner.",
+            options: ["have/finished", "has/finished", "did/finish", "are/finishing"],
+            correct: 0,
+            exp: {
+                trans: "Chúng tớ vừa mới ăn xong bữa tối.",
+                vocab: [
+                    {w: "have...finished", t: "HTHT", m: "vừa làm xong"},
+                    {w: "has...finished", t: "HTHT", m: "vừa làm xong (số ít)"},
+                    {w: "did...finish", t: "QKĐ", m: "đã làm"},
+                    {w: "are...finishing", t: "HTTD", m: "đang làm"}
+                ],
+                whyCorrect: "Từ 'just' (vừa mới) nằm giữa câu thường là dấu hiệu thì **Hiện tại hoàn thành**. 'We' đi với 'have'.",
+                whyWrong: "B sai vì 'has' dùng cho số ít. C, D sai thì."
+            }
+        },
+        {
+            q: "Where ______ you usually ______ on Sundays?",
+            options: ["do/go", "did/go", "are/going", "will/go"],
+            correct: 0,
+            exp: {
+                trans: "Bạn thường đi đâu vào các ngày Chủ Nhật?",
+                vocab: [
+                    {w: "do...go", t: "HTĐ", m: "thường đi"},
+                    {w: "did...go", t: "QKĐ", m: "đã đi"},
+                    {w: "are...going", t: "HTTD", m: "đang đi"},
+                    {w: "will...go", t: "TLĐ", m: "sẽ đi"}
+                ],
+                whyCorrect: "'Usually' và 'on Sundays' (số nhiều) ➔ Thói quen lặp lại ➔ Thì **Hiện tại đơn**. Câu hỏi với 'you' dùng trợ từ 'do'.",
+                whyWrong: "Did (quá khứ). Are...going (đang diễn ra). Will (tương lai)."
+            }
+        },
+        {
+            q: "My dad ______ a car last year.",
+            options: ["doesn't buy", "didn't buy", "won't buy", "hasn't bought"],
+            correct: 1,
+            exp: {
+                trans: "Bố tớ đã không mua ô tô vào năm ngoái.",
+                vocab: [
+                    {w: "doesn't buy", t: "v", m: "không mua (hiện tại)"},
+                    {w: "didn't buy", t: "v", m: "đã không mua (quá khứ)"},
+                    {w: "won't buy", t: "v", m: "sẽ không mua"},
+                    {w: "hasn't bought", t: "v", m: "vẫn chưa mua"}
+                ],
+                whyCorrect: "'Last year' ➔ Quá khứ đơn. Dạng phủ định quá khứ: Didn't + V nguyên thể.",
+                whyWrong: "A (hiện tại). C (tương lai). D (hoàn thành)."
+            }
+        },
+        {
+            q: "Look at the clouds! It ______ rain.",
+            options: ["is going to", "will", "did", "is"],
+            correct: 0,
+            exp: {
+                trans: "Nhìn mây kìa! Trời sắp mưa rồi.",
+                vocab: [
+                    {w: "is going to", t: "TL gần", m: "sắp/dự định"},
+                    {w: "will", t: "TL đơn", m: "sẽ"},
+                    {w: "did", t: "QK", m: "đã"},
+                    {w: "is", t: "to be", m: "là"}
+                ],
+                whyCorrect: "Có bằng chứng cụ thể ở hiện tại (Look at the clouds!) ➔ Dùng **Tương lai gần** (be going to) để dự đoán.",
+                whyWrong: "'Will' dùng cho phỏng đoán không căn cứ hoặc quyết định tức thì. 'Did' là quá khứ."
+            }
+        },
+        {
+            q: "I ______ never ______ sushi before.",
+            options: ["have/eaten", "has/eaten", "did/eat", "do/eat"],
+            correct: 0,
+            exp: {
+                trans: "Tớ chưa bao giờ ăn sushi trước đây cả.",
+                vocab: [
+                    {w: "have eaten", t: "HTHT", m: "đã ăn"},
+                    {w: "has eaten", t: "HTHT", m: "đã ăn (số ít)"},
+                    {w: "did eat", t: "QKĐ", m: "đã ăn"},
+                    {w: "do eat", t: "HTĐ", m: "ăn"}
+                ],
+                whyCorrect: "'Never...before' nói về trải nghiệm ➔ Thì **Hiện tại hoàn thành**. 'I' đi với 'have'.",
+                whyWrong: "B sai ngôi. C, D sai thì."
+            }
+        },
+        {
+            q: "While I was reading, my sister ______ TV.",
+            options: ["watch", "watched", "was watching", "is watching"],
+            correct: 2,
+            exp: {
+                trans: "Trong khi tớ đang đọc sách thì em gái tớ đang xem TV.",
+                vocab: [
+                    {w: "watch", t: "v", m: "xem"},
+                    {w: "watched", t: "v", m: "đã xem"},
+                    {w: "was watching", t: "v", m: "đang xem (quá khứ)"},
+                    {w: "is watching", t: "v", m: "đang xem (hiện tại)"}
+                ],
+                whyCorrect: "Cấu trúc 'While' (trong khi) diễn tả 2 hành động xảy ra song song trong quá khứ ➔ Cả 2 đều dùng **Quá khứ tiếp diễn** (was/were + V-ing).",
+                whyWrong: "A, D sai thì hiện tại. B là hành động ngắn xen vào (không hợp ngữ cảnh song song này)."
+            }
+        },
+        {
+            q: "At 8 PM last night, I ______ my homework.",
+            options: ["did", "was doing", "am doing", "do"],
+            correct: 1,
+            exp: {
+                trans: "Vào lúc 8 giờ tối qua, tớ đang làm bài tập.",
+                vocab: [
+                    {w: "did", t: "v", m: "đã làm (xong rồi)"},
+                    {w: "was doing", t: "v", m: "đang làm (tại thời điểm đó)"},
+                    {w: "am doing", t: "v", m: "đang làm (bây giờ)"},
+                    {w: "do", t: "v", m: "làm (thường xuyên)"}
+                ],
+                whyCorrect: "Giờ cụ thể trong quá khứ (8 PM last night) ➔ Thì **Quá khứ tiếp diễn** để nhấn mạnh quá trình đang diễn ra.",
+                whyWrong: "A dùng cho hành động đã kết thúc. C, D là hiện tại."
+            }
+        },
+        {
+            q: "______ you ______ the dishes yet?",
+            options: ["Did/wash", "Have/washed", "Do/wash", "Are/washing"],
+            correct: 1,
+            exp: {
+                trans: "Bạn đã rửa bát xong chưa?",
+                vocab: [
+                    {w: "Did...wash", t: "QKĐ", m: "đã rửa"},
+                    {w: "Have...washed", t: "HTHT", m: "đã rửa (kết quả)"},
+                    {w: "Do...wash", t: "HTĐ", m: "rửa"},
+                    {w: "Are...washing", t: "HTTD", m: "đang rửa"}
+                ],
+                whyCorrect: "Từ 'yet' cuối câu hỏi thường dùng trong thì **Hiện tại hoàn thành**.",
+                whyWrong: "A dùng cho quá khứ xác định thời gian. C thói quen. D đang diễn ra."
+            }
+        },
+        {
+            q: "I promise I ______ help you tomorrow.",
+            options: ["will", "do", "am", "have"],
+            correct: 0,
+            exp: {
+                trans: "Tớ hứa tớ sẽ giúp cậu vào ngày mai.",
+                vocab: [
+                    {w: "will", t: "modal", m: "sẽ"},
+                    {w: "do", t: "trợ từ", m: "làm"},
+                    {w: "am", t: "to be", m: "thì/là"},
+                    {w: "have", t: "v", m: "có/đã"}
+                ],
+                whyCorrect: "Động từ 'Promise' (hứa) thường đi với thì **Tương lai đơn** (Will).",
+                whyWrong: "Do/Am/Have không dùng để diễn tả lời hứa trong tương lai theo cách này."
+            }
+        },
+        {
+            q: "The sun ______ in the East.",
+            options: ["rise", "rises", "rising", "rose"],
+            correct: 1,
+            exp: {
+                trans: "Mặt trời mọc ở hướng Đông.",
+                vocab: [
+                    {w: "rise", t: "v", m: "mọc"},
+                    {w: "rises", t: "v", m: "mọc (số ít)"},
+                    {w: "rising", t: "v", m: "đang mọc"},
+                    {w: "rose", t: "v", m: "đã mọc"}
+                ],
+                whyCorrect: "Sự thật hiển nhiên ➔ Thì **Hiện tại đơn**. 'The sun' là số ít ➔ Thêm 's'.",
+                whyWrong: "A thiếu 's'. C sai ngữ pháp. D là quá khứ."
+            }
+        }
+    ];
+
+    let currentQ = 0;
+    let score = 0;
+    let shuffledQ = [];
+    let isAnswered = false;
+
+    // Âm thanh
+    const sCorrect = document.getElementById("soundCorrect");
+    const sWrong = document.getElementById("soundWrong");
+    const sFinish = document.getElementById("soundFinish");
+
+    // Khởi tạo
+    function init() {
+        shuffledQ = questionsDB.sort(() => Math.random() - 0.5);
+        currentQ = 0;
+        score = 0;
+        loadQuestion();
+        updateProgress();
+    }
+
+    function updateProgress() {
+        const percent = ((currentQ) / shuffledQ.length) * 100;
+        document.getElementById("progressBar").style.width = percent + "%";
+    }
+
+    function loadQuestion() {
+        isAnswered = false;
+        document.getElementById("nextBtn").style.display = "none";
+        document.getElementById("explanationBox").style.display = "none";
+        document.getElementById("explanationBox").className = "explanation-box"; // Reset class
+        
+        const qData = shuffledQ[currentQ];
+        document.getElementById("questionText").innerHTML = `Câu ${currentQ + 1}: ${qData.q}`;
+
+        const optsDiv = document.getElementById("optionsContainer");
+        optsDiv.innerHTML = "";
+
+        qData.options.forEach((opt, index) => {
+            const btn = document.createElement("button");
+            btn.className = "option-btn";
+            btn.innerText = String.fromCharCode(65 + index) + ". " + opt; // A. ..., B. ...
+            btn.onclick = () => checkAnswer(index, btn);
+            optsDiv.appendChild(btn);
+        });
+    }
+
+    function checkAnswer(selectedIndex, btnElement) {
+        if (isAnswered) return;
+        isAnswered = true;
+
+        const qData = shuffledQ[currentQ];
+        const allBtns = document.querySelectorAll(".option-btn");
+        
+        // Disable all buttons
+        allBtns.forEach(b => b.classList.add("disabled"));
+
+        if (selectedIndex === qData.correct) {
+            // ĐÚNG
+            btnElement.classList.add("correct");
+            score++;
+            sCorrect.currentTime = 0;
+            sCorrect.play();
+            triggerConfetti();
+        } else {
+            // SAI
+            btnElement.classList.add("wrong");
+            // Highlight đáp án đúng
+            allBtns[qData.correct].classList.add("correct");
+            document.getElementById("explanationBox").classList.add("wrong-mode");
+            sWrong.currentTime = 0;
+            sWrong.play();
+        }
+
+        showExplanation(qData);
+        document.getElementById("nextBtn").style.display = "block";
+        updateProgress();
+    }
+
+    function showExplanation(qData) {
+        const expBox = document.getElementById("explanationBox");
+        const expTitle = document.getElementById("expTitle");
+        const expContent = document.getElementById("expContent");
+
+        expTitle.innerHTML = "📝 Ms Mai An giải thích chi tiết:";
+        
+        let vocabRows = "";
+        qData.exp.vocab.forEach(v => {
+            vocabRows += `<tr>
+                <td><b>${v.w}</b></td>
+                <td><span class="exp-tag tag-blue">${v.t}</span></td>
+                <td>${v.m}</td>
+            </tr>`;
+        });
+
+        expContent.innerHTML = `
+            <p><b>🔍 Dịch câu hỏi:</b> "${qData.exp.trans}"</p>
+            <table class="vocab-table">
+                <tr><th>Từ vựng</th><th>Loại từ</th><th>Nghĩa</th></tr>
+                ${vocabRows}
+            </table>
+            <p style="margin-top:15px"><span class="exp-tag tag-green">TẠI SAO ĐÚNG?</span> ${qData.exp.whyCorrect}</p>
+            <p><span class="exp-tag tag-red">TẠI SAO SAI?</span> ${qData.exp.whyWrong}</p>
+        `;
+        
+        expBox.style.display = "block";
+    }
+
+    function nextQuestion() {
+        currentQ++;
+        if (currentQ < shuffledQ.length) {
+            loadQuestion();
+        } else {
+            showResult();
+        }
+    }
+
+    function showResult() {
+        document.getElementById("resultModal").style.display = "flex";
+        document.getElementById("finalScore").innerText = `${score} / ${shuffledQ.length}`;
+        sFinish.play();
+        triggerConfetti();
+
+        const comment = document.getElementById("teacherComment");
+        const percent = (score / shuffledQ.length) * 100;
+        
+        if (percent === 100) comment.innerText = "🏆 Xuất sắc! Em là thiên tài ngữ pháp!";
+        else if (percent >= 80) comment.innerText = "🌟 Rất giỏi! Cô rất tự hào về em!";
+        else if (percent >= 50) comment.innerText = "👍 Khá tốt! Cố gắng ôn thêm chút nữa nhé!";
+        else comment.innerText = "💪 Cần nỗ lực hơn! Hãy xem lại phần giải thích nhé!";
+    }
+
+    function triggerConfetti() {
+        confetti({
+            particleCount: 100,
+            spread: 70,
+            origin: { y: 0.6 }
+        });
+    }
+
+    // Start
+    init();
+
+</script>
+</body>
+</html>

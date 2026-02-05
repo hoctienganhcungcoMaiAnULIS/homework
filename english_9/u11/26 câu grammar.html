@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ms Mai An ULIS - English Practice</title>
+    
+    <!-- Google Fonts: Nunito & Quicksand -->
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
+    <!-- Tailwind CSS (via CDN for styling utility) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+        :root {
+            --primary-purple: #8854C0;
+            --primary-teal: #00C9A7;
+            --correct-green: #00D26A;
+            --wrong-red: #FF4757;
+            --bg-pastel: #F0F3F9;
+            --text-dark: #2D3436;
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: var(--bg-pastel);
+            background-image: radial-gradient(#e5e7eb 1px, transparent 1px);
+            background-size: 20px 20px;
+            color: var(--text-dark);
+            min-height: 100vh;
+        }
+
+        /* --- Header Styling --- */
+        .header-container {
+            background: linear-gradient(135deg, var(--primary-purple), #A29BFE);
+            box-shadow: 0 4px 15px rgba(136, 84, 192, 0.3);
+            border-bottom-left-radius: 30px;
+            border-bottom-right-radius: 30px;
+        }
+
+        /* --- Card Styling --- */
+        .quiz-card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 8px 0 rgba(0,0,0,0.05), 0 10px 20px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+            border: 2px solid #fff;
+        }
+
+        .quiz-card:hover {
+            transform: translateY(-2px);
+        }
+
+        /* --- Option Buttons (Gamification 3D Style) --- */
+        .option-btn {
+            background-color: white;
+            border: 2px solid #E2E8F0;
+            border-radius: 15px;
+            padding: 15px 20px;
+            font-weight: 700;
+            color: var(--text-dark);
+            cursor: pointer;
+            transition: all 0.1s ease;
+            box-shadow: 0 4px 0 #CBD5E0; /* 3D effect */
+            position: relative;
+            text-align: left;
+            display: flex;
+            align-items: center;
+        }
+
+        .option-btn:active {
+            transform: translateY(4px);
+            box-shadow: 0 0 0 #CBD5E0;
+        }
+
+        .option-btn:hover:not(:disabled) {
+            background-color: #F7FAFC;
+            transform: scale(1.02);
+        }
+
+        /* --- States --- */
+        .option-btn.correct {
+            background-color: var(--correct-green) !important;
+            color: white !important;
+            border-color: #00B85C !important;
+            box-shadow: 0 4px 0 #009E4F !important;
+        }
+
+        .option-btn.wrong {
+            background-color: var(--wrong-red) !important;
+            color: white !important;
+            border-color: #FF2E43 !important;
+            box-shadow: 0 4px 0 #D61C2E !important;
+            animation: shake 0.5s;
+        }
+
+        .option-btn:disabled {
+            cursor: default;
+            opacity: 0.8;
+            pointer-events: none;
+        }
+
+        /* --- Explanation Box --- */
+        .explanation-box {
+            display: none; /* Hidden by default */
+            background-color: #F0FDF4; /* Light green bg */
+            border: 2px dashed var(--primary-teal);
+            border-radius: 15px;
+            margin-top: 20px;
+            animation: slideDown 0.4s ease-out;
+        }
+        
+        .explanation-header {
+            background-color: var(--primary-teal);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 10px 0 10px 0;
+            display: inline-block;
+            font-family: 'Quicksand', sans-serif;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        /* --- Animations --- */
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-5px) rotate(-2deg); }
+            50% { transform: translateX(5px) rotate(2deg); }
+            75% { transform: translateX(-5px) rotate(-2deg); }
+            100% { transform: translateX(0); }
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* --- Confetti Canvas --- */
+        #confetti-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 9999;
+        }
+
+        /* --- Highlight for Phonetics --- */
+        u {
+            text-decoration: none;
+            border-bottom: 3px solid var(--primary-purple);
+            padding-bottom: 2px;
+            font-weight: 800;
+        }
+    </style>
+</head>
+<body class="pb-20">
+
+    <canvas id="confetti-canvas"></canvas>
+
+    <!-- HEADER -->
+    <div class="header-container text-white py-6 px-4 mb-8 text-center relative overflow-hidden">
+        <div class="relative z-10">
+            <h1 class="text-3xl md:text-4xl font-extrabold font-quicksand drop-shadow-md">
+                🎓 Ms. Mai An ULIS
+            </h1>
+            <p class="mt-2 text-lg opacity-90 font-medium">
+                English Practice: Suggest/Recommend/Advise Structures
+            </p>
+        </div>
+        <!-- Decorative bubbles -->
+        <div class="absolute top-0 left-0 w-20 h-20 bg-white opacity-10 rounded-full -translate-x-10 -translate-y-10"></div>
+        <div class="absolute bottom-0 right-0 w-32 h-32 bg-white opacity-10 rounded-full translate-x-10 translate-y-10"></div>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="quiz-container" class="max-w-3xl mx-auto px-4 space-y-8">
+        <!-- Questions will be injected here by JS -->
+    </div>
+
+    <!-- FOOTER / SUBMIT -->
+    <div class="fixed bottom-0 left-0 w-full bg-white border-t border-gray-200 p-4 shadow-lg flex justify-between items-center z-50">
+        <div class="text-lg font-bold text-gray-700">
+            Score: <span id="current-score" class="text-purple-600 text-2xl">0</span>/<span id="total-questions">0</span>
+        </div>
+        <button onclick="finishQuiz()" class="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-bold py-3 px-8 rounded-full shadow-lg transform transition hover:scale-105 active:scale-95">
+            Nộp bài & Xem kết quả
+        </button>
+    </div>
+
+    <!-- RESULT MODAL -->
+    <div id="result-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-[100]">
+        <div class="bg-white rounded-3xl p-8 max-w-md w-full text-center transform scale-100 transition-transform">
+            <div class="text-6xl mb-4">🏆</div>
+            <h2 class="text-2xl font-bold text-gray-800 mb-2">Kết quả của bạn</h2>
+            <p class="text-gray-600 mb-6">Bạn đã hoàn thành bài luyện tập!</p>
+            
+            <div class="text-5xl font-extrabold text-purple-600 mb-6" id="final-score">0/0</div>
+            
+            <p id="feedback-text" class="text-lg font-semibold text-teal-600 mb-8"></p>
+
+            <button onclick="closeModal()" class="w-full bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-3 px-6 rounded-xl transition">
+                Xem lại bài làm
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // --- DATA SOURCE (Questions 31-56) ---
+        const quizData = [
+    {
+      "questionNumber": 31,
+      "question": "Our team leader suggested __________on time for this important meeting.",
+      "answerOptions": [
+        { "text": "to be", "isCorrect": false },
+        { "text": "be", "isCorrect": false },
+        { "text": "to be", "isCorrect": false },
+        { "text": "being", "isCorrect": true }
+      ],
+      "rationale": "1. Phân tích 4 đáp án:<br>- A. to be (to V): để là/để đến.<br>- B. be (V nguyên thể): là/đến.<br>- C. to be (to V): (trùng đáp án A).<br>- D. being (V-ing): việc là/việc đến.<br><br>2. Dịch nghĩa: \"Đội trưởng của chúng tôi gợi ý việc đến đúng giờ cho cuộc họp quan trọng này.\"<br><br>3. Giải thích: Động từ \"suggest\" khi đi trực tiếp với động từ (không có mệnh đề \"that + S\") thì động từ theo sau phải ở dạng V-ing. Không dùng \"to V\"."
+    },
+    {
+      "questionNumber": 32,
+      "question": "We have suggested __________to Paris for this winter vacation.",
+      "answerOptions": [
+        { "text": "should go", "isCorrect": false },
+        { "text": "to go", "isCorrect": false },
+        { "text": "go", "isCorrect": false },
+        { "text": "going", "isCorrect": true }
+      ],
+      "rationale": "1. Phân tích 4 đáp án:<br>- A. should go (modal verb): nên đi.<br>- B. to go (to V): đi.<br>- C. go (V nguyên thể): đi.<br>- D. going (V-ing): việc đi.<br><br>2. Dịch nghĩa: \"Chúng tôi đã gợi ý đi Paris cho kỳ nghỉ đông này.\"<br><br>3. Giải thích: Cấu trúc: Suggest + V-ing."
+    },
+    {
+      "questionNumber": 33,
+      "question": "The class monitor suggested that we ____________ pizzas and cokes for the party.",
+      "answerOptions": [
+        { "text": "ordered", "isCorrect": false },
+        { "text": "ordering", "isCorrect": false },
+        { "text": "should order", "isCorrect": true },
+        { "text": "will order", "isCorrect": false }
+      ],
+      "rationale": "1. Phân tích 4 đáp án:<br>- A. ordered (V-ed): đã gọi món.<br>- B. ordering (V-ing): việc gọi món.<br>- C. should order (modal verb): nên gọi món.<br>- D. will order (tương lai đơn): sẽ gọi món.<br><br>2. Dịch nghĩa: \"Lớp trưởng đề nghị rằng chúng ta nên gọi pizza và coca cho bữa tiệc.\"<br><br>3. Giải thích: Cấu trúc giả định: Suggest + that + S + should + V (hoặc V nguyên thể)."
+    },
+    {
+      "questionNumber": 34,
+      "question": "We have suggested __________funds for the poor children in the mountainous areas.",
+      "answerOptions": [
+        { "text": "to raise", "isCorrect": false },
+        { "text": "raising", "isCorrect": true },
+        { "text": "raise", "isCorrect": false },
+        { "text": "to raise", "isCorrect": false }
+      ],
+      "rationale": "1. Phân tích 4 đáp án:<br>- A. to raise (to V): gây quỹ.<br>- B. raising (V-ing): việc gây quỹ.<br>- C. raise (V nguyên thể): gây quỹ.<br>- D. to raise (trùng đáp án A).<br><br>2. Dịch nghĩa: \"Chúng tôi đã đề xuất việc gây quỹ cho trẻ em nghèo ở vùng núi.\"<br><br>3. Giải thích: Cấu trúc Suggest + V-ing."
+    },
+    {
+      "questionNumber": 35,
+      "question": "She suggested ____________ prices of the same laptop in different stores.",
+      "answerOptions": [
+        { "text": "being compared", "isCorrect": false },
+        { "text": "to compare", "isCorrect": false },
+        { "text": "compare", "isCorrect": false },
+        { "text": "comparing", "isCorrect": true }
+      ],
+      "rationale": "1. Phân tích 4 đáp án:<br>- A. being compared (bị động V-ing): bị so sánh.<br>- B. to compare (to V): so sánh.<br>- C. compare (V nguyên thể): so sánh.<br>- D. comparing (V-ing chủ động): so sánh.<br><br>2. Dịch nghĩa: \"Cô ấy gợi ý so sánh giá của cùng một chiếc máy tính xách tay ở các cửa hàng khác nhau.\"<br><br>3. Giải thích: Ngữ cảnh chủ động (cô ấy gợi ý hành động so sánh), không phải bị động. Dùng V-ing sau suggest."
+    },
+    {
+      "questionNumber": 36,
+      "question": "His teacher suggests that he _________ questions if he doesn't understand something.",
+      "answerOptions": [
+        { "text": "will ask", "isCorrect": false },
+        { "text": "to ask", "isCorrect": false },
+        { "text": "should ask", "isCorrect": true },
+        { "text": "asks", "isCorrect": false }
+      ],
+      "rationale": "1. Phân tích 4 đáp án:<br>- A. will ask (tương lai đơn).<br>- B. to ask (to V).<br>- C. should ask (nên hỏi).<br>- D. asks (hiện tại đơn chia s).<br><br>2. Dịch nghĩa: \"Giáo viên của cậu ấy gợi ý rằng cậu ấy nên đặt câu hỏi nếu cậu ấy không hiểu điều gì đó.\"<br><br>3. Giải thích: Cấu trúc: Suggest + that + S + (should) + V."
+    },
+    {
+      "questionNumber": 37,
+      "question": "Ms. Paula suggested _____________about our most favourite electronic devices.",
+      "answerOptions": [
+        { "text": "talking", "isCorrect": true },
+        { "text": "talk", "isCorrect": false },
+        { "text": "to talking", "isCorrect": false },
+        { "text": "to talk", "isCorrect": false }
+      ],
+      "rationale": "1. Phân tích 4 đáp án:<br>- A. talking (V-ing): nói chuyện.<br>- B. talk (V nguyên thể).<br>- C. to talking (to V-ing).<br>- D. to talk (to V).<br><br>2. Dịch nghĩa: \"Cô Paula gợi ý nói chuyện về các thiết bị điện tử yêu thích nhất của chúng tôi.\"<br><br>3. Giải thích: Cấu trúc Suggest + V-ing."
+    },
+    {
+      "questionNumber": 38,
+      "question": "They suggested _________ a movie tonight to relax and have some fun together.",
+      "answerOptions": [
+        { "text": "to watch", "isCorrect": false },
+        { "text": "watching", "isCorrect": true },
+        { "text": "watch", "isCorrect": false },
+        { "text": "watched", "isCorrect": false }
+      ],
+      "rationale": "1. Phân tích 4 đáp án:<br>- A. to watch (to V): xem.<br>- B. watching (V-ing): việc xem.<br>- C. watch (V nguyên thể): xem.<br>- D. watched (V-ed): đã xem.<br><br>2. Dịch nghĩa: \"Họ gợi ý xem một bộ phim tối nay để thư giãn và vui vẻ cùng nhau.\"<br><br>3. Giải thích: Cấu trúc Suggest + V-ing."
+    },
+    {
+      "questionNumber": 39,
+      "question": "Elena recommended ____________ the robotic research centre.",
+      "answerOptions": [
+        { "text": "visiting", "isCorrect": true },
+        { "text": "to visit", "isCorrect": false },
+        { "text": "visit", "isCorrect": false },
+        { "text": "visited", "isCorrect": false }
+      ],
+      "rationale": "1. Phân tích 4 đáp án:<br>- A. visiting (V-ing): việc ghé thăm.<br>- B. to visit (to V): ghé thăm.<br>- C. visit (V nguyên thể): ghé thăm.<br>- D. visited (V-ed): đã ghé thăm.<br><br>2. Dịch nghĩa: \"Elena khuyên nên ghé thăm trung tâm nghiên cứu robot.\"<br><br>3. Giải thích: Recommend + V-ing (khi không có tân ngữ chỉ người)."
+    },
+    {
+      "questionNumber": 40,
+      "question": "Doctors advise that people _____________too much time using smartphones.",
+      "answerOptions": [
+        { "text": "don’t spend", "isCorrect": false },
+        { "text": "won’t spend", "isCorrect": false },
+        { "text": "not to spend", "isCorrect": false },
+        { "text": "not spend", "isCorrect": true }
+      ],
+      "rationale": "1. Phân tích 4 đáp án:<br>- A. don’t spend (trợ động từ + V).<br>- B. won’t spend (tương lai đơn).<br>- C. not to spend (not + to V).<br>- D. not spend (not + V nguyên thể).<br><br>2. Dịch nghĩa: \"Các bác sĩ khuyên rằng mọi người không nên dành quá nhiều thời gian sử dụng điện thoại thông minh.\"<br><br>3. Giải thích: Cấu trúc: Advise + that + S + (should) + not + V_bare. \"Should\" bị lược bỏ, còn lại \"not spend\"."
+    },
+    {
+      "questionNumber": 41,
+      "question": "My older brother suggests that I__________ tennis to have good health.",
+      "answerOptions": [
+        { "text": "playing", "isCorrect": false },
+        { "text": "to play", "isCorrect": false },
+        { "text": "plays", "isCorrect": false },
+        { "text": "should play", "isCorrect": true }
+      ],
+      "rationale": "1. Phân tích 4 đáp án:<br>- A. playing (V-ing).<br>- B. to play (to V).<br>- C. plays (V-s).<br>- D. should play (nên chơi).<br><br>2. Dịch nghĩa: \"Anh trai tôi gợi ý rằng tôi nên chơi tennis để có sức khỏe tốt.\"<br><br>3. Giải thích: Cấu trúc: Suggest + that + S + should + V."
+    },
+    {
+      "questionNumber": 42,
+      "question": "She suggested _____________some more mathematical puzzles on the iPad.",
+      "answerOptions": [
+        { "text": "do", "isCorrect": false },
+        { "text": "to do", "isCorrect": false },
+        { "text": "done", "isCorrect": false },
+        { "text": "doing", "isCorrect": true }
+      ],
+      "rationale": "1. Phân tích 4 đáp án:<br>- A. do (V nguyên thể).<br>- B. to do (to V).<br>- C. done (V phân từ 2).<br>- D. doing (V-ing).<br><br>2. Dịch nghĩa: \"Cô ấy gợi ý làm thêm một số câu đố toán học trên iPad.\"<br><br>3. Giải thích: Cấu trúc Suggest + V-ing."
+    },
+    {
+      "questionNumber": 43,
+      "question": "My dad suggests that I __________for some part-time jobs to earn more money.",
+      "answerOptions": [
+        { "text": "look", "isCorrect": true },
+        { "text": "looking", "isCorrect": false },
+        { "text": "to look", "isCorrect": false },
+        { "text": "looks", "isCorrect": false }
+      ],
+      "rationale": "1. Phân tích 4 đáp án:<br>- A. look (V nguyên thể).<br>- B. looking (V-ing).<br>- C. to look (to V).<br>- D. looks (V-s).<br><br>2. Dịch nghĩa: \"Bố tôi gợi ý rằng tôi nên tìm một số công việc bán thời gian để kiếm thêm tiền.\"<br><br>3. Giải thích: Cấu trúc: Suggest that + S + (should) + V_bare. Ở đây ẩn từ \"should\", động từ \"look\" giữ nguyên."
+    },
+    {
+      "questionNumber": 44,
+      "question": "Mark recommended _____________from the traditional desktop to the new one with touchscreen.",
+      "answerOptions": [
+        { "text": "change", "isCorrect": false },
+        { "text": "to change", "isCorrect": false },
+        { "text": "changing", "isCorrect": true },
+        { "text": "to changing", "isCorrect": false }
+      ],
+      "rationale": "1. Phân tích 4 đáp án:<br>- A. change (V nguyên thể).<br>- B. to change (to V).<br>- C. changing (V-ing).<br>- D. to changing (to V-ing).<br><br>2. Dịch nghĩa: \"Mark khuyên nên đổi từ máy tính để bàn truyền thống sang loại mới có màn hình cảm ứng.\"<br><br>3. Giải thích: Recommend + V-ing (khi không có tân ngữ chỉ người)."
+    },
+    {
+      "questionNumber": 45,
+      "question": "I suggested that we __________ John to our farewell party.",
+      "answerOptions": [
+        { "text": "inviting", "isCorrect": false },
+        { "text": "to invite", "isCorrect": false },
+        { "text": "should invite", "isCorrect": true },
+        { "text": "invites", "isCorrect": false }
+      ],
+      "rationale": "1. Phân tích 4 đáp án:<br>- A. inviting (V-ing): việc mời.<br>- B. to invite (to V): mời.<br>- C. should invite (nên mời).<br>- D. invites (mời - chia số ít).<br><br>2. Dịch nghĩa: \"Tôi đề nghị rằng chúng ta nên mời John đến bữa tiệc chia tay.\"<br><br>3. Giải thích: Cấu trúc: Suggest + that + S + should + V."
+    },
+    {
+      "questionNumber": 46,
+      "question": "The professor suggested he __________the research before June.",
+      "answerOptions": [
+        { "text": "to summit", "isCorrect": false },
+        { "text": "summit", "isCorrect": true },
+        { "text": "summits", "isCorrect": false },
+        { "text": "summiting", "isCorrect": false }
+      ],
+      "rationale": "1. Phân tích 4 đáp án:<br>- A. to summit (to V): nộp.<br>- B. summit (V nguyên thể).<br>- C. summits (V-s).<br>- D. summiting (V-ing).<br><br>2. Dịch nghĩa: \"Giáo sư gợi ý anh ấy nộp bài nghiên cứu trước tháng 6.\"<br><br>3. Giải thích: Cấu trúc giả định: Suggest + (that) + he + (should) + V_bare."
+    },
+    {
+      "questionNumber": 47,
+      "question": "Jack suggests they __________ a meeting every week.",
+      "answerOptions": [
+        { "text": "have", "isCorrect": false },
+        { "text": "to have", "isCorrect": false },
+        { "text": "A and D", "isCorrect": true },
+        { "text": "should have", "isCorrect": false }
+      ],
+      "rationale": "1. Phân tích 4 đáp án:<br>- A. have (V nguyên thể).<br>- B. to have (to V).<br>- C. A and D (Cả A và D).<br>- D. should have (should + V).<br><br>2. Dịch nghĩa: \"Jack gợi ý họ nên có một cuộc họp mỗi tuần.\"<br><br>3. Giải thích: Cả \"have\" (ẩn should) và \"should have\" đều đúng ngữ pháp trong câu đề nghị."
+    },
+    {
+      "questionNumber": 48,
+      "question": "My roommate suggested that we __________more vegetables and fruit.",
+      "answerOptions": [
+        { "text": "eating", "isCorrect": false },
+        { "text": "should eat", "isCorrect": true },
+        { "text": "to eat", "isCorrect": false },
+        { "text": "ate", "isCorrect": false }
+      ],
+      "rationale": "1. Phân tích 4 đáp án:<br>- A. eating (V-ing).<br>- B. should eat (should + V).<br>- C. to eat (to V).<br>- D. ate (quá khứ đơn).<br><br>2. Dịch nghĩa: \"Bạn cùng phòng của tôi gợi ý rằng chúng tôi nên ăn nhiều rau và trái cây hơn.\"<br><br>3. Giải thích: Cấu trúc: Suggest + that + S + should + V."
+    },
+    {
+      "questionNumber": 49,
+      "question": "My uncle advised that I ____________ my faulty smartwatch to the Service Centre.",
+      "answerOptions": [
+        { "text": "will bring", "isCorrect": false },
+        { "text": "should bring", "isCorrect": true },
+        { "text": "bringing", "isCorrect": false },
+        { "text": "brought", "isCorrect": false }
+      ],
+      "rationale": "1. Phân tích 4 đáp án:<br>- A. will bring (tương lai đơn).<br>- B. should bring (should + V).<br>- C. bringing (V-ing).<br>- D. brought (quá khứ đơn).<br><br>2. Dịch nghĩa: \"Chú tôi khuyên rằng tôi nên mang chiếc đồng hồ thông minh bị lỗi của mình đến Trung tâm bảo hành.\"<br><br>3. Giải thích: Cấu trúc: Advise + that + S + should + V."
+    },
+    {
+      "questionNumber": 50,
+      "question": "My friend John told me _________ him after school to make plans for the weekend.",
+      "answerOptions": [
+        { "text": "to call", "isCorrect": true },
+        { "text": "to called", "isCorrect": false },
+        { "text": "calling", "isCorrect": false },
+        { "text": "call", "isCorrect": false }
+      ],
+      "rationale": "1. Phân tích 4 đáp án:<br>- A. to call (to V).<br>- B. to called (sai ngữ pháp).<br>- C. calling (V-ing).<br>- D. call (V nguyên thể).<br><br>2. Dịch nghĩa: \"Bạn tôi John bảo tôi gọi cho cậu ấy sau giờ học để lên kế hoạch cho cuối tuần.\"<br><br>3. Giải thích: Cấu trúc: Tell + O + to V (Bảo ai làm gì)."
+    },
+    {
+      "questionNumber": 51,
+      "question": "The government suggests __________by bus to reduce the environmental pollution.",
+      "answerOptions": [
+        { "text": "traveling", "isCorrect": true },
+        { "text": "to travel", "isCorrect": false },
+        { "text": "travelled", "isCorrect": false },
+        { "text": "travel", "isCorrect": false }
+      ],
+      "rationale": "1. Phân tích 4 đáp án:<br>- A. traveling (V-ing).<br>- B. to travel (to V).<br>- C. travelled (V-ed).<br>- D. travel (V nguyên thể).<br><br>2. Dịch nghĩa: \"Chính phủ gợi ý đi lại bằng xe buýt để giảm ô nhiễm môi trường.\"<br><br>3. Giải thích: Suggest + V-ing."
+    },
+    {
+      "questionNumber": 52,
+      "question": "His parents suggest he __________ a certificate of business English before applying for a job.",
+      "answerOptions": [
+        { "text": "get", "isCorrect": true },
+        { "text": "got", "isCorrect": false },
+        { "text": "to get", "isCorrect": false },
+        { "text": "gets", "isCorrect": false }
+      ],
+      "rationale": "1. Phân tích 4 đáp án:<br>- A. get (V nguyên thể).<br>- B. got (quá khứ đơn).<br>- C. to get (to V).<br>- D. gets (V-s).<br><br>2. Dịch nghĩa: \"Bố mẹ anh ấy gợi ý anh ấy nên lấy chứng chỉ tiếng Anh thương mại trước khi xin việc.\"<br><br>3. Giải thích: Cấu trúc: Suggest + (that) + S + (should) + V_bare."
+    },
+    {
+      "questionNumber": 53,
+      "question": "Our teacher suggested we __________harder to pass the exam.",
+      "answerOptions": [
+        { "text": "to study", "isCorrect": false },
+        { "text": "studies", "isCorrect": false },
+        { "text": "studying", "isCorrect": false },
+        { "text": "study", "isCorrect": true }
+      ],
+      "rationale": "1. Phân tích 4 đáp án:<br>- A. to study (to V).<br>- B. studies (V-s).<br>- C. studying (V-ing).<br>- D. study (V nguyên thể).<br><br>2. Dịch nghĩa: \"Giáo viên của chúng tôi gợi ý chúng tôi nên học chăm chỉ hơn để vượt qua kỳ thi.\"<br><br>3. Giải thích: Cấu trúc: Suggest + (that) + we + (should) + study."
+    },
+    {
+      "questionNumber": 54,
+      "question": "I suggest __________ a postcard to our grandfather when we are on holiday in London.",
+      "answerOptions": [
+        { "text": "sending", "isCorrect": true },
+        { "text": "to send", "isCorrect": false },
+        { "text": "send", "isCorrect": false },
+        { "text": "sent", "isCorrect": false }
+      ],
+      "rationale": "1. Phân tích 4 đáp án:<br>- A. sending (V-ing): gửi.<br>- B. to send (to V): gửi.<br>- C. send (V nguyên thể): gửi.<br>- D. sent (V-ed): đã gửi.<br><br>2. Dịch nghĩa: \"Tôi gợi ý gửi một tấm bưu thiếp cho ông của chúng ta khi chúng ta đi nghỉ ở London.\"<br><br>3. Giải thích: Suggest + V-ing."
+    },
+    {
+      "questionNumber": 55,
+      "question": "My teacher recommended ____________ used batteries to the e-waste collection spot.",
+      "answerOptions": [
+        { "text": "taken", "isCorrect": false },
+        { "text": "taking", "isCorrect": true },
+        { "text": "to taking", "isCorrect": false },
+        { "text": "to take", "isCorrect": false }
+      ],
+      "rationale": "1. Phân tích 4 đáp án:<br>- A. taken (V phân từ 2).<br>- B. taking (V-ing).<br>- C. to taking (sai ngữ pháp).<br>- D. to take (to V).<br><br>2. Dịch nghĩa: \"Giáo viên của tôi khuyên nên mang pin đã qua sử dụng đến điểm thu gom rác thải điện tử.\"<br><br>3. Giải thích: Recommend + V-ing."
+    },
+    {
+      "questionNumber": 56,
+      "question": "Marry suggested __________to the park for a walk in the evening.",
+      "answerOptions": [
+        { "text": "going", "isCorrect": true },
+        { "text": "goes", "isCorrect": false },
+        { "text": "went", "isCorrect": false },
+        { "text": "to go", "isCorrect": false }
+      ],
+      "rationale": "1. Phân tích 4 đáp án:<br>- A. going (V-ing): việc đi.<br>- B. goes (V-s).<br>- C. went (quá khứ).<br>- D. to go (to V).<br><br>2. Dịch nghĩa: \"Marry gợi ý đi công viên đi dạo vào buổi tối.\"<br><br>3. Giải thích: Suggest + V-ing."
+    }
+];
+
+        let score = 0;
+        const totalQuestions = quizData.length;
+
+        // --- INIT ---
+        window.onload = function() {
+            document.getElementById('total-questions').innerText = totalQuestions;
+            renderQuiz();
+        };
+
+        // --- RENDER QUIZ ---
+        function renderQuiz() {
+            const container = document.getElementById('quiz-container');
+            
+            quizData.forEach((q, index) => {
+                const card = document.createElement('div');
+                card.className = "quiz-card p-6 mb-8";
+                card.id = `q-card-${index}`;
+
+                // Question Header
+                const qHeader = document.createElement('div');
+                qHeader.className = "flex items-start mb-6";
+                qHeader.innerHTML = `
+                    <div class="bg-purple-100 text-purple-700 font-bold rounded-full w-10 h-10 flex items-center justify-center flex-shrink-0 mr-4 border-2 border-purple-200">
+                        ${q.questionNumber}
+                    </div>
+                    <div class="text-xl font-bold text-gray-800 pt-1 leading-relaxed">
+                        ${q.question}
+                    </div>
+                `;
+                card.appendChild(qHeader);
+
+                // Options Grid
+                const optionsGrid = document.createElement('div');
+                optionsGrid.className = "grid grid-cols-1 md:grid-cols-2 gap-4";
+                
+                const labels = ['A', 'B', 'C', 'D'];
+                q.answerOptions.forEach((opt, optIndex) => {
+                    const btn = document.createElement('button');
+                    btn.className = "option-btn text-lg";
+                    btn.id = `btn-${index}-${optIndex}`;
+                    btn.innerHTML = `<span class="mr-3 font-extrabold text-purple-400">${labels[optIndex]}.</span> ${opt.text}`;
+                    
+                    // Click Event
+                    btn.onclick = () => checkAnswer(index, optIndex, opt.isCorrect, btn);
+                    
+                    optionsGrid.appendChild(btn);
+                });
+                card.appendChild(optionsGrid);
+
+                // Explanation Box (Hidden initially)
+                const explBox = document.createElement('div');
+                explBox.id = `expl-${index}`;
+                explBox.className = "explanation-box";
+                explBox.innerHTML = `
+                    <div class="explanation-header">Cô Mai An giải thích:</div>
+                    <div class="p-4 text-gray-700 leading-relaxed bg-white bg-opacity-60 rounded-b-xl">
+                        ${q.rationale}
+                    </div>
+                `;
+                card.appendChild(explBox);
+
+                container.appendChild(card);
+            });
+        }
+
+        // --- CHECK ANSWER LOGIC ---
+        function checkAnswer(qIndex, optIndex, isCorrect, btnElement) {
+            // Disable all buttons for this question
+            const allBtns = document.querySelectorAll(`[id^='btn-${qIndex}-']`);
+            allBtns.forEach(btn => btn.disabled = true);
+
+            // Handle Logic
+            if (isCorrect) {
+                btnElement.classList.add('correct');
+                playSound('correct');
+                score++;
+                fireConfetti(btnElement);
+            } else {
+                btnElement.classList.add('wrong');
+                playSound('wrong');
+                
+                // Highlight the correct answer automatically
+                quizData[qIndex].answerOptions.forEach((opt, idx) => {
+                    if (opt.isCorrect) {
+                        document.getElementById(`btn-${qIndex}-${idx}`).classList.add('correct');
+                    }
+                });
+            }
+
+            // Update Score
+            updateScoreDisplay();
+
+            // Show Explanation
+            document.getElementById(`expl-${qIndex}`).style.display = 'block';
+        }
+
+        function updateScoreDisplay() {
+            const scoreEl = document.getElementById('current-score');
+            scoreEl.innerText = score;
+            scoreEl.classList.remove('scale-125');
+            void scoreEl.offsetWidth; // trigger reflow
+            scoreEl.classList.add('scale-125', 'transition-transform', 'duration-200');
+        }
+
+        // --- FINISH QUIZ ---
+        function finishQuiz() {
+            const modal = document.getElementById('result-modal');
+            const finalScoreEl = document.getElementById('final-score');
+            const feedbackEl = document.getElementById('feedback-text');
+
+            finalScoreEl.innerText = `${score}/${totalQuestions}`;
+            
+            const percentage = (score / totalQuestions) * 100;
+            if (percentage === 100) {
+                feedbackEl.innerText = "Tuyệt vời! Bạn là siêu sao tiếng Anh! 🌟";
+                fireFullscreenConfetti();
+            } else if (percentage >= 80) {
+                feedbackEl.innerText = "Làm tốt lắm! Chỉ một chút nữa thôi là hoàn hảo! 💪";
+            } else if (percentage >= 50) {
+                feedbackEl.innerText = "Khá tốt! Hãy đọc kỹ giải thích để tiến bộ hơn nhé! 📚";
+            } else {
+                feedbackEl.innerText = "Đừng buồn! Hãy xem kỹ phần giải thích của cô Mai An nhé! 🌱";
+            }
+
+            modal.classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('result-modal').classList.add('hidden');
+        }
+
+        // --- SOUND EFFECTS (Web Audio API - No external files) ---
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        function playSound(type) {
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            const osc = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+
+            osc.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+
+            if (type === 'correct') {
+                // Ding sound (High pitch sine wave + decay)
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(800, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.1);
+                gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.5);
+            } else {
+                // Wrong sound (Low pitch sawtooth + wobble)
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+                osc.frequency.linearRampToValueAtTime(100, audioCtx.currentTime + 0.3);
+                gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                gainNode.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.3);
+            }
+        }
+
+        // --- CONFETTI EFFECTS ---
+        // Simple canvas based confetti
+        const canvas = document.getElementById("confetti-canvas");
+        const ctx = canvas.getContext("2d");
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        let particles = [];
+
+        function fireConfetti(element) {
+            const rect = element.getBoundingClientRect();
+            const x = rect.left + rect.width / 2;
+            const y = rect.top + rect.height / 2;
+
+            for (let i = 0; i < 30; i++) {
+                particles.push(createParticle(x, y));
+            }
+        }
+
+        function fireFullscreenConfetti() {
+             for (let i = 0; i < 100; i++) {
+                particles.push(createParticle(Math.random() * canvas.width, Math.random() * canvas.height));
+            }
+        }
+
+        function createParticle(x, y) {
+            const colors = ['#8854C0', '#00C9A7', '#FF4757', '#F1C40F', '#3498DB'];
+            return {
+                x: x,
+                y: y,
+                vx: (Math.random() - 0.5) * 10,
+                vy: (Math.random() - 0.5) * 10,
+                size: Math.random() * 8 + 2,
+                color: colors[Math.floor(Math.random() * colors.length)],
+                life: 100
+            };
+        }
+
+        function animateConfetti() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            for (let i = 0; i < particles.length; i++) {
+                let p = particles[i];
+                p.x += p.vx;
+                p.y += p.vy;
+                p.vy += 0.2; // gravity
+                p.life--;
+                
+                ctx.fillStyle = p.color;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                ctx.fill();
+
+                if (p.life <= 0) {
+                    particles.splice(i, 1);
+                    i--;
+                }
+            }
+            requestAnimationFrame(animateConfetti);
+        }
+        animateConfetti();
+
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+
+    </script>
+</body>
+</html>

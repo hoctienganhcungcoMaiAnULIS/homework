@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trắc nghiệm Connectors - Ms Mai An ULIS</title>
+    <!-- Font chữ tròn trịa thân thiện -->
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <!-- Confetti Library -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    
+    <style>
+        :root {
+            --primary-purple: #8854C0;
+            --primary-teal: #00C9A7;
+            --bg-pastel: #F0F4F8;
+            --correct-green: #00D26A;
+            --wrong-red: #FF4757;
+            --text-dark: #2D3436;
+            --card-bg: #FFFFFF;
+            --shadow-color: rgba(0, 0, 0, 0.15);
+        }
+
+        * {
+            box-sizing: border-box;
+            user-select: none; /* Ngăn bôi đen để trải nghiệm giống app hơn */
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: var(--bg-pastel);
+            /* Họa tiết chấm bi mờ */
+            background-image: radial-gradient(#d1d8e0 2px, transparent 2px);
+            background-size: 30px 30px;
+            margin: 0;
+            padding: 20px;
+            color: var(--text-dark);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding-bottom: 80px; /* Chừa chỗ cho nút nộp bài */
+        }
+
+        /* Header Styles */
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            animation: fadeInDown 0.8s ease-out;
+        }
+
+        h1 {
+            color: var(--primary-purple);
+            font-size: 2.5rem;
+            font-weight: 800;
+            text-shadow: 2px 2px 0px #fff, 4px 4px 0px rgba(0,0,0,0.1);
+            margin: 0;
+        }
+
+        .teacher-name {
+            display: inline-block;
+            background: var(--primary-teal);
+            color: white;
+            padding: 5px 20px;
+            border-radius: 20px;
+            font-weight: 700;
+            margin-top: 10px;
+            box-shadow: 0 4px 0 rgba(0,0,0,0.1);
+            transform: rotate(-2deg);
+        }
+
+        /* Question Card Styles */
+        .quiz-card {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 0 var(--shadow-color);
+            border: 2px solid #eee;
+            position: relative;
+            transition: transform 0.3s;
+        }
+
+        .quiz-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .question-header {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 20px;
+        }
+
+        .q-number {
+            background: var(--primary-purple);
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 1.2rem;
+            margin-right: 15px;
+            flex-shrink: 0;
+            box-shadow: 0 4px 0 rgba(0,0,0,0.2);
+        }
+
+        .q-text {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #2c3e50;
+            line-height: 1.5;
+        }
+
+        /* Options Grid */
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+        }
+
+        .option-btn {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 15px;
+            padding: 15px 20px;
+            font-family: 'Nunito', sans-serif;
+            font-size: 1rem;
+            color: var(--text-dark);
+            cursor: pointer;
+            text-align: left;
+            transition: all 0.2s;
+            position: relative;
+            box-shadow: 0 4px 0 #e0e0e0;
+            display: flex;
+            align-items: center;
+        }
+
+        .option-btn:hover:not(.disabled) {
+            transform: scale(1.02);
+            border-color: var(--primary-purple);
+            background-color: #f8f0ff;
+        }
+
+        .option-btn:active:not(.disabled) {
+            transform: translateY(4px);
+            box-shadow: none;
+        }
+
+        .option-marker {
+            font-weight: 800;
+            margin-right: 10px;
+            color: var(--primary-purple);
+            width: 25px;
+        }
+
+        /* Feedback States */
+        .option-btn.correct {
+            background-color: var(--correct-green) !important;
+            color: white !important;
+            border-color: #00b85c !important;
+            box-shadow: 0 4px 0 #009e4f !important;
+        }
+        
+        .option-btn.correct .option-marker { color: white; }
+
+        .option-btn.wrong {
+            background-color: var(--wrong-red) !important;
+            color: white !important;
+            border-color: #ff2e40 !important;
+            box-shadow: 0 4px 0 #d61c2e !important;
+            animation: shake 0.5s;
+        }
+        
+        .option-btn.wrong .option-marker { color: white; }
+
+        .option-btn.disabled {
+            cursor: default;
+            opacity: 0.7;
+            pointer-events: none;
+        }
+
+        /* Explanation Box */
+        .explanation-box {
+            margin-top: 20px;
+            background: #f1f9ff;
+            border: 2px dashed var(--primary-teal);
+            border-radius: 15px;
+            padding: 20px;
+            display: none; /* Hidden by default */
+            animation: expandOpen 0.5s ease-out;
+        }
+
+        .explanation-title {
+            color: var(--primary-purple);
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+
+        .explanation-content {
+            font-size: 1rem;
+            line-height: 1.6;
+        }
+
+        .exp-section {
+            margin-bottom: 8px;
+        }
+
+        .highlight-green { color: var(--correct-green); font-weight: bold; }
+        .highlight-red { color: var(--wrong-red); font-weight: bold; }
+        .label { font-weight: 700; color: #555; text-decoration: underline; }
+
+        /* Submit Button */
+        .submit-container {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+        }
+
+        .submit-btn {
+            background: linear-gradient(to bottom, #FFD700, #FFA500);
+            color: #fff;
+            font-family: 'Nunito', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 800;
+            padding: 15px 50px;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 6px 0 #cc8400, 0 10px 20px rgba(0,0,0,0.2);
+            transition: all 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .submit-btn:hover {
+            transform: translateX(-50%) scale(1.05);
+            filter: brightness(1.1);
+        }
+
+        .submit-btn:active {
+            transform: translateX(-50%) translateY(6px);
+            box-shadow: 0 0 0 #cc8400;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.6);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background: white;
+            padding: 40px;
+            border-radius: 30px;
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+            animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border: 4px solid var(--primary-purple);
+        }
+
+        .score-circle {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background: var(--bg-pastel);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            font-size: 3rem;
+            font-weight: 800;
+            color: var(--primary-purple);
+            border: 8px solid var(--primary-teal);
+        }
+
+        .modal-btn {
+            background: var(--primary-teal);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 20px;
+            box-shadow: 0 4px 0 #008f75;
+        }
+        
+        .modal-btn:active { transform: translateY(4px); box-shadow: none; }
+
+        /* Animations */
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-10px) rotate(-2deg); }
+            50% { transform: translateX(10px) rotate(2deg); }
+            75% { transform: translateX(-10px) rotate(-2deg); }
+            100% { transform: translateX(0); }
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0.5); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        @keyframes expandOpen {
+            0% { height: 0; opacity: 0; transform: scaleY(0.9); }
+            100% { height: auto; opacity: 1; transform: scaleY(1); }
+        }
+
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Responsive */
+        @media (min-width: 768px) {
+            .options-grid {
+                grid-template-columns: 1fr; /* Stack options for readability in full sentences */
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="teacher-name">Giáo viên: Ms Mai An ULIS</div>
+        <h1>TRẮC NGHIỆM VIẾT LẠI CÂU</h1>
+        <p style="color: #636e72; font-weight: 600; margin-top: 5px;">Chủ đề: Connectors (Although, Despite, Because, Because of)</p>
+    </header>
+
+    <div class="container" id="quiz-container">
+        <!-- Questions will be injected here -->
+    </div>
+
+    <div class="submit-container">
+        <button class="submit-btn" onclick="submitQuiz()">Nộp Bài</button>
+    </div>
+
+    <!-- Result Modal -->
+    <div class="modal-overlay" id="resultModal">
+        <div class="modal-content">
+            <h2 style="color: var(--primary-purple); margin-top: 0;">KẾT QUẢ CỦA BẠN</h2>
+            <div class="score-circle" id="finalScore">0/0</div>
+            <p id="feedbackText" style="font-size: 1.2rem; font-weight: 600; color: #555;"></p>
+            <button class="modal-btn" onclick="closeModal()">Xem lại bài làm</button>
+        </div>
+    </div>
+
+    <script>
+        // --- DATA SOURCE (From Context) ---
+        const quizData = [
+            {
+                "questionNumber": 1,
+                "question": "Choose the correct rewritten sentence:\nOriginal: Although Tom was a poor student, he studied very well.\nRewrite using: In spite of ____________________",
+                "answerOptions": [
+                    { "text": "In spite of being a poor student, he studied very well.", "isCorrect": true, "rationale": "Giải thích: Sau 'In spite of' phải là một Danh từ, Cụm danh từ hoặc V-ing. Ta chuyển mệnh đề 'Tom was a poor student' thành cụm V-ing 'being a poor student'.\nDịch: Mặc dù là một học sinh kém, cậu ấy đã học rất giỏi." },
+                    { "text": "In spite of he was a poor student, he studied very well.", "isCorrect": false, "rationale": "Sai ngữ pháp. 'In spite of' không đi trực tiếp với một mệnh đề (S + V)." },
+                    { "text": "In spite of his poor student, he studied very well.", "isCorrect": false, "rationale": "Sai cấu trúc cụm từ. 'His poor student' (học sinh nghèo của anh ấy) không diễn đạt đúng ý nghĩa 'anh ấy là học sinh nghèo'." },
+                    { "text": "In spite of studied very well, Tom was a poor student.", "isCorrect": false, "rationale": "Sai nghĩa. Câu gốc nhấn mạnh việc học giỏi dù là học sinh kém, câu này đảo ngược ý nghĩa." }
+                ],
+                "hint": "Chuyển động từ 'was' thành dạng V-ing để đi sau giới từ."
+            },
+            {
+                "questionNumber": 2,
+                "question": "Choose the correct rewritten sentence:\nOriginal: Mary could not go to school because she was sick.\nRewrite using: Because of ____________________",
+                "answerOptions": [
+                    { "text": "Because of her sickness, Mary could not go to school.", "isCorrect": true, "rationale": "Giải thích: Sau 'Because of' cần một danh từ. Ta đổi tính từ 'sick' thành danh từ 'sickness' (hoặc dùng 'being sick').\nDịch: Bởi vì bệnh tình của mình, Mary không thể đến trường." },
+                    { "text": "Because of she was sick, Mary could not go to school.", "isCorrect": false, "rationale": "Sai ngữ pháp. 'Because of' không đi với mệnh đề (S + V)." },
+                    { "text": "Because of Mary could not go to school, she was sick.", "isCorrect": false, "rationale": "Sai nghĩa. Câu này biến kết quả thành nguyên nhân." },
+                    { "text": "Because of be sick, Mary could not go to school.", "isCorrect": false, "rationale": "Sai ngữ pháp. Sau giới từ phải là V-ing (being), không dùng động từ nguyên thể (be)." }
+                ],
+                "hint": "Tìm danh từ của 'sick' hoặc dùng V-ing của động từ 'to be'."
+            },
+            {
+                "questionNumber": 3,
+                "question": "Choose the correct rewritten sentence:\nOriginal: Although the weather was bad, she went to school on time.\nRewrite using: Despite ____________________",
+                "answerOptions": [
+                    { "text": "Despite the bad weather, she went to school on time.", "isCorrect": true, "rationale": "Giải thích: Chuyển mệnh đề 'the weather was bad' thành cụm danh từ 'the bad weather' để đứng sau 'Despite'.\nDịch: Mặc dù thời tiết xấu, cô ấy vẫn đi học đúng giờ." },
+                    { "text": "Despite of the bad weather, she went to school on time.", "isCorrect": false, "rationale": "Sai ngữ pháp. 'Despite' KHÔNG đi với 'of'. Chỉ có 'In spite of'." },
+                    { "text": "Despite the weather was bad, she went to school on time.", "isCorrect": false, "rationale": "Sai ngữ pháp. 'Despite' không đi với mệnh đề." },
+                    { "text": "Despite she went to school on time, the weather was bad.", "isCorrect": false, "rationale": "Sai nghĩa." }
+                ],
+                "hint": "Biến tính từ + danh từ (bad weather) thành cụm danh từ."
+            },
+            {
+                "questionNumber": 4,
+                "question": "Choose the correct rewritten sentence:\nOriginal: My mother told me to go to school although I was sick.\nRewrite using: In spite of ____________________",
+                "answerOptions": [
+                    { "text": "In spite of my sickness, my mother told me to go to school.", "isCorrect": true, "rationale": "Giải thích: 'I was sick' được chuyển thành cụm danh từ 'my sickness' (hoặc 'being sick').\nDịch: Mặc dù tôi bị ốm, mẹ vẫn bảo tôi đi học." },
+                    { "text": "In spite of I was sick, my mother told me to go to school.", "isCorrect": false, "rationale": "Sai ngữ pháp (dùng mệnh đề sau giới từ)." },
+                    { "text": "In spite of my mother told me, I was sick.", "isCorrect": false, "rationale": "Sai nghĩa." },
+                    { "text": "In spite of being school, I was sick.", "isCorrect": false, "rationale": "Sai nghĩa và cấu trúc." }
+                ],
+                "hint": "Chuyển 'I was sick' thành sở hữu + danh từ."
+            },
+            {
+                "questionNumber": 5,
+                "question": "Choose the correct rewritten sentence:\nOriginal: Because there was a big storm, I stayed at home.\nRewrite using: Because of ____________________",
+                "answerOptions": [
+                    { "text": "Because of the big storm, I stayed at home.", "isCorrect": true, "rationale": "Giải thích: Bỏ chủ ngữ giả 'there was', giữ lại cụm danh từ chính 'the big storm'.\nDịch: Vì cơn bão lớn, tôi đã ở nhà." },
+                    { "text": "Because of there was a big storm, I stayed at home.", "isCorrect": false, "rationale": "Sai ngữ pháp (dùng mệnh đề)." },
+                    { "text": "Because of a big storm was there, I stayed at home.", "isCorrect": false, "rationale": "Sai ngữ pháp." },
+                    { "text": "Because of I stayed at home, there was a big storm.", "isCorrect": false, "rationale": "Sai nghĩa (Ngược nhân quả)." }
+                ],
+                "hint": "Lược bỏ 'there was', chỉ lấy danh từ chính."
+            },
+            {
+                "questionNumber": 6,
+                "question": "Choose the correct rewritten sentence:\nOriginal: Tom was admitted to the university although his grades were bad.\nRewrite using: Despite ____________________",
+                "answerOptions": [
+                    { "text": "Despite his bad grades, Tom was admitted to the university.", "isCorrect": true, "rationale": "Giải thích: Chuyển 'his grades were bad' thành cụm danh từ 'his bad grades'.\nDịch: Mặc dù điểm số tệ, Tom vẫn được nhận vào đại học." },
+                    { "text": "Despite his grades were bad, Tom was admitted to the university.", "isCorrect": false, "rationale": "Sai ngữ pháp (dùng mệnh đề)." },
+                    { "text": "Despite of his bad grades, Tom was admitted to the university.", "isCorrect": false, "rationale": "Sai ngữ pháp (thừa 'of')." },
+                    { "text": "Despite Tom was admitted, his grades were bad.", "isCorrect": false, "rationale": "Sai nghĩa." }
+                ],
+                "hint": "Đảo tính từ 'bad' lên trước danh từ 'grades'."
+            },
+            {
+                "questionNumber": 7,
+                "question": "Choose the correct rewritten sentence:\nOriginal: Although she has a physical handicap, she has become a successful woman.\nRewrite using: Despite ____________________",
+                "answerOptions": [
+                    { "text": "Despite having a physical handicap, she has become a successful woman.", "isCorrect": true, "rationale": "Giải thích: Động từ 'has' chuyển thành V-ing 'having' để tạo thành cụm danh động từ.\nDịch: Mặc dù có khuyết tật về thể chất, cô ấy đã trở thành một người phụ nữ thành công." },
+                    { "text": "Despite she has a physical handicap, she has become a successful woman.", "isCorrect": false, "rationale": "Sai ngữ pháp." },
+                    { "text": "Despite a physical handicap, she has become a successful woman.", "isCorrect": false, "rationale": "Cũng đúng ngữ pháp (dùng cụm danh từ), nhưng đáp án 'having...' rõ nghĩa hơn trong ngữ cảnh bài tập biến đổi câu." },
+                    { "text": "Despite of having a physical handicap, she has become a successful woman.", "isCorrect": false, "rationale": "Sai ngữ pháp (thừa 'of')." }
+                ],
+                "hint": "Chuyển động từ chính 'has' sang dạng V-ing."
+            },
+            {
+                "questionNumber": 8,
+                "question": "Choose the correct rewritten sentence:\nOriginal: In spite of his good salary, Tom gave up his job.\nRewrite using: Although ____________________",
+                "answerOptions": [
+                    { "text": "Although Tom had a good salary, he gave up his job.", "isCorrect": true, "rationale": "Giải thích: Chuyển cụm từ 'his good salary' thành mệnh đề hoàn chỉnh 'Tom had a good salary'.\nDịch: Mặc dù Tom có mức lương tốt, anh ấy vẫn bỏ việc." },
+                    { "text": "Although his good salary, Tom gave up his job.", "isCorrect": false, "rationale": "Sai ngữ pháp. 'Although' phải đi với mệnh đề (S + V)." },
+                    { "text": "Although Tom gave up his job, he had a good salary.", "isCorrect": false, "rationale": "Sai nghĩa (đảo ngược ý nhượng bộ)." },
+                    { "text": "Although having a good salary, Tom gave up his job.", "isCorrect": false, "rationale": "Cấu trúc rút gọn này chấp nhận được nhưng không phổ biến bằng mệnh đề đầy đủ khi dùng 'Although'. Đáp án A chuẩn nhất." }
+                ],
+                "hint": "Tạo một mệnh đề đầy đủ với chủ ngữ 'Tom' và động từ 'had'."
+            },
+            {
+                "questionNumber": 9,
+                "question": "Choose the correct rewritten sentence:\nOriginal: Though he had not finished the paper, he went to sleep.\nRewrite using: In spite of ____________________",
+                "answerOptions": [
+                    { "text": "In spite of not having finished the paper, he went to sleep.", "isCorrect": true, "rationale": "Giải thích: Rút gọn mệnh đề cùng chủ ngữ. Vì hành động 'not finished' xảy ra trước, dùng 'not having finished' (Perfect Gerund) là chính xác nhất.\nDịch: Mặc dù chưa hoàn thành bài báo, anh ấy vẫn đi ngủ." },
+                    { "text": "In spite of not finished the paper, he went to sleep.", "isCorrect": false, "rationale": "Sai ngữ pháp. Sau giới từ không dùng quá khứ phân từ (V3/ed) đứng một mình." },
+                    { "text": "In spite of he had not finished the paper, he went to sleep.", "isCorrect": false, "rationale": "Sai ngữ pháp (dùng mệnh đề)." },
+                    { "text": "In spite of not to finish the paper, he went to sleep.", "isCorrect": false, "rationale": "Sai ngữ pháp (dùng to-infinitive)." }
+                ],
+                "hint": "Sử dụng dạng phủ định của V-ing (not having...)."
+            },
+            {
+                "questionNumber": 10,
+                "question": "Choose the correct rewritten sentence:\nOriginal: In spite of the high prices, my daughter insists on going to the movies.\nRewrite using: Even though ____________________",
+                "answerOptions": [
+                    { "text": "Even though the prices are high, my daughter insists on going to the movies.", "isCorrect": true, "rationale": "Giải thích: Chuyển cụm danh từ 'the high prices' thành mệnh đề 'the prices are high'.\nDịch: Mặc dù giá vé cao, con gái tôi vẫn khăng khăng đi xem phim." },
+                    { "text": "Even though the high prices, my daughter insists on going to the movies.", "isCorrect": false, "rationale": "Sai ngữ pháp (thiếu động từ)." },
+                    { "text": "Even though prices high, my daughter insists on going to the movies.", "isCorrect": false, "rationale": "Sai ngữ pháp (thiếu động từ 'are')." },
+                    { "text": "Even though being high prices, my daughter insists on going to the movies.", "isCorrect": false, "rationale": "Cấu trúc không tự nhiên và sai ngữ pháp." }
+                ],
+                "hint": "Thêm động từ 'are' để tạo thành mệnh đề."
+            },
+            {
+                "questionNumber": 11,
+                "question": "Combine the sentences:\nI couldn’t sleep. I was very tired. (despite)",
+                "answerOptions": [
+                    { "text": "Despite being very tired, I couldn’t sleep.", "isCorrect": true, "rationale": "Giải thích: Hai câu cùng chủ ngữ 'I'. Chuyển 'I was very tired' thành 'being very tired'.\nDịch: Mặc dù rất mệt, tôi không thể ngủ được." },
+                    { "text": "Despite I was very tired, I couldn’t sleep.", "isCorrect": false, "rationale": "Sai ngữ pháp." },
+                    { "text": "Despite of being very tired, I couldn’t sleep.", "isCorrect": false, "rationale": "Sai ngữ pháp (thừa 'of')." },
+                    { "text": "I couldn't sleep despite I was very tired.", "isCorrect": false, "rationale": "Sai ngữ pháp." }
+                ],
+                "hint": "Dùng V-ing cho vế 'was very tired'."
+            },
+            {
+                "questionNumber": 12,
+                "question": "Combine the sentences:\nThey have very little money. They are happy. (in spite of)",
+                "answerOptions": [
+                    { "text": "In spite of having very little money, they are happy.", "isCorrect": true, "rationale": "Giải thích: Chuyển động từ 'have' thành 'having'.\nDịch: Mặc dù có rất ít tiền, họ vẫn hạnh phúc." },
+                    { "text": "In spite of they have very little money, they are happy.", "isCorrect": false, "rationale": "Sai ngữ pháp." },
+                    { "text": "They are happy in spite of they have little money.", "isCorrect": false, "rationale": "Sai ngữ pháp." },
+                    { "text": "In spite of happy, they have very little money.", "isCorrect": false, "rationale": "Sai nghĩa." }
+                ],
+                "hint": "Biến 'have' thành V-ing."
+            },
+            {
+                "questionNumber": 13,
+                "question": "Combine the sentences:\nMy foot was injured. I managed to walk to the nearest village. (although)",
+                "answerOptions": [
+                    { "text": "Although my foot was injured, I managed to walk to the nearest village.", "isCorrect": true, "rationale": "Giải thích: Dùng 'Although' nối trực tiếp hai mệnh đề.\nDịch: Mặc dù chân tôi bị thương, tôi vẫn cố gắng đi bộ đến ngôi làng gần nhất." },
+                    { "text": "Although my injured foot, I managed to walk to the nearest village.", "isCorrect": false, "rationale": "Sai ngữ pháp ('Although' không đi với cụm danh từ)." },
+                    { "text": "My foot was injured although I managed to walk to the nearest village.", "isCorrect": false, "rationale": "Sai nghĩa (đảo ngược mối quan hệ nhượng bộ)." },
+                    { "text": "Although being injured, I managed to walk to the nearest village.", "isCorrect": false, "rationale": "Không chính xác lắm vì chủ ngữ 2 vế khác nhau (My foot vs I), không nên rút gọn." }
+                ],
+                "hint": "Giữ nguyên hai mệnh đề và đặt 'Although' ở đầu câu chỉ sự việc cản trở (bị thương)."
+            },
+            {
+                "questionNumber": 14,
+                "question": "Combine the sentences:\nI enjoyed the film. The story was silly. (in spite of)",
+                "answerOptions": [
+                    { "text": "I enjoyed the film in spite of the silly story.", "isCorrect": true, "rationale": "Giải thích: Chuyển 'The story was silly' thành cụm danh từ 'the silly story'.\nDịch: Tôi thích bộ phim mặc dù cốt truyện ngớ ngẩn." },
+                    { "text": "In spite of I enjoyed the film, the story was silly.", "isCorrect": false, "rationale": "Sai ngữ pháp và nghĩa." },
+                    { "text": "I enjoyed the film in spite of the story was silly.", "isCorrect": false, "rationale": "Sai ngữ pháp." },
+                    { "text": "In spite of the silly story, but I enjoyed the film.", "isCorrect": false, "rationale": "Sai ngữ pháp (không dùng 'but' khi đã có 'In spite of')." }
+                ],
+                "hint": "Tạo cụm danh từ từ 'The story was silly'."
+            },
+            {
+                "questionNumber": 15,
+                "question": "Combine the sentences:\nWe live in the same street. We hardly ever see each other. (despite)",
+                "answerOptions": [
+                    { "text": "Despite living in the same street, we hardly ever see each other.", "isCorrect": true, "rationale": "Giải thích: Cùng chủ ngữ 'We'. Chuyển 'live' thành 'living'.\nDịch: Mặc dù sống cùng phố, chúng tôi hiếm khi gặp nhau." },
+                    { "text": "Despite we live in the same street, we hardly ever see each other.", "isCorrect": false, "rationale": "Sai ngữ pháp." },
+                    { "text": "Despite of living in the same street, we hardly ever see each other.", "isCorrect": false, "rationale": "Sai ngữ pháp (thừa 'of')." },
+                    { "text": "We live in the same street despite we hardly ever see each other.", "isCorrect": false, "rationale": "Sai ngữ pháp và nghĩa." }
+                ],
+                "hint": "Dùng V-ing."
+            },
+            {
+                "questionNumber": 16,
+                "question": "Combine the sentences:\nI got very wet in the rain. I was only out for five minutes. (even though)",
+                "answerOptions": [
+                    { "text": "I got very wet in the rain even though I was only out for five minutes.", "isCorrect": true, "rationale": "Giải thích: Dùng 'even though' nối hai mệnh đề.\nDịch: Tôi bị ướt sũng dù chỉ ra ngoài có 5 phút." },
+                    { "text": "Even though I got very wet in the rain, I was only out for five minutes.", "isCorrect": false, "rationale": "Sai nghĩa (đảo lộn mệnh đề chính phụ)." },
+                    { "text": "I got very wet in the rain even though being out for five minutes.", "isCorrect": false, "rationale": "Tạm chấp nhận nhưng 'even though' ưu tiên đi với mệnh đề đầy đủ." },
+                    { "text": "I got very wet in the rain even though of being out for five minutes.", "isCorrect": false, "rationale": "Sai ngữ pháp." }
+                ],
+                "hint": "Đặt 'even though' trước mệnh đề chỉ thời gian ngắn (chỉ 5 phút)."
+            }
+        ];
+
+        // --- SOUND GENERATION (No external files needed) ---
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        function playCorrectSound() {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            oscillator.type = 'sine';
+            oscillator.frequency.setValueAtTime(500, audioCtx.currentTime);
+            oscillator.frequency.exponentialRampToValueAtTime(1000, audioCtx.currentTime + 0.1);
+            gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            oscillator.start();
+            oscillator.stop(audioCtx.currentTime + 0.3);
+        }
+
+        function playWrongSound() {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            oscillator.type = 'sawtooth';
+            oscillator.frequency.setValueAtTime(150, audioCtx.currentTime);
+            oscillator.frequency.linearRampToValueAtTime(100, audioCtx.currentTime + 0.3);
+            gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            gainNode.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            oscillator.start();
+            oscillator.stop(audioCtx.currentTime + 0.3);
+        }
+
+        // --- RENDER LOGIC ---
+        const container = document.getElementById('quiz-container');
+        let totalScore = 0;
+        let answeredCount = 0;
+
+        function renderQuiz() {
+            quizData.forEach((item, index) => {
+                // --- SHUFFLE OPTIONS LOGIC (New) ---
+                // Fisher-Yates Shuffle
+                for (let i = item.answerOptions.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [item.answerOptions[i], item.answerOptions[j]] = [item.answerOptions[j], item.answerOptions[i]];
+                }
+
+                const card = document.createElement('div');
+                card.className = 'quiz-card';
+                
+                // Format question text with line breaks
+                const formattedQuestion = item.question.replace(/\n/g, '<br>');
+
+                // Build HTML
+                let html = `
+                    <div class="question-header">
+                        <div class="q-number">${item.questionNumber}</div>
+                        <div class="q-text">${formattedQuestion}</div>
+                    </div>
+                    <div class="options-grid" id="options-${index}">
+                `;
+
+                // Add Options
+                const optionLabels = ['A', 'B', 'C', 'D'];
+                item.answerOptions.forEach((opt, optIndex) => {
+                    html += `
+                        <button class="option-btn" onclick="checkAnswer(this, ${index}, ${opt.isCorrect}, ${optIndex})">
+                            <span class="option-marker">${optionLabels[optIndex]}</span>
+                            <span>${opt.text}</span>
+                        </button>
+                    `;
+                });
+
+                html += `</div>`; // End options grid
+
+                // Build Explanation Box strictly following the teacher's requirement
+                const correctOption = item.answerOptions.find(o => o.isCorrect);
+                
+                // Construct detailed analysis HTML
+                let analysisHTML = '';
+                item.answerOptions.forEach((opt, idx) => {
+                    const label = optionLabels[idx];
+                    const isRight = opt.isCorrect;
+                    const style = isRight ? 'color: var(--correct-green); font-weight:bold;' : 'color: #777;';
+                    analysisHTML += `<div style="margin-bottom: 5px; ${style}">
+                        <strong>${label}.</strong> ${opt.text} <br>
+                        <em style="font-size: 0.9em; color: #555;">&rarr; ${opt.rationale}</em>
+                    </div>`;
+                });
+                
+                // Find correct index AFTER shuffle for display
+                const correctIndex = item.answerOptions.findIndex(o => o.isCorrect);
+
+                html += `
+                    <div class="explanation-box" id="explanation-${index}">
+                        <div class="explanation-title">
+                            <span style="font-size: 1.5rem;">👩‍🏫</span> Ms Mai An giải thích chi tiết:
+                        </div>
+                        <div class="explanation-content">
+                            <div class="exp-section">
+                                <span class="label">1. Phân tích 4 đáp án:</span><br>
+                                ${analysisHTML}
+                            </div>
+                            <div class="exp-section">
+                                <span class="label">2. Kết luận:</span><br>
+                                Đáp án đúng là <span class="highlight-green">${optionLabels[correctIndex]}</span>.
+                                ${item.hint ? `<br><small style="color:var(--primary-purple)">Mẹo: ${item.hint}</small>` : ''}
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                card.innerHTML = html;
+                container.appendChild(card);
+            });
+        }
+
+        // --- INTERACTION LOGIC ---
+        window.checkAnswer = function(btn, questionIndex, isCorrect, optIndex) {
+            const optionsDiv = document.getElementById(`options-${questionIndex}`);
+            const buttons = optionsDiv.querySelectorAll('.option-btn');
+            const explanationBox = document.getElementById(`explanation-${questionIndex}`);
+
+            // Prevent multiple clicks
+            if (optionsDiv.getAttribute('data-answered') === 'true') return;
+            optionsDiv.setAttribute('data-answered', 'true');
+            answeredCount++;
+
+            // Disable all buttons
+            buttons.forEach(b => b.classList.add('disabled'));
+
+            if (isCorrect) {
+                btn.classList.add('correct');
+                playCorrectSound();
+                totalScore++;
+                
+                // Confetti Effect
+                confetti({
+                    particleCount: 100,
+                    spread: 70,
+                    origin: { y: 0.6 },
+                    colors: ['#00D26A', '#8854C0', '#FFD700']
+                });
+            } else {
+                btn.classList.add('wrong');
+                playWrongSound();
+                // Highlight the correct answer automatically if wrong
+                // NOTE: We need to find the index in the DOM/Shuffled array
+                const correctBtnIndex = quizData[questionIndex].answerOptions.findIndex(o => o.isCorrect);
+                buttons[correctBtnIndex].classList.add('correct');
+            }
+
+            // Show Explanation Immediately
+            explanationBox.style.display = 'block';
+        };
+
+        // --- SUBMIT & SCORE ---
+        window.submitQuiz = function() {
+            const modal = document.getElementById('resultModal');
+            const finalScoreEl = document.getElementById('finalScore');
+            const feedbackText = document.getElementById('feedbackText');
+            
+            finalScoreEl.textContent = `${totalScore}/${quizData.length}`;
+            modal.style.display = 'flex';
+
+            const percentage = (totalScore / quizData.length) * 100;
+            if (percentage === 100) {
+                feedbackText.textContent = "Xuất sắc! Bạn là thiên tài ngữ pháp! 🌟";
+                confetti({ particleCount: 200, spread: 100 });
+            } else if (percentage >= 80) {
+                feedbackText.textContent = "Làm tốt lắm! Chỉ một chút nữa là hoàn hảo! 💪";
+            } else if (percentage >= 50) {
+                feedbackText.textContent = "Cố gắng lên! Ôn lại các cấu trúc sai nhé! 📚";
+            } else {
+                feedbackText.textContent = "Đừng buồn, hãy xem kỹ lại phần giải thích nhé! ❤️";
+            }
+        };
+
+        window.closeModal = function() {
+            document.getElementById('resultModal').style.display = 'none';
+        };
+
+        // Initialize
+        renderQuiz();
+
+    </script>
+</body>
+</html>

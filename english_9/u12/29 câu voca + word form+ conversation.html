@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>English Vocabulary Quiz - Ms. Mai An ULIS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        :root {
+            --primary-purple: #8854C0;
+            --primary-teal: #00C9A7;
+            --correct-green: #00D26A;
+            --wrong-red: #FF4757;
+            --bg-color: #f0f3f5;
+            --card-bg: #ffffff;
+            --text-color: #2c3e50;
+            --button-shadow: rgba(0, 0, 0, 0.2);
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: var(--bg-color);
+            background-image: radial-gradient(#e0e0e0 15%, transparent 16%), radial-gradient(#e0e0e0 15%, transparent 16%);
+            background-size: 20px 20px;
+            background-position: 0 0, 10px 10px;
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+            margin-bottom: 50px;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            background: linear-gradient(135deg, var(--primary-purple), var(--primary-teal));
+            padding: 20px;
+            border-radius: 20px;
+            color: white;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-weight: 800;
+            font-size: 1.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .header p {
+            margin: 10px 0 0;
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        /* Question Card */
+        .question-card {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 8px 0 rgba(0,0,0,0.05);
+            border: 2px solid #eee;
+            position: relative;
+            transition: transform 0.3s ease;
+        }
+
+        .question-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .question-badge {
+            background: var(--primary-purple);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+
+        .question-text {
+            font-size: 1.3rem;
+            font-weight: 700;
+            line-height: 1.5;
+            margin-bottom: 20px;
+            color: #2d3436;
+        }
+
+        /* Options Grid */
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        @media (max-width: 600px) {
+            .options-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* 3D Buttons */
+        .option-btn {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 15px;
+            padding: 15px 20px;
+            font-family: 'Nunito', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-color);
+            cursor: pointer;
+            transition: all 0.1s ease;
+            box-shadow: 0 5px 0 #d1d1d1;
+            position: relative;
+            text-align: left;
+            display: flex;
+            align-items: center;
+        }
+
+        .option-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            background-color: #f9f9f9;
+        }
+
+        .option-btn:active:not(:disabled) {
+            transform: translateY(5px);
+            box-shadow: 0 0 0 #d1d1d1;
+        }
+
+        .option-btn:disabled {
+            cursor: default;
+            transform: translateY(5px);
+            box-shadow: none;
+            opacity: 0.7;
+        }
+
+        .option-btn.correct {
+            background-color: var(--correct-green);
+            color: white;
+            border-color: var(--correct-green);
+            box-shadow: 0 0 0 var(--correct-green);
+        }
+
+        .option-btn.wrong {
+            background-color: var(--wrong-red);
+            color: white;
+            border-color: var(--wrong-red);
+            box-shadow: 0 0 0 var(--wrong-red);
+            animation: shake 0.5s;
+        }
+
+        /* Explanation Box */
+        .explanation-box {
+            margin-top: 20px;
+            padding: 20px;
+            background-color: #f0f8ff;
+            border: 2px solid #bde0fe;
+            border-radius: 15px;
+            display: none; /* Hidden by default */
+            animation: slideDown 0.3s ease-out;
+        }
+
+        .explanation-header {
+            font-weight: 800;
+            color: var(--primary-purple);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .explanation-content {
+            font-size: 1rem;
+            line-height: 1.6;
+            color: #444;
+            white-space: pre-line; /* Respect new lines */
+        }
+        
+        .explanation-content b {
+            color: #2c3e50;
+            font-weight: 700;
+        }
+
+        /* Footer */
+        .footer-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: white;
+            padding: 15px;
+            box-shadow: 0 -5px 20px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 100;
+        }
+
+        .score-display {
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: var(--primary-teal);
+        }
+
+        .submit-btn {
+            background: var(--primary-purple);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 50px;
+            font-weight: 800;
+            font-size: 1.1rem;
+            cursor: pointer;
+            box-shadow: 0 5px 0 #6c429c;
+            transition: all 0.2s;
+        }
+        
+        .submit-btn:active {
+            transform: translateY(5px);
+            box-shadow: none;
+        }
+
+        /* Animations */
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            50% { transform: translateX(5px); }
+            75% { transform: translateX(-5px); }
+            100% { transform: translateX(0); }
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background: white;
+            padding: 40px;
+            border-radius: 30px;
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+            animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border: 4px solid var(--primary-purple);
+        }
+
+        @keyframes popIn {
+            from { transform: scale(0.5); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .final-score {
+            font-size: 3rem;
+            font-weight: 900;
+            color: var(--primary-teal);
+            margin: 20px 0;
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>Ms. Mai An ULIS</h1>
+        <p>English Vocabulary & Communication Quiz</p>
+    </div>
+
+    <div id="quiz-area">
+        <!-- Questions will be injected here by JS -->
+    </div>
+</div>
+
+<div class="footer-bar">
+    <div class="score-display">Score: <span id="current-score">0</span>/<span id="total-qs">0</span></div>
+    <button class="submit-btn" onclick="finishQuiz()">Nộp bài</button>
+</div>
+
+<!-- Modal for Final Score -->
+<div class="modal-overlay" id="result-modal">
+    <div class="modal-content">
+        <h2>Kết quả bài làm</h2>
+        <p>Bạn đã hoàn thành bài thi!</p>
+        <div class="final-score" id="final-score-text">0/0</div>
+        <p id="feedback-text" style="font-size: 1.1rem; color: #666;"></p>
+        <button class="submit-btn" onclick="location.reload()" style="margin-top: 20px;">Làm lại</button>
+    </div>
+</div>
+
+<script>
+    // DATA SOURCE
+    const quizData = [
+        {
+          "questionNumber": 1,
+          "question": "Exercise 6 - Q1: The child has a(n) ___________________ mind. He takes great interest in learning new things.",
+          "options": [
+            { "text": "inquiring", "isCorrect": true, "rationale": "inquiring" },
+            { "text": "creative", "isCorrect": false, "rationale": "creative" },
+            { "text": "knowledgeable", "isCorrect": false, "rationale": "knowledgeable" },
+            { "text": "helpful", "isCorrect": false, "rationale": "helpful" }
+          ],
+          "fullRationale": "1. Phân tích từ vựng:\n- inquiring (adj): ham học hỏi, tò mò tìm hiểu.\n2. Dịch nghĩa: 'Đứa trẻ có một trí óc ham học hỏi. Cậu bé rất hứng thú với việc học những điều mới.'\n3. Giải thích: Cụm từ 'inquiring mind' dùng để chỉ người thích tìm tòi, học hỏi (khớp với vế sau 'interest in learning new things').\n\n- creative (sáng tạo) -> Không sát nghĩa.\n- knowledgeable (uyên bác) -> Trẻ em thường tò mò hơn là đã uyên bác.\n- helpful (hay giúp đỡ) -> Không liên quan."
+        },
+        {
+          "questionNumber": 2,
+          "question": "Exercise 6 - Q2: Being a female manager can be a(n) ___________________ job due to gender roles and stereotypes.",
+          "options": [
+            { "text": "challenging", "isCorrect": true },
+            { "text": "rewarding", "isCorrect": false },
+            { "text": "well-paid", "isCorrect": false },
+            { "text": "patient", "isCorrect": false }
+          ],
+          "fullRationale": "1. Phân tích từ vựng:\n- challenging (adj): đầy thách thức/khó khăn.\n2. Dịch nghĩa: 'Làm một nữ quản lý có thể là một công việc đầy thách thức do các vai trò giới và định kiến.'\n3. Giải thích: 'Stereotypes' (định kiến) gây ra khó khăn -> Dùng 'challenging'.\n\n- rewarding (bổ ích) -> Không hợp với 'định kiến'.\n- well-paid (lương cao) -> Không liên quan ngữ cảnh.\n- patient (kiên nhẫn) -> Dùng cho người."
+        },
+        {
+          "questionNumber": 3,
+          "question": "Exercise 6 - Q3: Thanks to his ___________________ job, he can afford a house in the city centre for his family.",
+          "options": [
+            { "text": "well-paid", "isCorrect": true },
+            { "text": "helpful", "isCorrect": false },
+            { "text": "creative", "isCorrect": false },
+            { "text": "patient", "isCorrect": false }
+          ],
+          "fullRationale": "1. Phân tích từ vựng:\n- well-paid (adj): được trả lương cao.\n2. Dịch nghĩa: 'Nhờ công việc lương cao, anh ấy có thể mua được một ngôi nhà ở trung tâm thành phố cho gia đình.'\n3. Giải thích: 'Afford a house' (mua được nhà) liên quan trực tiếp đến tiền bạc -> Dùng 'well-paid'.\n\n- helpful (có ích), creative (sáng tạo), patient (kiên nhẫn) -> Không liên quan trực tiếp đến tiền."
+        },
+        {
+          "questionNumber": 4,
+          "question": "Exercise 6 - Q4: What makes a job ___________________? ~ It’s a job that pays well and offers a good work-life balance.",
+          "options": [
+            { "text": "rewarding", "isCorrect": true },
+            { "text": "well-paid", "isCorrect": false },
+            { "text": "challenging", "isCorrect": false },
+            { "text": "informative", "isCorrect": false }
+          ],
+          "fullRationale": "1. Phân tích từ vựng:\n- rewarding (adj): bổ ích, đáng làm, đem lại cảm giác thỏa mãn.\n2. Dịch nghĩa: 'Điều gì làm cho một công việc trở nên đáng làm/lý tưởng? ~ Đó là công việc trả lương tốt và cân bằng cuộc sống.'\n3. Giải thích: 'Rewarding' là từ tổng quát nhất để mô tả một công việc tốt (bao gồm cả lương và sự cân bằng).\n\n- well-paid -> Lặp ý 'pays well'.\n- challenging (thách thức), informative (nhiều thông tin) -> Không phù hợp."
+        },
+        {
+          "questionNumber": 5,
+          "question": "Exercise 6 - Q5: I think being a surgeon requires excellent eyesight and ___________________ hands.",
+          "options": [
+            { "text": "skillful", "isCorrect": true },
+            { "text": "knowledgeable", "isCorrect": false },
+            { "text": "helpful", "isCorrect": false },
+            { "text": "creative", "isCorrect": false }
+          ],
+          "fullRationale": "1. Phân tích từ vựng:\n- skillful (adj): khéo léo, điêu luyện.\n2. Dịch nghĩa: 'Tôi nghĩ làm bác sĩ phẫu thuật đòi hỏi thị lực tốt và đôi tay khéo léo.'\n3. Giải thích: Bác sĩ phẫu thuật cần đôi tay 'khéo léo' (skillful) để thực hiện các thao tác chính xác.\n\n- knowledgeable (uyên bác), helpful (giúp đỡ) -> Không dùng cho 'đôi tay'.\n- creative (sáng tạo) -> Không quan trọng bằng 'skillful' trong phẫu thuật."
+        },
+        {
+          "questionNumber": 6,
+          "question": "Exercise 6 - Q6: The art teacher encourages students to be ___________________ and explore their unique styles in their artwork.",
+          "options": [
+            { "text": "creative", "isCorrect": true },
+            { "text": "patient", "isCorrect": false },
+            { "text": "informative", "isCorrect": false },
+            { "text": "skillful", "isCorrect": false }
+          ],
+          "fullRationale": "1. Phân tích từ vựng:\n- creative (adj): sáng tạo.\n2. Dịch nghĩa: 'Giáo viên mỹ thuật khuyến khích học sinh sáng tạo và khám phá phong cách độc đáo của riêng mình.'\n3. Giải thích: Từ khóa 'art' (nghệ thuật) và 'unique styles' (phong cách độc đáo) liên quan chặt chẽ đến 'creative'."
+        },
+        {
+          "questionNumber": 7,
+          "question": "Exercise 6 - Q7: Unfortunately, the career orientation wasn’t very ___________________ about each job description.",
+          "options": [
+            { "text": "informative", "isCorrect": true },
+            { "text": "knowledgeable", "isCorrect": false },
+            { "text": "helpful", "isCorrect": false },
+            { "text": "inquiring", "isCorrect": false }
+          ],
+          "fullRationale": "1. Phân tích từ vựng:\n- informative (adj): cung cấp nhiều thông tin, hữu ích.\n2. Dịch nghĩa: 'Thật không may, buổi định hướng nghề nghiệp không cung cấp nhiều thông tin về mô tả công việc.'\n3. Giải thích: 'Job description' (mô tả công việc) là thông tin -> Dùng 'informative'.\n\n- knowledgeable (uyên bác), inquiring (ham học) -> Dùng cho người."
+        },
+        {
+          "questionNumber": 8,
+          "question": "Exercise 6 - Q8: They’re looking for an expert who is ___________________ about agricultural engineering.",
+          "options": [
+            { "text": "knowledgeable", "isCorrect": true },
+            { "text": "skillful", "isCorrect": false },
+            { "text": "informative", "isCorrect": false },
+            { "text": "inquiring", "isCorrect": false }
+          ],
+          "fullRationale": "1. Phân tích từ vựng:\n- knowledgeable (adj): am hiểu, có kiến thức sâu rộng.\n2. Dịch nghĩa: 'Họ đang tìm kiếm một chuyên gia người mà am hiểu về kỹ thuật nông nghiệp.'\n3. Giải thích: Cấu trúc: Knowledgeable about something.\n\n- skillful (khéo léo) -> Thường đi với 'at'.\n- informative (nhiều thông tin) -> Dùng cho vật."
+        },
+        {
+          "questionNumber": 9,
+          "question": "Exercise 6 - Q9: Linkedin is a professional network which is really ___________________ in finding the right job.",
+          "options": [
+            { "text": "helpful", "isCorrect": true },
+            { "text": "knowledgeable", "isCorrect": false },
+            { "text": "patient", "isCorrect": false },
+            { "text": "skillful", "isCorrect": false }
+          ],
+          "fullRationale": "1. Phân tích từ vựng:\n- helpful (adj): hữu ích, giúp ích.\n2. Dịch nghĩa: 'Linkedin là một mạng lưới chuyên nghiệp thực sự hữu ích trong việc tìm kiếm công việc phù hợp.'\n3. Giải thích: Mạng xã hội giúp ích cho người dùng -> 'helpful'."
+        },
+        {
+          "questionNumber": 10,
+          "question": "Exercise 6 - Q10: Diane is kind and ___________________ with young children. She’ll become a great kindergarten teacher.",
+          "options": [
+            { "text": "patient", "isCorrect": true },
+            { "text": "skillful", "isCorrect": false },
+            { "text": "challenging", "isCorrect": false },
+            { "text": "inquiring", "isCorrect": false }
+          ],
+          "fullRationale": "1. Phân tích từ vựng:\n- patient (adj): kiên nhẫn.\n2. Dịch nghĩa: 'Diane tốt bụng và kiên nhẫn với trẻ nhỏ. Cô ấy sẽ trở thành một giáo viên mẫu giáo tuyệt vời.'\n3. Giải thích: Giáo viên mầm non (kindergarten teacher) cần nhất đức tính 'kiên nhẫn' (patient)."
+        },
+        // EXERCISE 9
+        {
+          "questionNumber": 11,
+          "question": "Exercise 9 - Q1: A surgeon is a ___________________ job as it requires accuracy and high skills. (demand)",
+          "options": [
+            { "text": "demanding", "isCorrect": true },
+            { "text": "demanded", "isCorrect": false },
+            { "text": "demand", "isCorrect": false },
+            { "text": "demands", "isCorrect": false }
+          ],
+          "fullRationale": "1. Phân tích từ vựng:\n- demand (v/n): yêu cầu.\n- demanding (adj): đòi hỏi khắt khe, vất vả.\n2. Dịch nghĩa: 'Phẫu thuật viên là một công việc đòi hỏi cao vì nó yêu cầu sự chính xác và kỹ năng cao.'\n3. Giải thích: Cần một tính từ (V-ing) chỉ tính chất công việc để bổ nghĩa cho danh từ 'job'."
+        },
+        {
+          "questionNumber": 12,
+          "question": "Exercise 9 - Q2: Going to university will help students get ___________________ training in specific fields. (form)",
+          "options": [
+            { "text": "formal", "isCorrect": true },
+            { "text": "former", "isCorrect": false },
+            { "text": "format", "isCorrect": false },
+            { "text": "formation", "isCorrect": false }
+          ],
+          "fullRationale": "1. Phân tích từ vựng:\n- formal (adj): chính quy, trang trọng.\n- form (n): hình thức.\n2. Dịch nghĩa: 'Vào đại học sẽ giúp sinh viên được đào tạo chính quy trong các lĩnh vực cụ thể.'\n3. Giải thích: 'Formal training' là cụm từ cố định chỉ sự đào tạo bài bản, chính quy."
+        },
+        {
+          "questionNumber": 13,
+          "question": "Exercise 9 - Q3: He doesn't want to become a bank clerk because it's boring and ___________________. (repeat)",
+          "options": [
+            { "text": "repetitive", "isCorrect": true },
+            { "text": "repetition", "isCorrect": false },
+            { "text": "repeated", "isCorrect": false },
+            { "text": "repeatable", "isCorrect": false }
+          ],
+          "fullRationale": "1. Phân tích từ vựng:\n- repetitive (adj): có tính lặp đi lặp lại (nhàm chán).\n2. Dịch nghĩa: 'Anh ấy không muốn làm nhân viên ngân hàng vì nó nhàm chán và lặp đi lặp lại.'\n3. Giải thích: Cần một tính từ song song với 'boring' (nối bởi 'and'). 'Repetitive' mang sắc thái tiêu cực phù hợp với 'boring'."
+        },
+        {
+          "questionNumber": 14,
+          "question": "Exercise 9 - Q4: There should be more job ___________________ workshops for secondary students. (orient)",
+          "options": [
+            { "text": "orientation", "isCorrect": true },
+            { "text": "oriented", "isCorrect": false },
+            { "text": "orienting", "isCorrect": false },
+            { "text": "oriental", "isCorrect": false }
+          ],
+          "fullRationale": "1. Phân tích từ vựng:\n- orientation (n): sự định hướng.\n2. Dịch nghĩa: 'Nên có nhiều hội thảo định hướng nghề nghiệp hơn cho học sinh trung học.'\n3. Giải thích: Cần danh từ để tạo thành cụm danh từ ghép 'Job orientation' (định hướng nghề nghiệp)."
+        },
+        {
+          "questionNumber": 15,
+          "question": "Exercise 9 - Q5: He is a famous fashion designer who has great ___________________. (create)",
+          "options": [
+            { "text": "creativity", "isCorrect": true },
+            { "text": "creation", "isCorrect": false },
+            { "text": "creative", "isCorrect": false },
+            { "text": "creator", "isCorrect": false }
+          ],
+          "fullRationale": "1. Phân tích từ vựng:\n- creativity (n): sự sáng tạo, óc sáng tạo.\n- creation (n): sự tạo tác, tác phẩm.\n2. Dịch nghĩa: 'Anh ấy là một nhà thiết kế thời trang nổi tiếng, người có sức sáng tạo tuyệt vời.'\n3. Giải thích: Sau tính từ 'great' cần một danh từ chỉ khả năng. 'Creativity' (năng lực sáng tạo) phù hợp hơn 'Creation' (sản phẩm)."
+        },
+        {
+          "questionNumber": 16,
+          "question": "Exercise 9 - Q6: Job ___________________ is the process of welcoming new employees to the organization. (orientate)",
+          "options": [
+            { "text": "orientation", "isCorrect": true },
+            { "text": "orientating", "isCorrect": false },
+            { "text": "orientated", "isCorrect": false },
+            { "text": "orient", "isCorrect": false }
+          ],
+          "fullRationale": "1. Phân tích từ vựng:\n- orientation (n): buổi định hướng/sự định hướng.\n2. Dịch nghĩa: 'Định hướng công việc là quá trình chào đón nhân viên mới vào tổ chức.'\n3. Giải thích: Cần một danh từ làm chủ ngữ. 'Job orientation' là thuật ngữ chỉ quá trình đào tạo nhập môn (onboarding)."
+        },
+        {
+          "questionNumber": 17,
+          "question": "Exercise 9 - Q7: We want to recruit her. She is very ___________________ industry. (know)",
+          "options": [
+            { "text": "knowledgeable about the", "isCorrect": true },
+            { "text": "knowledge", "isCorrect": false },
+            { "text": "knowingly", "isCorrect": false },
+            { "text": "known", "isCorrect": false }
+          ],
+          "fullRationale": "1. Phân tích từ vựng:\n- knowledgeable (adj): am hiểu.\n2. Dịch nghĩa: 'Chúng tôi muốn tuyển cô ấy. Cô ấy rất am hiểu về ngành này.'\n3. Giải thích: Cấu trúc 'to be knowledgeable about something'. Đáp án này bổ sung cả giới từ 'about the' bị thiếu trong đề gốc để câu hoàn chỉnh."
+        },
+        {
+          "questionNumber": 18,
+          "question": "Exercise 9 - Q8: When you are young, taking many qualifications is ___________________ development. (reward)",
+          "options": [
+            { "text": "rewarding", "isCorrect": true },
+            { "text": "rewarded", "isCorrect": false },
+            { "text": "rewards", "isCorrect": false },
+            { "text": "unrewarding", "isCorrect": false }
+          ],
+          "fullRationale": "1. Phân tích từ vựng:\n- rewarding (adj): đáng giá, bổ ích.\n2. Dịch nghĩa: 'Khi bạn còn trẻ, việc lấy nhiều bằng cấp là một sự phát triển đáng giá.'\n3. Giải thích: Cần tính từ bổ nghĩa cho danh từ 'development'. Dùng V-ing (rewarding) để chỉ tính chất của sự việc."
+        },
+        {
+          "questionNumber": 19,
+          "question": "Exercise 9 - Q9: I don't agree with those who say that a teacher has to do ___________________ today. (repeat)",
+          "options": [
+            { "text": "repetitive work", "isCorrect": true },
+            { "text": "repetition", "isCorrect": false },
+            { "text": "repeatedly", "isCorrect": false },
+            { "text": "repeat", "isCorrect": false }
+          ],
+          "fullRationale": "1. Phân tích từ vựng:\n- repetitive (adj): lặp đi lặp lại.\n2. Dịch nghĩa: 'Tôi không đồng ý với những người nói rằng giáo viên phải làm công việc lặp đi lặp lại ngày nay.'\n3. Giải thích: Động từ 'do' cần một tân ngữ danh từ. 'Repetitive' là tính từ nên cần thêm danh từ (như 'work' hoặc 'tasks') để tạo thành cụm danh từ hợp lý."
+        },
+        // EXERCISE 1 (Communication)
+        {
+          "questionNumber": 20,
+          "question": "Exercise 1 - Q1: A: I really hope our team wins the upcoming competition. - B: “______”",
+          "options": [
+            { "text": "I hope so, too.", "isCorrect": true },
+            { "text": "Of course, why not?", "isCorrect": false },
+            { "text": "Hope to see you again.", "isCorrect": false },
+            { "text": "Thank you for your help.", "isCorrect": false }
+          ],
+          "fullRationale": "1. Dịch nghĩa:\nA: 'Tôi thực sự hy vọng đội mình thắng...'\nB: 'Tôi cũng hy vọng vậy.'\n2. Giải thích: 'I hope so, too' là câu đồng tình chuẩn xác nhất với một lời hy vọng/mong ước của người khác."
+        },
+        {
+          "questionNumber": 21,
+          "question": "Exercise 1 - Q2: A: “______” - B: I hope we’re lucky. I’m really looking forward to this.",
+          "options": [
+            { "text": "Hopefully, the weather clears up for our outdoor event.", "isCorrect": true },
+            { "text": "All we can do is to wait and hope for the event.", "isCorrect": false },
+            { "text": "Thank you for attending our event.", "isCorrect": false },
+            { "text": "Why don’t you give it a go for our event?", "isCorrect": false }
+          ],
+          "fullRationale": "1. Dịch nghĩa:\nA: 'Hy vọng thời tiết sẽ quang đãng cho sự kiện ngoài trời của chúng ta.'\nB: 'Tôi hy vọng chúng ta may mắn. Tôi rất mong chờ nó.'\n2. Giải thích: Câu A thể hiện sự lo lắng/hy vọng về ngoại cảnh -> Phù hợp để B hưởng ứng 'hope we're lucky'."
+        },
+        {
+          "questionNumber": 22,
+          "question": "Exercise 1 - Q3: A: I’ve heard you applied for Harvard University. “______” - B: Thank you so much.",
+          "options": [
+            { "text": "I wish you all the best of luck.", "isCorrect": true },
+            { "text": "I’ll make a contribution.", "isCorrect": false },
+            { "text": "I don’t quite follow you on this.", "isCorrect": false },
+            { "text": "You’re obligated to do so.", "isCorrect": false }
+          ],
+          "fullRationale": "1. Dịch nghĩa:\nA: 'Nghe nói bạn nộp đơn vào Harvard.' -> Chúc bạn may mắn.\nB: 'Cảm ơn bạn rất nhiều.'\n2. Giải thích: 'I wish you all the best of luck' là lời chúc phù hợp nhất trong ngữ cảnh thi cử/nộp hồ sơ."
+        },
+        {
+          "questionNumber": 23,
+          "question": "Exercise 1 - Q4: A: Hey, I was thinking we should try out that new sushi place tonight. - B: “______” I’m not really into sushi.",
+          "options": [
+            { "text": "Hmm, I’m not sure about that.", "isCorrect": true },
+            { "text": "Alright, you’ve convinced me.", "isCorrect": false },
+            { "text": "Thanks. I’ll try my best.", "isCorrect": false },
+            { "text": "OK, I got what you mean.", "isCorrect": false }
+          ],
+          "fullRationale": "1. Dịch nghĩa: 'Hừm, tớ không chắc về điều đó.'\n2. Giải thích: Vì B nói 'I'm not really into sushi' (tớ không thích sushi lắm), nên vế trước phải là sự do dự hoặc từ chối khéo léo."
+        },
+        {
+          "questionNumber": 24,
+          "question": "Exercise 1 - Q5: A: I explained how to use the new photocopier. Do you understand everything? - B: “______”",
+          "options": [
+            { "text": "I’m sorry. Could you say that again, please?", "isCorrect": true },
+            { "text": "Would you mind showing me how to do it?", "isCorrect": false },
+            { "text": "Sorry. It was totally my fault.", "isCorrect": false },
+            { "text": "Alright. I’ll make sure to think about that.", "isCorrect": false }
+          ],
+          "fullRationale": "1. Dịch nghĩa: 'Xin lỗi. Bạn có thể nói lại lần nữa được không?'\n2. Giải thích: B chưa hiểu và yêu cầu nhắc lại (clarification). Đây là phản hồi tự nhiên nhất."
+        },
+        {
+          "questionNumber": 25,
+          "question": "Exercise 1 - Q6: Nam: I want to be a vet! I love animals. - Mai: “______”",
+          "options": [
+            { "text": "That’s great! You’ll need to study animal science in college.", "isCorrect": true },
+            { "text": "How terrible. I don’t like animals at all.", "isCorrect": false },
+            { "text": "That sounds messy! Maybe consider a desk job.", "isCorrect": false },
+            { "text": "Yes. Great. There are loads of animals in the jungle.", "isCorrect": false }
+          ],
+          "fullRationale": "1. Dịch nghĩa: 'Tuyệt quá! Bạn sẽ cần học khoa học động vật ở đại học.'\n2. Giải thích: Mai ủng hộ ước mơ làm 'vet' (bác sĩ thú y) và đưa ra lời khuyên học tập liên quan."
+        },
+        {
+          "questionNumber": 26,
+          "question": "Exercise 1 - Q7: Thinh: I like working with computers. Maybe I can be a software engineer. - Thanh: “______”",
+          "options": [
+            { "text": "Good idea! You’ll need to be good at math and problem-solving.", "isCorrect": true },
+            { "text": "That requires a lot of creativity. Are you artistic?", "isCorrect": false },
+            { "text": "Software engineers wear lab coats, right?", "isCorrect": false },
+            { "text": "Great choice! You’ll get to travel a lot.", "isCorrect": false }
+          ],
+          "fullRationale": "1. Dịch nghĩa: 'Ý hay đấy! Bạn sẽ cần giỏi toán và giải quyết vấn đề.'\n2. Giải thích: Kỹ năng 'math' và 'problem-solving' là cốt lõi của 'software engineer' (kỹ sư phần mềm)."
+        },
+        {
+          "questionNumber": 27,
+          "question": "Exercise 1 - Q8: Minh: I want a job outside, maybe in a park. Park ranger sounds interesting! - Quan: “______”",
+          "options": [
+            { "text": "Cool! You should be patient and enjoy being around nature.", "isCorrect": true },
+            { "text": "A park ranger uniform must be uncomfortable in hot weather.", "isCorrect": false },
+            { "text": "Park rangers need to be strong and lift heavy things.", "isCorrect": false },
+            { "text": "That sounds like a boring job. You must attend lots of meetings.", "isCorrect": false }
+          ],
+          "fullRationale": "1. Dịch nghĩa: 'Ngầu đấy! Bạn nên kiên nhẫn và thích hòa mình vào thiên nhiên.'\n2. Giải thích: 'Park ranger' (kiểm lâm) làm việc ngoài trời, nên cần yêu thiên nhiên (enjoy being around nature)."
+        },
+        {
+          "questionNumber": 28,
+          "question": "Exercise 1 - Q9: Ha: I don’t mind working in an office, but I want a creative job. Graphic designer? - Linh: “______”",
+          "options": [
+            { "text": "Sure! Being artistic and having good computer skills would help.", "isCorrect": true },
+            { "text": "That requires a lot of public speaking. Are you comfortable with that?", "isCorrect": false },
+            { "text": "Graphic designers need to be good at writing.", "isCorrect": false },
+            { "text": "A graphic designer uniform must be very colorful!", "isCorrect": false }
+          ],
+          "fullRationale": "1. Dịch nghĩa: 'Chắc chắn rồi! Có khiếu nghệ thuật và kỹ năng máy tính tốt sẽ giúp ích.'\n2. Giải thích: 'Graphic designer' cần kết hợp giữa nghệ thuật (artistic) và công nghệ (computer skills)."
+        },
+        {
+          "questionNumber": 29,
+          "question": "Exercise 1 - Q10: Huong: Will I make a lot of money as a teacher? - Hai: “______”",
+          "options": [
+            { "text": "Maybe not the most, but it’s a rewarding job with good benefits.", "isCorrect": true },
+            { "text": "It depends on the subject you are good at. Are you good at math?", "isCorrect": false },
+            { "text": "Absolutely! My teachers are great, and I love them a lot.", "isCorrect": false },
+            { "text": "I don’t earn a lot of money as a teaching assistant.", "isCorrect": false }
+          ],
+          "fullRationale": "1. Dịch nghĩa: 'Có lẽ không phải nhiều nhất, nhưng đó là một công việc ý nghĩa/bổ ích với phúc lợi tốt.'\n2. Giải thích: Giáo viên thường được mô tả là nghề 'rewarding' (cao quý/đáng làm) dù lương có thể không cao nhất."
+        }
+    ];
+
+    let currentScore = 0;
+    const totalQuestions = quizData.length;
+    let questionsAnswered = 0;
+
+    // AUDIO SYSTEM (Using simple browser beep/frequency to avoid external file issues)
+    // Actually, for better UX, I will use reliable CDN MP3s for "Ding" and "Buzz"
+    const audioCorrect = new Audio('https://actions.google.com/sounds/v1/cartoon/cartoon_boing.ogg'); // Fun bounce sound
+    const audioWrong = new Audio('https://actions.google.com/sounds/v1/cartoon/clown_horn.ogg'); // Funny fail sound
+    
+    // Fallback if audio fails
+    const playSound = (isCorrect) => {
+        try {
+            if (isCorrect) {
+                audioCorrect.currentTime = 0;
+                audioCorrect.play().catch(e => console.log("Audio play failed", e));
+            } else {
+                audioWrong.currentTime = 0;
+                audioWrong.play().catch(e => console.log("Audio play failed", e));
+            }
+        } catch (e) {
+            console.log("Audio error", e);
+        }
+    };
+
+    function initQuiz() {
+        const quizArea = document.getElementById('quiz-area');
+        document.getElementById('total-qs').innerText = totalQuestions;
+
+        quizData.forEach((item, index) => {
+            const card = document.createElement('div');
+            card.className = 'question-card';
+            card.id = `q-card-${index}`;
+
+            // Create HTML structure
+            let html = `
+                <div class="question-header">
+                    <span class="question-badge">Question ${item.questionNumber}</span>
+                </div>
+                <div class="question-text">${item.question}</div>
+                <div class="options-grid">
+            `;
+
+            item.options.forEach((opt, optIndex) => {
+                html += `<button class="option-btn" onclick="checkAnswer(${index}, ${optIndex}, this, ${opt.isCorrect})">${opt.text}</button>`;
+            });
+
+            html += `
+                </div>
+                <div class="explanation-box" id="explain-${index}">
+                    <div class="explanation-header">
+                        <span>👩‍🏫</span> Ms. Mai An giải thích:
+                    </div>
+                    <div class="explanation-content">
+                        ${item.fullRationale}
+                    </div>
+                </div>
+            `;
+
+            card.innerHTML = html;
+            quizArea.appendChild(card);
+        });
+    }
+
+    function checkAnswer(qIndex, optIndex, btnElement, isCorrect) {
+        const card = document.getElementById(`q-card-${qIndex}`);
+        const buttons = card.querySelectorAll('.option-btn');
+        const explanation = document.getElementById(`explain-${qIndex}`);
+
+        // Disable all buttons in this card
+        buttons.forEach(btn => btn.disabled = true);
+
+        if (isCorrect) {
+            btnElement.classList.add('correct');
+            currentScore++;
+            document.getElementById('current-score').innerText = currentScore;
+            playSound(true);
+            
+            // Confetti effect
+            confetti({
+                particleCount: 100,
+                spread: 70,
+                origin: { y: 0.6 },
+                colors: ['#00C9A7', '#8854C0', '#FFD700']
+            });
+
+        } else {
+            btnElement.classList.add('wrong');
+            playSound(false);
+            
+            // Highlight the correct answer automatically
+            const correctBtnIndex = quizData[qIndex].options.findIndex(o => o.isCorrect);
+            buttons[correctBtnIndex].classList.add('correct');
+        }
+
+        // Show Explanation immediately
+        explanation.style.display = 'block';
+        questionsAnswered++;
+    }
+
+    function finishQuiz() {
+        const modal = document.getElementById('result-modal');
+        const scoreText = document.getElementById('final-score-text');
+        const feedbackText = document.getElementById('feedback-text');
+
+        scoreText.innerText = `${currentScore}/${totalQuestions}`;
+        
+        const percentage = (currentScore / totalQuestions) * 100;
+        
+        if (percentage === 100) {
+            feedbackText.innerText = "Xuất sắc! Bạn là thiên tài tiếng Anh! 🌟🏆";
+            confetti({ particleCount: 200, spread: 100, origin: { y: 0.6 } });
+        } else if (percentage >= 80) {
+            feedbackText.innerText = "Giỏi lắm! Chỉ sai một chút xíu thôi. 💪";
+        } else if (percentage >= 50) {
+            feedbackText.innerText = "Làm tốt lắm! Hãy cố gắng xem lại các câu sai nhé. 📚";
+        } else {
+            feedbackText.innerText = "Đừng nản lòng! Hãy đọc kỹ giải thích và làm lại nhé. 🌱";
+        }
+
+        modal.style.display = 'flex';
+    }
+
+    // Initialize
+    initQuiz();
+
+</script>
+
+</body>
+</html>

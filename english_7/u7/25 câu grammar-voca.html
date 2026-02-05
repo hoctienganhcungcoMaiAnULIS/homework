@@ -1,0 +1,941 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trắc nghiệm Tiếng Anh - Unit 7: Traffic (Ms Mai An ULIS)</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;900&family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #8854C0; /* Hồng tím nhạt */
+            --secondary-color: #00C9A7; /* Xanh ngọc */
+            --accent-color: #FF9F43; /* Cam */
+            --text-color: #2d3436;
+            --correct-color: #00D26A; /* Xanh lá */
+            --wrong-color: #FF4757; /* Đỏ cam */
+            --bg-pattern: #f0f3f5;
+            --card-bg: #ffffff;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none; /* Ngăn bôi đen để trải nghiệm giống app */
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: var(--bg-pattern);
+            background-image: radial-gradient(#dcdde1 15%, transparent 16%), radial-gradient(#dcdde1 15%, transparent 16%);
+            background-size: 60px 60px;
+            background-position: 0 0, 30px 30px;
+            color: var(--text-color);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+
+        /* --- Header --- */
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+            background: white;
+            padding: 10px 25px;
+            border-radius: 50px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border: 3px solid var(--primary-color);
+            position: relative;
+            z-index: 10;
+        }
+
+        h2 {
+            font-family: 'Quicksand', sans-serif;
+            color: var(--primary-color);
+            font-weight: 900;
+            font-size: 1.2rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* --- Main Game Container --- */
+        .game-container {
+            background: var(--card-bg);
+            width: 100%;
+            max-width: 800px;
+            border-radius: 25px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            border-bottom: 8px solid #dfe6e9;
+            position: relative;
+            transition: transform 0.3s;
+        }
+
+        /* --- Progress Bar --- */
+        .progress-wrapper {
+            width: 100%;
+            height: 20px;
+            background-color: #dfe6e9;
+            border-radius: 15px;
+            margin-bottom: 25px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background-color: var(--secondary-color);
+            width: 0%;
+            border-radius: 15px;
+            transition: width 0.5s ease-in-out;
+            box-shadow: inset 0 -3px 5px rgba(0,0,0,0.1);
+        }
+
+        .question-count {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 0.8rem;
+            font-weight: 800;
+            color: #636e72;
+        }
+
+        /* --- Question --- */
+        .question-box {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--text-color);
+            margin-bottom: 30px;
+            text-align: center;
+            line-height: 1.5;
+        }
+
+        /* --- Options Grid --- */
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 600px) {
+            .options-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .option-btn {
+            background: white;
+            border: 2px solid #e0e0e0;
+            padding: 15px 20px;
+            font-size: 1.1rem;
+            font-family: 'Nunito', sans-serif;
+            font-weight: 700;
+            color: var(--text-color);
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+            box-shadow: 0 5px 0 #b2bec3; /* 3D effect */
+            text-align: left;
+            display: flex;
+            align-items: center;
+        }
+
+        .option-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+        }
+
+        .option-btn:active:not(:disabled) {
+            transform: translateY(3px);
+            box-shadow: 0 2px 0 #b2bec3;
+        }
+
+        .option-circle {
+            width: 30px;
+            height: 30px;
+            background: #f1f2f6;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            font-weight: 800;
+            color: #a4b0be;
+            flex-shrink: 0;
+        }
+
+        /* States */
+        .option-btn.correct {
+            background-color: var(--correct-color);
+            color: white;
+            border-color: var(--correct-color);
+            box-shadow: 0 5px 0 #00944a;
+        }
+        .option-btn.correct .option-circle {
+            background: white;
+            color: var(--correct-color);
+        }
+
+        .option-btn.wrong {
+            background-color: var(--wrong-color);
+            color: white;
+            border-color: var(--wrong-color);
+            box-shadow: 0 5px 0 #c23616;
+            animation: shake 0.5s;
+        }
+        .option-btn.wrong .option-circle {
+            background: white;
+            color: var(--wrong-color);
+        }
+
+        .option-btn:disabled {
+            cursor: default;
+            opacity: 0.9;
+        }
+        
+        .option-btn.dimmed {
+            opacity: 0.5;
+        }
+
+        /* --- Explanation Box --- */
+        .explanation-box {
+            margin-top: 30px;
+            background: #f8f9fa;
+            border: 2px dashed var(--primary-color);
+            border-radius: 15px;
+            padding: 20px;
+            display: none; /* Hidden by default */
+            animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .explanation-header {
+            color: var(--primary-color);
+            font-weight: 800;
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .explanation-content {
+            font-size: 1rem;
+            line-height: 1.6;
+            color: #2d3436;
+            white-space: pre-wrap; /* Preserve line breaks */
+        }
+        
+        .explanation-content strong {
+            color: #d63031;
+        }
+
+        /* --- Next Button --- */
+        .next-btn {
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.2rem;
+            font-weight: 800;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 6px 0 #e58e26;
+            margin-top: 25px;
+            display: none; /* Hidden */
+            width: 100%;
+            font-family: 'Quicksand', sans-serif;
+            text-transform: uppercase;
+            transition: all 0.2s;
+        }
+
+        .next-btn:hover {
+            transform: scale(1.02);
+            background-color: #ffaf40;
+        }
+        
+        .next-btn:active {
+            transform: translateY(4px);
+            box-shadow: 0 2px 0 #e58e26;
+        }
+
+        /* --- Result Modal --- */
+        .result-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            backdrop-filter: blur(5px);
+        }
+
+        .result-card {
+            background: white;
+            padding: 40px;
+            border-radius: 30px;
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+            animation: zoomIn 0.5s;
+        }
+
+        .score-circle {
+            width: 120px;
+            height: 120px;
+            background: var(--primary-color);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            font-size: 2.5rem;
+            font-weight: 900;
+            color: white;
+            border: 5px solid white;
+            box-shadow: 0 0 0 5px var(--primary-color);
+        }
+
+        .message {
+            font-size: 1.5rem;
+            color: var(--text-color);
+            margin-bottom: 20px;
+        }
+        
+        .restart-btn {
+            background-color: var(--secondary-color);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 5px 0 #00944a;
+        }
+        
+        .restart-btn:active {
+            transform: translateY(5px);
+            box-shadow: 0 0 0 transparent;
+        }
+
+        /* --- Animations --- */
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-10px) rotate(-5deg); }
+            50% { transform: translateX(10px) rotate(5deg); }
+            75% { transform: translateX(-10px) rotate(-5deg); }
+            100% { transform: translateX(0); }
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0.8); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        @keyframes zoomIn {
+            from { transform: scale(0); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        /* --- Confetti Canvas --- */
+        #confetti-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+            z-index: 99;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h2>Giáo viên tạo: Ms Mai An ULIS</h2>
+    </header>
+
+    <div class="game-container">
+        <div class="progress-wrapper">
+            <div class="progress-bar" id="progress-bar"></div>
+            <div class="question-count" id="question-count">1/25</div>
+        </div>
+
+        <div class="question-box" id="question-text">
+            Loading Question...
+        </div>
+
+        <div class="options-grid" id="options-container">
+            <!-- Options will be generated here -->
+        </div>
+
+        <div class="explanation-box" id="explanation-box">
+            <div class="explanation-header">
+                <span>💡 Giải thích chi tiết (Ms Mai An)</span>
+            </div>
+            <div class="explanation-content" id="explanation-text">
+                <!-- Explanation text -->
+            </div>
+        </div>
+
+        <button class="next-btn" id="next-btn" onclick="nextQuestion()">Câu tiếp theo ➜</button>
+    </div>
+
+    <!-- Result Modal -->
+    <div class="result-overlay" id="result-overlay">
+        <div class="result-card">
+            <div class="score-circle" id="final-score">0/25</div>
+            <h2 id="final-title" style="color:var(--primary-color); margin-bottom:10px;">Hoàn thành!</h2>
+            <p class="message" id="final-message">Bạn đã làm rất tốt!</p>
+            <button class="restart-btn" onclick="restartGame()">Làm lại bài thi ↺</button>
+        </div>
+    </div>
+
+    <canvas id="confetti-canvas"></canvas>
+
+    <script>
+        // --- DATA SOURCE (From User Context) ---
+        const rawData = {
+          "questions": [
+            {
+              "questionNumber": 1,
+              "question": "Drivers have to __________ their seatbelt whenever they drive.",
+              "answerOptions": [
+                { "text": "put", "rationale": "Phân tích:\n- A. put (v): đặt, để\n- B. tie (v): buộc, thắt (dây giày, cà vạt)\n- C. fasten (v): thắt, cài (dây an toàn)\n- D. put on (v): mặc vào (quần áo)\n\nGiải thích: Cụm từ cố định 'fasten one's seatbelt' nghĩa là thắt dây an toàn.\n\nDịch câu: Các tài xế phải thắt dây an toàn bất cứ khi nào họ lái xe.", "isCorrect": false },
+                { "text": "tie", "rationale": "", "isCorrect": false },
+                { "text": "fasten", "rationale": "Phân tích:\n- A. put (v): đặt, để\n- B. tie (v): buộc, thắt (dây giày, cà vạt)\n- C. fasten (v): thắt, cài (dây an toàn)\n- D. put on (v): mặc vào (quần áo)\n\nGiải thích: Cụm từ cố định 'fasten one's seatbelt' nghĩa là thắt dây an toàn.\n\nDịch câu: Các tài xế phải thắt dây an toàn bất cứ khi nào họ lái xe.", "isCorrect": true },
+                { "text": "put on", "rationale": "", "isCorrect": false }
+              ]
+            },
+            {
+              "questionNumber": 2,
+              "question": "We should wait for the traffic lights __________ before we cross the street.",
+              "answerOptions": [
+                { "text": "turn green", "rationale": "", "isCorrect": false },
+                { "text": "to turn green", "rationale": "Phân tích:\n- A. turn green (v): chuyển xanh\n- B. to turn green (to v): chuyển xanh\n- C. turn yellow (v): chuyển vàng\n- D. to turn yellow (to v): chuyển vàng\n\nGiải thích: Cấu trúc 'wait for sb/sth to do sth' (chờ ai/cái gì làm gì). Để qua đường an toàn thì đèn phải chuyển xanh.\n\nDịch câu: Chúng ta nên chờ đèn giao thông chuyển sang màu xanh trước khi băng qua đường.", "isCorrect": true },
+                { "text": "turn yellow", "rationale": "", "isCorrect": false },
+                { "text": "to turn yellow", "rationale": "", "isCorrect": false }
+              ]
+            },
+            {
+              "questionNumber": 3,
+              "question": "All of us have to obey __________ strictly.",
+              "answerOptions": [
+                { "text": "traffic rules", "rationale": "Phân tích:\n- A. traffic rules (n): luật giao thông\n- B. traffic (n): giao thông\n- C. traffic jam (n): tắc đường\n- D. regular (adj): thường xuyên/đều đặn\n\nGiải thích: Động từ 'obey' (tuân thủ) thường đi với luật lệ.\n\nDịch câu: Tất cả chúng ta đều phải tuân thủ luật giao thông một cách nghiêm ngặt.", "isCorrect": true },
+                { "text": "traffic", "rationale": "", "isCorrect": false },
+                { "text": "traffic jam", "rationale": "", "isCorrect": false },
+                { "text": "regular", "rationale": "", "isCorrect": false }
+              ]
+            },
+            {
+              "questionNumber": 4,
+              "question": "Cyclists and motorists have to wear a __________ when they ride a motorbike.",
+              "answerOptions": [
+                { "text": "hard hat", "rationale": "", "isCorrect": false },
+                { "text": "cap", "rationale": "", "isCorrect": false },
+                { "text": "mask", "rationale": "", "isCorrect": false },
+                { "text": "helmet", "rationale": "Phân tích:\n- A. hard hat (n): mũ bảo hộ (công trường)\n- B. cap (n): mũ lưỡi trai\n- C. mask (n): khẩu trang/mặt nạ\n- D. helmet (n): mũ bảo hiểm\n\nGiải thích: Khi đi xe máy/xe đạp, vật dụng bảo vệ đầu bắt buộc là 'helmet'.\n\nDịch câu: Người đi xe đạp và người đi xe máy phải đội mũ bảo hiểm khi họ lái xe.", "isCorrect": true }
+              ]
+            },
+            {
+              "questionNumber": 5,
+              "question": "He forgot to give a __________ before he turned left and got a ticket.",
+              "answerOptions": [
+                { "text": "signal", "rationale": "Phân tích:\n- A. signal (n): tín hiệu (xi nhan)\n- B. sign (n): biển báo/ký hiệu\n- C. light (n): đèn\n- D. hand (n): bàn tay\n\nGiải thích: Cụm từ 'give a signal' nghĩa là ra tín hiệu (xi nhan) xin đường.\n\nDịch câu: Anh ấy quên ra tín hiệu trước khi rẽ trái và đã bị phạt.", "isCorrect": true },
+                { "text": "sign", "rationale": "", "isCorrect": false },
+                { "text": "light", "rationale": "", "isCorrect": false },
+                { "text": "hand", "rationale": "", "isCorrect": false }
+              ]
+            },
+            {
+              "questionNumber": 6,
+              "question": "__________ does it take you to get to Ho Chi Minh City by plane? - About 2 hours.",
+              "answerOptions": [
+                { "text": "How far", "rationale": "", "isCorrect": false },
+                { "text": "How much", "rationale": "", "isCorrect": false },
+                { "text": "How long", "rationale": "Phân tích:\n- A. How far (adv): Bao xa (hỏi khoảng cách)\n- B. How much (adv): Bao nhiêu (hỏi giá/số lượng)\n- C. How long (adv): Bao lâu (hỏi thời gian)\n- D. How many (adv): Bao nhiêu (đếm được)\n\nGiải thích: Câu trả lời là 'About 2 hours' (khoảng 2 tiếng) -> Hỏi về thời gian.\n\nDịch câu: Bạn mất bao lâu để đến TP. Hồ Chí Minh bằng máy bay? - Khoảng 2 tiếng.", "isCorrect": true },
+                { "text": "How many", "rationale": "", "isCorrect": false }
+              ]
+            },
+            {
+              "questionNumber": 7,
+              "question": "There __________ a bus station in the city centre, but it has been moved to the suburbs.",
+              "answerOptions": [
+                { "text": "used to be", "rationale": "Phân tích:\n- A. used to be: đã từng có (động từ be)\n- B. used to have: đã từng có (động từ have)\n- C. use to have: sai ngữ pháp\n- D. were: đã là (số nhiều, sai vì bus station là số ít)\n\nGiải thích: Cấu trúc 'There used to be...' (Đã từng có...). Không dùng 'There used to have'.\n\nDịch câu: Đã từng có một bến xe buýt ở trung tâm thành phố, nhưng nó đã được chuyển ra ngoại ô.", "isCorrect": true },
+                { "text": "used to have", "rationale": "", "isCorrect": false },
+                { "text": "use to have", "rationale": "", "isCorrect": false },
+                { "text": "were", "rationale": "", "isCorrect": false }
+              ]
+            },
+            {
+              "questionNumber": 8,
+              "question": "I __________ marbles when I was young, but now I don’t.",
+              "answerOptions": [
+                { "text": "play", "rationale": "", "isCorrect": false },
+                { "text": "used to play", "rationale": "Phân tích:\n- A. play (v): chơi (hiện tại)\n- B. used to play (v): đã từng chơi (quá khứ)\n- C. have played (v): đã chơi (hiện tại hoàn thành)\n- D. didn’t use to play (v): đã không thường chơi\n\nGiải thích: Cấu trúc 'used to + V' chỉ một thói quen trong quá khứ không còn ở hiện tại.\n\nDịch câu: Tôi đã từng chơi bắn bi khi còn nhỏ, nhưng bây giờ thì không.", "isCorrect": true },
+                { "text": "have played", "rationale": "", "isCorrect": false },
+                { "text": "didn’t use to play", "rationale": "", "isCorrect": false }
+              ]
+            },
+            {
+              "questionNumber": 9,
+              "question": "“__________ is it from your house to the nearest bus stop?” - “About 50 meters”",
+              "answerOptions": [
+                { "text": "How far", "rationale": "Phân tích:\n- A. How far (adv): Bao xa (hỏi khoảng cách)\n- B. How long (adv): Bao lâu (hỏi thời gian)\n- C. How often (adv): Bao lâu một lần (hỏi tần suất)\n- D. How much (adv): Bao nhiêu (giá cả)\n\nGiải thích: Câu trả lời là 'About 50 meters' (khoảng 50 mét) -> Hỏi về khoảng cách.\n\nDịch câu: Từ nhà bạn đến trạm xe buýt gần nhất là bao xa? - Khoảng 50 mét.", "isCorrect": true },
+                { "text": "How long", "rationale": "", "isCorrect": false },
+                { "text": "How often", "rationale": "", "isCorrect": false },
+                { "text": "How much", "rationale": "", "isCorrect": false }
+              ]
+            },
+            {
+              "questionNumber": 10,
+              "question": "We should __________ the street at the zebra crossing.",
+              "answerOptions": [
+                { "text": "walk", "rationale": "", "isCorrect": false },
+                { "text": "walk on", "rationale": "", "isCorrect": false },
+                { "text": "walk through", "rationale": "", "isCorrect": false },
+                { "text": "walk across", "rationale": "Phân tích:\n- A. walk (v): đi bộ\n- B. walk on (v): đi trên\n- C. walk through (v): đi xuyên qua\n- D. walk across (v): đi băng qua (đường)\n\nGiải thích: Hành động đi từ bên này sang bên kia đường dùng 'walk across' hoặc 'cross'.\n\nDịch câu: Chúng ta nên đi băng qua đường tại vạch kẻ dành cho người đi bộ.", "isCorrect": true }
+              ]
+            },
+            {
+              "questionNumber": 11,
+              "question": "John used to go to school __________.",
+              "answerOptions": [
+                { "text": "with bicycle", "rationale": "", "isCorrect": false },
+                { "text": "by foot", "rationale": "", "isCorrect": false },
+                { "text": "in car", "rationale": "", "isCorrect": false },
+                { "text": "by bus", "rationale": "Phân tích:\n- A. with bicycle (Sai giới từ): phải dùng 'by bicycle'\n- B. by foot (Sai giới từ): phải dùng 'on foot'\n- C. in car (Sai giới từ): thường dùng 'by car' hoặc 'in a car'\n- D. by bus: bằng xe buýt (Đúng)\n\nGiải thích: Chỉ phương tiện đi lại dùng giới từ 'by' + phương tiện (by bus, by car, by plane).\n\nDịch câu: John đã từng đi học bằng xe buýt.", "isCorrect": true }
+              ]
+            },
+            {
+              "questionNumber": 12,
+              "question": "Public __________ in my town is good and cheap.",
+              "answerOptions": [
+                { "text": "transport", "rationale": "Phân tích:\n- A. transport (n): giao thông/vận tải\n- B. tour (n): chuyến tham quan\n- C. journey (n): cuộc hành trình\n- D. travel (n/v): du lịch\n\nGiải thích: Cụm từ 'Public transport' nghĩa là Giao thông công cộng.\n\nDịch câu: Giao thông công cộng ở thị trấn của tôi rất tốt và rẻ.", "isCorrect": true },
+                { "text": "tour", "rationale": "", "isCorrect": false },
+                { "text": "journey", "rationale": "", "isCorrect": false },
+                { "text": "travel", "rationale": "", "isCorrect": false }
+              ]
+            },
+            {
+              "questionNumber": 13,
+              "question": "_______ is not very far from here to the city center.",
+              "answerOptions": [
+                { "text": "That", "rationale": "", "isCorrect": false },
+                { "text": "This", "rationale": "", "isCorrect": false },
+                { "text": "It", "rationale": "Phân tích:\n- A. That (đại từ): Kia\n- B. This (đại từ): Đây\n- C. It (đại từ giả): Nó\n- D. There (trạng từ): Ở đó\n\nGiải thích: Dùng chủ ngữ giả 'It' để nói về khoảng cách: 'It is + (not) + far...'\n\nDịch câu: Từ đây đến trung tâm thành phố không xa lắm.", "isCorrect": true },
+                { "text": "There", "rationale": "", "isCorrect": false }
+              ]
+            },
+            {
+              "questionNumber": 14,
+              "question": "When there is a traffic jam, it __________ me a very long time to go home.",
+              "answerOptions": [
+                { "text": "costs", "rationale": "", "isCorrect": false },
+                { "text": "takes", "rationale": "Phân tích:\n- A. costs (v): tốn (tiền)\n- B. takes (v): tốn (thời gian)\n- C. lasts (v): kéo dài\n- D. spends (v): dành (thời gian/tiền) - Chủ ngữ phải là người\n\nGiải thích: Cấu trúc 'It takes sb + time + to V' (Ai đó mất bao lâu để làm gì).\n\nDịch câu: Khi bị tắc đường, tôi mất rất nhiều thời gian để về nhà.", "isCorrect": true },
+                { "text": "lasts", "rationale": "", "isCorrect": false },
+                { "text": "spends", "rationale": "", "isCorrect": false }
+              ]
+            },
+            {
+              "questionNumber": 15,
+              "question": "Mai’s dad usually drives her to school __________ her school is very far from her house.",
+              "answerOptions": [
+                { "text": "but", "rationale": "", "isCorrect": false },
+                { "text": "though", "rationale": "", "isCorrect": false },
+                { "text": "because", "rationale": "Phân tích:\n- A. but (liên từ): nhưng\n- B. though (liên từ): mặc dù\n- C. because (liên từ): bởi vì\n- D. or (liên từ): hoặc\n\nGiải thích: Vế sau 'very far' là nguyên nhân cho việc bố chở đi học -> dùng 'because'.\n\nDịch câu: Bố của Mai thường chở cô ấy đến trường vì trường của cô ấy rất xa nhà.", "isCorrect": true },
+                { "text": "or", "rationale": "", "isCorrect": false }
+              ]
+            },
+            {
+              "questionNumber": 16,
+              "question": "Yesterday Hoa and Lan __________ round West Lake. It took them an hour.",
+              "answerOptions": [
+                { "text": "cycle", "rationale": "", "isCorrect": false },
+                { "text": "cycles", "rationale": "", "isCorrect": false },
+                { "text": "cycling", "rationale": "", "isCorrect": false },
+                { "text": "cycled", "rationale": "Phân tích:\n- A. cycle (v): đạp xe (hiện tại)\n- B. cycles (v): đạp xe (ngôi 3 số ít)\n- C. cycling (V-ing): đang đạp xe\n- D. cycled (v-ed): đã đạp xe\n\nGiải thích: Có trạng từ 'Yesterday' (Hôm qua) -> dùng thì Quá khứ đơn (V-ed).\n\nDịch câu: Hôm qua Hoa và Lan đã đạp xe quanh Hồ Tây. Họ mất một tiếng đồng hồ.", "isCorrect": true }
+              ]
+            },
+            {
+              "questionNumber": 17,
+              "question": "Minh used to __________ his homework late in the evening.",
+              "answerOptions": [
+                { "text": "does", "rationale": "", "isCorrect": false },
+                { "text": "do", "rationale": "Phân tích:\n- A. does (v): làm (ngôi 3 số ít)\n- B. do (v): làm (nguyên thể)\n- C. doing (V-ing): đang làm\n- D. did (v): đã làm (quá khứ)\n\nGiải thích: Cấu trúc 'used to + V(infinitive)' (đã từng làm gì).\n\nDịch câu: Minh đã từng làm bài tập về nhà muộn vào buổi tối.", "isCorrect": true },
+                { "text": "doing", "rationale": "", "isCorrect": false },
+                { "text": "did", "rationale": "", "isCorrect": false }
+              ]
+            },
+            {
+              "questionNumber": 18,
+              "question": "If people __________ the rules, there are no more accidents.",
+              "answerOptions": [
+                { "text": "follow", "rationale": "", "isCorrect": false },
+                { "text": "take care of", "rationale": "", "isCorrect": false },
+                { "text": "obey", "rationale": "Phân tích:\n- A. follow (v): làm theo\n- B. take care of (v): chăm sóc\n- C. obey (v): tuân thủ\n- D. remember (v): nhớ\n\nGiải thích: 'Obey the rules' là cụm từ chuẩn nhất mang nghĩa tuân thủ luật lệ nghiêm ngặt (mạnh hơn follow). Tuy nhiên, 'follow' cũng dùng được nhưng 'obey' thường dùng cho luật pháp/quy định giao thông.\n\nDịch câu: Nếu mọi người tuân thủ luật lệ, sẽ không còn tai nạn nữa.", "isCorrect": true },
+                { "text": "remember", "rationale": "", "isCorrect": false }
+              ]
+            },
+            {
+              "questionNumber": 19,
+              "question": "You should __________ right and left when you go across the roads.",
+              "answerOptions": [
+                { "text": "see", "rationale": "", "isCorrect": false },
+                { "text": "look", "rationale": "Phân tích:\n- A. see (v): nhìn thấy (thụ động)\n- B. look (v): nhìn (chủ động)\n- C. be (v): thì, là\n- D. take (v): cầm, lấy\n\nGiải thích: 'Look right and left' (Nhìn trái nhìn phải) là hành động chủ động quan sát.\n\nDịch câu: Bạn nên nhìn bên phải và bên trái khi băng qua đường.", "isCorrect": true },
+                { "text": "be", "rationale": "", "isCorrect": false },
+                { "text": "take", "rationale": "", "isCorrect": false }
+              ]
+            },
+            {
+              "questionNumber": 20,
+              "question": "Hurry up or we can’t __________ the last bus home.",
+              "answerOptions": [
+                { "text": "keep", "rationale": "", "isCorrect": false },
+                { "text": "follow", "rationale": "", "isCorrect": false },
+                { "text": "go", "rationale": "", "isCorrect": false },
+                { "text": "catch", "rationale": "Phân tích:\n- A. keep (v): giữ\n- B. follow (v): theo dõi\n- C. go (v): đi\n- D. catch (v): bắt (xe)\n\nGiải thích: Cụm từ 'catch the bus' (bắt xe buýt).\n\nDịch câu: Nhanh lên nếu không chúng ta không thể bắt chuyến xe buýt cuối cùng về nhà.", "isCorrect": true }
+              ]
+            },
+            {
+              "questionNumber": 21,
+              "question": "There used to be fewer people and __________ on the roads.",
+              "answerOptions": [
+                { "text": "roofs", "rationale": "", "isCorrect": false },
+                { "text": "helmets", "rationale": "", "isCorrect": false },
+                { "text": "helicopters", "rationale": "", "isCorrect": false },
+                { "text": "vehicles", "rationale": "Phân tích:\n- A. roofs (n): mái nhà\n- B. helmets (n): mũ bảo hiểm\n- C. helicopters (n): trực thăng\n- D. vehicles (n): phương tiện giao thông\n\nGiải thích: Trong ngữ cảnh giao thông trên đường (on the roads), đi kèm với 'people' (người) là 'vehicles' (xe cộ).\n\nDịch câu: Đã từng có ít người và phương tiện hơn trên đường.", "isCorrect": true }
+              ]
+            },
+            {
+              "questionNumber": 22,
+              "question": "Do you know the __________ in the UK is to keep to the left?",
+              "answerOptions": [
+                { "text": "traffic rule", "rationale": "Phân tích:\n- A. traffic light (n): đèn giao thông\n- B. traffic rule (n): luật giao thông\n- C. traffic jam (n): tắc đường\n- D. speed limit (n): giới hạn tốc độ\n\nGiải thích: Quy định 'đi bên trái' (keep to the left) là một luật giao thông.\n\nDịch câu: Bạn có biết luật giao thông ở Anh là đi bên trái không?", "isCorrect": true },
+                { "text": "traffic light", "rationale": "", "isCorrect": false },
+                { "text": "traffic jam", "rationale": "", "isCorrect": false },
+                { "text": "speed limit", "rationale": "", "isCorrect": false }
+              ]
+            },
+            {
+              "questionNumber": 23,
+              "question": "It is dangerous to ride a motorbike without a __________",
+              "answerOptions": [
+                { "text": "helmet", "rationale": "Phân tích:\n- A. helmet (n): mũ bảo hiểm\n- B. triangle (n): hình tam giác\n- C. tricycle (n): xe ba bánh\n- D. circle (n): hình tròn\n\nGiải thích: Lái xe máy cần đội mũ bảo hiểm để an toàn.\n\nDịch câu: Thật nguy hiểm khi lái xe máy mà không có mũ bảo hiểm.", "isCorrect": true },
+                { "text": "triangle", "rationale": "", "isCorrect": false },
+                { "text": "tricycle", "rationale": "", "isCorrect": false },
+                { "text": "circle", "rationale": "", "isCorrect": false }
+              ]
+            },
+            {
+              "questionNumber": 24,
+              "question": "In Hanoi, during rush hour, some road users ride their motorbikes on the __________",
+              "answerOptions": [
+                { "text": "pavement", "rationale": "Phân tích:\n- A. driving licence (n): bằng lái xe\n- B. lane (n): làn đường\n- C. pavement (n): vỉa hè\n- D. seat belt (n): dây an toàn\n\nGiải thích: Hành động sai trái thường thấy khi tắc đường là đi xe lên vỉa hè (pavement).\n\nDịch câu: Ở Hà Nội, trong giờ cao điểm, một số người tham gia giao thông lái xe máy lên vỉa hè.", "isCorrect": true },
+                { "text": "driving licence", "rationale": "", "isCorrect": false },
+                { "text": "lane", "rationale": "", "isCorrect": false },
+                { "text": "seat belt", "rationale": "", "isCorrect": false }
+              ]
+            },
+            {
+              "questionNumber": 25,
+              "question": "Traffic is terrible during the __________ when everyone is in a hurry to get to work or come back home.",
+              "answerOptions": [
+                { "text": "rush hour", "rationale": "Phân tích:\n- A. traffic light (n): đèn giao thông\n- B. road sign (n): biển báo giao thông\n- C. traffic rule (n): luật giao thông\n- D. rush hour (n): giờ cao điểm\n\nGiải thích: Khoảng thời gian mọi người vội vã đi làm hoặc về nhà gọi là 'rush hour'.\n\nDịch câu: Giao thông rất tệ trong giờ cao điểm khi mọi người vội vã đi làm hoặc trở về nhà.", "isCorrect": true },
+                { "text": "traffic light", "rationale": "", "isCorrect": false },
+                { "text": "road sign", "rationale": "", "isCorrect": false },
+                { "text": "traffic rule", "rationale": "", "isCorrect": false }
+              ]
+            }
+          ]
+        };
+
+        // --- GAME LOGIC ---
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let shuffledQuestions = [];
+        let audioCtx;
+
+        // Initialize Audio Context (Standard Web Audio API for internal sounds)
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        // Sound Synthesis Functions (No external files needed)
+        function playSound(type) {
+            initAudio();
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            
+            if (type === 'correct') {
+                // High pitch Ding
+                oscillator.type = 'sine';
+                oscillator.frequency.setValueAtTime(600, audioCtx.currentTime);
+                oscillator.frequency.exponentialRampToValueAtTime(1000, audioCtx.currentTime + 0.1);
+                gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+                oscillator.start();
+                oscillator.stop(audioCtx.currentTime + 0.5);
+            } else if (type === 'wrong') {
+                // Low pitch Buzz
+                oscillator.type = 'sawtooth';
+                oscillator.frequency.setValueAtTime(150, audioCtx.currentTime);
+                oscillator.frequency.linearRampToValueAtTime(100, audioCtx.currentTime + 0.3);
+                gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                gainNode.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+                oscillator.start();
+                oscillator.stop(audioCtx.currentTime + 0.3);
+            } else if (type === 'end') {
+                // Celebration melody
+                const now = audioCtx.currentTime;
+                [523.25, 659.25, 783.99, 1046.50].forEach((freq, i) => {
+                    const osc = audioCtx.createOscillator();
+                    const gn = audioCtx.createGain();
+                    osc.connect(gn);
+                    gn.connect(audioCtx.destination);
+                    osc.type = 'triangle';
+                    osc.frequency.value = freq;
+                    gn.gain.setValueAtTime(0.1, now + i*0.1);
+                    gn.gain.exponentialRampToValueAtTime(0.001, now + i*0.1 + 0.4);
+                    osc.start(now + i*0.1);
+                    osc.stop(now + i*0.1 + 0.4);
+                });
+            }
+        }
+
+        // Shuffle Function
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function initGame() {
+            // Clone and shuffle questions
+            shuffledQuestions = JSON.parse(JSON.stringify(rawData.questions));
+            shuffleArray(shuffledQuestions);
+            
+            // Shuffle options within each question
+            shuffledQuestions.forEach(q => {
+                shuffleArray(q.answerOptions);
+            });
+
+            currentQuestionIndex = 0;
+            score = 0;
+            document.getElementById('result-overlay').style.display = 'none';
+            renderQuestion();
+        }
+
+        function renderQuestion() {
+            const currentQ = shuffledQuestions[currentQuestionIndex];
+            
+            // Update UI text
+            document.getElementById('question-count').innerText = `${currentQuestionIndex + 1}/${shuffledQuestions.length}`;
+            document.getElementById('progress-bar').style.width = `${((currentQuestionIndex) / shuffledQuestions.length) * 100}%`;
+            document.getElementById('question-text').innerText = currentQ.question;
+            
+            // Reset Explanation & Next Button
+            document.getElementById('explanation-box').style.display = 'none';
+            document.getElementById('next-btn').style.display = 'none';
+
+            // Generate Options
+            const optionsContainer = document.getElementById('options-container');
+            optionsContainer.innerHTML = '';
+            
+            const letters = ['A', 'B', 'C', 'D'];
+            
+            currentQ.answerOptions.forEach((opt, index) => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.innerHTML = `
+                    <div class="option-circle">${letters[index]}</div>
+                    <span>${opt.text}</span>
+                `;
+                btn.onclick = () => checkAnswer(opt, btn, currentQ);
+                optionsContainer.appendChild(btn);
+            });
+        }
+
+        function checkAnswer(selectedOpt, btnElement, currentQData) {
+            // Disable all buttons
+            const buttons = document.querySelectorAll('.option-btn');
+            buttons.forEach(b => b.disabled = true);
+
+            // Find correct answer data for explanation logic
+            // Note: The structure has 'rationale' in specific items. 
+            // We need to find the item that HAS the explanation or aggregate them.
+            // In the provided JSON, only the correct answer or the first option usually carries the full rationale text.
+            // We will look for the non-empty rationale from the original question set (before shuffle options logic might have moved it).
+            
+            // Actually, in the provided JSON, usually only ONE option has the big text block, or they share it.
+            // Let's find the rationale text from the options.
+            let explanationText = "";
+            const correctOption = currentQData.answerOptions.find(o => o.isCorrect);
+            const explanationOption = currentQData.answerOptions.find(o => o.rationale && o.rationale.length > 10); // Find the one with text
+            
+            if (explanationOption) {
+                explanationText = explanationOption.rationale;
+            } else {
+                 explanationText = "Đang cập nhật giải thích...";
+            }
+
+            // Highlighting logic
+            if (selectedOpt.isCorrect) {
+                score++;
+                btnElement.classList.add('correct');
+                playSound('correct');
+                fireConfetti();
+            } else {
+                btnElement.classList.add('wrong');
+                playSound('wrong');
+                // Find and highlight correct button
+                buttons.forEach(b => {
+                    if (b.innerText.includes(correctOption.text)) { // Simple check
+                        b.classList.add('correct');
+                    } else {
+                        b.classList.add('dimmed');
+                    }
+                });
+            }
+
+            // Show Explanation
+            const expBox = document.getElementById('explanation-box');
+            const expText = document.getElementById('explanation-text');
+            
+            // Formatting text for better readability
+            let formattedExp = explanationText
+                .replace(/\n/g, '<br>')
+                .replace(/(Phân tích:)/g, '<strong>$1</strong>')
+                .replace(/(Giải thích:)/g, '<br><strong>$1</strong>')
+                .replace(/(Dịch câu:)/g, '<br><strong>$1</strong>');
+
+            expText.innerHTML = formattedExp;
+            expBox.style.display = 'block';
+
+            // Show Next Button
+            document.getElementById('next-btn').style.display = 'block';
+            
+            // Scroll to explanation on mobile
+            if(window.innerWidth < 600) {
+                setTimeout(() => expBox.scrollIntoView({behavior: "smooth"}), 100);
+            }
+        }
+
+        function nextQuestion() {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < shuffledQuestions.length) {
+                renderQuestion();
+            } else {
+                showResult();
+            }
+        }
+
+        function showResult() {
+            playSound('end');
+            const overlay = document.getElementById('result-overlay');
+            const scoreEl = document.getElementById('final-score');
+            const messageEl = document.getElementById('final-message');
+            const titleEl = document.getElementById('final-title');
+            
+            scoreEl.innerText = `${score}/${shuffledQuestions.length}`;
+            
+            const percentage = (score / shuffledQuestions.length) * 100;
+            if (percentage === 100) {
+                titleEl.innerText = "TUYỆT VỜI!";
+                messageEl.innerText = "Bạn là thiên tài Tiếng Anh! Điểm tuyệt đối!";
+                fireConfetti();
+            } else if (percentage >= 80) {
+                titleEl.innerText = "RẤT TỐT!";
+                messageEl.innerText = "Kiến thức của bạn rất vững chắc!";
+            } else if (percentage >= 50) {
+                titleEl.innerText = "CỐ LÊN NHÉ!";
+                messageEl.innerText = "Bạn đã vượt qua bài kiểm tra, hãy ôn tập thêm nhé.";
+            } else {
+                titleEl.innerText = "CẦN CỐ GẮNG!";
+                messageEl.innerText = "Đừng nản lòng, hãy xem lại phần giải thích và thử lại nhé!";
+            }
+            
+            overlay.style.display = 'flex';
+        }
+
+        function restartGame() {
+            initGame();
+        }
+
+        // --- CONFETTI LOGIC (Simple implementation) ---
+        const canvas = document.getElementById('confetti-canvas');
+        const ctx = canvas.getContext('2d');
+        let confetti = [];
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        function fireConfetti() {
+            for (let i = 0; i < 100; i++) {
+                confetti.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height - canvas.height,
+                    color: `hsl(${Math.random() * 360}, 100%, 50%)`,
+                    size: Math.random() * 10 + 5,
+                    speedY: Math.random() * 3 + 2,
+                    speedX: Math.random() * 4 - 2,
+                    rotation: Math.random() * 360,
+                    rotationSpeed: Math.random() * 10 - 5
+                });
+            }
+            animateConfetti();
+        }
+
+        function animateConfetti() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            confetti.forEach((p, index) => {
+                p.y += p.speedY;
+                p.x += p.speedX;
+                p.rotation += p.rotationSpeed;
+
+                ctx.save();
+                ctx.translate(p.x, p.y);
+                ctx.rotate(p.rotation * Math.PI / 180);
+                ctx.fillStyle = p.color;
+                ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
+                ctx.restore();
+
+                if (p.y > canvas.height) {
+                    confetti.splice(index, 1);
+                }
+            });
+
+            if (confetti.length > 0) {
+                requestAnimationFrame(animateConfetti);
+            }
+        }
+
+        // --- START ---
+        window.onload = initGame;
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,904 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>English Practice - Ms. Mai An ULIS</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    
+    <style>
+        :root {
+            --primary-purple: #8854C0;
+            --primary-teal: #00C9A7;
+            --correct-green: #00D26A;
+            --wrong-red: #FF4757;
+            --bg-color: #f0f4f8;
+            --card-bg: #ffffff;
+            --text-color: #2c3e50;
+            --shadow-color: rgba(0, 0, 0, 0.15);
+            --btn-shadow: 0px 6px 0px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: #e0eafc;
+            background-image: 
+                radial-gradient(#8854C0 1.5px, transparent 1.5px), 
+                radial-gradient(#00C9A7 1.5px, #e0eafc 1.5px);
+            background-size: 30px 30px;
+            background-position: 0 0, 15px 15px;
+            color: var(--text-color);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-bottom: 50px;
+        }
+
+        /* HEADER */
+        header {
+            width: 100%;
+            background: linear-gradient(135deg, var(--primary-purple), #a29bfe);
+            color: white;
+            padding: 20px 0;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(136, 84, 192, 0.4);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-bottom-left-radius: 25px;
+            border-bottom-right-radius: 25px;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            font-family: 'Quicksand', sans-serif;
+            font-weight: 800;
+            font-size: 1.8rem;
+            text-shadow: 2px 2px 0px rgba(0,0,0,0.1);
+        }
+
+        .subtitle {
+            font-size: 1rem;
+            opacity: 0.9;
+            font-weight: 600;
+        }
+
+        /* CONTAINER */
+        .container {
+            width: 90%;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        /* QUESTION CARD */
+        .question-card {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 40px;
+            box-shadow: 0 10px 25px var(--shadow-color);
+            border: 3px solid #fff;
+            position: relative;
+            transition: transform 0.3s ease;
+        }
+
+        .question-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .q-badge {
+            background: var(--primary-teal);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 12px;
+            font-weight: 800;
+            font-size: 1.1rem;
+            box-shadow: 0 4px 0 rgba(0, 168, 132, 0.5);
+        }
+
+        .question-text {
+            font-size: 1.3rem;
+            font-weight: 700;
+            line-height: 1.5;
+            color: #2d3436;
+            margin-bottom: 25px;
+        }
+
+        /* OPTIONS GRID */
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        @media (max-width: 600px) {
+            .options-grid {
+                grid-template-columns: 1fr;
+            }
+            .question-text {
+                font-size: 1.1rem;
+            }
+        }
+
+        /* OPTION BUTTON STYLE */
+        .option-btn {
+            background: white;
+            border: 2px solid #dfe6e9;
+            border-radius: 15px;
+            padding: 15px 20px;
+            font-family: 'Nunito', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text-color);
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+            box-shadow: 0 5px 0 #dfe6e9;
+            text-align: left;
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .option-btn:hover:not(:disabled) {
+            transform: translateY(-3px);
+            border-color: var(--primary-purple);
+            box-shadow: 0 8px 0 #d1c4e9;
+        }
+
+        .option-btn:active:not(:disabled) {
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 #d1c4e9;
+        }
+
+        .option-label {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            background: #f1f2f6;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 30px;
+            margin-right: 12px;
+            font-weight: 800;
+            color: #7f8fa6;
+        }
+
+        /* CORRECT / WRONG STATES */
+        .option-btn.correct {
+            background-color: var(--correct-green);
+            color: white;
+            border-color: #00b85c;
+            box-shadow: 0 5px 0 #00944a;
+        }
+        .option-btn.correct .option-label {
+            background: rgba(255,255,255,0.3);
+            color: white;
+        }
+
+        .option-btn.wrong {
+            background-color: var(--wrong-red);
+            color: white;
+            border-color: #e84118;
+            box-shadow: 0 5px 0 #c23616;
+            animation: shake 0.5s;
+        }
+        .option-btn.wrong .option-label {
+            background: rgba(255,255,255,0.3);
+            color: white;
+        }
+
+        .option-btn:disabled {
+            cursor: default;
+            opacity: 0.8;
+        }
+
+        /* ANIMATIONS */
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            50% { transform: translateX(5px); }
+            75% { transform: translateX(-5px); }
+            100% { transform: translateX(0); }
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0.8); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        /* EXPLANATION BOX */
+        .explanation-box {
+            margin-top: 25px;
+            background: #fff8e1; /* Light yellow like a note */
+            border: 2px dashed #ffb961;
+            border-radius: 15px;
+            padding: 20px;
+            display: none; /* Hidden by default */
+            animation: popIn 0.4s ease-out;
+        }
+        
+        .explanation-box.visible {
+            display: block;
+        }
+
+        .explanation-title {
+            color: #e67e22;
+            font-weight: 800;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .explanation-content {
+            font-size: 1rem;
+            line-height: 1.6;
+            white-space: pre-line; /* Keeps line breaks from data */
+            color: #4b4b4b;
+        }
+
+        .explanation-content strong {
+            color: var(--primary-purple);
+        }
+
+        /* SCORE FOOTER */
+        .score-footer {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: white;
+            padding: 15px 25px;
+            border-radius: 50px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            z-index: 99;
+            border: 3px solid var(--primary-teal);
+        }
+        
+        .score-num {
+            color: var(--primary-teal);
+            font-size: 1.5rem;
+        }
+
+        /* BUTTONS */
+        .submit-all-btn {
+            display: block;
+            margin: 40px auto;
+            background: var(--primary-purple);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.2rem;
+            font-weight: 800;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 6px 0 #6c4299;
+            transition: transform 0.2s;
+        }
+
+        .submit-all-btn:hover {
+            transform: scale(1.05) translateY(-3px);
+        }
+        
+        .submit-all-btn:active {
+            transform: scale(0.95) translateY(2px);
+            box-shadow: 0 2px 0 #6c4299;
+        }
+
+        /* MODAL */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(5px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        
+        .modal-content {
+            background: white;
+            padding: 40px;
+            border-radius: 30px;
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+            border: 5px solid var(--primary-teal);
+            animation: popIn 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        .modal-title {
+            font-size: 2rem;
+            color: var(--primary-purple);
+            margin-bottom: 10px;
+        }
+
+        .modal-score {
+            font-size: 3rem;
+            color: var(--primary-teal);
+            font-weight: 900;
+            margin: 20px 0;
+        }
+
+        .modal-btn {
+            background: var(--primary-teal);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 5px 0 #00997e;
+        }
+
+    </style>
+</head>
+<body>
+
+<header>
+    <h1 style="margin-bottom: 5px;">ENGLISH PRACTICE: VOCABULARY & GRAMMAR</h1>
+    <div class="subtitle">Giáo viên: Ms. Mai An ULIS 👩‍🏫</div>
+</header>
+
+<div class="container" id="quiz-container">
+    <!-- Questions will be injected here by JavaScript -->
+</div>
+
+<button class="submit-all-btn" onclick="finishQuiz()">Nộp Bài & Tổng Kết 🏆</button>
+
+<div class="score-footer">
+    <span>Điểm số:</span>
+    <span class="score-num" id="current-score">0</span>
+    <span>/ 30</span>
+</div>
+
+<!-- Modal Summary -->
+<div class="modal-overlay" id="result-modal">
+    <div class="modal-content">
+        <div class="modal-title">Chúc Mừng! 🎉</div>
+        <p>Bạn đã hoàn thành bài thi.</p>
+        <div class="modal-score" id="final-score">0/30</div>
+        <p id="modal-feedback" style="margin-bottom: 20px; font-weight: 600; color: #555;"></p>
+        <button class="modal-btn" onclick="closeModal()">Xem lại bài làm</button>
+    </div>
+</div>
+
+<script>
+    // --- 1. QUIZ DATA ---
+    const quizData = {
+  "questions": [
+    {
+      "questionNumber": 1,
+      "question": "She preferred a laptop to a desktop because the laptop was ____________.",
+      "answerOptions": [
+        { "text": "larger", "isCorrect": false },
+        { "text": "portable", "isCorrect": true },
+        { "text": "heavy", "isCorrect": false },
+        { "text": "bigger", "isCorrect": false }
+      ],
+      "rationale": "1. Phân tích 4 đáp án:\n- A. larger (adj): lớn hơn.\n- B. portable (adj): có thể mang theo, di động.\n- C. heavy (adj): nặng.\n- D. bigger (adj): to hơn.\n\n2. Dịch nghĩa: \"Cô ấy thích máy tính xách tay hơn máy tính để bàn vì máy tính xách tay có tính di động.\"\n\n3. Giải thích: Laptop được ưa chuộng hơn desktop vì tính tiện lợi, dễ di chuyển (portable). Các đáp án A, C, D mô tả đặc điểm (to, nặng) thường là nhược điểm hoặc không phải lý do chính để chọn laptop."
+    },
+    {
+      "questionNumber": 2,
+      "question": "___________ is a synthetic material derived from polymers that can be molded into various shapes.",
+      "answerOptions": [
+        { "text": "Paper", "isCorrect": false },
+        { "text": "Plastic", "isCorrect": true },
+        { "text": "Steel", "isCorrect": false },
+        { "text": "Cardboard", "isCorrect": false }
+      ],
+      "rationale": "1. Phân tích 4 đáp án:\n- A. Paper (n): giấy.\n- B. Plastic (n): nhựa.\n- C. Steel (n): thép.\n- D. Cardboard (n): bìa cứng.\n\n2. Dịch nghĩa: \"Nhựa là một vật liệu tổng hợp có nguồn gốc từ các polyme có thể được đúc thành nhiều hình dạng khác nhau.\"\n\n3. Giải thích: Định nghĩa của \"Plastic\" khớp hoàn toàn với mô tả: vật liệu tổng hợp (synthetic), từ polymer, dễ tạo hình (molded)."
+    },
+    {
+      "questionNumber": 3,
+      "question": "Tourists who can’t visit the museum in person can take a ____________ tour on its website.",
+      "answerOptions": [
+        { "text": "direct", "isCorrect": false },
+        { "text": "physical", "isCorrect": false },
+        { "text": "virtual", "isCorrect": true },
+        { "text": "face-to-face", "isCorrect": false }
+      ],
+      "rationale": "1. Phân tích 4 đáp án:\n- A. direct (adj): trực tiếp.\n- B. physical (adj): vật lý, thể chất.\n- C. virtual (adj): ảo (trên mạng).\n- D. face-to-face (adj): mặt đối mặt.\n\n2. Dịch nghĩa: \"Du khách không thể đến thăm bảo tàng trực tiếp có thể tham gia một chuyến tham quan ảo trên trang web của nó.\"\n\n3. Giải thích: \"Virtual tour\" là chuyến tham quan qua màn hình/internet, phù hợp cho người không đến được tận nơi."
+    },
+    {
+      "questionNumber": 4,
+      "question": "____________ bags are harmful for the environment, so people try to recycle them as much as possible.",
+      "answerOptions": [
+        { "text": "steel", "isCorrect": false },
+        { "text": "Aluminium", "isCorrect": false },
+        { "text": "Plastic", "isCorrect": true },
+        { "text": "Iron", "isCorrect": false }
+      ],
+      "rationale": "1. Phân tích 4 đáp án:\n- A. steel (n): thép.\n- B. Aluminium (n): nhôm.\n- C. Plastic (n): nhựa.\n- D. Iron (n): sắt.\n\n2. Dịch nghĩa: \"Túi nhựa có hại cho môi trường, vì vậy mọi người cố gắng tái chế chúng nhiều nhất có thể.\"\n\n3. Giải thích: \"Plastic bags\" (túi nilon/nhựa) là cụm từ phổ biến chỉ loại rác thải khó phân hủy gây hại môi trường."
+    },
+    {
+      "questionNumber": 5,
+      "question": "This _____________ music player can carry your music collection everywhere.",
+      "answerOptions": [
+        { "text": "portable", "isCorrect": true },
+        { "text": "fixed", "isCorrect": false },
+        { "text": "stable", "isCorrect": false },
+        { "text": "changeable", "isCorrect": false }
+      ],
+      "rationale": "1. Phân tích 4 đáp án:\n- A. portable (adj): di động, dễ mang theo.\n- B. fixed (adj): cố định.\n- C. stable (adj): ổn định.\n- D. changeable (adj): có thể thay đổi.\n\n2. Dịch nghĩa: \"Chiếc máy nghe nhạc di động này có thể mang bộ sưu tập nhạc của bạn đi mọi nơi.\"\n\n3. Giải thích: Từ khóa \"carry... everywhere\" (mang đi mọi nơi) đồng nghĩa với tính chất \"portable\"."
+    },
+    {
+      "questionNumber": 6,
+      "question": "She used her ____________ to livestream the concert.",
+      "answerOptions": [
+        { "text": "e-reader", "isCorrect": false },
+        { "text": "smartwatch", "isCorrect": false },
+        { "text": "3D printer", "isCorrect": false },
+        { "text": "smartphone", "isCorrect": true }
+      ],
+      "rationale": "1. Phân tích 4 đáp án:\n- A. e-reader (n): máy đọc sách điện tử.\n- B. smartwatch (n): đồng hồ thông minh.\n- C. 3D printer (n): máy in 3D.\n- D. smartphone (n): điện thoại thông minh.\n\n2. Dịch nghĩa: \"Cô ấy đã sử dụng điện thoại thông minh của mình để phát trực tiếp buổi hòa nhạc.\"\n\n3. Giải thích: Smartphone là thiết bị phổ biến nhất có camera và kết nối mạng để livestream."
+    },
+    {
+      "questionNumber": 7,
+      "question": "___________ is a strong and durable alloy made primarily from iron and carbon.",
+      "answerOptions": [
+        { "text": "Steel", "isCorrect": true },
+        { "text": "Cardboard", "isCorrect": false },
+        { "text": "Plastic", "isCorrect": false },
+        { "text": "Paper", "isCorrect": false }
+      ],
+      "rationale": "1. Phân tích 4 đáp án:\n- A. Steel (n): thép.\n- B. Cardboard (n): bìa cứng.\n- C. Plastic (n): nhựa.\n- D. Paper (n): giấy.\n\n2. Dịch nghĩa: \"Thép là một hợp kim mạnh và bền được làm chủ yếu từ sắt và cacbon.\"\n\n3. Giải thích: Đây là định nghĩa khoa học của \"Steel\" (hợp kim của sắt và carbon)."
+    },
+    {
+      "questionNumber": 8,
+      "question": "The electrical wires in the house are made of ___________.",
+      "answerOptions": [
+        { "text": "copper", "isCorrect": true },
+        { "text": "plastic", "isCorrect": false },
+        { "text": "paper", "isCorrect": false },
+        { "text": "rubber", "isCorrect": false }
+      ],
+      "rationale": "1. Phân tích 4 đáp án:\n- A. copper (n): đồng.\n- B. plastic (n): nhựa.\n- C. paper (n): giấy.\n- D. rubber (n): cao su.\n\n2. Dịch nghĩa: \"Các dây điện trong nhà được làm bằng đồng.\"\n\n3. Giải thích: Đồng (copper) là kim loại dẫn điện tốt nhất và phổ biến nhất để làm lõi dây điện. Nhựa và cao su dùng làm vỏ cách điện, không phải làm dây dẫn chính."
+    },
+    {
+      "questionNumber": 9,
+      "question": "___________ is a flexible material which people use to make tires, erasers, and waterproof items.",
+      "answerOptions": [
+        { "text": "Paper", "isCorrect": false },
+        { "text": "Rubber", "isCorrect": true },
+        { "text": "Plastic", "isCorrect": false },
+        { "text": "Copper", "isCorrect": false }
+      ],
+      "rationale": "1. Phân tích 4 đáp án:\n- A. Paper (n): giấy.\n- B. Rubber (n): cao su.\n- C. Plastic (n): nhựa.\n- D. Copper (n): đồng.\n\n2. Dịch nghĩa: \"Cao su là một vật liệu linh hoạt mà mọi người sử dụng để làm lốp xe, cục tẩy và các vật dụng chống thấm nước.\"\n\n3. Giải thích: \"Rubber\" (cao su) có tính đàn hồi (flexible), dùng làm lốp (tires) và tẩy (erasers)."
+    },
+    {
+      "questionNumber": 10,
+      "question": "Robotic vacuum cleaners are now easy to control and _____________",
+      "answerOptions": [
+        { "text": "place", "isCorrect": false },
+        { "text": "buy", "isCorrect": false },
+        { "text": "store", "isCorrect": false },
+        { "text": "operate", "isCorrect": true }
+      ],
+      "rationale": "1. Phân tích 4 đáp án:\n- A. place (v): đặt, để.\n- B. buy (v): mua.\n- C. store (v): lưu trữ.\n- D. operate (v): vận hành, sử dụng.\n\n2. Dịch nghĩa: \"Robot hút bụi hiện nay rất dễ điều khiển và vận hành.\"\n\n3. Giải thích: Cụm từ \"easy to control and operate\" (dễ điều khiển và vận hành) bổ trợ nghĩa cho nhau về cách dùng thiết bị."
+    },
+    {
+      "questionNumber": 11,
+      "question": "The _____________ of my smartphone is not working so I can’t draw or open any apps.",
+      "answerOptions": [
+        { "text": "case", "isCorrect": false },
+        { "text": "touchscreen", "isCorrect": true },
+        { "text": "battery", "isCorrect": false },
+        { "text": "cardboard", "isCorrect": false }
+      ],
+      "rationale": "1. Phân tích 4 đáp án:\n- A. case (n): ốp lưng.\n- B. touchscreen (n): màn hình cảm ứng.\n- C. battery (n): pin.\n- D. cardboard (n): bìa cứng.\n\n2. Dịch nghĩa: \"Màn hình cảm ứng của điện thoại tôi bị hỏng nên tôi không thể vẽ hay mở bất kỳ ứng dụng nào.\"\n\n3. Giải thích: Chỉ có \"touchscreen\" (màn hình cảm ứng) bị hỏng mới khiến bạn không thể tương tác (draw, open apps) trực tiếp trên màn hình."
+    },
+    {
+      "questionNumber": 12,
+      "question": "They reinforced the bridge with ____________ bars so it could support heavy loads.",
+      "answerOptions": [
+        { "text": "cardboard", "isCorrect": false },
+        { "text": "steel", "isCorrect": true },
+        { "text": "rubber", "isCorrect": false },
+        { "text": "plastic", "isCorrect": false }
+      ],
+      "rationale": "1. Phân tích 4 đáp án:\n- A. cardboard (n): bìa cứng.\n- B. steel (n): thép.\n- C. rubber (n): cao su.\n- D. plastic (n): nhựa.\n\n2. Dịch nghĩa: \"Họ gia cố cây cầu bằng các thanh thép để nó có thể chịu được tải trọng nặng.\"\n\n3. Giải thích: Thép là vật liệu chịu lực tốt nhất trong các đáp án, phù hợp cho xây dựng cầu đường."
+    },
+    {
+      "questionNumber": 13,
+      "question": "We recycled the ___________ boxes after moving into our new house.",
+      "answerOptions": [
+        { "text": "rubber", "isCorrect": false },
+        { "text": "steel", "isCorrect": false },
+        { "text": "cardboard", "isCorrect": true },
+        { "text": "copper", "isCorrect": false }
+      ],
+      "rationale": "1. Phân tích 4 đáp án:\n- A. rubber (n): cao su.\n- B. steel (n): thép.\n- C. cardboard (n): bìa cứng.\n- D. copper (n): đồng.\n\n2. Dịch nghĩa: \"Chúng tôi đã tái chế các thùng bìa cứng sau khi chuyển đến nhà mới.\"\n\n3. Giải thích: \"Cardboard boxes\" (thùng carton) là vật dụng tiêu chuẩn để đóng gói đồ đạc khi chuyển nhà."
+    },
+    {
+      "questionNumber": 14,
+      "question": "The electronic ________ in Minh’s house are quite expensive.",
+      "answerOptions": [
+        { "text": "devices", "isCorrect": true },
+        { "text": "items", "isCorrect": false },
+        { "text": "equipment", "isCorrect": false },
+        { "text": "machines", "isCorrect": false }
+      ],
+      "rationale": "1. Phân tích 4 đáp án:\n- A. devices (n): thiết bị (số nhiều).\n- B. items (n): món đồ.\n- C. equipment (n): trang thiết bị (danh từ không đếm được).\n- D. machines (n): máy móc.\n\n2. Dịch nghĩa: \"Các thiết bị điện tử trong nhà Minh khá đắt tiền.\"\n\n3. Giải thích: Cụm từ \"electronic devices\" là collocations phổ biến nhất. Ngoài ra động từ \"are\" (số nhiều) yêu cầu chủ ngữ số nhiều."
+    },
+    {
+      "questionNumber": 15,
+      "question": "My mom covered potatoes with ____________ paper and put them in the oven for baking.",
+      "answerOptions": [
+        { "text": "cardboard", "isCorrect": false },
+        { "text": "rubber", "isCorrect": false },
+        { "text": "iron", "isCorrect": false },
+        { "text": "aluminium", "isCorrect": true }
+      ],
+      "rationale": "1. Phân tích 4 đáp án:\n- A. cardboard (n): bìa cứng.\n- B. rubber (n): cao su.\n- C. iron (n): sắt.\n- D. aluminium (n): nhôm.\n\n2. Dịch nghĩa: \"Mẹ tôi bọc khoai tây bằng giấy bạc (giấy nhôm) và cho vào lò nướng.\"\n\n3. Giải thích: \"Aluminium paper\" (thường gọi là Aluminium foil - giấy bạc) dùng để bọc thực phẩm khi nướng vì chịu nhiệt và dẫn nhiệt tốt."
+    },
+    {
+      "questionNumber": 16,
+      "question": "Smart window shade is an excellent _____________ if you want to control the house temperature.",
+      "answerOptions": [
+        { "text": "opportunity", "isCorrect": false },
+        { "text": "deal", "isCorrect": false },
+        { "text": "option", "isCorrect": true },
+        { "text": "chance", "isCorrect": false }
+      ],
+      "rationale": "1. Phân tích 4 đáp án:\n- A. opportunity (n): cơ hội.\n- B. deal (n): thỏa thuận/món hời.\n- C. option (n): lựa chọn.\n- D. chance (n): cơ hội/vận may.\n\n2. Dịch nghĩa: \"Rèm cửa thông minh là một lựa chọn tuyệt vời nếu bạn muốn kiểm soát nhiệt độ trong nhà.\"\n\n3. Giải thích: \"Option\" (lựa chọn/giải pháp) là từ phù hợp nhất khi đưa ra một gợi ý để giải quyết vấn đề (kiểm soát nhiệt độ)."
+    },
+    {
+      "questionNumber": 17,
+      "question": "My uncle has a plantation which grows ____________ trees.",
+      "answerOptions": [
+        { "text": "metal", "isCorrect": false },
+        { "text": "plastic", "isCorrect": false },
+        { "text": "rubber", "isCorrect": true },
+        { "text": "iron", "isCorrect": false }
+      ],
+      "rationale": "1. Phân tích 4 đáp án:\n- A. metal (n): kim loại.\n- B. plastic (n): nhựa.\n- C. rubber (n): cao su.\n- D. iron (n): sắt.\n\n2. Dịch nghĩa: \"Chú tôi có một đồn điền trồng cây cao su.\"\n\n3. Giải thích: \"Rubber trees\" (cây cao su) là loại cây công nghiệp phổ biến để lấy mủ (latex) làm cao su."
+    },
+    {
+      "questionNumber": 18,
+      "question": "This small smartphone can keep you __________ through emails and social networking apps.",
+      "answerOptions": [
+        { "text": "private", "isCorrect": false },
+        { "text": "connected", "isCorrect": true },
+        { "text": "stylish", "isCorrect": false },
+        { "text": "separated", "isCorrect": false }
+      ],
+      "rationale": "1. Phân tích 4 đáp án:\n- A. private (adj): riêng tư.\n- B. connected (adj): được kết nối.\n- C. stylish (adj): sành điệu.\n- D. separated (adj): bị tách biệt.\n\n2. Dịch nghĩa: \"Chiếc điện thoại thông minh nhỏ này có thể giữ cho bạn được kết nối thông qua email và các ứng dụng mạng xã hội.\"\n\n3. Giải thích: \"Keep connected\" (giữ kết nối/liên lạc) là mục đích chính của email và social apps."
+    },
+    {
+      "questionNumber": 19,
+      "question": "The sales assistant recommended my dad ____________ out the latest tablet’s pencil.",
+      "answerOptions": [
+        { "text": "try", "isCorrect": true },
+        { "text": "tries", "isCorrect": false },
+        { "text": "trying", "isCorrect": false },
+        { "text": "tried", "isCorrect": false }
+      ],
+      "rationale": "1. Phân tích 4 đáp án:\n- A. try (v - nguyên thể).\n- B. tries (v - chia s/es).\n- C. trying (v - V-ing).\n- D. tried (v - quá khứ).\n\n2. Dịch nghĩa: \"Người bán hàng khuyên bố tôi nên thử bút cảm ứng của chiếc máy tính bảng mới nhất.\"\n\n3. Giải thích: Cấu trúc giả định cách (Subjunctive Mood): Recommend + (that) + S + (should) + V_bare."
+    },
+    {
+      "questionNumber": 20,
+      "question": "My uncle suggested that I _____________ an e-reader to read more materials.",
+      "answerOptions": [
+        { "text": "will buy", "isCorrect": false },
+        { "text": "should buy", "isCorrect": true },
+        { "text": "bought", "isCorrect": false },
+        { "text": "buys", "isCorrect": false }
+      ],
+      "rationale": "1. Phân tích 4 đáp án:\n- A. will buy (tương lai đơn).\n- B. should buy (nên mua - modal verb).\n- C. bought (quá khứ đơn).\n- D. buys (hiện tại đơn).\n\n2. Dịch nghĩa: \"Chú tôi gợi ý rằng tôi nên mua một chiếc máy đọc sách để đọc thêm tài liệu.\"\n\n3. Giải thích: Cấu trúc: Suggest + that + S + (should) + V_bare. Đáp án B có \"should buy\" là hoàn toàn chính xác."
+    },
+    {
+      "questionNumber": 21,
+      "question": "She wants _________ a smartwatch to monitor her heart rate while exercising.",
+      "answerOptions": [
+        { "text": "to got", "isCorrect": false },
+        { "text": "to get", "isCorrect": true },
+        { "text": "getting", "isCorrect": false },
+        { "text": "gets", "isCorrect": false }
+      ],
+      "rationale": "1. Phân tích 4 đáp án:\n- A. to got (sai ngữ pháp).\n- B. to get (to V).\n- C. getting (V-ing).\n- D. gets (V-s).\n\n2. Dịch nghĩa: \"Cô ấy muốn có một chiếc đồng hồ thông minh để theo dõi nhịp tim khi tập thể dục.\"\n\n3. Giải thích: Cấu trúc \"want + to V\" (muốn làm gì)."
+    },
+    {
+      "questionNumber": 22,
+      "question": "Kim advised _________ too much time on video games and social media.",
+      "answerOptions": [
+        { "text": "not spend", "isCorrect": false },
+        { "text": "don't spend", "isCorrect": false },
+        { "text": "not spending", "isCorrect": true },
+        { "text": "isn't spending", "isCorrect": false }
+      ],
+      "rationale": "1. Phân tích 4 đáp án:\n- A. not spend (not + V_bare).\n- B. don't spend (trợ động từ + V).\n- C. not spending (not + V-ing).\n- D. isn't spending (hiện tại tiếp diễn).\n\n2. Dịch nghĩa: \"Kim khuyên không nên dành quá nhiều thời gian cho trò chơi điện tử và mạng xã hội.\"\n\n3. Giải thích: Cấu trúc: Advise + V-ing (khi không có tân ngữ chỉ người). Dạng phủ định là \"Advise + not + V-ing\"."
+    },
+    {
+      "questionNumber": 23,
+      "question": "Hoa advised that Minh ____________ in an online speaking class.",
+      "answerOptions": [
+        { "text": "would join", "isCorrect": false },
+        { "text": "joins", "isCorrect": false },
+        { "text": "join", "isCorrect": true },
+        { "text": "will join", "isCorrect": false }
+      ],
+      "rationale": "1. Phân tích 4 đáp án:\n- A. would join (tương lai trong quá khứ).\n- B. joins (hiện tại đơn).\n- C. join (nguyên thể).\n- D. will join (tương lai đơn).\n\n2. Dịch nghĩa: \"Hoa khuyên Minh nên tham gia một lớp học nói trực tuyến.\"\n\n3. Giải thích: Cấu trúc: Advise + that + S + (should) + V_bare. \"Minh join\" (giữ nguyên thể) là đáp án đúng."
+    },
+    {
+      "questionNumber": 24,
+      "question": "My classmates decided _________ a 3D printer to create models for their project.",
+      "answerOptions": [
+        { "text": "try", "isCorrect": false },
+        { "text": "to try", "isCorrect": true },
+        { "text": "trying", "isCorrect": false },
+        { "text": "to trying", "isCorrect": false }
+      ],
+      "rationale": "1. Phân tích 4 đáp án:\n- A. try (nguyên thể).\n- B. to try (to V).\n- C. trying (V-ing).\n- D. to trying (to V-ing).\n\n2. Dịch nghĩa: \"Các bạn cùng lớp của tôi đã quyết định thử một máy in 3D để tạo mô hình cho dự án của họ.\"\n\n3. Giải thích: Cấu trúc \"decide + to V\" (quyết định làm gì)."
+    },
+    {
+      "questionNumber": 25,
+      "question": "The music teacher recommended Tom _________ in the school concert to showcase his talent.",
+      "answerOptions": [
+        { "text": "sang", "isCorrect": false },
+        { "text": "sing", "isCorrect": true },
+        { "text": "sings", "isCorrect": false },
+        { "text": "sung", "isCorrect": false }
+      ],
+      "rationale": "1. Phân tích 4 đáp án:\n- A. sang (quá khứ đơn).\n- B. sing (nguyên thể).\n- C. sings (hiện tại đơn).\n- D. sung (quá khứ phân từ).\n\n2. Dịch nghĩa: \"Giáo viên âm nhạc đề nghị Tom hát trong buổi hòa nhạc của trường để thể hiện tài năng của mình.\"\n\n3. Giải thích: Cấu trúc Subjunctive: Recommended (that) Tom (should) sing. Động từ \"sing\" giữ nguyên thể."
+    },
+    {
+      "questionNumber": 26,
+      "question": "The travel agent recommended _________ the beach during the summer for a relaxing vacation.",
+      "answerOptions": [
+        { "text": "to visiting", "isCorrect": false },
+        { "text": "visiting", "isCorrect": true },
+        { "text": "visits", "isCorrect": false },
+        { "text": "visited", "isCorrect": false }
+      ],
+      "rationale": "1. Phân tích 4 đáp án:\n- A. to visiting (to V-ing).\n- B. visiting (V-ing).\n- C. visits (V-s).\n- D. visited (V-ed).\n\n2. Dịch nghĩa: \"Đại lý du lịch khuyên nên ghé thăm bãi biển vào mùa hè để có một kỳ nghỉ thư giãn.\"\n\n3. Giải thích: Cấu trúc: Recommend + V-ing (khi không có tân ngữ chỉ người)."
+    },
+    {
+      "questionNumber": 27,
+      "question": "It's so cold outside. We suggest __________the door and turn on the air conditioner.",
+      "answerOptions": [
+        { "text": "should close", "isCorrect": false },
+        { "text": "close", "isCorrect": false },
+        { "text": "closing", "isCorrect": true },
+        { "text": "to close", "isCorrect": false }
+      ],
+      "rationale": "1. Phân tích 4 đáp án:\n- A. should close (nên đóng).\n- B. close (đóng).\n- C. closing (đóng - V-ing).\n- D. to close (đóng - to V).\n\n2. Dịch nghĩa: \"Ngoài trời lạnh quá. Chúng tôi đề nghị đóng cửa và bật máy điều hòa.\"\n\n3. Giải thích: Cấu trúc: Suggest + V-ing (đề nghị làm gì)."
+    },
+    {
+      "questionNumber": 28,
+      "question": "Mr Smith advises _________ regularly to improve skills and perform better in matches.",
+      "answerOptions": [
+        { "text": "practised", "isCorrect": false },
+        { "text": "practise", "isCorrect": false },
+        { "text": "practising", "isCorrect": true },
+        { "text": "to practising", "isCorrect": false }
+      ],
+      "rationale": "1. Phân tích 4 đáp án:\n- A. practised (quá khứ).\n- B. practise (nguyên thể).\n- C. practising (V-ing).\n- D. to practising (sai).\n\n2. Dịch nghĩa: \"Ông Smith khuyên nên luyện tập thường xuyên để cải thiện kỹ năng và thi đấu tốt hơn.\"\n\n3. Giải thích: Cấu trúc: Advise + V-ing (khi không có tân ngữ chỉ người)."
+    },
+    {
+      "questionNumber": 29,
+      "question": "My parents advised me that I should _________ more money for the future.",
+      "answerOptions": [
+        { "text": "to save", "isCorrect": false },
+        { "text": "to saving", "isCorrect": false },
+        { "text": "save", "isCorrect": true },
+        { "text": "saving", "isCorrect": false }
+      ],
+      "rationale": "1. Phân tích 4 đáp án:\n- A. to save (to V).\n- B. to saving (sai).\n- C. save (nguyên thể).\n- D. saving (V-ing).\n\n2. Dịch nghĩa: \"Bố mẹ tôi khuyên tôi rằng tôi nên tiết kiệm nhiều tiền hơn cho tương lai.\"\n\n3. Giải thích: Should + V_bare (nguyên thể)."
+    },
+    {
+      "questionNumber": 30,
+      "question": "Her parents suggest she __________in Medicine University to help the poor patients.",
+      "answerOptions": [
+        { "text": "studies", "isCorrect": false },
+        { "text": "study", "isCorrect": true },
+        { "text": "studied", "isCorrect": false },
+        { "text": "to study", "isCorrect": false }
+      ],
+      "rationale": "1. Phân tích 4 đáp án:\n- A. studies (chia số ít).\n- B. study (nguyên thể).\n- C. studied (quá khứ).\n- D. to study (to V).\n\n2. Dịch nghĩa: \"Bố mẹ cô ấy gợi ý cô ấy học trường Đại học Y để giúp đỡ những bệnh nhân nghèo.\"\n\n3. Giải thích: Cấu trúc: Suggest + (that) + S + (should) + V_bare."
+    }
+  ]
+};
+
+    // --- 2. GAME LOGIC ---
+    let score = 0;
+    const answeredSet = new Set();
+    const quizContainer = document.getElementById('quiz-container');
+    const scoreDisplay = document.getElementById('current-score');
+
+    // Audio Context Setup for Sound Effects (No external files needed)
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    
+    function playTone(type) {
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const oscillator = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        
+        if (type === 'correct') {
+            // Ding sound (High pitch sine wave)
+            oscillator.type = 'sine';
+            oscillator.frequency.setValueAtTime(800, audioCtx.currentTime);
+            oscillator.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.1);
+            gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+            oscillator.start();
+            oscillator.stop(audioCtx.currentTime + 0.5);
+        } else {
+            // Buzz sound (Low pitch sawtooth)
+            oscillator.type = 'sawtooth';
+            oscillator.frequency.setValueAtTime(150, audioCtx.currentTime);
+            oscillator.frequency.linearRampToValueAtTime(100, audioCtx.currentTime + 0.3);
+            gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+            oscillator.start();
+            oscillator.stop(audioCtx.currentTime + 0.3);
+        }
+    }
+
+    // Fire Confetti
+    function triggerConfetti(element) {
+        const rect = element.getBoundingClientRect();
+        // Normalized coordinates
+        const x = (rect.left + rect.width / 2) / window.innerWidth;
+        const y = (rect.top + rect.height / 2) / window.innerHeight;
+
+        confetti({
+            particleCount: 50,
+            spread: 70,
+            origin: { x: x, y: y },
+            colors: ['#00D26A', '#F1C40F', '#8854C0']
+        });
+    }
+
+    // Render Quiz
+    function renderQuiz() {
+        quizData.questions.forEach((q, index) => {
+            const card = document.createElement('div');
+            card.className = 'question-card';
+            
+            // Highlight visuals for Q29, Q30 if needed (just CSS class hook)
+            if(q.questionNumber >= 29) {
+               // Optional: Add specific class if we wanted distinct styling
+               // card.classList.add('special-visual'); 
+            }
+
+            // Header
+            const header = document.createElement('div');
+            header.className = 'question-header';
+            header.innerHTML = `<div class="q-badge">Question ${q.questionNumber}</div>`;
+            
+            // Question Text
+            const qText = document.createElement('div');
+            qText.className = 'question-text';
+            qText.innerText = q.question;
+
+            // Options Container
+            const optionsDiv = document.createElement('div');
+            optionsDiv.className = 'options-grid';
+
+            const labels = ['A', 'B', 'C', 'D'];
+            q.answerOptions.forEach((opt, i) => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.innerHTML = `<span class="option-label">${labels[i]}</span> ${opt.text}`;
+                btn.onclick = (e) => checkAnswer(q.questionNumber, i, opt.isCorrect, btn, explanationDiv);
+                optionsDiv.appendChild(btn);
+            });
+
+            // Explanation Box (Hidden initially)
+            const explanationDiv = document.createElement('div');
+            explanationDiv.className = 'explanation-box';
+            
+            // Format Rationale: Replace newlines with <br> and bold key sections
+            let formattedRationale = q.rationale
+                .replace(/\n/g, '<br>')
+                .replace(/(Phân tích 4 đáp án:)/g, '<strong>$1</strong>')
+                .replace(/(Dịch nghĩa:)/g, '<strong>$1</strong>')
+                .replace(/(Giải thích:)/g, '<strong>$1</strong>');
+
+            explanationDiv.innerHTML = `
+                <div class="explanation-title">
+                    <i class="fas fa-lightbulb"></i> Cô Mai An giải thích:
+                </div>
+                <div class="explanation-content">${formattedRationale}</div>
+            `;
+
+            card.appendChild(header);
+            card.appendChild(qText);
+            card.appendChild(optionsDiv);
+            card.appendChild(explanationDiv);
+            quizContainer.appendChild(card);
+        });
+    }
+
+    // Handle Answer Selection
+    function checkAnswer(qNum, optIndex, isCorrect, btnElement, explanationElement) {
+        if (answeredSet.has(qNum)) return; // Prevent re-answering
+        answeredSet.add(qNum);
+
+        const allBtns = btnElement.parentElement.querySelectorAll('.option-btn');
+        allBtns.forEach(b => b.disabled = true); // Disable all buttons in this card
+
+        // Show explanation immediately
+        explanationElement.classList.add('visible');
+
+        if (isCorrect) {
+            btnElement.classList.add('correct');
+            playTone('correct');
+            triggerConfetti(btnElement);
+            score++;
+            scoreDisplay.innerText = score;
+        } else {
+            btnElement.classList.add('wrong');
+            playTone('wrong');
+            // Highlight the correct answer automatically
+            const correctBtnIndex = quizData.questions[qNum-1].answerOptions.findIndex(o => o.isCorrect);
+            if (correctBtnIndex !== -1) {
+                 allBtns[correctBtnIndex].classList.add('correct');
+                 // Optional: slight transparency for the auto-highlighted one to distinguish
+                 allBtns[correctBtnIndex].style.opacity = '0.7';
+            }
+        }
+    }
+
+    // Finish Quiz Modal
+    function finishQuiz() {
+        const modal = document.getElementById('result-modal');
+        const finalScore = document.getElementById('final-score');
+        const feedback = document.getElementById('modal-feedback');
+        
+        finalScore.innerText = `${score} / 30`;
+        
+        if (score === 30) {
+            feedback.innerText = "Tuyệt đối! Em là thiên tài tiếng Anh! 🌟";
+            triggerConfetti(document.body);
+        } else if (score >= 20) {
+            feedback.innerText = "Làm tốt lắm! Cố gắng thêm chút nữa nhé! 💪";
+        } else {
+            feedback.innerText = "Đừng buồn, hãy xem lại phần giải thích để học thêm nhé! 📚";
+        }
+
+        modal.style.display = 'flex';
+        playTone('correct'); // Celebration sound
+    }
+
+    function closeModal() {
+        document.getElementById('result-modal').style.display = 'none';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // Initialize
+    renderQuiz();
+
+</script>
+
+<!-- FontAwesome for Icons -->
+<script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+
+</body>
+</html>

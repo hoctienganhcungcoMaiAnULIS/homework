@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Word Form Mastery - Ms Mai An ULIS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root {
+            --primary: #8854C0;
+            --secondary: #00C9A7;
+            --correct: #00D26A;
+            --wrong: #FF4757;
+            --bg-color: #F0F4F8;
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: var(--bg-color);
+            background-image: radial-gradient(#8854c022 2px, transparent 2px);
+            background-size: 30px 30px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-x: hidden;
+        }
+
+        .game-container {
+            width: 100%;
+            max-width: 800px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .header-info {
+            font-size: 0.8rem;
+            color: var(--primary);
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 25px;
+            box-shadow: 0 10px 0 #d1d9e6;
+            padding: 30px;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .question-text {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #2d3436;
+            margin-bottom: 25px;
+            line-height: 1.4;
+        }
+
+        .option-btn {
+            width: 100%;
+            text-align: left;
+            padding: 15px 25px;
+            margin-bottom: 15px;
+            border: 3px solid #e2e8f0;
+            border-radius: 20px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #4a5568;
+            background: white;
+            box-shadow: 0 5px 0 #e2e8f0;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            outline: none;
+            display: flex;
+            align-items: center;
+        }
+
+        .option-btn:hover {
+            transform: translateY(-2px);
+            border-color: var(--primary);
+            color: var(--primary);
+            box-shadow: 0 7px 0 #7342ac;
+        }
+
+        .option-btn:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 #e2e8f0;
+        }
+
+        .option-btn.correct {
+            background-color: var(--correct) !important;
+            color: white !important;
+            border-color: #00b35a !important;
+            box-shadow: 0 5px 0 #00994d !important;
+        }
+
+        .option-btn.wrong {
+            background-color: var(--wrong) !important;
+            color: white !important;
+            border-color: #e63946 !important;
+            box-shadow: 0 5px 0 #cc2e3b !important;
+        }
+
+        .explanation-box {
+            display: none;
+            background: #f8f0ff;
+            border-left: 8px solid var(--primary);
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 20px;
+            animation: slideIn 0.4s ease-out;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        .shake { animation: shake 0.3s ease-in-out; }
+
+        .progress-bar {
+            width: 100%;
+            height: 12px;
+            background: #e2e8f0;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
+        .score-badge {
+            background: var(--secondary);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 50px;
+            font-weight: 800;
+            box-shadow: 0 4px 0 #00a88b;
+        }
+
+        .btn-next {
+            background: var(--primary);
+            color: white;
+            padding: 12px 30px;
+            border-radius: 50px;
+            font-weight: 800;
+            box-shadow: 0 6px 0 #7342ac;
+            transition: all 0.2s;
+            margin-top: 15px;
+            display: none;
+        }
+
+        .btn-next:hover { transform: scale(1.05); }
+
+        #summary-popup {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 40px;
+            border-radius: 30px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+            z-index: 1000;
+            text-align: center;
+            width: 90%;
+            max-width: 450px;
+        }
+
+        .overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 999;
+        }
+
+        .word-tag {
+            display: inline-block;
+            background: #eee;
+            padding: 2px 8px;
+            border-radius: 5px;
+            font-size: 0.9em;
+            margin-right: 10px;
+            color: #555;
+            min-width: 28px;
+            text-align: center;
+        }
+
+        .step-title {
+            color: var(--primary);
+            font-weight: 800;
+            margin-top: 15px;
+            display: block;
+            font-size: 1.1rem;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="game-container">
+        <div class="header-info">Giáo viên tạo: Ms Mai An ULIS</div>
+        
+        <div class="flex justify-between items-center mb-4">
+            <h1 class="text-2xl font-extrabold text-[#8854C0]">WORD FORM MASTERY 🌟</h1>
+            <div class="score-badge">Đúng: <span id="current-score">0</span></div>
+        </div>
+
+        <div class="progress-bar">
+            <div class="progress-fill" id="progress-fill"></div>
+        </div>
+
+        <div id="quiz-area">
+            <div class="card" id="question-card">
+                <div id="question-container">
+                    <p class="question-text" id="main-question">Loading...</p>
+                    <div id="options-list"></div>
+                </div>
+
+                <div class="explanation-box" id="explanation-box">
+                    <div id="explanation-content"></div>
+                    <div class="flex justify-center">
+                        <button class="btn-next" id="btn-next" onclick="nextQuestion()">TIẾP TỤC ➔</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="overlay" id="overlay"></div>
+    <div id="summary-popup">
+        <h2 class="text-3xl font-black mb-4 text-[#8854C0]">KẾT QUẢ CUỐI CÙNG!</h2>
+        <div class="text-5xl font-black text-[#00C9A7] mb-4" id="final-score">0/0</div>
+        <p class="text-lg text-gray-600 mb-6" id="feedback-msg"></p>
+        <button class="btn-next" style="display:inline-block;" onclick="location.reload()">LÀM LẠI BÀI TEST</button>
+    </div>
+
+    <script>
+        const rawData = [
+            { q: "David Edward Hughes was the ________ of microphone.", word: "invent", options: ["inventor", "invention", "invent", "inventive"], correct: 0, steps: { s1: "David Edward Hughes là người phát minh ra micrô.", s2: ["inventor (n): nhà phát minh (người)", "invention (n): sự phát minh (vật/việc)", "invent (v): phát minh", "inventive (adj): đầy sáng tạo"], s3: "Sau mạo từ 'the' cần một danh từ. Vì chủ ngữ là tên người nên cần danh từ chỉ người.", s4: "Các phương án khác không phù hợp loại từ hoặc ngữ nghĩa chỉ người." } },
+            { q: "This film made a strong ________ on me.", word: "impress", options: ["impression", "impressive", "impress", "impressively"], correct: 0, steps: { s1: "Bộ phim này đã gây ấn tượng mạnh mẽ với tôi.", s2: ["impression (n): sự ấn tượng", "impressive (adj): đầy ấn tượng", "impress (v): gây ấn tượng", "impressively (adv): một cách đầy ấn tượng"], s3: "Cấu trúc 'Make a/an impression on someone' (Gây ấn tượng với ai). Sau tính từ 'strong' cần một danh từ.", s4: "Các từ khác sai loại từ." } },
+            { q: "He's well-known in the local ________.", word: "community", options: ["community", "communal", "communicate", "communication"], correct: 0, steps: { s1: "Anh ấy rất nổi tiếng trong cộng đồng địa phương.", s2: ["community (n): cộng đồng", "communal (adj): thuộc về chung", "communicate (v): giao tiếp", "communication (n): sự giao tiếp"], s3: "Sau tính từ 'local' cần một danh từ.", s4: "Các đáp án khác không phù hợp ngữ cảnh." } },
+            { q: "Robots help humans explore the ________ world.", word: "SEA", options: ["undersea", "sea", "seaside", "overseas"], correct: 0, steps: { s1: "Robot giúp con người khám phá thế giới dưới đại dương.", s2: ["undersea (adj): dưới đáy biển", "sea (n): biển", "seaside (n): bờ biển", "overseas (adv/adj): nước ngoài"], s3: "Cần một tính từ bổ nghĩa cho danh từ 'world'.", s4: "Undersea phù hợp nhất để nói về việc robot lặn xuống khám phá." } },
+            { q: "What I like about festivals is that they show the ________ values of different communities.", word: "culture", options: ["cultural", "culture", "culturally", "cultured"], correct: 0, steps: { s1: "Điều tôi thích ở các lễ hội là chúng thể hiện những giá trị văn hóa của các cộng đồng khác nhau.", s2: ["cultural (adj): thuộc về văn hóa", "culture (n): văn hóa", "culturally (adv): về mặt văn hóa", "cultured (adj): có học thức"], s3: "Cần tính từ đứng trước danh từ 'values' để bổ nghĩa.", s4: "Các đáp án khác không đúng loại từ." } },
+            { q: "It costs 10 dollars to rent the ________ equipment.", word: "SAFE", options: ["safety", "safe", "safely", "save"], correct: 0, steps: { s1: "Tốn 10 đô la để thuê thiết bị an toàn.", s2: ["safety (n): sự an toàn", "safe (adj): an toàn", "safely (adv): một cách an toàn", "save (v): cứu/tiết kiệm"], s3: "Sử dụng danh từ ghép 'Safety equipment' (thiết bị bảo hộ/an toàn).", s4: "Tính từ 'safe' ít khi dùng để ghép thành cụm từ chuyên dụng này." } },
+            { q: "All the ________ were taken so I had to stand.", word: "SIT", options: ["seats", "seat", "sit", "sitting"], correct: 0, steps: { s1: "Tất cả các chỗ ngồi đều đã kín nên tôi phải đứng.", s2: ["seats (n-số nhiều): chỗ ngồi", "seat (n-số ít): chỗ ngồi", "sit (v): ngồi", "sitting (v-ing): việc ngồi"], s3: "Sau 'All the' + danh từ số nhiều. Động từ 'were' cũng xác nhận chủ ngữ số nhiều.", s4: "Seat số ít không khớp với 'were'." } },
+            { q: "There are many tourist ________ in Vietnam, such as Hội An Ancient Town...", word: "attract", options: ["attractions", "attractive", "attraction", "attract"], correct: 0, steps: { s1: "Có rất nhiều điểm tham quan du lịch ở Việt Nam...", s2: ["attractions (n-nhiều): điểm thu hút", "attractive (adj): hấp dẫn", "attraction (n-ít): sự thu hút", "attract (v): thu hút"], s3: "Cụm 'tourist attractions' (điểm tham quan). Sau 'many' dùng danh từ số nhiều.", s4: "Các từ còn lại sai loại từ hoặc số lượng." } },
+            { q: "________ is a big country in the north America.", word: "Canadian", options: ["Canada", "Canadian", "Canadians", "Canadas"], correct: 0, steps: { s1: "Canada là một quốc gia lớn ở Bắc Mỹ.", s2: ["Canada (n): nước Canada", "Canadian (adj/n): người Canada/thuộc về Canada", "Canadians (n): người Canada số nhiều", "Canadas: (Sai)"], s3: "Đứng đầu câu làm chủ ngữ chỉ một quốc gia (country).", s4: "Canadian chỉ người hoặc tính từ, không thay thế tên nước." } },
+            { q: "Louisa never does any exercise. She's ________ and feels tired all the time.", word: "FIT", options: ["unfit", "fit", "fitness", "fitted"], correct: 0, steps: { s1: "Louisa không bao giờ tập thể dục. Cô ấy không khỏe mạnh và thấy mệt mỏi.", s2: ["unfit (adj): không khỏe mạnh", "fit (adj): cân đối", "fitness (n): sự khỏe khoắn", "fitted (v): đã vừa"], s3: "Dựa vào ngữ cảnh 'never does exercise' và 'tired' -> Cần nghĩa tiêu cực.", s4: "Tiền tố 'un-' tạo nghĩa trái ngược phù hợp ngữ cảnh." } },
+            { q: "The most popular after-school ________ in Viet Nam are football and badminton.", word: "act", options: ["activities", "active", "action", "act"], correct: 0, steps: { s1: "Các hoạt động sau giờ học phổ biến nhất là...", s2: ["activities (n-nhiều): hoạt động", "active (adj): năng động", "action (n): hành động", "act (v): diễn"], s3: "Sau cụm tính từ cần danh từ. 'Are' và danh sách các môn chỉ số nhiều.", s4: "Các từ khác không phù hợp số lượng hoặc ngữ nghĩa." } },
+            { q: "These modern cars are equipped with ________ computers.", word: "SPEED", options: ["high-speed", "speed", "speedy", "speeding"], correct: 0, steps: { s1: "Những chiếc xe hiện đại này được trang bị máy tính tốc độ cao.", s2: ["high-speed (adj): tốc độ cao", "speed (n): tốc độ", "speedy (adj): nhanh chóng", "speeding (v-ing): chạy quá tốc độ"], s3: "Cần tính từ bổ nghĩa cho 'computers'. Cụm 'high-speed' là thuật ngữ công nghệ.", s4: "Speedy thường dùng cho hành động, không dùng cho thông số kỹ thuật máy tính." } },
+            { q: "Although I prepared carefully, I got nervous when giving my ________.", word: "PRESENT", options: ["presentation", "presence", "present", "presenter"], correct: 0, steps: { s1: "Mặc dù chuẩn bị kỹ, tôi vẫn lo lắng khi thuyết trình.", s2: ["presentation (n): bài thuyết trình", "presence (n): sự hiện diện", "present (v): trình bày", "presenter (n): người thuyết trình"], s3: "Sau tính từ sở hữu 'my' cần danh từ. 'Give a presentation' là cụm từ cố định.", s4: "Presence mang nghĩa khác hẳn." } },
+            { q: "Thong Nhat Palace is a ________ attraction in Ho Chi Minh city.", word: "tour", options: ["tourist", "tourism", "tour", "touring"], correct: 0, steps: { s1: "Dinh Thống Nhất là một điểm thu hút khách du lịch.", s2: ["tourist (n): khách du lịch", "tourism (n): ngành du lịch", "tour (n): chuyến đi", "touring (v-ing): việc đi du lịch"], s3: "Cụm 'tourist attraction' (điểm tham quan).", s4: "Tourism attraction không dùng phổ biến bằng." } },
+            { q: "I saw so many ________ flowers when I attended the festival last year.", word: "beauty", options: ["beautiful", "beauty", "beautifully", "beautify"], correct: 0, steps: { s1: "Tôi thấy rất nhiều hoa đẹp tại lễ hội.", s2: ["beautiful (adj): đẹp", "beauty (n): vẻ đẹp", "beautifully (adv): một cách đẹp đẽ", "beautify (v): làm đẹp"], s3: "Cần tính từ bổ nghĩa cho danh từ 'flowers'.", s4: "Các từ còn lại sai loại từ." } },
+            { q: "We help the ________ with housework and gardening.", word: "old", options: ["elderly", "old", "older", "oldness"], correct: 0, steps: { s1: "Chúng tôi giúp đỡ những người cao tuổi.", s2: ["elderly (adj): cao tuổi", "old (adj): già", "older (adj): già hơn", "oldness (n): sự già nua"], s3: "Cấu trúc 'The + adj' chỉ nhóm người. 'The elderly' là cách gọi trang trọng cho người già.", s4: "The older thường dùng trong so sánh." } },
+            { q: "‘Songkran’ – Thai New Year is ________ from Vietnamese Lunar New Year.", word: "DIFFER", options: ["different", "difference", "differ", "differently"], correct: 0, steps: { s1: "Lễ hội Songkran khác với Tết Việt Nam.", s2: ["different (adj): khác biệt", "difference (n): sự khác nhau", "differ (v): làm cho khác", "differently (adv): một cách khác biệt"], s3: "Cấu trúc 'be different from'. Sau động từ to be 'is' cần tính từ.", s4: "Các từ khác không đi với cấu trúc 'be ... from'." } },
+            { q: "This cartoon has a very funny ________. We can't stop laughing.", word: "END", options: ["ending", "end", "endless", "ended"], correct: 0, steps: { s1: "Bộ phim hoạt hình có cái kết rất vui nhộn.", s2: ["ending (n): cái kết", "end (n): điểm cuối", "endless (adj): vô tận", "ended (v): đã kết thúc"], s3: "Cần danh từ chỉ phần kết thúc của một tác phẩm nghệ thuật.", s4: "End thường chỉ giới hạn vật lý hoặc thời gian chung chung." } },
+            { q: "On Thanksgiving Day, it is ________ for the Americans to share a family meal.", word: "TRADITION", options: ["traditional", "tradition", "traditionally", "traditionalist"], correct: 0, steps: { s1: "Vào ngày Lễ Tạ Ơn, theo truyền thống người Mỹ sẽ dùng bữa cùng gia đình.", s2: ["traditional (adj): thuộc về truyền thống", "tradition (n): truyền thống", "traditionally (adv): theo truyền thống", "traditionalist (n): người thủ cựu"], s3: "Cấu trúc 'It is + adj + for someone to do something'.", s4: "Cần một tính từ ở vị trí này." } },
+            { q: "In my English class, we have to give ________ about various topics.", word: "PRESENT", options: ["presentations", "presentation", "present", "presence"], correct: 0, steps: { s1: "Trong lớp tiếng Anh, chúng tôi phải thuyết trình về nhiều chủ đề.", s2: ["presentations (n-số nhiều): bài thuyết trình", "presentation (n-số ít): bài thuyết trình", "present (v): trình bày", "presence (n): sự hiện diện"], s3: "Cụm 'give presentations'. Vì nói về 'various topics' nên dùng số nhiều.", s4: "Nếu dùng số ít phải có 'a' (a presentation)." } },
+            { q: "Cutting down trees destroys the environment of many ________ animals.", word: "DANGER", options: ["endangered", "dangerous", "danger", "endanger"], correct: 0, steps: { s1: "Việc chặt cây phá hủy môi trường của nhiều loài động vật có nguy cơ tuyệt chủng.", s2: ["endangered (adj): có nguy cơ tuyệt chủng", "dangerous (adj): nguy hiểm", "danger (n): sự nguy hiểm", "endanger (v): gây nguy hiểm"], s3: "Cụm từ cố định 'endangered animals'.", s4: "Dangerous animals là động vật hung dữ, không hợp ngữ cảnh bảo vệ môi trường." } },
+            { q: "Meats and fish are ________ used in all Vietnamese cooking.", word: "common", options: ["commonly", "common", "commonness", "uncommon"], correct: 0, steps: { s1: "Thịt và cá được sử dụng phổ biến trong nấu ăn Việt Nam.", s2: ["commonly (adv): một cách phổ biến", "common (adj): phổ biến", "commonness (n): sự bình thường", "uncommon (adj): hiếm thấy"], s3: "Cần trạng từ bổ nghĩa cho động từ 'used'.", s4: "Tính từ không đứng trước phân từ hai để bổ nghĩa theo cách này." } },
+            { q: "Make a ________ to charity projects.", word: "DONATE", options: ["donation", "donate", "donor", "donating"], correct: 0, steps: { s1: "Hãy thực hiện một khoản quyên góp cho các dự án từ thiện.", s2: ["donation (n): sự quyên góp", "donate (v): quyên góp", "donor (n): người quyên góp", "donating (v-ing): việc quyên góp"], s3: "Cấu trúc 'Make a donation' (Quyên góp).", s4: "Donor là người, không đi với 'make a'." } },
+            { q: "She's a professional ________.", word: "photograph", options: ["photographer", "photography", "photograph", "photographic"], correct: 0, steps: { s1: "Cô ấy là một nhiếp ảnh gia chuyên nghiệp.", s2: ["photographer (n): nhiếp ảnh gia", "photography (n): nghề nhiếp ảnh", "photograph (n): bức ảnh", "photographic (adj): thuộc về ảnh"], s3: "Sau mạo từ và tính từ cần danh từ chỉ người nghiệp nghiệp.", s4: "Các từ khác chỉ vật hoặc tính chất." } },
+            { q: "Wind will be used as an ________ friendly source of energy.", word: "environment", options: ["environmentally", "environmental", "environment", "environmentalist"], correct: 0, steps: { s1: "Gió sẽ được dùng như nguồn năng lượng thân thiện với môi trường.", s2: ["environmentally (adv): về mặt môi trường", "environmental (adj): thuộc về môi trường", "environment (n): môi trường", "environmentalist (n): nhà môi trường"], s3: "Cụm từ 'environmentally friendly' (thân thiện với môi trường).", s4: "Trạng từ bổ nghĩa cho tính từ 'friendly'." } }
+        ];
+
+        let currentQIndex = 0;
+        let score = 0;
+        let shuffledQuestions = [];
+
+        function playSound(type) {
+            const context = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = context.createOscillator();
+            const gain = context.createGain();
+            oscillator.connect(gain);
+            gain.connect(context.destination);
+
+            if (type === 'correct') {
+                oscillator.type = 'sine';
+                oscillator.frequency.setValueAtTime(523.25, context.currentTime); 
+                oscillator.frequency.exponentialRampToValueAtTime(880, context.currentTime + 0.1);
+                gain.gain.setValueAtTime(0.1, context.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, context.currentTime + 0.3);
+            } else {
+                oscillator.type = 'sawtooth';
+                oscillator.frequency.setValueAtTime(200, context.currentTime);
+                oscillator.frequency.exponentialRampToValueAtTime(50, context.currentTime + 0.2);
+                gain.gain.setValueAtTime(0.1, context.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, context.currentTime + 0.3);
+            }
+            oscillator.start();
+            oscillator.stop(context.currentTime + 0.3);
+        }
+
+        function shuffle(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function initQuiz() {
+            // 1. Shuffle the main question list
+            shuffledQuestions = shuffle([...rawData]);
+
+            // 2. For each question, shuffle its options and update 'correct' index
+            shuffledQuestions.forEach(q => {
+                const correctAnswerText = q.options[q.correct];
+                q.options = shuffle([...q.options]);
+                q.correct = q.options.indexOf(correctAnswerText);
+            });
+
+            currentQIndex = 0;
+            score = 0;
+            document.getElementById('current-score').innerText = score;
+            showQuestion();
+        }
+
+        function showQuestion() {
+            const qData = shuffledQuestions[currentQIndex];
+            const mainQ = document.getElementById('main-question');
+            const optionsList = document.getElementById('options-list');
+            const expBox = document.getElementById('explanation-box');
+            const btnNext = document.getElementById('btn-next');
+
+            expBox.style.display = 'none';
+            btnNext.style.display = 'none';
+            optionsList.innerHTML = '';
+            
+            mainQ.innerHTML = qData.q.replace("________", `<span class="text-[var(--primary)] border-b-4 border-dashed border-[var(--primary)] px-4">?</span>`) + 
+                            `<br><small class="text-gray-400 italic">Word gốc: (${qData.word})</small>`;
+
+            qData.options.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.innerHTML = `<span class="word-tag">${String.fromCharCode(65 + idx)}</span> ${opt}`;
+                btn.onclick = () => checkAnswer(idx, btn);
+                optionsList.appendChild(btn);
+            });
+
+            const progress = ((currentQIndex) / shuffledQuestions.length) * 100;
+            document.getElementById('progress-fill').style.width = `${progress}%`;
+        }
+
+        function checkAnswer(selectedIdx, btnElement) {
+            const qData = shuffledQuestions[currentQIndex];
+            const options = document.querySelectorAll('.option-btn');
+            const expBox = document.getElementById('explanation-box');
+            const expContent = document.getElementById('explanation-content');
+            const btnNext = document.getElementById('btn-next');
+
+            options.forEach(btn => btn.disabled = true);
+
+            if (selectedIdx === qData.correct) {
+                btnElement.classList.add('correct');
+                score++;
+                document.getElementById('current-score').innerText = score;
+                playSound('correct');
+                confetti({
+                    particleCount: 100,
+                    spread: 70,
+                    origin: { y: 0.6 },
+                    colors: ['#8854C0', '#00C9A7', '#FFD700']
+                });
+            } else {
+                btnElement.classList.add('wrong');
+                document.getElementById('question-card').classList.add('shake');
+                setTimeout(() => document.getElementById('question-card').classList.remove('shake'), 500);
+                playSound('wrong');
+                options[qData.correct].classList.add('correct');
+            }
+
+            expBox.style.display = 'block';
+            btnNext.style.display = 'inline-block';
+
+            expContent.innerHTML = `
+                <div class="text-[#2d3436]">
+                    <span class="step-title">1. Dịch câu hỏi:</span>
+                    <p class="italic text-lg mb-2">"${qData.steps.s1}"</p>
+                    
+                    <span class="step-title">2. Phân tích 4 đáp án:</span>
+                    <div class="bg-white rounded-xl p-4 my-2 border border-purple-100">
+                        <ul class="space-y-1">
+                            ${qData.options.map((opt, i) => {
+                                // Find the original rationale for this specific word
+                                let rationale = qData.steps.s2.find(r => r.startsWith(opt)) || "Từ loại khác.";
+                                return `<li class="${i === qData.correct ? 'font-bold text-green-600' : ''}">
+                                            <span class="word-tag">${String.fromCharCode(65 + i)}</span> ${rationale}
+                                        </li>`;
+                            }).join('')}
+                        </ul>
+                    </div>
+
+                    <span class="step-title">3. Tại sao chọn ${String.fromCharCode(65 + qData.correct)}?</span>
+                    <p class="bg-green-50 p-3 rounded-lg border-l-4 border-green-500">${qData.steps.s3}</p>
+
+                    <span class="step-title">4. Tại sao các đáp án khác sai?</span>
+                    <p class="bg-red-50 p-3 rounded-lg border-l-4 border-red-400">${qData.steps.s4}</p>
+                    
+                    <div class="mt-6 pt-4 border-t border-purple-200 text-sm font-bold text-[var(--primary)] flex items-center">
+                        <span class="text-2xl mr-2">👩‍🏫</span> Ms Mai An: Hãy nhớ kỹ loại từ cần điền dựa vào các từ đứng trước và sau chỗ trống nhé!
+                    </div>
+                </div>
+            `;
+            
+            expBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        function nextQuestion() {
+            currentQIndex++;
+            if (currentQIndex < shuffledQuestions.length) {
+                showQuestion();
+            } else {
+                showSummary();
+            }
+        }
+
+        function showSummary() {
+            const overlay = document.getElementById('overlay');
+            const popup = document.getElementById('summary-popup');
+            const finalScore = document.getElementById('final-score');
+            const feedback = document.getElementById('feedback-msg');
+
+            overlay.style.display = 'block';
+            popup.style.display = 'block';
+            finalScore.innerText = `${score}/${shuffledQuestions.length}`;
+
+            const percent = (score / shuffledQuestions.length) * 100;
+            if (percent === 100) feedback.innerText = "Tuyệt vời! Em là thiên tài Word Form rồi đấy! 🏆";
+            else if (percent >= 80) feedback.innerText = "Rất tốt! Em chỉ sai một chút thôi, cố gắng phát huy nhé! ✨";
+            else if (percent >= 50) feedback.innerText = "Khá tốt! Hãy xem kỹ lại các phần giải thích của cô để nắm vững hơn. 💪";
+            else feedback.innerText = "Đừng buồn nhé! Học tiếng Anh là một hành trình, hãy làm lại để nhớ từ vựng hơn nào! ❤️";
+
+            confetti({ particleCount: 200, spread: 160, origin: { y: 0.6 } });
+        }
+
+        window.onload = initQuiz;
+    </script>
+</body>
+</html>

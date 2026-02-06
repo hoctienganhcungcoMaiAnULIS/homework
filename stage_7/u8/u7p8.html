@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bài tập Trắc nghiệm Quantifiers - Ms Mai An ULIS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #8854C0; /* Tím hồng */
+            --secondary-color: #00C9A7; /* Xanh ngọc */
+            --correct-color: #00D26A; /* Xanh lá */
+            --wrong-color: #FF4757; /* Đỏ cam */
+            --bg-color: #f0f4f8;
+            --card-bg: #ffffff;
+            --text-color: #2d3436;
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: var(--bg-color);
+            background-image: radial-gradient(#8854C0 0.5px, transparent 0.5px), radial-gradient(#8854C0 0.5px, #f0f4f8 0.5px);
+            background-size: 20px 20px;
+            background-position: 0 0, 10px 10px;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            color: var(--text-color);
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            padding: 30px;
+            position: relative;
+            overflow: hidden;
+            border: 4px solid var(--primary-color);
+        }
+
+        /* Header Styles */
+        .header {
+            text-align: center;
+            margin-bottom: 25px;
+            position: relative;
+        }
+
+        .header h5 {
+            color: var(--primary-color);
+            margin: 0;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            background: #f3e5f5;
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+        }
+
+        .header h1 {
+            color: var(--text-color);
+            margin: 10px 0;
+            font-family: 'Quicksand', sans-serif;
+            font-size: 1.8rem;
+        }
+
+        /* Progress Bar */
+        .progress-container {
+            width: 100%;
+            background-color: #e0e0e0;
+            border-radius: 10px;
+            height: 12px;
+            margin-bottom: 30px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background-color: var(--secondary-color);
+            width: 0%;
+            transition: width 0.5s ease;
+            border-radius: 10px;
+        }
+
+        /* Question Card */
+        .question-card {
+            background: #fff;
+            border-radius: 20px;
+            padding: 0;
+            margin-bottom: 20px;
+        }
+
+        .question-text {
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin-bottom: 25px;
+            line-height: 1.5;
+            color: #2c3e50;
+        }
+
+        /* Answer Options */
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        @media (max-width: 600px) {
+            .options-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .option-btn {
+            background: #fff;
+            border: 2px solid #e0e0e0;
+            padding: 15px 20px;
+            border-radius: 15px;
+            cursor: pointer;
+            font-family: 'Nunito', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-color);
+            transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+            box-shadow: 0 4px 0 #e0e0e0;
+            position: relative;
+            text-align: left;
+            display: flex;
+            align-items: center;
+        }
+
+        .option-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 0 #d1d1d1;
+            border-color: var(--secondary-color);
+            background-color: #f0fdfa;
+        }
+
+        .option-btn:active:not(:disabled) {
+            transform: translateY(2px);
+            box-shadow: 0 0 0 #e0e0e0;
+        }
+
+        /* Option States */
+        .option-btn.correct {
+            background-color: var(--correct-color) !important;
+            color: white !important;
+            border-color: #00b85c !important;
+            box-shadow: 0 4px 0 #009e4f !important;
+        }
+
+        .option-btn.wrong {
+            background-color: var(--wrong-color) !important;
+            color: white !important;
+            border-color: #e04050 !important;
+            box-shadow: 0 4px 0 #c03940 !important;
+            animation: shake 0.5s;
+        }
+
+        .option-btn:disabled {
+            cursor: default;
+            opacity: 0.9;
+        }
+
+        /* Shake Animation */
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-5px) rotate(-2deg); }
+            50% { transform: translateX(5px) rotate(2deg); }
+            75% { transform: translateX(-5px) rotate(-2deg); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Explanation Box */
+        .explanation-box {
+            margin-top: 25px;
+            background: #fff9c4; /* Light yellow for highlighting */
+            border: 2px solid #fbc02d;
+            border-radius: 15px;
+            padding: 20px;
+            display: none; /* Hidden by default */
+            animation: slideDown 0.4s ease-out;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+
+        .explanation-box.show {
+            display: block;
+        }
+
+        .exp-header {
+            font-weight: 800;
+            color: #f57f17;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+            border-bottom: 2px dashed #fbc02d;
+            padding-bottom: 10px;
+        }
+
+        .exp-content p {
+            margin: 8px 0;
+            line-height: 1.6;
+        }
+
+        .exp-step {
+            margin-bottom: 12px;
+            padding: 10px;
+            background: rgba(255,255,255,0.6);
+            border-radius: 8px;
+        }
+
+        .exp-label {
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-right: 5px;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Controls */
+        .controls {
+            margin-top: 30px;
+            text-align: right;
+        }
+
+        .next-btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(136, 84, 192, 0.4);
+            transition: transform 0.2s;
+            font-family: 'Quicksand', sans-serif;
+            display: none; /* Hidden initially */
+        }
+
+        .next-btn:hover {
+            transform: scale(1.05);
+            background-color: #7a4bb0;
+        }
+
+        /* Results Screen */
+        .result-screen {
+            text-align: center;
+            display: none;
+            padding: 20px;
+        }
+        
+        .score-circle {
+            width: 150px;
+            height: 150px;
+            background: var(--secondary-color);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 3rem;
+            font-weight: 800;
+            margin: 0 auto 20px;
+            box-shadow: 0 10px 25px rgba(0, 201, 167, 0.5);
+            border: 5px solid white;
+            outline: 5px solid var(--secondary-color);
+        }
+
+        .message {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            color: var(--primary-color);
+            font-weight: 700;
+        }
+
+        .retry-btn {
+            background-color: var(--wrong-color);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(255, 71, 87, 0.4);
+            font-family: 'Quicksand', sans-serif;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h5>Giáo viên tạo: Ms Mai An ULIS</h5>
+            <h1>Trắc nghiệm Both, Either & Neither</h1>
+        </div>
+
+        <!-- Quiz Area -->
+        <div id="quiz-area">
+            <!-- Progress -->
+            <div class="progress-container">
+                <div class="progress-bar" id="progress-bar"></div>
+            </div>
+
+            <!-- Question -->
+            <div class="question-card">
+                <div class="question-text" id="question-text">Loading question...</div>
+                <div class="options-grid" id="options-grid">
+                    <!-- Options will be injected here -->
+                </div>
+            </div>
+
+            <!-- Detailed Explanation -->
+            <div class="explanation-box" id="explanation-box">
+                <div class="exp-header">
+                    <span>💡</span> Giải thích chi tiết của Cô Mai An
+                </div>
+                <div class="exp-content" id="exp-content">
+                    <!-- Content injected via JS -->
+                </div>
+            </div>
+
+            <!-- Controls -->
+            <div class="controls">
+                <button class="next-btn" id="next-btn" onclick="nextQuestion()">Câu tiếp theo ➜</button>
+            </div>
+        </div>
+
+        <!-- Result Screen -->
+        <div class="result-screen" id="result-screen">
+            <div class="score-circle" id="final-score">0/0</div>
+            <div class="message" id="final-message">Bạn làm rất tốt!</div>
+            <p id="feedback-text"></p>
+            <button class="retry-btn" onclick="restartQuiz()">Làm lại bài thi ↺</button>
+        </div>
+    </div>
+
+    <script>
+        // --- DATA ---
+        const quizData = {
+          "questions": [
+            {
+              "questionNumber": 1,
+              "question": "__________ my parents are doctors.",
+              "answerOptions": [
+                { "text": "Both of", "rationale": "1. Dịch & Từ loại:\n- Both of (phrase): cả hai (trong số)\n- Both (det/pronoun): cả hai\n- Either (det/pronoun): một trong hai\n- Neither (det/pronoun): không ai trong hai\n2. Giải thích: Trước danh từ có từ hạn định (như 'my', 'the', 'these'), ta thường dùng cấu trúc 'Both of + determiner + N'. Dù 'Both my parents' cũng đúng, nhưng trong bài tập phân biệt 'Both/Both of', 'Both of' nhấn mạnh vào nhóm xác định này.", "isCorrect": true },
+                { "text": "Either", "rationale": "Either (một trong hai) đi với động từ số ít (is), nhưng ở đây động từ là 'are' (số nhiều).", "isCorrect": false },
+                { "text": "Neither", "rationale": "Neither (không ai cả) đi với động từ số ít.", "isCorrect": false },
+                { "text": "Every", "rationale": "Every (mọi) đi với danh từ số ít.", "isCorrect": false }
+              ],
+              "hint": "Cả hai bố mẹ tôi đều là bác sĩ. (Dùng trước từ hạn định 'my')."
+            },
+            {
+              "questionNumber": 2,
+              "question": "__________ students speak English very well.",
+              "answerOptions": [
+                { "text": "Both of", "rationale": "'Both of' bắt buộc phải đi kèm từ hạn định (the/these/my...) trước danh từ. Ở đây 'students' đứng một mình nên sai.", "isCorrect": false },
+                { "text": "Both", "rationale": "1. Dịch & Từ loại:\n- Both (det): cả hai\n- Both of (phrase): cả hai trong số\n- Either (det): một trong hai\n- Neither (det): không ai/cái nào\n2. Giải thích: Khi danh từ số nhiều không có từ hạn định (the/my/these) đi kèm, ta dùng trực tiếp 'Both'. (Both students = Cả hai học sinh).", "isCorrect": true },
+                { "text": "Either", "rationale": "Either đi với danh từ số ít.", "isCorrect": false },
+                { "text": "Neither", "rationale": "Neither đi với danh từ số ít.", "isCorrect": false }
+              ],
+              "hint": "Cả hai học sinh đều nói tiếng Anh rất tốt. (Danh từ không có 'the/my')."
+            },
+            {
+              "questionNumber": 3,
+              "question": "They are __________ tired after the game.",
+              "answerOptions": [
+                { "text": "both", "rationale": "1. Dịch & Từ loại:\n- both (adv): cả hai (đều)\n- both of (phrase): cả hai trong số\n- either (adv): cũng (trong câu phủ định)\n- neither (adv): cũng không\n2. Giải thích: Khi đóng vai trò trạng từ nhấn mạnh cho chủ ngữ 'They', 'both' đứng sau động từ to be (are).", "isCorrect": true },
+                { "text": "both of", "rationale": "'Both of' không đứng một mình làm trạng từ sau to be như vậy, nó cần danh từ/đại từ phía sau (ví dụ: both of them).", "isCorrect": false },
+                { "text": "either", "rationale": "Either dùng trong câu phủ định hoặc nghi vấn.", "isCorrect": false },
+                { "text": "neither", "rationale": "Neither mang nghĩa phủ định, không hợp ngữ cảnh 'tired after game' (thường là cả hai đều mệt).", "isCorrect": false }
+              ],
+              "hint": "Họ đều mệt sau trận đấu. (Vị trí sau động từ to be)."
+            },
+            {
+              "questionNumber": 4,
+              "question": "__________ them want to visit London.",
+              "answerOptions": [
+                { "text": "Both", "rationale": "Both không đi trực tiếp với đại từ tân ngữ (them/us/you) mà phải có 'of'.", "isCorrect": false },
+                { "text": "Both of", "rationale": "1. Dịch & Từ loại:\n- Both of (phrase): cả hai trong số\n- Both (det): cả hai\n- Either of (phrase): một trong hai\n- Neither of (phrase): không ai trong hai\n2. Giải thích: Trước đại từ nhân xưng (them, us, you), bắt buộc phải dùng 'Both of'.", "isCorrect": true },
+                { "text": "Either", "rationale": "Either them là sai ngữ pháp (phải là Either of them). Hơn nữa động từ 'want' số nhiều nên Either (thường đi với số ít) không phù hợp.", "isCorrect": false },
+                { "text": "Neither", "rationale": "Neither them là sai ngữ pháp.", "isCorrect": false }
+              ],
+              "hint": "Cả hai người họ đều muốn đi London. (Trước đại từ 'them')."
+            },
+            {
+              "questionNumber": 5,
+              "question": "__________ these shirts are expensive.",
+              "answerOptions": [
+                { "text": "Both of", "rationale": "1. Dịch & Từ loại:\n- Both of (phrase): cả hai trong số\n- Either of (phrase): một trong hai\n- Neither of (phrase): không cái nào\n- Much (det): nhiều\n2. Giải thích: Trước từ chỉ định 'these', ta dùng 'Both of'. (Dù 'Both these shirts' cũng chấp nhận được, nhưng 'Both of' là đáp án chuẩn cho bài tập điền từ này).", "isCorrect": true },
+                { "text": "Either", "rationale": "Either đi với động từ số ít (is), ở đây là 'are'.", "isCorrect": false },
+                { "text": "Neither", "rationale": "Neither đi với động từ số ít.", "isCorrect": false },
+                { "text": "Much", "rationale": "Much dùng cho danh từ không đếm được.", "isCorrect": false }
+              ],
+              "hint": "Cả hai chiếc áo này đều đắt."
+            },
+            {
+              "questionNumber": 6,
+              "question": "We __________ study at the same school.",
+              "answerOptions": [
+                { "text": "both", "rationale": "1. Dịch & Từ loại:\n- both (adv): cả hai (đều)\n- both of (phrase): cả hai trong số\n- either (adv): hoặc/cũng\n- neither (adv): cũng không\n2. Giải thích: 'Both' đứng trước động từ thường (study) để bổ nghĩa cho chủ ngữ 'We'.", "isCorrect": true },
+                { "text": "both of", "rationale": "'Both of' không đứng trước động từ thường như trạng từ.", "isCorrect": false },
+                { "text": "either", "rationale": "Sai vị trí và nghĩa.", "isCorrect": false },
+                { "text": "neither", "rationale": "Sai vị trí và nghĩa.", "isCorrect": false }
+              ],
+              "hint": "Chúng tôi đều học cùng một trường. (Đứng trước động từ thường 'study')."
+            },
+            {
+              "questionNumber": 7,
+              "question": "__________ the girls are good at cooking.",
+              "answerOptions": [
+                { "text": "Both of", "rationale": "1. Dịch & Từ loại:\n- Both of (phrase): cả hai trong số\n- Either (det): một trong hai\n- Neither (det): không ai\n- Each (det): mỗi\n2. Giải thích: Có mạo từ 'the' trước danh từ số nhiều 'girls' -> dùng 'Both of'.", "isCorrect": true },
+                { "text": "Either", "rationale": "Either đi với động từ số ít.", "isCorrect": false },
+                { "text": "Neither", "rationale": "Neither đi với động từ số ít.", "isCorrect": false },
+                { "text": "Each", "rationale": "Each đi với danh từ số ít.", "isCorrect": false }
+              ],
+              "hint": "Cả hai cô gái đều nấu ăn giỏi."
+            },
+            {
+              "questionNumber": 8,
+              "question": "__________ brothers act in the same movie.",
+              "answerOptions": [
+                { "text": "Both", "rationale": "1. Dịch & Từ loại:\n- Both (det): cả hai\n- Both of (phrase): cả hai trong số\n- Either (det): một trong hai\n- Neither (det): không ai\n2. Giải thích: Danh từ 'brothers' số nhiều và không có mạo từ (the/my...) -> Dùng 'Both' trực tiếp.", "isCorrect": true },
+                { "text": "Both of", "rationale": "Sai vì thiếu mạo từ (the/these/my) sau 'Both of'. Không nói 'Both of brothers'.", "isCorrect": false },
+                { "text": "Either", "rationale": "Either đi với danh từ số ít.", "isCorrect": false },
+                { "text": "Neither", "rationale": "Neither đi với danh từ số ít.", "isCorrect": false }
+              ],
+              "hint": "Cả hai anh em đều đóng trong cùng một bộ phim. (Không có 'the' trước brothers)."
+            },
+            {
+              "questionNumber": 9,
+              "question": "__________ us were happy with the result.",
+              "answerOptions": [
+                { "text": "Both of", "rationale": "1. Dịch & Từ loại:\n- Both of (phrase): cả hai trong số\n- Both (det): cả hai\n- Either (det): một trong hai\n- Neither (det): không ai\n2. Giải thích: Trước đại từ tân ngữ 'us', bắt buộc dùng 'Both of'.", "isCorrect": true },
+                { "text": "Both", "rationale": "Không dùng 'Both us'.", "isCorrect": false },
+                { "text": "Either", "rationale": "Either đi với số ít (was), câu dùng 'were'.", "isCorrect": false },
+                { "text": "Neither", "rationale": "Neither thường đi với số ít (formal).", "isCorrect": false }
+              ],
+              "hint": "Cả hai chúng tôi đều vui với kết quả."
+            },
+            {
+              "questionNumber": 10,
+              "question": "She invited __________ her friends to the party.",
+              "answerOptions": [
+                { "text": "both of", "rationale": "1. Dịch & Từ loại:\n- both of (phrase): cả hai trong số\n- both (det): cả hai\n- either (det): một trong hai\n- neither (det): không ai\n2. Giải thích: Có tính từ sở hữu 'her' -> Dùng 'both of'.", "isCorrect": true },
+                { "text": "either", "rationale": "Không hợp nghĩa 'mời một trong hai' khi ngữ cảnh thường là mời cả hai.", "isCorrect": false },
+                { "text": "neither", "rationale": "Không hợp nghĩa.", "isCorrect": false },
+                { "text": "much", "rationale": "Much dùng cho danh từ không đếm được.", "isCorrect": false }
+              ],
+              "hint": "Cô ấy đã mời cả hai người bạn của mình đến bữa tiệc."
+            },
+            {
+              "questionNumber": 11,
+              "question": "I haven’t read __________ these books.",
+              "answerOptions": [
+                { "text": "either of", "rationale": "1. Dịch & Từ loại:\n- either of (phrase): một trong hai (hoặc bất kỳ cái nào trong hai)\n- neither of (phrase): không cái nào trong hai\n- both of (phrase): cả hai\n- all of (phrase): tất cả\n2. Giải thích: Câu có 'haven't' (phủ định) -> Dùng 'either of'. (Not ... either = Neither).", "isCorrect": true },
+                { "text": "neither of", "rationale": "Sai vì câu đã có 'haven't' (not). Không dùng 2 lần phủ định (Double negative: haven't + neither).", "isCorrect": false },
+                { "text": "both of", "rationale": "'I haven't read both' có nghĩa là 'Tôi chưa đọc cả hai (chỉ đọc 1)', nhưng 'haven't read either' (chưa đọc quyển nào cả) phổ biến và tự nhiên hơn trong ngữ cảnh liệt kê.", "isCorrect": false },
+                { "text": "all of", "rationale": "Usually implies more than 2.", "isCorrect": false }
+              ],
+              "hint": "Tôi chưa đọc quyển nào trong số những quyển sách này. (Câu phủ định)."
+            },
+            {
+              "questionNumber": 12,
+              "question": "__________ the two sisters is married. They are both single.",
+              "answerOptions": [
+                { "text": "Neither of", "rationale": "1. Dịch & Từ loại:\n- Neither of (phrase): Không ai trong hai\n- Either of (phrase): Một trong hai\n- Both of (phrase): Cả hai\n- All of (phrase): Tất cả\n2. Giải thích: Động từ 'is' (số ít) và vế sau 'They are both single' (Cả hai đều độc thân) -> Nghĩa là 'Không ai kết hôn'.", "isCorrect": true },
+                { "text": "Either of", "rationale": "Nghĩa là 'Một trong hai cô đã kết hôn' -> Mâu thuẫn với 'họ đều độc thân'.", "isCorrect": false },
+                { "text": "Both of", "rationale": "Both đi với động từ số nhiều (are).", "isCorrect": false },
+                { "text": "All of", "rationale": "All đi với động từ số nhiều.", "isCorrect": false }
+              ],
+              "hint": "Không ai trong hai chị em đã kết hôn. Họ đều độc thân."
+            },
+            {
+              "questionNumber": 13,
+              "question": "Does __________ you want to play badminton?",
+              "answerOptions": [
+                { "text": "either of", "rationale": "1. Dịch & Từ loại:\n- either of (phrase): một trong hai (ai trong hai bạn)\n- neither of (phrase): không ai\n- both of (phrase): cả hai\n- all of (phrase): tất cả\n2. Giải thích: Câu hỏi nghi vấn, dùng 'either of' để hỏi sự lựa chọn/ý muốn của một trong hai người.", "isCorrect": true },
+                { "text": "neither of", "rationale": "Không dùng 'Neither' trong câu hỏi dạng 'Does...'.", "isCorrect": false },
+                { "text": "both of", "rationale": "Nếu dùng 'Both', trợ động từ phải là 'Do' (số nhiều), nhưng đề bài là 'Does' (số ít).", "isCorrect": false },
+                { "text": "all of", "rationale": "All đi với số nhiều (Do).", "isCorrect": false }
+              ],
+              "hint": "Có ai trong hai bạn muốn chơi cầu lông không? (Trợ động từ 'Does' số ít -> Either)."
+            },
+            {
+              "questionNumber": 14,
+              "question": "__________ the answers is correct. You got 0 points.",
+              "answerOptions": [
+                { "text": "Neither of", "rationale": "1. Dịch & Từ loại:\n- Neither of (phrase): Không cái nào trong hai\n- Either of (phrase): Một trong hai\n- Both of (phrase): Cả hai\n- None of (phrase): Không cái nào (thường >=3)\n2. Giải thích: Động từ 'is' (số ít) + '0 points' (0 điểm) -> Không có câu trả lời nào đúng.", "isCorrect": true },
+                { "text": "Either of", "rationale": "Nếu 'Either... is correct' thì bạn phải có điểm.", "isCorrect": false },
+                { "text": "Both of", "rationale": "Both đi với 'are'.", "isCorrect": false },
+                { "text": "Most of", "rationale": "Most đi với 'are' trong trường hợp này.", "isCorrect": false }
+              ],
+              "hint": "Không câu trả lời nào đúng cả. Bạn được 0 điểm."
+            },
+            {
+              "questionNumber": 15,
+              "question": "We can’t use __________ the cars today.",
+              "answerOptions": [
+                { "text": "either of", "rationale": "1. Dịch & Từ loại:\n- either of (phrase): bất kỳ cái nào trong hai\n- neither of (phrase): không cái nào\n- both of (phrase): cả hai\n- much of (phrase): phần lớn\n2. Giải thích: Câu có 'can't' (phủ định) -> Dùng 'either of'. (Can't use either = Không dùng được cái nào cả).", "isCorrect": true },
+                { "text": "neither of", "rationale": "Không dùng 2 lần phủ định (can't + neither).", "isCorrect": false },
+                { "text": "both of", "rationale": "'Can't use both' nghĩa là không dùng được cùng lúc cả 2 (có thể dùng 1), nhưng ngữ cảnh thường là không có xe nào để dùng.", "isCorrect": false },
+                { "text": "much of", "rationale": "Không hợp nghĩa.", "isCorrect": false }
+              ],
+              "hint": "Hôm nay chúng ta không thể sử dụng chiếc xe nào cả."
+            },
+            {
+              "questionNumber": 16,
+              "question": "__________ the keys opens the door. We need to find the right one.",
+              "answerOptions": [
+                { "text": "Neither of", "rationale": "1. Dịch & Từ loại:\n- Neither of: Không cái nào\n- Either of: Một trong hai\n- Both of: Cả hai\n- All of: Tất cả\n2. Giải thích: Động từ 'opens' (số ít) -> Loại Both. Ngữ cảnh 'We need to find the right one' (Cần tìm đúng chìa) chứng tỏ các chìa hiện tại KHÔNG mở được -> Dùng Neither.", "isCorrect": true },
+                { "text": "Either of", "rationale": "Nếu 'Either... opens' thì cửa đã mở rồi, không cần tìm chìa khác.", "isCorrect": false },
+                { "text": "Both of", "rationale": "Both đi với 'open' (số nhiều).", "isCorrect": false },
+                { "text": "All of", "rationale": "All đi với 'open' (số nhiều).", "isCorrect": false }
+              ],
+              "hint": "Không chìa khóa nào mở được cửa cả. Chúng ta cần tìm đúng chìa."
+            },
+            {
+              "questionNumber": 17,
+              "question": "I don’t like __________ those pictures.",
+              "answerOptions": [
+                { "text": "either of", "rationale": "1. Dịch & Từ loại:\n- either of: cái nào trong hai\n- neither of: không cái nào\n- both of: cả hai\n- some of: một vài\n2. Giải thích: Câu phủ định 'don't like' -> Dùng 'either of'.", "isCorrect": true },
+                { "text": "neither of", "rationale": "Double negative (don't + neither) là sai.", "isCorrect": false },
+                { "text": "both of", "rationale": "Tương tự câu trên, 'don't like either' (không thích cái nào) tự nhiên hơn.", "isCorrect": false },
+                { "text": "some of", "rationale": "Không dùng 'some' trong câu phủ định (thường dùng any/either).", "isCorrect": false }
+              ],
+              "hint": "Tôi không thích bức tranh nào trong số đó cả."
+            },
+            {
+              "questionNumber": 18,
+              "question": "__________ my parents speaks English. They only speak Vietnamese.",
+              "answerOptions": [
+                { "text": "Neither of", "rationale": "1. Dịch & Từ loại:\n- Neither of: Không ai trong hai\n- Either of: Một trong hai\n- Both of: Cả hai\n- All of: Tất cả\n2. Giải thích: Động từ 'speaks' (số ít). Ngữ cảnh 'Only speak Vietnamese' -> Bố mẹ không nói tiếng Anh.", "isCorrect": true },
+                { "text": "Either of", "rationale": "Mâu thuẫn với vế sau (họ chỉ nói tiếng Việt).", "isCorrect": false },
+                { "text": "Both of", "rationale": "Both đi với 'speak' (số nhiều).", "isCorrect": false },
+                { "text": "All of", "rationale": "All đi với 'speak' (số nhiều).", "isCorrect": false }
+              ],
+              "hint": "Không ai trong bố mẹ tôi nói tiếng Anh cả."
+            },
+            {
+              "questionNumber": 19,
+              "question": "Do __________ the students have a pen?",
+              "answerOptions": [
+                { "text": "either of", "rationale": "1. Dịch & Từ loại:\n- either of: một trong hai\n- neither of: không ai\n- both of: cả hai\n- any of: bất cứ ai\n2. Giải thích: Dù 'Do' là số nhiều (có thể khiến nghĩ đến Both), nhưng trong cấu trúc câu hỏi lựa chọn 'Do either of...', 'Do' được dùng do ảnh hưởng của danh từ số nhiều 'students' trong giao tiếp, hoặc câu chuẩn phải là 'Does either...'. Tuy nhiên trong các đáp án, 'either of' hợp lý nhất cho câu hỏi. 'Both' cũng có thể đi với 'Do' nhưng 'either' nhấn mạnh sự bất định.", "isCorrect": true },
+                { "text": "neither of", "rationale": "Không dùng Neither trong câu hỏi Yes/No kiểu này.", "isCorrect": false },
+                { "text": "none of", "rationale": "None dùng cho >=3 người.", "isCorrect": false },
+                { "text": "much of", "rationale": "Sai ngữ pháp.", "isCorrect": false }
+              ],
+              "hint": "Có ai trong số các học sinh có bút không? (Hỏi về sự tồn tại)."
+            },
+            {
+              "questionNumber": 20,
+              "question": "__________ the restaurants is cheap. Let’s cook at home.",
+              "answerOptions": [
+                { "text": "Neither of", "rationale": "1. Dịch & Từ loại:\n- Neither of: Không cái nào\n- Either of: Một trong hai\n- Both of: Cả hai\n- All of: Tất cả\n2. Giải thích: Động từ 'is' (số ít). 'Let's cook at home' -> Ngoài hàng không rẻ -> Không nhà hàng nào rẻ.", "isCorrect": true },
+                { "text": "Either of", "rationale": "Nếu 'Either... is cheap' (một cái rẻ) thì đã đi ăn rồi.", "isCorrect": false },
+                { "text": "Both of", "rationale": "Both đi với 'are'.", "isCorrect": false },
+                { "text": "All of", "rationale": "All đi với 'are'.", "isCorrect": false }
+              ],
+              "hint": "Không nhà hàng nào rẻ cả. Hãy nấu ăn ở nhà."
+            },
+            {
+              "questionNumber": 21,
+              "question": "I didn’t invite __________ them to my birthday.",
+              "answerOptions": [
+                { "text": "either of", "rationale": "1. Dịch & Từ loại:\n- either of: ai trong hai\n- neither of: không ai\n- both of: cả hai\n- all of: tất cả\n2. Giải thích: Câu phủ định 'didn't' -> Dùng 'either of'.", "isCorrect": true },
+                { "text": "neither of", "rationale": "Sai vì double negative.", "isCorrect": false },
+                { "text": "both of", "rationale": "Ngữ cảnh thường là không mời ai cả (either).", "isCorrect": false },
+                { "text": "one of", "rationale": "Không phổ biến trong cấu trúc phủ định nhấn mạnh 'cả hai'.", "isCorrect": false }
+              ],
+              "hint": "Tôi đã không mời ai trong số họ đến sinh nhật."
+            },
+            {
+              "questionNumber": 22,
+              "question": "__________ the drivers was hurt in the accident. They are fine.",
+              "answerOptions": [
+                { "text": "Neither of", "rationale": "1. Dịch & Từ loại:\n- Neither of: Không ai\n- Either of: Một trong hai\n- Both of: Cả hai\n- All of: Tất cả\n2. Giải thích: 'was' (số ít). 'They are fine' -> Không ai bị thương.", "isCorrect": true },
+                { "text": "Either of", "rationale": "Mâu thuẫn với 'They are fine'.", "isCorrect": false },
+                { "text": "Both of", "rationale": "Both đi với 'were'.", "isCorrect": false },
+                { "text": "All of", "rationale": "All đi với 'were'.", "isCorrect": false }
+              ],
+              "hint": "Không tài xế nào bị thương trong vụ tai nạn cả."
+            },
+            {
+              "questionNumber": 23,
+              "question": "Has __________ you seen my glasses?",
+              "answerOptions": [
+                { "text": "either of", "rationale": "1. Dịch & Từ loại:\n- either of: một trong hai\n- neither of: không ai\n- both of: cả hai\n- all of: tất cả\n2. Giải thích: Trợ động từ 'Has' (số ít) -> Dùng 'either of'. Câu hỏi nghi vấn.", "isCorrect": true },
+                { "text": "neither of", "rationale": "Không dùng trong câu hỏi Has...", "isCorrect": false },
+                { "text": "both of", "rationale": "Both đi với 'Have'.", "isCorrect": false },
+                { "text": "all of", "rationale": "All đi với 'Have'.", "isCorrect": false }
+              ],
+              "hint": "Có ai trong hai bạn thấy kính của tôi không?"
+            },
+            {
+              "questionNumber": 24,
+              "question": "__________ the plans works. We need a new idea.",
+              "answerOptions": [
+                { "text": "Neither of", "rationale": "1. Dịch & Từ loại:\n- Neither of: Không cái nào\n- Either of: Một trong hai\n- Both of: Cả hai\n- All of: Tất cả\n2. Giải thích: Động từ 'works' (số ít). 'Need new idea' -> Các kế hoạch cũ không hiệu quả -> Neither.", "isCorrect": true },
+                { "text": "Either of", "rationale": "Nếu 'Either... works' thì đã không cần ý tưởng mới.", "isCorrect": false },
+                { "text": "Both of", "rationale": "Both đi với 'work' (số nhiều).", "isCorrect": false },
+                { "text": "All of", "rationale": "All đi với 'work' (số nhiều).", "isCorrect": false }
+              ],
+              "hint": "Không kế hoạch nào hiệu quả cả."
+            },
+            {
+              "questionNumber": 25,
+              "question": "I don’t think __________ us is ready for the test.",
+              "answerOptions": [
+                { "text": "either of", "rationale": "1. Dịch & Từ loại:\n- either of: ai trong hai\n- neither of: không ai\n- both of: cả hai\n- any of: bất cứ ai\n2. Giải thích: Cấu trúc 'don't think' + 'either' = 'think' + 'neither'. Vì đã có 'don't', ta dùng 'either of'. Động từ 'is' (số ít) cũng phù hợp với 'either of'.", "isCorrect": true },
+                { "text": "neither of", "rationale": "Tránh dùng 'don't' + 'neither' (Double negative).", "isCorrect": false },
+                { "text": "both of", "rationale": "Both đi với 'are'.", "isCorrect": false },
+                { "text": "all of", "rationale": "All đi với 'are'.", "isCorrect": false }
+              ],
+              "hint": "Tôi không nghĩ ai trong hai chúng ta đã sẵn sàng."
+            }
+          ]
+        };
+
+        // --- GAME STATE ---
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let shuffledQuestions = [];
+
+        // --- AUDIO ---
+        // Short Beep/Chime sounds using data URIs to ensure single-file portability
+        const correctSound = new Audio("data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YU"); // Placeholder, usually replaced with real base64
+        // Since base64 MP3s are long, I will use a simple synthesized beep for wrong/right using AudioContext if possible, 
+        // but for simplicity in this prompt I'll use standard short URLs or simulated sound if browser allows.
+        // Actually, let's use a simple AudioContext beeper for "Buzz" and "Ding" to be 100% self-contained without massive base64 strings.
+        
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        function playSound(type) {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            osc.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+
+            if (type === 'correct') {
+                // "Ding" - High pitch sine wave
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(600, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.1);
+                gainNode.gain.setValueAtTime(0.5, audioCtx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.5);
+            } else {
+                // "Buzz" - Low pitch sawtooth
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+                osc.frequency.linearRampToValueAtTime(100, audioCtx.currentTime + 0.3);
+                gainNode.gain.setValueAtTime(0.5, audioCtx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.3);
+            }
+        }
+
+        // --- UTILS ---
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        // --- INITIALIZATION ---
+        function initQuiz() {
+            shuffledQuestions = shuffleArray([...quizData.questions]);
+            currentQuestionIndex = 0;
+            score = 0;
+            document.getElementById('quiz-area').style.display = 'block';
+            document.getElementById('result-screen').style.display = 'none';
+            renderQuestion();
+        }
+
+        // --- RENDER QUESTION ---
+        function renderQuestion() {
+            const q = shuffledQuestions[currentQuestionIndex];
+            
+            // Update Progress
+            const progressPercent = ((currentQuestionIndex) / shuffledQuestions.length) * 100;
+            document.getElementById('progress-bar').style.width = `${progressPercent}%`;
+
+            // Update Text
+            document.getElementById('question-text').textContent = `Câu ${currentQuestionIndex + 1}: ${q.question}`;
+
+            // Reset Explanation
+            document.getElementById('explanation-box').classList.remove('show');
+            document.getElementById('next-btn').style.display = 'none';
+
+            // Create Options
+            const optionsContainer = document.getElementById('options-grid');
+            optionsContainer.innerHTML = '';
+
+            // Copy and Shuffle Options for display
+            // Note: We use a copy so we don't mess up the original data order if needed later,
+            // but principally this ensures A, B, C, D are assigned to random answers.
+            const currentOptions = shuffleArray([...q.answerOptions]);
+            
+            currentOptions.forEach((opt, index) => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                // Store correctness on the button itself to easily find it later
+                btn.dataset.isCorrect = opt.isCorrect;
+                
+                btn.innerHTML = `<span style="font-weight:800; color:var(--primary-color); margin-right:10px;">${String.fromCharCode(65+index)}.</span> ${opt.text}`;
+                btn.onclick = () => handleAnswer(btn, opt, q);
+                optionsContainer.appendChild(btn);
+            });
+        }
+
+        // --- HANDLE ANSWER ---
+        function handleAnswer(btn, option, questionData) {
+            // Disable all buttons
+            const buttons = document.querySelectorAll('.option-btn');
+            buttons.forEach(b => b.disabled = true);
+
+            const isCorrect = option.isCorrect;
+
+            if (isCorrect) {
+                btn.classList.add('correct');
+                score++;
+                playSound('correct');
+                // Confetti
+                confetti({
+                    particleCount: 100,
+                    spread: 70,
+                    origin: { y: 0.6 }
+                });
+            } else {
+                btn.classList.add('wrong');
+                playSound('wrong');
+                // Highlight correct answer by checking dataset
+                buttons.forEach(b => {
+                    if (b.dataset.isCorrect === 'true') {
+                        b.classList.add('correct');
+                    }
+                });
+            }
+
+            showExplanation(questionData);
+            
+            // Update button text for last question
+            const nextBtn = document.getElementById('next-btn');
+            nextBtn.style.display = 'inline-block';
+            if (currentQuestionIndex === shuffledQuestions.length - 1) {
+                nextBtn.textContent = 'Nộp bài 🏁';
+            } else {
+                nextBtn.textContent = 'Câu tiếp theo ➜';
+            }
+        }
+
+        // --- BUILD EXPLANATION CONTENT ---
+        function showExplanation(qData) {
+            const expBox = document.getElementById('explanation-box');
+            const expContent = document.getElementById('exp-content');
+            
+            // Extract correct option rationale
+            const correctOpt = qData.answerOptions.find(o => o.isCorrect);
+            // Incorrect options
+            const wrongOpts = qData.answerOptions.filter(o => !o.isCorrect);
+
+            // Step 1: Dịch câu hỏi (Use hint or create translation prompt style)
+            // The 'hint' field in data is actually the translation.
+            const translation = qData.hint || "Chưa có bản dịch.";
+
+            // Step 2 & 3: Analysis & Why Correct (From Correct Option Rationale)
+            const analysisText = correctOpt.rationale.replace(/\n/g, '<br>');
+
+            // Step 4: Why Others Wrong
+            let wrongAnalysisHTML = '<div class="exp-step"><span class="exp-label">❌ Tại sao các câu khác sai?</span><ul style="margin:5px 0; padding-left:20px;">';
+            wrongOpts.forEach(opt => {
+                wrongAnalysisHTML += `<li><strong>${opt.text}:</strong> ${opt.rationale}</li>`;
+            });
+            wrongAnalysisHTML += '</ul></div>';
+
+            expContent.innerHTML = `
+                <div class="exp-step">
+                    <span class="exp-label">🇻🇳 Dịch câu hỏi:</span>
+                    <em>"${translation}"</em>
+                </div>
+                <div class="exp-step">
+                    <span class="exp-label">✅ Phân tích & Đáp án đúng:</span><br>
+                    ${analysisText}
+                </div>
+                ${wrongAnalysisHTML}
+            `;
+
+            expBox.classList.add('show');
+            // Scroll to explanation on mobile
+            setTimeout(() => {
+                expBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }, 100);
+        }
+
+        // --- NAVIGATION ---
+        function nextQuestion() {
+            if (currentQuestionIndex < shuffledQuestions.length - 1) {
+                currentQuestionIndex++;
+                renderQuestion();
+            } else {
+                finishQuiz();
+            }
+        }
+
+        function finishQuiz() {
+            document.getElementById('quiz-area').style.display = 'none';
+            document.getElementById('result-screen').style.display = 'block';
+            
+            document.getElementById('final-score').textContent = `${score}/${shuffledQuestions.length}`;
+            
+            let msg = "";
+            const percent = (score / shuffledQuestions.length) * 100;
+            if (percent === 100) msg = "Tuyệt đối! Bạn là siêu sao ngữ pháp! 🌟";
+            else if (percent >= 80) msg = "Giỏi lắm! Bạn nắm rất chắc kiến thức! 🎉";
+            else if (percent >= 50) msg = "Khá tốt! Hãy ôn lại phần giải thích nhé! 💪";
+            else msg = "Cố gắng lên! Làm lại để nhớ lâu hơn nhé! 📚";
+            
+            document.getElementById('final-message').textContent = msg;
+        }
+
+        function restartQuiz() {
+            initQuiz();
+        }
+
+        // --- START ---
+        window.onload = initQuiz;
+
+    </script>
+</body>
+</html>

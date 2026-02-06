@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ms Mai An ULIS - Reading Challenge</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <style>
+        :root {
+            --primary-pink: #8854C0;
+            --primary-teal: #00C9A7;
+            --correct-green: #00D26A;
+            --wrong-red: #FF4757;
+            --bg-pattern: #f0f3f9;
+            --text-color: #2d3436;
+            --card-shadow: 0 10px 0 rgba(0,0,0,0.1);
+        }
+
+        * {
+            box-sizing: border-box;
+            user-select: none; /* Ngăn bôi đen để tập trung click */
+        }
+
+        body {
+            font-family: 'Quicksand', sans-serif;
+            background-color: var(--bg-pattern);
+            background-image: radial-gradient(#e0e0e0 15%, transparent 16%), radial-gradient(#e0e0e0 15%, transparent 16%);
+            background-size: 20px 20px;
+            background-position: 0 0, 10px 10px;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            color: var(--text-color);
+        }
+
+        /* --- Header --- */
+        header {
+            background: #fff;
+            padding: 10px 20px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 100;
+            height: 70px;
+        }
+
+        .teacher-brand {
+            font-family: 'Nunito', sans-serif;
+            font-weight: 800;
+            font-size: 1.2rem;
+            color: var(--primary-pink);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .teacher-brand i {
+            font-size: 1.5rem;
+        }
+
+        /* --- Timer --- */
+        .timer-container {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .timer-display {
+            font-family: 'Nunito', sans-serif;
+            font-weight: 800;
+            font-size: 1.5rem;
+            color: var(--text-color);
+            background: #f1f2f6;
+            padding: 5px 15px;
+            border-radius: 20px;
+            min-width: 100px;
+            text-align: center;
+        }
+
+        .btn-timer {
+            background: var(--primary-teal);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 0 #00967d;
+            transition: transform 0.1s;
+        }
+
+        .btn-timer:active {
+            transform: translateY(4px);
+            box-shadow: none;
+        }
+
+        /* --- Main Layout --- */
+        .main-container {
+            display: flex;
+            flex: 1;
+            height: calc(100vh - 70px);
+            overflow: hidden;
+        }
+
+        .panel {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            scroll-behavior: smooth;
+        }
+
+        .panel::-webkit-scrollbar {
+            width: 8px;
+        }
+        .panel::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        .panel::-webkit-scrollbar-thumb {
+            background: #ccc;
+            border-radius: 4px;
+        }
+
+        /* --- Left Panel: Reading --- */
+        #reading-panel {
+            background: #fff;
+            border-right: 2px solid #e1e1e1;
+        }
+
+        h1 {
+            font-family: 'Nunito', sans-serif;
+            color: var(--primary-pink);
+            font-weight: 900;
+            font-size: 1.8rem;
+            text-align: center;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 0px rgba(136, 84, 192, 0.1);
+        }
+
+        .reading-paragraph {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            margin-bottom: 25px;
+            background: #fff;
+            padding: 10px;
+            border-radius: 10px;
+        }
+
+        .translate-btn {
+            display: inline-block;
+            background: #f1f2f6;
+            color: var(--primary-pink);
+            font-size: 0.85rem;
+            font-weight: 700;
+            padding: 5px 12px;
+            border-radius: 15px;
+            cursor: pointer;
+            margin-top: 5px;
+            border: 2px solid var(--primary-pink);
+            transition: all 0.2s;
+        }
+
+        .translate-btn:hover {
+            background: var(--primary-pink);
+            color: white;
+        }
+
+        .translation-text {
+            display: none;
+            background: #fef6ff;
+            color: #5a3a7e;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 10px;
+            border-left: 4px solid var(--primary-pink);
+            font-style: italic;
+            animation: fadeIn 0.5s;
+        }
+
+        /* --- Right Panel: Exercises --- */
+        #exercise-panel {
+            background: #f8f9fc;
+        }
+
+        .question-card {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 0 rgba(0,0,0,0.05);
+            border: 1px solid #eee;
+        }
+
+        .question-text {
+            font-weight: 700;
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            color: var(--text-color);
+        }
+
+        .question-number {
+            background: var(--primary-pink);
+            color: white;
+            width: 35px;
+            height: 35px;
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 50%;
+            margin-right: 10px;
+            font-family: 'Nunito', sans-serif;
+        }
+
+        .options-grid {
+            display: grid;
+            gap: 15px;
+        }
+
+        .option-btn {
+            background: white;
+            border: 2px solid #e0e0e0;
+            padding: 15px 20px;
+            border-radius: 15px;
+            font-family: 'Quicksand', sans-serif;
+            font-size: 1rem;
+            font-weight: 600;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px 0 #e0e0e0;
+            position: relative;
+        }
+
+        .option-btn:hover {
+            transform: scale(1.02);
+            border-color: var(--primary-pink);
+        }
+
+        .option-btn:active {
+            transform: translateY(4px);
+            box-shadow: none;
+        }
+
+        /* Feedback States */
+        .option-btn.correct {
+            background: var(--correct-green);
+            color: white;
+            border-color: #00b85c;
+            box-shadow: 0 4px 0 #00b85c;
+        }
+
+        .option-btn.wrong {
+            background: var(--wrong-red);
+            color: white;
+            border-color: #e03b4b;
+            box-shadow: 0 4px 0 #e03b4b;
+            animation: shake 0.5s;
+        }
+
+        /* --- Support Tools --- */
+        .support-tools {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            border-top: 1px dashed #ddd;
+            padding-top: 15px;
+        }
+
+        .tool-btn {
+            flex: 1;
+            background: transparent;
+            border: 1px solid #ccc;
+            color: #666;
+            padding: 8px;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            transition: all 0.2s;
+        }
+
+        .tool-btn:hover {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .tool-content {
+            display: none;
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        .tool-explain { background: #e3f2fd; color: #1565c0; }
+        .tool-translate { background: #fff3e0; color: #ef6c00; }
+        .tool-paraphrase { background: #e8f5e9; color: #2e7d32; }
+
+        .para-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 5px;
+            background: white;
+        }
+        .para-table th, .para-table td {
+            border: 1px solid #c8e6c9;
+            padding: 8px;
+            font-size: 0.9rem;
+        }
+        .para-table th { background: #a5d6a7; }
+
+        /* --- Glossary --- */
+        .glossary-box {
+            background: #fff;
+            border: 2px solid var(--primary-teal);
+            border-radius: 20px;
+            padding: 20px;
+            margin-top: 40px;
+            box-shadow: 5px 5px 0 var(--primary-teal);
+        }
+
+        .glossary-title {
+            color: var(--primary-teal);
+            font-weight: 800;
+            font-size: 1.4rem;
+            margin-bottom: 15px;
+            text-align: center;
+            text-transform: uppercase;
+        }
+
+        .glossary-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .glossary-table td {
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .glossary-word { font-weight: 800; color: var(--primary-pink); }
+        .glossary-type { color: #888; font-style: italic; font-size: 0.9rem; margin-right: 5px; }
+
+        /* --- Footer & Submit --- */
+        .submit-section {
+            padding: 20px;
+            text-align: center;
+            padding-bottom: 50px;
+        }
+
+        .btn-submit {
+            background: var(--primary-pink);
+            color: white;
+            font-family: 'Nunito', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 800;
+            padding: 15px 50px;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 8px 0 #6a3da1;
+            transition: transform 0.2s;
+        }
+
+        .btn-submit:active {
+            transform: translateY(8px);
+            box-shadow: none;
+        }
+
+        /* --- Animations --- */
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-5px) rotate(-5deg); }
+            50% { transform: translateX(5px) rotate(5deg); }
+            75% { transform: translateX(-5px) rotate(-5deg); }
+            100% { transform: translateX(0); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* --- Responsive --- */
+        @media (max-width: 768px) {
+            .main-container { flex-direction: column; height: auto; overflow: auto; }
+            .panel { height: auto; overflow: visible; }
+            #reading-panel { border-right: none; border-bottom: 2px solid #eee; }
+            header { flex-direction: column; height: auto; gap: 10px; padding: 15px; }
+        }
+
+        /* Modal Score */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(5px);
+        }
+        
+        .modal-content {
+            background: white;
+            padding: 40px;
+            border-radius: 30px;
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+            animation: fadeIn 0.3s ease-out;
+            border: 5px solid var(--primary-teal);
+        }
+
+        .score-display {
+            font-size: 4rem;
+            font-weight: 900;
+            color: var(--primary-pink);
+            margin: 20px 0;
+        }
+
+    </style>
+</head>
+<body>
+
+<audio id="audio-ding" src="data:audio/wav;base64,UklGRi4AAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA="></audio> <audio id="audio-fail" src="data:audio/wav;base64,UklGRi4AAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA="></audio>
+
+<header>
+    <div class="teacher-brand">
+        <i class="fas fa-graduation-cap"></i>
+        <span>Ms Mai An ULIS</span>
+    </div>
+    <div class="timer-container">
+        <div class="timer-display" id="timer">15:00</div>
+        <button class="btn-timer" id="btn-timer-toggle" onclick="toggleTimer()">BẮT ĐẦU</button>
+    </div>
+</header>
+
+<div class="main-container">
+    <div class="panel" id="reading-panel">
+        <h1>Karina Moore – teenage high diver!</h1>
+
+        <div class="reading-paragraph">
+            Several times a week, teenager Karina Moore trains at her local pool to jump from the high-diving board into the water – in an attempt to become a national diving champion.
+            <br>
+            <span class="translate-btn" onclick="toggleTrans(this)">BẢN DỊCH ĐẦY ĐỦ</span>
+            <div class="translation-text">
+                Vài lần một tuần, cô bé thiếu niên Karina Moore tập luyện tại hồ bơi địa phương để nhảy từ cầu nhảy cao xuống nước – với nỗ lực trở thành nhà vô địch nhảy cầu quốc gia.
+            </div>
+        </div>
+
+        <div class="reading-paragraph">
+            Karina first learned about diving during a family break in Spain, where the resort’s pool had a high-diving board. Young people were diving off it, and it looked fun, but Karina didn’t join in, even though she was a strong swimmer. Then after returning home, she discovered a long-distance runner she’d always admired had started diving for relaxation – so she became more interested.
+            <br>
+            <span class="translate-btn" onclick="toggleTrans(this)">BẢN DỊCH ĐẦY ĐỦ</span>
+            <div class="translation-text">
+                Karina lần đầu biết đến nhảy cầu trong một kỳ nghỉ gia đình ở Tây Ban Nha, nơi hồ bơi của khu nghỉ dưỡng có một cầu nhảy cao. Những người trẻ tuổi đang nhảy từ đó xuống, và trông có vẻ rất vui, nhưng Karina đã không tham gia, mặc dù cô ấy là một người bơi giỏi. Sau đó khi trở về nhà, cô phát hiện ra một vận động viên chạy đường dài mà cô luôn ngưỡng mộ đã bắt đầu tập nhảy cầu để thư giãn – vì vậy cô trở nên hứng thú hơn.
+            </div>
+        </div>
+
+        <div class="reading-paragraph">
+            Karina joined a beginners’ diving class at her local pool. They had several sessions jumping onto soft materials before trying the high board. ‘The water looked a long way down,’ says Karina, ‘but after our training, I felt I’d handle it – without injuring myself? They’d warned me I’d land in the water fast – at around 60 kph – but I was prepared. I couldn’t wait to get started – although the others weren’t so keen! Anyway, I wasn’t disappointed by the experience.’
+            <br>
+            <span class="translate-btn" onclick="toggleTrans(this)">BẢN DỊCH ĐẦY ĐỦ</span>
+            <div class="translation-text">
+                Karina tham gia một lớp nhảy cầu cho người mới bắt đầu tại hồ bơi địa phương. Họ có vài buổi tập nhảy xuống các vật liệu mềm trước khi thử sức với cầu nhảy cao. 'Mặt nước trông rất xa tít bên dưới,' Karina nói, 'nhưng sau khi huấn luyện, em cảm thấy mình sẽ xử lý được – mà không bị thương? Họ đã cảnh báo em sẽ tiếp nước rất nhanh – khoảng 60 km/h – nhưng em đã chuẩn bị sẵn sàng. Em đã rất nóng lòng để bắt đầu – mặc dù những người khác thì không hào hứng lắm! Dù sao thì, em cũng không thất vọng về trải nghiệm đó.'
+            </div>
+        </div>
+
+        <div class="reading-paragraph">
+            In Karina’s area, there’s now lots of interest in high diving, but it’s sometimes difficult for swimmers to find suitable practice facilities. Although the pools are deep enough, they’re in use so often by diving clubs that other people don’t get opportunities to practise. Fortunately, though, Karina’s coach noticed her talent and helped her develop her techniques. After also two years, she’s winning competitions in her area.
+            <br>
+            <span class="translate-btn" onclick="toggleTrans(this)">BẢN DỊCH ĐẦY ĐỦ</span>
+            <div class="translation-text">
+                Ở khu vực của Karina, hiện nay có rất nhiều người quan tâm đến nhảy cầu cao, nhưng đôi khi rất khó để người bơi tìm được cơ sở tập luyện phù hợp. Mặc dù các hồ bơi đủ sâu, nhưng chúng thường xuyên được các câu lạc bộ nhảy cầu sử dụng đến mức những người khác không có cơ hội tập luyện. Tuy nhiên, thật may mắn, huấn luyện viên của Karina đã nhận thấy tài năng của cô và giúp cô phát triển các kỹ thuật của mình. Sau hai năm, cô ấy đang chiến thắng các cuộc thi trong khu vực.
+            </div>
+        </div>
+
+        <div class="reading-paragraph">
+            But what’s it like to concentrate so much on diving? ‘I train 20 hours a week’ says Karina, ‘and I won’t pretend it’s easy – you have to enjoy it to spend so much time doing it! It’s not easy for my parents either, though – they drive me to training sessions early in the morning, and that costs money. But they’re had financial help from sports organisations, luckily. And my schoolwork and social life are good. I still meet my mates – and there’s always the phone! The only thing I hadn’t realised was that the pool water would damage my hair – I used to love my long hair, but I’ve had to cut it short because it looked awful! But I’ll definitely keep on diving!’
+            <br>
+            <span class="translate-btn" onclick="toggleTrans(this)">BẢN DỊCH ĐẦY ĐỦ</span>
+            <div class="translation-text">
+                Nhưng cảm giác tập trung quá nhiều vào việc nhảy cầu thì như thế nào? 'Em tập 20 giờ mỗi tuần', Karina nói, 'và em sẽ không giả vờ là nó dễ dàng đâu – bạn phải yêu thích nó thì mới dành nhiều thời gian như vậy cho nó! Nó cũng không dễ dàng cho bố mẹ em – họ chở em đi tập từ sáng sớm, và việc đó cũng tốn kém. Nhưng may mắn là họ đã nhận được hỗ trợ tài chính từ các tổ chức thể thao. Và việc học ở trường cũng như đời sống xã hội của em vẫn ổn. Em vẫn gặp bạn bè – và luôn có điện thoại mà! Điều duy nhất em không nhận ra là nước hồ bơi sẽ làm hỏng tóc em – em từng rất yêu mái tóc dài của mình, nhưng em đã phải cắt ngắn vì trông nó thật khủng khiếp! Nhưng em chắc chắn sẽ tiếp tục nhảy cầu!'
+            </div>
+        </div>
+
+        <div class="glossary-box">
+            <div class="glossary-title">🔥 Từ vựng Cần nhớ (Glossary)</div>
+            <table class="glossary-table">
+                <tr><td><span class="glossary-word">resort</span> <span class="glossary-type">(n)</span>: khu nghỉ dưỡng</td></tr>
+                <tr><td><span class="glossary-word">injure</span> <span class="glossary-type">(v)</span>: làm bị thương</td></tr>
+                <tr><td><span class="glossary-word">keen</span> <span class="glossary-type">(adj)</span>: hào hứng, nhiệt tình</td></tr>
+                <tr><td><span class="glossary-word">facility</span> <span class="glossary-type">(n)</span>: cơ sở vật chất</td></tr>
+                <tr><td><span class="glossary-word">opportunity</span> <span class="glossary-type">(n)</span>: cơ hội</td></tr>
+                <tr><td><span class="glossary-word">technique</span> <span class="glossary-type">(n)</span>: kỹ thuật</td></tr>
+                <tr><td><span class="glossary-word">concentrate</span> <span class="glossary-type">(v)</span>: tập trung</td></tr>
+                <tr><td><span class="glossary-word">financial</span> <span class="glossary-type">(adj)</span>: thuộc về tài chính/tiền bạc</td></tr>
+                <tr><td><span class="glossary-word">awful</span> <span class="glossary-type">(adj)</span>: khủng khiếp, tồi tệ</td></tr>
+                <tr><td><span class="glossary-word">admire</span> <span class="glossary-type">(v)</span>: ngưỡng mộ</td></tr>
+            </table>
+        </div>
+    </div>
+
+    <div class="panel" id="exercise-panel">
+        
+        <div class="question-card" id="q1">
+            <div class="question-text"><span class="question-number">1</span> What made Karina keen to take up diving?</div>
+            <div class="options-grid">
+                <button class="option-btn" onclick="check(this, false, 'q1')">A. She wanted to repeat her holiday experience.</button>
+                <button class="option-btn" onclick="check(this, true, 'q1')">B. She found out her athletics hero had taken it up.</button>
+                <button class="option-btn" onclick="check(this, false, 'q1')">C. She’d visited a pool where some teenagers were doing it.</button>
+                <button class="option-btn" onclick="check(this, false, 'q1')">D. She wanted a new challenge after her success at swimming.</button>
+            </div>
+            <div class="support-tools">
+                <button class="tool-btn" onclick="toggleTool('q1', 'explain')"><i class="fas fa-lightbulb"></i> Giải thích</button>
+                <button class="tool-btn" onclick="toggleTool('q1', 'translate')"><i class="fas fa-language"></i> Dịch câu</button>
+                <button class="tool-btn" onclick="toggleTool('q1', 'paraphrase')"><i class="fas fa-exchange-alt"></i> Paraphrase</button>
+            </div>
+            <div class="tool-content tool-explain" id="q1-explain">
+                <b>Đáp án B đúng.</b><br>
+                Trong đoạn 2 có viết: "...she discovered a long-distance runner she’d always admired had started diving for relaxation – so she became more interested." (cô ấy phát hiện ra một vận động viên chạy đường dài mà cô hằng ngưỡng mộ đã bắt đầu tập nhảy cầu... nên cô ấy trở nên hứng thú hơn). "Athletics hero" tương ứng với "long-distance runner she'd always admired".
+            </div>
+            <div class="tool-content tool-translate" id="q1-translate">
+                <b>Câu hỏi:</b> Điều gì khiến Karina hào hứng bắt đầu tập nhảy cầu?<br>
+                A. Cô ấy muốn lặp lại trải nghiệm kỳ nghỉ của mình.<br>
+                B. Cô ấy phát hiện ra thần tượng điền kinh của mình đã bắt đầu tập môn này.<br>
+                C. Cô ấy đã đến một hồ bơi nơi một số thanh thiếu niên đang tập.<br>
+                D. Cô ấy muốn một thử thách mới sau thành công ở môn bơi lội.
+            </div>
+            <div class="tool-content tool-paraphrase" id="q1-paraphrase">
+                <table class="para-table">
+                    <tr><th>Câu hỏi</th><th>Bài đọc</th></tr>
+                    <tr><td>keen to take up</td><td>became more interested</td></tr>
+                    <tr><td>athletics hero</td><td>long-distance runner she’d always admired</td></tr>
+                </table>
+            </div>
+        </div>
+
+        <div class="question-card" id="q2">
+            <div class="question-text"><span class="question-number">2</span> How did Karina feel the first time she used the high board?</div>
+            <div class="options-grid">
+                <button class="option-btn" onclick="check(this, false, 'q2')">A. worried about how fat it was above the pool</button>
+                <button class="option-btn" onclick="check(this, false, 'q2')">B. pleased to experience it with other beginners</button>
+                <button class="option-btn" onclick="check(this, true, 'q2')">C. confident that she wouldn’t get hurt</button>
+                <button class="option-btn" onclick="check(this, false, 'q2')">D. shocked to hit the water at such speed</button>
+            </div>
+            <div class="support-tools">
+                <button class="tool-btn" onclick="toggleTool('q2', 'explain')"><i class="fas fa-lightbulb"></i> Giải thích</button>
+                <button class="tool-btn" onclick="toggleTool('q2', 'translate')"><i class="fas fa-language"></i> Dịch câu</button>
+                <button class="tool-btn" onclick="toggleTool('q2', 'paraphrase')"><i class="fas fa-exchange-alt"></i> Paraphrase</button>
+            </div>
+            <div class="tool-content tool-explain" id="q2-explain">
+                <b>Đáp án C đúng.</b><br>
+                Trong đoạn 3: "...but after our training, I felt I’d handle it – without injuring myself." (nhưng sau khi tập luyện, tôi cảm thấy mình sẽ xử lý được - mà không làm mình bị thương). Điều này cho thấy sự tự tin (confident) rằng sẽ không bị đau (wouldn't get hurt).
+            </div>
+            <div class="tool-content tool-translate" id="q2-translate">
+                <b>Câu hỏi:</b> Karina cảm thấy thế nào lần đầu tiên cô ấy sử dụng cầu nhảy cao?<br>
+                A. Lo lắng về độ cao so với hồ bơi.<br>
+                B. Hài lòng khi trải nghiệm cùng những người mới bắt đầu khác.<br>
+                C. Tự tin rằng cô ấy sẽ không bị thương.<br>
+                D. Bị sốc khi chạm nước với tốc độ cao như vậy.
+            </div>
+            <div class="tool-content tool-paraphrase" id="q2-paraphrase">
+                <table class="para-table">
+                    <tr><th>Câu hỏi</th><th>Bài đọc</th></tr>
+                    <tr><td>confident</td><td>felt I'd handle it</td></tr>
+                    <tr><td>wouldn't get hurt</td><td>without injuring myself</td></tr>
+                </table>
+            </div>
+        </div>
+
+        <div class="question-card" id="q3">
+            <div class="question-text"><span class="question-number">3</span> What does the writer suggest about diving facilities in Karina’s area?</div>
+            <div class="options-grid">
+                <button class="option-btn" onclick="check(this, false, 'q3')">A. They’re not used as much as they could be.</button>
+                <button class="option-btn" onclick="check(this, false, 'q3')">B. There aren’t enough coaches teaching people to use them.</button>
+                <button class="option-btn" onclick="check(this, false, 'q3')">C. There aren’t as many boards as there used to be.</button>
+                <button class="option-btn" onclick="check(this, true, 'q3')">D. They’re not available to the public for long enough each day.</button>
+            </div>
+            <div class="support-tools">
+                <button class="tool-btn" onclick="toggleTool('q3', 'explain')"><i class="fas fa-lightbulb"></i> Giải thích</button>
+                <button class="tool-btn" onclick="toggleTool('q3', 'translate')"><i class="fas fa-language"></i> Dịch câu</button>
+                <button class="tool-btn" onclick="toggleTool('q3', 'paraphrase')"><i class="fas fa-exchange-alt"></i> Paraphrase</button>
+            </div>
+            <div class="tool-content tool-explain" id="q3-explain">
+                <b>Đáp án D đúng.</b><br>
+                Đoạn 4 nói: "...they’re in use so often by diving clubs that other people don’t get opportunities to practise." (chúng thường xuyên được các CLB sử dụng đến nỗi những người khác không có cơ hội tập luyện). Điều này ngụ ý rằng thời gian dành cho công chúng (public) là không đủ.
+            </div>
+            <div class="tool-content tool-translate" id="q3-translate">
+                <b>Câu hỏi:</b> Tác giả gợi ý điều gì về cơ sở vật chất nhảy cầu ở khu vực của Karina?<br>
+                A. Chúng không được sử dụng nhiều như khả năng có thể.<br>
+                B. Không có đủ huấn luyện viên dạy mọi người sử dụng chúng.<br>
+                C. Không có nhiều cầu nhảy như trước đây.<br>
+                D. Chúng không có sẵn cho công chúng trong thời gian đủ dài mỗi ngày.
+            </div>
+            <div class="tool-content tool-paraphrase" id="q3-paraphrase">
+                <table class="para-table">
+                    <tr><th>Câu hỏi</th><th>Bài đọc</th></tr>
+                    <tr><td>not available to the public</td><td>other people don’t get opportunities</td></tr>
+                    <tr><td>for long enough</td><td>(Implied: in use so often by clubs)</td></tr>
+                </table>
+            </div>
+        </div>
+
+        <div class="question-card" id="q4">
+            <div class="question-text"><span class="question-number">4</span> How does Karina feel about spending so much time diving?</div>
+            <div class="options-grid">
+                <button class="option-btn" onclick="check(this, true, 'q4')">A. surprised by one effect it has had on her</button>
+                <button class="option-btn" onclick="check(this, false, 'q4')">B. sorry she no longer sees her friends so much</button>
+                <button class="option-btn" onclick="check(this, false, 'q4')">C. anxious about the amount of money it costs</button>
+                <button class="option-btn" onclick="check(this, false, 'q4')">D. grateful to be able to focus on something she loves</button>
+            </div>
+            <div class="support-tools">
+                <button class="tool-btn" onclick="toggleTool('q4', 'explain')"><i class="fas fa-lightbulb"></i> Giải thích</button>
+                <button class="tool-btn" onclick="toggleTool('q4', 'translate')"><i class="fas fa-language"></i> Dịch câu</button>
+                <button class="tool-btn" onclick="toggleTool('q4', 'paraphrase')"><i class="fas fa-exchange-alt"></i> Paraphrase</button>
+            </div>
+            <div class="tool-content tool-explain" id="q4-explain">
+                <b>Đáp án A đúng.</b><br>
+                Đoạn cuối: "The only thing I hadn’t realised was that the pool water would damage my hair... looked awful!" (Điều duy nhất tôi không nhận ra là nước hồ bơi sẽ làm hỏng tóc tôi). "Surprised" (ngạc nhiên) tương đương với "hadn't realised" (đã không nhận ra).
+            </div>
+            <div class="tool-content tool-translate" id="q4-translate">
+                <b>Câu hỏi:</b> Karina cảm thấy thế nào về việc dành quá nhiều thời gian cho việc nhảy cầu?<br>
+                A. Ngạc nhiên bởi một ảnh hưởng mà nó gây ra cho cô ấy.<br>
+                B. Tiếc vì cô ấy không còn gặp bạn bè nhiều nữa.<br>
+                C. Lo lắng về số tiền phải bỏ ra.<br>
+                D. Biết ơn vì có thể tập trung vào thứ cô ấy yêu thích.
+            </div>
+            <div class="tool-content tool-paraphrase" id="q4-paraphrase">
+                <table class="para-table">
+                    <tr><th>Câu hỏi</th><th>Bài đọc</th></tr>
+                    <tr><td>surprised</td><td>hadn’t realised</td></tr>
+                    <tr><td>one effect</td><td>damage my hair</td></tr>
+                </table>
+            </div>
+        </div>
+
+        <div class="question-card" id="q5">
+            <div class="question-text"><span class="question-number">5</span> What would the writer say about Karina?</div>
+            <div class="options-grid">
+                <button class="option-btn" onclick="check(this, false, 'q5')">A. She’s a young girl who’s achieved a lot by becoming a national diving champion – and all with very little support.</button>
+                <button class="option-btn" onclick="check(this, true, 'q5')">B. She’s made enormous progress in a very short time – after only a couple of years, she’s already showing great signs of success.</button>
+                <button class="option-btn" onclick="check(this, false, 'q5')">C. She has a lot of natural talent, but she’s already thinking of having a break from the high board for a while.</button>
+                <button class="option-btn" onclick="check(this, false, 'q5')">D. She’s sad that she’s given up almost everything for her sport – and her lifestyle really sounds quite hard.</button>
+            </div>
+            <div class="support-tools">
+                <button class="tool-btn" onclick="toggleTool('q5', 'explain')"><i class="fas fa-lightbulb"></i> Giải thích</button>
+                <button class="tool-btn" onclick="toggleTool('q5', 'translate')"><i class="fas fa-language"></i> Dịch câu</button>
+                <button class="tool-btn" onclick="toggleTool('q5', 'paraphrase')"><i class="fas fa-exchange-alt"></i> Paraphrase</button>
+            </div>
+            <div class="tool-content tool-explain" id="q5-explain">
+                <b>Đáp án B đúng.</b><br>
+                Cuối đoạn 4: "After also two years, she’s winning competitions in her area." (Chỉ sau 2 năm, cô ấy đang chiến thắng các cuộc thi trong khu vực). Điều này thể hiện sự tiến bộ lớn (enormous progress) trong thời gian ngắn (short time).
+            </div>
+            <div class="tool-content tool-translate" id="q5-translate">
+                <b>Câu hỏi:</b> Tác giả sẽ nói gì về Karina?<br>
+                A. Cô ấy là một cô gái trẻ đạt được nhiều thành tựu khi trở thành nhà vô địch quốc gia - và tất cả với rất ít sự hỗ trợ.<br>
+                B. Cô ấy đã có tiến bộ vượt bậc trong thời gian rất ngắn - chỉ sau vài năm, cô ấy đã cho thấy những dấu hiệu thành công lớn.<br>
+                C. Cô ấy có tài năng thiên bẩm, nhưng đã nghĩ đến việc nghỉ ngơi một thời gian.<br>
+                D. Cô ấy buồn vì đã từ bỏ gần như tất cả cho thể thao - và lối sống của cô ấy nghe có vẻ khá vất vả.
+            </div>
+            <div class="tool-content tool-paraphrase" id="q5-paraphrase">
+                <table class="para-table">
+                    <tr><th>Câu hỏi</th><th>Bài đọc</th></tr>
+                    <tr><td>enormous progress</td><td>winning competitions</td></tr>
+                    <tr><td>short time (couple of years)</td><td>After also two years</td></tr>
+                </table>
+            </div>
+        </div>
+
+        <div class="submit-section">
+            <button class="btn-submit" onclick="finishQuiz()">NỘP BÀI <i class="fas fa-paper-plane"></i></button>
+        </div>
+
+    </div>
+</div>
+
+<div class="modal-overlay" id="resultModal">
+    <div class="modal-content">
+        <h2 style="color: var(--primary-teal)">KẾT QUẢ CỦA BẠN</h2>
+        <div class="score-display" id="finalScore">0/5</div>
+        <p id="compliment" style="font-size: 1.2rem; font-weight: 600; color: #555;">Làm tốt lắm!</p>
+        <button class="btn-timer" onclick="closeModal()" style="margin-top: 20px; font-size: 1.1rem;">Xem lại bài</button>
+    </div>
+</div>
+
+<script>
+    // --- Audio Logic with Synthesis fallback ---
+    const correctSound = new Audio("data:audio/mp3;base64,//NExAAAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//NExAAAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq"); // Shorten for demo, replaced by logic below
+    
+    // We create simple beep sounds using Web Audio API to ensure it works without external files/long base64
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+    function playTone(freq, type, duration) {
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.value = freq;
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        gain.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + duration);
+        osc.stop(audioCtx.currentTime + duration);
+    }
+
+    function playCorrect() {
+        playTone(600, 'sine', 0.1);
+        setTimeout(() => playTone(800, 'sine', 0.2), 100);
+    }
+
+    function playWrong() {
+        playTone(150, 'sawtooth', 0.1);
+        setTimeout(() => playTone(100, 'sawtooth', 0.3), 100);
+    }
+
+    // --- Timer Logic ---
+    let timeRemaining = 15 * 60;
+    let timerInterval = null;
+    let isTimerRunning = false;
+
+    function formatTime(seconds) {
+        const m = Math.floor(seconds / 60);
+        const s = seconds % 60;
+        return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+    }
+
+    function toggleTimer() {
+        const btn = document.getElementById('btn-timer-toggle');
+        if (isTimerRunning) {
+            clearInterval(timerInterval);
+            btn.textContent = "TIẾP TỤC";
+            btn.style.background = "#ff9f43";
+            isTimerRunning = false;
+        } else {
+            if (timeRemaining <= 0) return;
+            timerInterval = setInterval(() => {
+                timeRemaining--;
+                document.getElementById('timer').textContent = formatTime(timeRemaining);
+                if (timeRemaining <= 0) {
+                    clearInterval(timerInterval);
+                    alert("⏰ Đã hết giờ làm bài! Bạn vẫn có thể tiếp tục làm, nhưng nhớ là trong phòng thi thật, bạn chỉ nên làm một bài như thế này trong 15 phút thôi nha.");
+                    btn.textContent = "HẾT GIỜ";
+                    btn.disabled = true;
+                    btn.style.background = "#576574";
+                }
+            }, 1000);
+            btn.textContent = "TẠM DỪNG";
+            btn.style.background = "#ff6b6b";
+            isTimerRunning = true;
+        }
+    }
+
+    // --- Translation Toggle ---
+    function toggleTrans(btn) {
+        const text = btn.nextElementSibling;
+        if (text.style.display === "block") {
+            text.style.display = "none";
+            btn.textContent = "BẢN DỊCH ĐẦY ĐỦ";
+        } else {
+            text.style.display = "block";
+            btn.textContent = "ẨN BẢN DỊCH";
+        }
+    }
+
+    // --- Tool Toggle ---
+    function toggleTool(qid, type) {
+        const content = document.getElementById(`${qid}-${type}`);
+        // Hide others in same group
+        const parent = document.getElementById(qid);
+        const tools = parent.querySelectorAll('.tool-content');
+        tools.forEach(t => {
+            if (t !== content) t.style.display = 'none';
+        });
+
+        if (content.style.display === "block") {
+            content.style.display = "none";
+        } else {
+            content.style.display = "block";
+        }
+    }
+
+    // --- Quiz Logic ---
+    let score = 0;
+    let answeredQuestions = new Set();
+
+    function check(btn, isCorrect, qid) {
+        // Disable all buttons in this question group
+        const parent = btn.parentElement;
+        const buttons = parent.querySelectorAll('.option-btn');
+        
+        // Prevent re-clicking if already answered (optional, strict mode)
+        // But for learning, we allow re-clicking but only count first attempt? 
+        // Let's stick to: visual feedback immediately.
+        
+        // Reset styles first
+        buttons.forEach(b => {
+            b.classList.remove('correct', 'wrong');
+        });
+
+        if (isCorrect) {
+            btn.classList.add('correct');
+            playCorrect();
+            triggerConfetti(btn);
+            if (!answeredQuestions.has(qid)) {
+                score++;
+                answeredQuestions.add(qid);
+            }
+        } else {
+            btn.classList.add('wrong');
+            playWrong();
+            // Highlight correct one automatically? No, let them try or find it via 'Explain'.
+            // Actually, for learning, let's keep it simple: just show wrong.
+            if (answeredQuestions.has(qid)) {
+                 // If they change to wrong, remove score? 
+                 // Let's assume standard logic: Final score is calculated at Submit.
+            }
+        }
+        
+        // Store user choice for final calculation logic
+        btn.setAttribute('data-selected', 'true');
+        buttons.forEach(b => {
+            if (b !== btn) b.removeAttribute('data-selected');
+        });
+    }
+
+    function triggerConfetti(element) {
+        const rect = element.getBoundingClientRect();
+        const x = (rect.left + rect.width / 2) / window.innerWidth;
+        const y = (rect.top + rect.height / 2) / window.innerHeight;
+
+        confetti({
+            particleCount: 60,
+            spread: 70,
+            origin: { x: x, y: y },
+            colors: ['#00C9A7', '#8854C0', '#FF4757'],
+            disableForReducedMotion: true
+        });
+    }
+
+    function finishQuiz() {
+        // Calculate Score based on currently selected 'correct' answers
+        let currentScore = 0;
+        const total = 5;
+        
+        // Loop through q1 to q5
+        for (let i = 1; i <= 5; i++) {
+            const qid = 'q1'; // Logic check
+            const qContainer = document.getElementById(`q${i}`);
+            const selected = qContainer.querySelector('.option-btn[data-selected="true"]');
+            
+            // Check if the selected button has onclick containing "true"
+            if (selected && selected.getAttribute('onclick').includes('true')) {
+                currentScore++;
+            }
+        }
+
+        const modal = document.getElementById('resultModal');
+        const scoreText = document.getElementById('finalScore');
+        const compliment = document.getElementById('compliment');
+
+        scoreText.textContent = `${currentScore}/${total}`;
+        
+        const messages = [
+            "Cố gắng hơn nữa nhé!", // 0-1
+            "Khá lắm, nhưng vẫn cần ôn lại!", // 2-3
+            "Tuyệt vời! Bạn là siêu sao!", // 4
+            "XUẤT SẮC! Đỉnh của chóp!" // 5
+        ];
+
+        if(currentScore < 2) compliment.textContent = messages[0];
+        else if(currentScore < 4) compliment.textContent = messages[1];
+        else if(currentScore < 5) compliment.textContent = messages[2];
+        else compliment.textContent = messages[3];
+
+        if (currentScore === 5) {
+            confetti({
+                particleCount: 200,
+                spread: 100,
+                origin: { y: 0.6 }
+            });
+        }
+
+        modal.style.display = 'flex';
+    }
+
+    function closeModal() {
+        document.getElementById('resultModal').style.display = 'none';
+    }
+
+</script>
+
+</body>
+</html>

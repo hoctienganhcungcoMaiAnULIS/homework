@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reading Challenge - Ms Mai An ULIS</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-pink: #8854C0;
+            --primary-teal: #00C9A7;
+            --correct-green: #00D26A;
+            --wrong-red: #FF4757;
+            --bg-pastel: #fdf2f8; /* Pinkish white */
+            --card-bg: #ffffff;
+            --text-color: #4a4a4a;
+        }
+
+        * {
+            box-sizing: border-box;
+            scrollbar-width: thin;
+            scrollbar-color: var(--primary-pink) #f0f0f0;
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: var(--bg-pastel);
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(255, 183, 178, 0.4) 0%, transparent 20%),
+                radial-gradient(circle at 90% 80%, rgba(166, 228, 208, 0.4) 0%, transparent 20%),
+                url('data:image/svg+xml;utf8,<svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><text x="10" y="30" font-size="20">🌸</text><text x="60" y="80" font-size="20">🐱</text></svg>');
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            color: var(--text-color);
+        }
+
+        /* --- Header & Timer --- */
+        header {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            z-index: 100;
+            backdrop-filter: blur(5px);
+            border-bottom: 3px solid var(--primary-pink);
+        }
+
+        .teacher-name {
+            font-size: 0.9rem;
+            color: var(--primary-pink);
+            font-weight: 700;
+            font-family: 'Quicksand', sans-serif;
+        }
+
+        .timer-container {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        #timer-display {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--primary-pink);
+            background: #fff;
+            padding: 5px 15px;
+            border-radius: 20px;
+            box-shadow: 0 4px 0 #e0e0e0;
+            border: 2px solid var(--primary-pink);
+        }
+
+        .timer-btn {
+            background: var(--primary-teal);
+            border: none;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 15px;
+            cursor: pointer;
+            font-weight: bold;
+            box-shadow: 0 3px 0 #009e82;
+            transition: transform 0.1s;
+        }
+
+        .timer-btn:active {
+            transform: translateY(3px);
+            box-shadow: none;
+        }
+
+        /* --- Main Layout --- */
+        .main-container {
+            display: flex;
+            flex: 1;
+            height: calc(100vh - 70px);
+        }
+
+        .split-pane {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .split-pane.left {
+            border-right: 2px dashed var(--primary-pink);
+            background: rgba(255, 255, 255, 0.6);
+        }
+
+        .split-pane.right {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        h1, h2, h3 {
+            font-family: 'Quicksand', sans-serif;
+            color: var(--primary-pink);
+        }
+
+        /* --- Reading Passage Styling --- */
+        .passage-title {
+            font-size: 1.8rem;
+            text-align: center;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            text-shadow: 2px 2px 0px #fff;
+        }
+
+        .paragraph {
+            background: #fff;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 15px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            line-height: 1.6;
+            font-size: 1.1rem;
+            position: relative;
+        }
+
+        .gap-marker {
+            display: inline-block;
+            width: 40px;
+            height: 25px;
+            background: var(--primary-pink);
+            color: white;
+            text-align: center;
+            border-radius: 5px;
+            font-weight: bold;
+            margin: 0 5px;
+            line-height: 25px;
+        }
+
+        .trans-btn {
+            display: block;
+            margin-top: 10px;
+            font-size: 0.8rem;
+            color: var(--primary-teal);
+            background: none;
+            border: 2px solid var(--primary-teal);
+            border-radius: 20px;
+            padding: 5px 15px;
+            cursor: pointer;
+            font-weight: 700;
+            transition: all 0.2s;
+        }
+
+        .trans-btn:hover {
+            background: var(--primary-teal);
+            color: white;
+        }
+
+        .translation-text {
+            display: none;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px dotted #ccc;
+            color: #666;
+            font-style: italic;
+            font-size: 1rem;
+        }
+
+        .glossary-box {
+            background: #eefcf9;
+            border: 2px solid var(--primary-teal);
+            border-radius: 15px;
+            padding: 15px;
+            margin-top: 30px;
+        }
+
+        .glossary-title {
+            text-align: center;
+            color: var(--primary-teal);
+            margin-top: 0;
+        }
+
+        .glossary-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .glossary-table th, .glossary-table td {
+            text-align: left;
+            padding: 8px;
+            border-bottom: 1px solid rgba(0, 201, 167, 0.2);
+        }
+
+        /* --- Question Styling --- */
+        .question-card {
+            background: #fff;
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 0 rgba(0,0,0,0.05);
+            border: 1px solid #eee;
+        }
+
+        .question-header {
+            font-weight: 800;
+            color: var(--primary-pink);
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+        }
+
+        .question-header::before {
+            content: '❓';
+            margin-right: 10px;
+        }
+
+        .options-grid {
+            display: grid;
+            gap: 10px;
+        }
+
+        .option-btn {
+            background: #fff;
+            border: 2px solid #e0e0e0;
+            padding: 15px;
+            border-radius: 15px;
+            text-align: left;
+            font-family: 'Nunito', sans-serif;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+            box-shadow: 0 4px 0 #e0e0e0;
+        }
+
+        .option-btn:hover:not(.disabled) {
+            transform: scale(1.02);
+            border-color: var(--primary-pink);
+        }
+
+        .option-btn:active:not(.disabled) {
+            transform: translateY(4px);
+            box-shadow: none;
+        }
+
+        /* Correct/Wrong States */
+        .option-btn.correct {
+            background: var(--correct-green);
+            color: white;
+            border-color: #00a855;
+            box-shadow: 0 4px 0 #00a855;
+        }
+
+        .option-btn.wrong {
+            background: var(--wrong-red);
+            color: white;
+            border-color: #d6303e;
+            box-shadow: 0 4px 0 #d6303e;
+            animation: shake 0.5s;
+        }
+
+        .option-btn.disabled {
+            cursor: default;
+            opacity: 0.7;
+        }
+
+        /* Feedback Section */
+        .feedback-panel {
+            display: none;
+            margin-top: 15px;
+            background: #f8f0ff;
+            border-radius: 15px;
+            padding: 15px;
+            border: 2px dashed var(--primary-pink);
+            animation: slideDown 0.3s ease-out;
+        }
+
+        .feedback-tabs {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 10px;
+        }
+
+        .fb-tab {
+            font-size: 0.8rem;
+            padding: 5px 10px;
+            background: #eee;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .fb-tab.active {
+            background: var(--primary-pink);
+            color: white;
+        }
+
+        .fb-content {
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        .teacher-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 2px solid var(--primary-pink);
+            vertical-align: middle;
+            margin-right: 10px;
+            background-color: #fff;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        /* Submit Button */
+        .submit-section {
+            text-align: center;
+            margin: 40px 0;
+        }
+
+        .submit-btn {
+            background: linear-gradient(45deg, var(--primary-pink), #a26bdb);
+            color: white;
+            font-size: 1.5rem;
+            padding: 15px 50px;
+            border: none;
+            border-radius: 50px;
+            box-shadow: 0 8px 0 #6a3da1, 0 15px 20px rgba(136, 84, 192, 0.4);
+            cursor: pointer;
+            font-family: 'Quicksand', sans-serif;
+            font-weight: 800;
+            transition: transform 0.2s;
+        }
+
+        .submit-btn:hover {
+            transform: scale(1.05) translateY(-5px);
+        }
+
+        /* Modal Result */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 40px;
+            border-radius: 30px;
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+            position: relative;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+            border: 5px solid var(--primary-teal);
+        }
+
+        .score-circle {
+            width: 150px;
+            height: 150px;
+            background: var(--primary-teal);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 3rem;
+            font-weight: bold;
+            margin: 0 auto 20px;
+            box-shadow: 0 10px 0 #009e82;
+        }
+
+        /* Animations */
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-5px) rotate(-2deg); }
+            50% { transform: translateX(5px) rotate(2deg); }
+            75% { transform: translateX(-5px) rotate(-2deg); }
+            100% { transform: translateX(0); }
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .main-container {
+                flex-direction: column;
+                height: auto;
+            }
+            .split-pane {
+                width: 100%;
+                height: auto;
+                max-height: 50vh;
+            }
+            .timer-container {
+                position: relative;
+                left: 0;
+                transform: none;
+            }
+            header {
+                flex-direction: column;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="confetti" style="position:fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:9999;"></canvas>
+
+    <header>
+        <div class="teacher-name">Giáo viên tạo: Ms Mai An ULIS 👩‍🏫</div>
+        <div class="timer-container">
+            <button class="timer-btn" id="start-btn" onclick="toggleTimer()">BẮT ĐẦU</button>
+            <div id="timer-display">10:00</div>
+        </div>
+        <div></div>
+    </header>
+
+    <div class="main-container">
+        <div class="split-pane left">
+            <h2 class="passage-title">🎮 Computer Game Exhibition</h2>
+            
+            <p><strong>Five sentences have been removed from the text below. For each question, choose the correct answer. There are three extra sentences which you do not need to use.</strong></p>
+
+            <div class="paragraph">
+                Have you ever tried playing the kind of video games that your parents played? The Museum of Science in Manchester, in the UK, has held an exhibition for the last few years, which invites visitors to do exactly that. It offers them the chance to play games from the last 40 years, in various sessions throughout the day.
+                <button class="trans-btn" onclick="toggleTrans(this)">BẢN DỊCH ĐẦY ĐỦ</button>
+                <div class="translation-text">Bạn đã bao giờ thử chơi loại trò chơi điện tử mà cha mẹ bạn từng chơi chưa? Bảo tàng Khoa học ở Manchester, Vương quốc Anh, đã tổ chức một cuộc triển lãm trong vài năm qua, mời khách tham quan làm chính xác điều đó. Nó mang đến cho họ cơ hội chơi các trò chơi từ 40 năm trước, trong các buổi khác nhau suốt cả ngày.</div>
+            </div>
+
+            <div class="paragraph">
+                These video games sessions have now become one of the main attractions of the museum. They are full of people every day, playing a wide range of games. <span class="gap-marker">(1)</span> ........ For parents, for example, these are usually the games they used to play in their childhood.
+                <button class="trans-btn" onclick="toggleTrans(this)">BẢN DỊCH ĐẦY ĐỦ</button>
+                <div class="translation-text">Những buổi chơi trò chơi điện tử này hiện đã trở thành một trong những điểm thu hút chính của bảo tàng. Ngày nào cũng chật kín người chơi đủ loại trò chơi. (1)......... Ví dụ, đối với các bậc cha mẹ, đây thường là những trò chơi mà họ từng chơi thời thơ ấu.</div>
+            </div>
+
+            <div class="paragraph">
+                There’s also an educational purpose to the games. For instance, some old types of computer, dating back 40 years, are also available in the sessions. They were originally used in classrooms to teach pupils to write their own computer programs. <span class="gap-marker">(2)</span> ........ Now, the museum is holding workshops that encourage children to learn similar skills – and they’re still very popular.
+                <button class="trans-btn" onclick="toggleTrans(this)">BẢN DỊCH ĐẦY ĐỦ</button>
+                <div class="translation-text">Các trò chơi cũng có mục đích giáo dục. Ví dụ, một số loại máy tính cũ, có niên đại 40 năm, cũng có sẵn trong các buổi này. Chúng ban đầu được sử dụng trong các lớp học để dạy học sinh viết các chương trình máy tính của riêng mình. (2)........ Hiện nay, bảo tàng đang tổ chức các hội thảo khuyến khích trẻ em học các kỹ năng tương tự - và chúng vẫn rất phổ biến.</div>
+            </div>
+
+            <div class="paragraph">
+                The sessions are also seen as social events, as people discover how much fun it is to play video games with other family members. And there’s also an area at Power Up! where a number of visitors can sit down together. <span class="gap-marker">(3)</span> ........ And nowadays, this is often how fans of video games are more likely to experience playing.
+                <button class="trans-btn" onclick="toggleTrans(this)">BẢN DỊCH ĐẦY ĐỦ</button>
+                <div class="translation-text">Các buổi này cũng được coi là sự kiện xã hội, vì mọi người khám phá ra việc chơi trò chơi điện tử với các thành viên khác trong gia đình thú vị như thế nào. Và cũng có một khu vực tại Power Up!, nơi một số du khách có thể ngồi cùng nhau. (3)........ Và ngày nay, đây thường là cách người hâm mộ trò chơi điện tử có nhiều khả năng trải nghiệm chơi game hơn.</div>
+            </div>
+
+            <div class="paragraph">
+                The exhibition also shows how much progress technology has made over the last 40 years. Parents can often remember playing very simple games. But the games that are played today are more complex. <span class="gap-marker">(4)</span> ........ And the players also have to use much more complicated techniques.
+                <button class="trans-btn" onclick="toggleTrans(this)">BẢN DỊCH ĐẦY ĐỦ</button>
+                <div class="translation-text">Triển lãm cũng cho thấy công nghệ đã tiến bộ như thế nào trong 40 năm qua. Cha mẹ thường có thể nhớ lại việc chơi những trò chơi rất đơn giản. Nhưng những trò chơi được chơi ngày nay phức tạp hơn nhiều. (4)........ Và người chơi cũng phải sử dụng các kỹ thuật phức tạp hơn nhiều.</div>
+            </div>
+
+            <div class="paragraph">
+                However, one serious side of the exhibition is that organisers also want to show that video gaming is an important industry, employing many skilled people. <span class="gap-marker">(5)</span> ........ That way, people who enjoy gaming will also understand all the hard work, talent and imagination that goes into creating these amazing games.
+                <button class="trans-btn" onclick="toggleTrans(this)">BẢN DỊCH ĐẦY ĐỦ</button>
+                <div class="translation-text">Tuy nhiên, một khía cạnh nghiêm túc của triển lãm là các nhà tổ chức cũng muốn cho thấy trò chơi điện tử là một ngành công nghiệp quan trọng, sử dụng nhiều người có tay nghề cao. (5)........ Bằng cách đó, những người thích chơi game cũng sẽ hiểu được tất cả sự chăm chỉ, tài năng và trí tưởng tượng để tạo ra những trò chơi tuyệt vời này.</div>
+            </div>
+
+            <div class="glossary-box">
+                <h3 class="glossary-title">📚 Glossary - Từ Vựng Hay</h3>
+                <table class="glossary-table">
+                    <tr><th>Word</th><th>Type</th><th>Meaning</th></tr>
+                    <tr><td>Exhibition</td><td>(n)</td><td>Cuộc triển lãm</td></tr>
+                    <tr><td>Attraction</td><td>(n)</td><td>Điểm thu hút</td></tr>
+                    <tr><td>Educational</td><td>(adj)</td><td>Mang tính giáo dục</td></tr>
+                    <tr><td>Original</td><td>(adj)</td><td>Nguyên bản, gốc</td></tr>
+                    <tr><td>Workshop</td><td>(n)</td><td>Hội thảo, buổi thực hành</td></tr>
+                    <tr><td>Social event</td><td>(n)</td><td>Sự kiện xã hội</td></tr>
+                    <tr><td>Complex</td><td>(adj)</td><td>Phức tạp</td></tr>
+                    <tr><td>Technique</td><td>(n)</td><td>Kỹ thuật</td></tr>
+                    <tr><td>Industry</td><td>(n)</td><td>Ngành công nghiệp</td></tr>
+                    <tr><td>Imagination</td><td>(n)</td><td>Trí tưởng tượng</td></tr>
+                </table>
+            </div>
+            <br><br><br>
+        </div>
+
+        <div class="split-pane right">
+            <h2 style="text-align:center;">🧩 Exercises</h2>
+            
+            <div id="quiz-container">
+                </div>
+
+            <div class="submit-section">
+                <button class="submit-btn" onclick="showResults()">NỘP BÀI 📝</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="result-modal">
+        <div class="modal-content">
+            <h2>KẾT QUẢ CỦA BẠN</h2>
+            <div class="score-circle" id="final-score">0/5</div>
+            <p id="feedback-msg" style="font-size: 1.2rem; margin-bottom: 20px;">...</p>
+            <button class="timer-btn" onclick="closeModal()">Xem lại bài</button>
+        </div>
+    </div>
+
+    <audio id="sound-correct" src="data:audio/mp3;base64,//NExAAAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//NExAAAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//NExAAAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//NExAAAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//NExAAAAANIAAAAAExBTUUzLjEwMKqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq"></audio> 
+    <script>
+    // --- DATA ---
+    const questions = [
+        {
+            id: 1,
+            correct: "E",
+            options: [
+                {id: "A", text: "Visitors each pay for 90-minute sessions."},
+                {id: "B", text: "And at the time, it helped lots of young people to do that."},
+                {id: "C", text: "So they hope the exhibition will share this message."},
+                {id: "D", text: "But not everyone thinks it’s a lot of fun."},
+                {id: "E", text: "However, visitors often choose the ones they’re similar with."},
+                {id: "F", text: "They have better storylines and animation, too."},
+                {id: "G", text: "They also create the music to go with the game."},
+                {id: "H", text: "Then they can all enjoy playing the same game."}
+            ],
+            explanation: "<b>Dẫn chứng:</b> Câu trước: '...playing a wide range of games.' (chơi nhiều loại game). Câu sau: 'For parents... games they used to play.'<br><b>Giải thích:</b> Đoạn này nói về thói quen chọn game. Câu E (Tuy nhiên, khách thường chọn những game họ thấy quen thuộc/giống) là cầu nối hợp lý nhất dẫn đến ví dụ về cha mẹ chơi game cũ.",
+            translateQ: "Chọn câu điền vào chỗ trống (1).",
+            translateA: "Đáp án E: Tuy nhiên, khách tham quan thường chọn những cái mà họ thấy tương đồng (quen thuộc)."
+        },
+        {
+            id: 2,
+            correct: "B",
+            options: "SAME",
+            explanation: "<b>Dẫn chứng:</b> Câu trước nhắc đến máy tính cũ dùng để 'teach pupils to write their own computer programs'.<br><b>Giải thích:</b> Câu B nói 'And at the time, it helped lots of young people to do that' (Và vào thời đó, nó đã giúp nhiều người trẻ làm điều đó). 'Do that' chính là 'write programs'.",
+            translateA: "Đáp án B: Và vào thời điểm đó, nó đã giúp rất nhiều người trẻ làm được điều đó."
+        },
+        {
+            id: 3,
+            correct: "H",
+            options: "SAME",
+            explanation: "<b>Dẫn chứng:</b> Câu trước: '...visitors can sit down together.' (ngồi cùng nhau).<br><b>Giải thích:</b> Câu H tiếp nối hành động ngồi cùng nhau: 'Then they can all enjoy playing the same game' (Sau đó họ có thể cùng chơi một trò chơi).",
+            translateA: "Đáp án H: Sau đó tất cả họ có thể cùng chơi một trò chơi."
+        },
+        {
+            id: 4,
+            correct: "F",
+            options: "SAME",
+            explanation: "<b>Dẫn chứng:</b> Câu trước: 'games that are played today are more complex.' (game ngày nay phức tạp hơn).<br><b>Giải thích:</b> Câu F bổ sung chi tiết cho sự phức tạp: 'They have better storylines and animation, too' (Chúng có cốt truyện và hình ảnh động tốt hơn).",
+            translateA: "Đáp án F: Chúng cũng có cốt truyện và hoạt hình tốt hơn."
+        },
+        {
+            id: 5,
+            correct: "C",
+            options: "SAME",
+            explanation: "<b>Dẫn chứng:</b> Câu trước nói BTC muốn cho thấy 'video gaming is an important industry' (một ngành công nghiệp quan trọng).<br><b>Giải thích:</b> Câu C nói về mục đích: 'So they hope the exhibition will share this message' (Họ hy vọng triển lãm sẽ chia sẻ thông điệp này).",
+            translateA: "Đáp án C: Vì vậy họ hy vọng cuộc triển lãm sẽ chia sẻ thông điệp này."
+        }
+    ];
+
+    // --- SOUND ENGINE ---
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    
+    function playSound(type) {
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        osc.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+
+        if (type === 'correct') {
+            // Ding effect (High pitch sine wave)
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(800, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.1);
+            gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.5);
+        } else {
+            // Fail effect (Low pitch sawtooth)
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+            osc.frequency.linearRampToValueAtTime(100, audioCtx.currentTime + 0.3);
+            gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.3);
+        }
+    }
+
+    // --- CONFETTI ENGINE (Simple CSS/Canvas) ---
+    const canvas = document.getElementById('confetti');
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    let particles = [];
+
+    function fireConfetti() {
+        for(let i=0; i<100; i++) {
+            particles.push({
+                x: window.innerWidth / 2, // Start from center (right pane usually)
+                y: window.innerHeight / 2,
+                vx: (Math.random() - 0.5) * 20,
+                vy: (Math.random() - 0.5) * 20,
+                color: `hsl(${Math.random()*360}, 100%, 50%)`,
+                life: 100
+            });
+        }
+        animateConfetti();
+    }
+
+    function animateConfetti() {
+        if(particles.length === 0) return;
+        ctx.clearRect(0,0, canvas.width, canvas.height);
+        for(let i=0; i<particles.length; i++) {
+            let p = particles[i];
+            p.x += p.vx;
+            p.y += p.vy;
+            p.vy += 0.5; // Gravity
+            p.life--;
+            ctx.fillStyle = p.color;
+            ctx.fillRect(p.x, p.y, 8, 8);
+        }
+        particles = particles.filter(p => p.life > 0);
+        if(particles.length > 0) requestAnimationFrame(animateConfetti);
+        else ctx.clearRect(0,0, canvas.width, canvas.height);
+    }
+
+    // --- APP LOGIC ---
+    let timeLeft = 600; // 10 minutes
+    let timerInterval;
+    let isTimerRunning = false;
+    let userScore = 0;
+    let answeredCount = 0;
+
+    function init() {
+        const container = document.getElementById('quiz-container');
+        // Render Questions
+        questions.forEach((q, index) => {
+            // If options are "SAME", use the generic list (A-H)
+            const optionsList = (q.options === "SAME") ? questions[0].options : q.options;
+            
+            let html = `
+                <div class="question-card" id="q-card-${index}">
+                    <div class="question-header">Câu hỏi ${index + 1}: Điền vào chỗ trống (${index + 1})</div>
+                    <div class="options-grid">
+                        ${optionsList.map(opt => `
+                            <button class="option-btn" onclick="checkAnswer(${index}, '${opt.id}', this)">
+                                <b>${opt.id}.</b> ${opt.text}
+                            </button>
+                        `).join('')}
+                    </div>
+                    
+                    <div class="feedback-panel" id="feedback-${index}">
+                        <div class="feedback-tabs">
+                            <div class="fb-tab active" onclick="switchTab(${index}, 'explain')">Giải thích</div>
+                            <div class="fb-tab" onclick="switchTab(${index}, 'trans')">Dịch</div>
+                        </div>
+                        <div class="fb-content" id="fb-content-${index}">
+                            </div>
+                    </div>
+                </div>
+            `;
+            container.innerHTML += html;
+        });
+    }
+
+    function toggleTimer() {
+        const btn = document.getElementById('start-btn');
+        if (isTimerRunning) {
+            clearInterval(timerInterval);
+            btn.textContent = "TIẾP TỤC ▶️";
+            btn.style.background = "#FFC107";
+        } else {
+            timerInterval = setInterval(updateTimer, 1000);
+            btn.textContent = "TẠM DỪNG ⏸️";
+            btn.style.background = "#FF4757";
+        }
+        isTimerRunning = !isTimerRunning;
+    }
+
+    function updateTimer() {
+        if (timeLeft <= 0) {
+            clearInterval(timerInterval);
+            alert("⏰ Đã hết giờ làm bài! Bạn vẫn có thể tiếp tục làm, nhưng nhớ là trong phòng thi thật, bạn chỉ nên làm một bài như thế này trong 10 phút thôi nha.");
+            return;
+        }
+        timeLeft--;
+        const m = Math.floor(timeLeft / 60).toString().padStart(2, '0');
+        const s = (timeLeft % 60).toString().padStart(2, '0');
+        document.getElementById('timer-display').innerText = `${m}:${s}`;
+    }
+
+    function checkAnswer(qIndex, selectedId, btnElement) {
+        // Prevent re-answering
+        const card = document.getElementById(`q-card-${qIndex}`);
+        if (card.classList.contains('answered')) return;
+        card.classList.add('answered');
+
+        const q = questions[qIndex];
+        const allBtns = card.querySelectorAll('.option-btn');
+        
+        // Disable all buttons
+        allBtns.forEach(b => b.classList.add('disabled'));
+
+        const feedbackPanel = document.getElementById(`feedback-${qIndex}`);
+        const feedbackContent = document.getElementById(`fb-content-${qIndex}`);
+        
+        // Store feedback content
+        card.dataset.explanation = `<span class="teacher-avatar">👩‍🏫</span> ${q.explanation}`;
+        card.dataset.translation = `<b>Câu hỏi:</b> ${q.translateQ} <br><br> <b>Đáp án:</b> ${q.translateA}`;
+
+        if (selectedId === q.correct) {
+            // Correct
+            btnElement.classList.add('correct');
+            playSound('correct');
+            fireConfetti();
+            userScore++;
+        } else {
+            // Wrong
+            btnElement.classList.add('wrong');
+            playSound('wrong');
+            // Highlight correct one
+            allBtns.forEach(b => {
+                if(b.innerText.startsWith(q.correct + ".")) b.classList.add('correct');
+            });
+        }
+        
+        // Show Feedback
+        feedbackPanel.style.display = 'block';
+        switchTab(qIndex, 'explain'); // Default to explanation
+        answeredCount++;
+    }
+
+    function switchTab(qIndex, type) {
+        const card = document.getElementById(`q-card-${qIndex}`);
+        const contentDiv = document.getElementById(`fb-content-${qIndex}`);
+        const tabs = document.querySelectorAll(`#feedback-${qIndex} .fb-tab`);
+        
+        tabs.forEach(t => t.classList.remove('active'));
+        if(type === 'explain') {
+            tabs[0].classList.add('active');
+            contentDiv.innerHTML = card.dataset.explanation;
+        } else {
+            tabs[1].classList.add('active');
+            contentDiv.innerHTML = card.dataset.translation;
+        }
+    }
+
+    function toggleTrans(btn) {
+        const text = btn.nextElementSibling;
+        if (text.style.display === "block") {
+            text.style.display = "none";
+            btn.textContent = "BẢN DỊCH ĐẦY ĐỦ";
+        } else {
+            text.style.display = "block";
+            btn.textContent = "ẨN BẢN DỊCH";
+        }
+    }
+
+    function showResults() {
+        const modal = document.getElementById('result-modal');
+        const scoreDiv = document.getElementById('final-score');
+        const feedbackMsg = document.getElementById('feedback-msg');
+
+        scoreDiv.innerText = `${userScore}/5`;
+        
+        if (userScore === 5) feedbackMsg.innerText = "🌟 XUẤT SẮC! Em là thiên tài tiếng Anh!";
+        else if (userScore >= 3) feedbackMsg.innerText = "👏 LÀM TỐT LẮM! Cố gắng chút nữa là điểm tuyệt đối rồi!";
+        else feedbackMsg.innerText = "💪 CỐ LÊN NHÉ! Hãy xem kỹ lại phần giải thích để hiểu bài hơn.";
+
+        modal.style.display = 'flex';
+        playSound('correct'); // Celebrating anyway
+        fireConfetti();
+    }
+
+    function closeModal() {
+        document.getElementById('result-modal').style.display = 'none';
+    }
+
+    // Initialize
+    init();
+
+</script>
+</body>
+</html>

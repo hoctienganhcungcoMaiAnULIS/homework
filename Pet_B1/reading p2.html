@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bài Tập Reading - Ms Mai An ULIS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-pink: #8854C0;
+            --primary-teal: #00C9A7;
+            --correct-green: #00D26A;
+            --wrong-red: #FF4757;
+            --bg-color: #F0F4F8;
+            --card-bg: #FFFFFF;
+            --text-color: #2D3436;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: #eef2f5;
+            background-image: radial-gradient(#8854c0 1.5px, transparent 1.5px), radial-gradient(#00c9a7 1.5px, #eef2f5 1.5px);
+            background-size: 30px 30px;
+            background-position: 0 0, 15px 15px;
+            height: 100vh;
+            overflow: hidden;
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* --- HEADER & TIMER --- */
+        header {
+            background: white;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 0 rgba(0,0,0,0.1);
+            z-index: 100;
+            height: 70px;
+        }
+
+        .teacher-brand h1 {
+            font-family: 'Quicksand', sans-serif;
+            font-size: 1.2rem;
+            color: var(--primary-pink);
+            font-weight: 800;
+        }
+        
+        .teacher-brand span {
+            font-size: 0.9rem;
+            color: #636e72;
+            font-weight: 600;
+        }
+
+        .timer-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            background: var(--primary-pink);
+            padding: 5px 15px;
+            border-radius: 20px;
+            color: white;
+            box-shadow: 0 4px 0 #5f3a87;
+        }
+
+        #timer-display {
+            font-weight: 800;
+            font-size: 1.2rem;
+            font-family: 'Courier New', monospace;
+        }
+
+        .timer-btn {
+            background: white;
+            border: none;
+            color: var(--primary-pink);
+            padding: 5px 10px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+
+        .timer-btn:hover { transform: scale(1.05); }
+
+        /* --- MAIN LAYOUT (SPLIT SCREEN) --- */
+        .main-container {
+            display: flex;
+            flex: 1;
+            overflow: hidden; /* Prevent body scroll */
+            padding: 20px;
+            gap: 20px;
+        }
+
+        .split-col {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 20px;
+            padding: 20px;
+            overflow-y: auto;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            border: 3px solid white;
+        }
+
+        .split-col::-webkit-scrollbar {
+            width: 10px;
+        }
+        .split-col::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        .split-col::-webkit-scrollbar-thumb {
+            background: var(--primary-teal);
+            border-radius: 10px;
+        }
+
+        /* --- LEFT SIDE: READING --- */
+        .reading-passage h2 {
+            color: var(--primary-pink);
+            margin-bottom: 20px;
+            text-align: center;
+            font-family: 'Quicksand', sans-serif;
+            border-bottom: 2px dashed var(--primary-pink);
+            padding-bottom: 10px;
+        }
+
+        .paragraph-box {
+            margin-bottom: 20px;
+            line-height: 1.8;
+            font-size: 1.05rem;
+            text-align: justify;
+        }
+
+        .trans-btn {
+            background: var(--primary-teal);
+            color: white;
+            border: none;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            margin-top: 5px;
+            box-shadow: 0 3px 0 #008f76;
+            transition: transform 0.1s;
+        }
+        .trans-btn:active { transform: translateY(3px); box-shadow: none; }
+
+        .translation-text {
+            display: none;
+            background: #e6fffa;
+            padding: 10px;
+            border-radius: 10px;
+            margin-top: 10px;
+            font-style: italic;
+            border-left: 4px solid var(--primary-teal);
+            color: #2d3436;
+        }
+
+        /* Glossary Table */
+        .glossary-section {
+            margin-top: 30px;
+            border-top: 3px dotted #ccc;
+            padding-top: 20px;
+        }
+        .glossary-title {
+            font-weight: 800;
+            color: var(--primary-pink);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .glossary-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.95rem;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+        .glossary-table th {
+            background: var(--primary-pink);
+            color: white;
+            padding: 10px;
+            text-align: left;
+        }
+        .glossary-table td {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        .glossary-table tr:hover { background: #fdf0ff; }
+        .tag-type {
+            font-size: 0.75rem;
+            background: #eee;
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: #666;
+            font-weight: bold;
+        }
+
+        /* --- RIGHT SIDE: EXERCISES --- */
+        .question-card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 25px;
+            border: 2px solid #f0f0f0;
+            position: relative;
+        }
+
+        .q-number {
+            background: var(--primary-pink);
+            color: white;
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 12px;
+            font-weight: 800;
+            margin-bottom: 10px;
+            font-size: 0.9rem;
+        }
+
+        .q-text {
+            font-weight: 700;
+            font-size: 1.1rem;
+            margin-bottom: 15px;
+        }
+
+        .options-grid {
+            display: grid;
+            gap: 12px;
+        }
+
+        .option-btn {
+            background: white;
+            border: 2px solid #dfe6e9;
+            padding: 15px;
+            border-radius: 15px;
+            text-align: left;
+            font-family: 'Nunito', sans-serif;
+            font-size: 1rem;
+            cursor: pointer;
+            box-shadow: 0 4px 0 #b2bec3;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .option-btn:hover {
+            transform: scale(1.02);
+            border-color: var(--primary-pink);
+        }
+
+        .option-btn:active {
+            transform: translateY(4px);
+            box-shadow: 0 0 0;
+        }
+
+        /* Status Classes */
+        .option-btn.correct {
+            background: var(--correct-green);
+            color: white;
+            border-color: #00b85c;
+            box-shadow: 0 4px 0 #008f47;
+            pointer-events: none;
+        }
+        .option-btn.wrong {
+            background: var(--wrong-red);
+            color: white;
+            border-color: #ff2e40;
+            box-shadow: 0 4px 0 #d61c2e;
+            pointer-events: none;
+        }
+
+        /* Animations */
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-5px) rotate(-2deg); }
+            50% { transform: translateX(5px) rotate(2deg); }
+            75% { transform: translateX(-5px) rotate(-2deg); }
+            100% { transform: translateX(0); }
+        }
+        .shake { animation: shake 0.4s ease-in-out; }
+
+        /* Support Tools */
+        .support-tools {
+            margin-top: 15px;
+            display: none; /* Hidden until answered */
+            gap: 10px;
+            flex-wrap: wrap;
+            border-top: 2px dashed #eee;
+            padding-top: 15px;
+        }
+        .tool-btn {
+            flex: 1;
+            padding: 8px;
+            border: none;
+            border-radius: 10px;
+            font-weight: 700;
+            cursor: pointer;
+            font-size: 0.85rem;
+            box-shadow: 0 3px 0 rgba(0,0,0,0.1);
+            transition: 0.2s;
+        }
+        .btn-explain { background: #ffeaa7; color: #d35400; }
+        .btn-translate { background: #74b9ff; color: #0984e3; }
+        .btn-paraphrase { background: #a29bfe; color: #6c5ce7; }
+        
+        .tool-btn:active { transform: translateY(3px); box-shadow: none; }
+
+        .tool-content {
+            margin-top: 10px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            display: none;
+        }
+        
+        .para-table { width: 100%; font-size: 0.9rem; }
+        .para-table td { padding: 4px; border-bottom: 1px solid #ddd; }
+        .para-header { font-weight: bold; color: var(--primary-pink); }
+
+        /* Footer */
+        .submit-area {
+            text-align: center;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        .submit-btn {
+            background: var(--primary-pink);
+            color: white;
+            font-size: 1.2rem;
+            padding: 15px 40px;
+            border: none;
+            border-radius: 50px;
+            font-weight: 800;
+            box-shadow: 0 6px 0 #5f3a87;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .submit-btn:hover { transform: scale(1.05); }
+        .submit-btn:active { transform: translateY(6px); box-shadow: none; }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            text-align: center;
+            max-width: 400px;
+            animation: pop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        @keyframes pop { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+        /* Confetti Canvas */
+        #confetti-canvas {
+            position: fixed;
+            top: 0; left: 0;
+            pointer-events: none;
+            z-index: 999;
+        }
+
+        @media (max-width: 768px) {
+            .main-container { flex-direction: column; overflow-y: auto; height: auto; }
+            .split-col { width: 100%; overflow: visible; }
+            body { overflow-y: auto; height: auto; }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="teacher-brand">
+        <h1>Giáo viên: Ms Mai An ULIS</h1>
+        <span>Reading Comprehension Test</span>
+    </div>
+    <div class="timer-container">
+        <span>⏳</span>
+        <div id="timer-display">15:00</div>
+        <button class="timer-btn" id="timer-toggle" onclick="toggleTimer()">START</button>
+    </div>
+</header>
+
+<div class="main-container">
+    <div class="split-col" id="reading-section">
+        <div class="reading-passage">
+            <h2>Robert Taylor talks about his new art show</h2>
+            
+            <div class="paragraph-box">
+                <p>Like all children, I was always getting myself and the kitchen table in a mess when I first took an interest in painting. Unlike many kids, who give up activities like art for other subjects when they go through school, I continued painting throughout my childhood. Now, after years of enjoyment, I’ve finally taken the <b>scary decision</b> to show off some of my favourite pieces of work by holding an exhibition at Glebe Street library. Inviting people to see my work is a new idea and one which I’m looking forward to.</p>
+                <button class="trans-btn" onclick="toggleTrans(this)">BẢN DỊCH ĐẦY ĐỦ</button>
+                <div class="translation-text">
+                    Giống như mọi đứa trẻ khác, tôi luôn làm bản thân và cái bàn bếp lấm lem khi lần đầu tiên tôi bắt đầu hứng thú với hội họa. Không giống như nhiều đứa trẻ khác, những người thường từ bỏ các hoạt động như nghệ thuật để theo đuổi các môn học khác khi đến trường, tôi vẫn tiếp tục vẽ trong suốt thời thơ ấu. Giờ đây, sau nhiều năm tận hưởng niềm vui đó, tôi cuối cùng đã đưa ra một quyết định táo bạo (đáng sợ) là trưng bày một số tác phẩm yêu thích của mình bằng cách tổ chức một cuộc triển lãm tại thư viện phố Glebe. Việc mời mọi người đến xem tác phẩm của tôi là một ý tưởng mới mẻ và là điều mà tôi rất mong chờ.
+                </div>
+            </div>
+
+            <div class="paragraph-box">
+                <p>I’ve never had any <b>formal art training</b>. When I was trying to decide what I should study at university, <b>art as a subject never entered my head</b>. I always thought my parents wanted me to follow a subject that would be useful when I was looking for a job, so I ended up taking a business course. Looking back, my parents would probably have supported me whatever my decision, but I decided to do what I thought was best for everyone.</p>
+                <button class="trans-btn" onclick="toggleTrans(this)">BẢN DỊCH ĐẦY ĐỦ</button>
+                <div class="translation-text">
+                    Tôi chưa bao giờ được đào tạo bài bản về nghệ thuật. Khi tôi đang cố gắng quyết định xem nên học gì ở đại học, nghệ thuật như một môn học chưa bao giờ xuất hiện trong đầu tôi. Tôi luôn nghĩ rằng bố mẹ muốn tôi theo đuổi một môn học hữu ích cho việc tìm kiếm việc làm sau này, vì vậy tôi đã quyết định tham gia một khóa học kinh doanh. Nhìn lại, bố mẹ tôi có lẽ sẽ ủng hộ tôi bất kể quyết định của tôi là gì, nhưng tôi đã quyết định làm điều mà tôi nghĩ là tốt nhất cho mọi người.
+                </div>
+            </div>
+
+            <div class="paragraph-box">
+                <p>And during my time at university, I rarely did much in the way of painting. It wouldn’t have been easy to paint anyway as I lived in university <b>accommodation</b> and had very little space. I <b>kept an interest</b> in art though and visited local exhibitions whenever I could, but that was about it. It was later in my thirties while I was working that I discovered my love of the activity again. Since then I’ve made a point of spending at least one evening a week painting.</p>
+                <button class="trans-btn" onclick="toggleTrans(this)">BẢN DỊCH ĐẦY ĐỦ</button>
+                <div class="translation-text">
+                    Và trong khoảng thời gian học đại học, tôi hiếm khi vẽ nhiều. Dù sao thì việc vẽ vời cũng chẳng dễ dàng gì vì tôi sống trong ký túc xá đại học và có rất ít không gian. Tuy nhiên, tôi vẫn giữ niềm đam mê với nghệ thuật và ghé thăm các triển lãm địa phương bất cứ khi nào có thể, nhưng chỉ có vậy thôi. Mãi sau này khi ở tuổi ba mươi, khi đang đi làm, tôi mới tìm lại được tình yêu với hoạt động này. Kể từ đó, tôi luôn cố gắng dành ít nhất một buổi tối mỗi tuần để vẽ.
+                </div>
+            </div>
+
+            <div class="paragraph-box">
+                <p>However, my works have only ever been seen by trusted friends and <b>relatives</b>. They’ve always given me plenty of support and encouraged me to continue with my art. But I’ve always wondered what people who I didn’t know would think, people who could give me an <b>honest opinion</b> of my ability. The library have been very helpful and offered me a room for the show. They’ve asked me to supply questionnaires about the event and I’ve included a section for visitors’ comments about the works. I’m very much looking forward to reading these opinions.</p>
+                <button class="trans-btn" onclick="toggleTrans(this)">BẢN DỊCH ĐẦY ĐỦ</button>
+                <div class="translation-text">
+                    Tuy nhiên, các tác phẩm của tôi trước giờ chỉ được xem bởi bạn bè và người thân tin cậy. Họ luôn dành cho tôi nhiều sự ủng hộ và khuyến khích tôi tiếp tục con đường nghệ thuật. Nhưng tôi luôn tự hỏi những người mà tôi không quen biết sẽ nghĩ gì, những người có thể cho tôi một ý kiến trung thực về khả năng của mình. Thư viện đã rất nhiệt tình và cung cấp cho tôi một phòng để tổ chức buổi trình diễn. Họ đã yêu cầu tôi cung cấp các bảng câu hỏi về sự kiện và tôi đã thêm vào một phần dành cho nhận xét của khách tham quan về các tác phẩm. Tôi rất mong chờ được đọc những ý kiến này.
+                </div>
+            </div>
+
+            <div class="glossary-section">
+                <div class="glossary-title">📖 MS MAI AN'S GLOSSARY (Bảng từ vựng)</div>
+                <table class="glossary-table">
+                    <thead><tr><th>Word</th><th>Type</th><th>Vietnamese Meaning</th></tr></thead>
+                    <tbody>
+                        <tr><td>Exhibition</td><td><span class="tag-type">n</span></td><td>Cuộc triển lãm</td></tr>
+                        <tr><td>Scary decision</td><td><span class="tag-type">colloq</span></td><td>Quyết định táo bạo/đáng sợ</td></tr>
+                        <tr><td>Formal training</td><td><span class="tag-type">n.phr</span></td><td>Đào tạo chính quy/bài bản</td></tr>
+                        <tr><td>Enter one's head</td><td><span class="tag-type">idiom</span></td><td>Nảy ra trong đầu/nghĩ đến</td></tr>
+                        <tr><td>Accommodation</td><td><span class="tag-type">n</span></td><td>Chỗ ở (thường là KTX)</td></tr>
+                        <tr><td>Make a point of</td><td><span class="tag-type">idom</span></td><td>Cố gắng/chú trọng làm gì</td></tr>
+                        <tr><td>Relative</td><td><span class="tag-type">n</span></td><td>Họ hàng, người thân</td></tr>
+                        <tr><td>Honest opinion</td><td><span class="tag-type">n.phr</span></td><td>Ý kiến trung thực/khách quan</td></tr>
+                        <tr><td>Questionnaire</td><td><span class="tag-type">n</span></td><td>Bảng câu hỏi khảo sát</td></tr>
+                        <tr><td>Look forward to</td><td><span class="tag-type">phrasal verb</span></td><td>Mong chờ, háo hức</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="split-col" id="exercise-section">
+        
+        <div class="question-card" id="q1">
+            <span class="q-number">Question 1</span>
+            <div class="q-text">What does Robert say about art?</div>
+            <div class="options-grid">
+                <button class="option-btn" onclick="checkAnswer(1, 0, false)">A. Children usually continue doing it at school.</button>
+                <button class="option-btn" onclick="checkAnswer(1, 1, false)">B. He had to give it up to do other subjects.</button>
+                <button class="option-btn" onclick="checkAnswer(1, 2, true)">C. The thought of showing off his work is a little frightening.</button>
+                <button class="option-btn" onclick="checkAnswer(1, 3, false)">D. He has often thought about letting people see his work.</button>
+            </div>
+            
+            <div class="support-tools" id="tools-1">
+                <button class="tool-btn btn-explain" onclick="toggleTool(1, 'explain')">💡 Giải thích</button>
+                <button class="tool-btn btn-translate" onclick="toggleTool(1, 'translate')">🇻🇳 Dịch câu hỏi</button>
+                <button class="tool-btn btn-paraphrase" onclick="toggleTool(1, 'paraphrase')">🔄 Paraphrase</button>
+            </div>
+            <div class="tool-content" id="explain-1">
+                <b>Đáp án C đúng.</b><br>
+                <i>Dẫn chứng:</i> Đoạn 1: "...I’ve finally taken the <b>scary decision</b> to show off some of my favourite pieces..."<br>
+                <i>Giải thích:</i> "Scary" (đáng sợ) đồng nghĩa với "frightening" (gây sợ hãi). Robert cảm thấy việc khoe tranh là một quyết định đáng sợ.
+            </div>
+            <div class="tool-content" id="translate-1">
+                <b>Câu hỏi:</b> Robert nói gì về nghệ thuật?<br>
+                A. Trẻ em thường tiếp tục làm điều đó ở trường.<br>
+                B. Anh ấy phải từ bỏ nó để học các môn khác.<br>
+                C. Suy nghĩ về việc khoe tác phẩm của mình có chút đáng sợ.<br>
+                D. Anh ấy thường nghĩ về việc cho mọi người xem tác phẩm của mình.
+            </div>
+            <div class="tool-content" id="paraphrase-1">
+                <table class="para-table">
+                    <tr><td class="para-header">Câu hỏi (Question)</td><td class="para-header">Bài đọc (Passage)</td></tr>
+                    <tr><td>Frightening (đáng sợ)</td><td>Scary</td></tr>
+                    <tr><td>Show off his work</td><td>Show off some of my favourite pieces</td></tr>
+                </table>
+            </div>
+        </div>
+
+        <div class="question-card" id="q2">
+            <span class="q-number">Question 2</span>
+            <div class="q-text">When deciding what to study at university</div>
+            <div class="options-grid">
+                <button class="option-btn" onclick="checkAnswer(2, 0, true)">A. Robert didn’t consider doing art.</button>
+                <button class="option-btn" onclick="checkAnswer(2, 1, false)">B. His parents didn’t want him to study art.</button>
+                <button class="option-btn" onclick="checkAnswer(2, 2, false)">C. He thought he would need a job while he was studying.</button>
+                <button class="option-btn" onclick="checkAnswer(2, 3, false)">D. Robert understood correctly what his parents wanted him to do.</button>
+            </div>
+             <div class="support-tools" id="tools-2">
+                <button class="tool-btn btn-explain" onclick="toggleTool(2, 'explain')">💡 Giải thích</button>
+                <button class="tool-btn btn-translate" onclick="toggleTool(2, 'translate')">🇻🇳 Dịch câu hỏi</button>
+                <button class="tool-btn btn-paraphrase" onclick="toggleTool(2, 'paraphrase')">🔄 Paraphrase</button>
+            </div>
+            <div class="tool-content" id="explain-2">
+                <b>Đáp án A đúng.</b><br>
+                <i>Dẫn chứng:</i> Đoạn 2: "When I was trying to decide what I should study at university, <b>art as a subject never entered my head</b>."<br>
+                <i>Giải thích:</i> Cụm từ "never entered my head" (chưa bao giờ vào đầu) có nghĩa là anh ấy không hề cân nhắc/nghĩ đến nó. = didn't consider.
+            </div>
+            <div class="tool-content" id="translate-2">
+                <b>Câu hỏi:</b> Khi quyết định học gì ở đại học:<br>
+                A. Robert không cân nhắc việc học nghệ thuật.<br>
+                B. Bố mẹ anh ấy không muốn anh ấy học nghệ thuật.<br>
+                C. Anh ấy nghĩ mình cần một công việc trong khi đang học.<br>
+                D. Robert đã hiểu đúng những gì bố mẹ anh ấy muốn anh ấy làm.
+            </div>
+            <div class="tool-content" id="paraphrase-2">
+                 <table class="para-table">
+                    <tr><td class="para-header">Câu hỏi</td><td class="para-header">Bài đọc</td></tr>
+                    <tr><td>didn't consider (không cân nhắc)</td><td>never entered my head</td></tr>
+                </table>
+            </div>
+        </div>
+
+        <div class="question-card" id="q3">
+            <span class="q-number">Question 3</span>
+            <div class="q-text">What happened while Robert was at university?</div>
+            <div class="options-grid">
+                <button class="option-btn" onclick="checkAnswer(3, 0, false)">A. He didn’t do any painting.</button>
+                <button class="option-btn" onclick="checkAnswer(3, 1, false)">B. He discovered his love of painting again.</button>
+                <button class="option-btn" onclick="checkAnswer(3, 2, true)">C. He was still keen on art.</button>
+                <button class="option-btn" onclick="checkAnswer(3, 3, false)">D. He painted at least one evening a week.</button>
+            </div>
+            <div class="support-tools" id="tools-3">
+                <button class="tool-btn btn-explain" onclick="toggleTool(3, 'explain')">💡 Giải thích</button>
+                <button class="tool-btn btn-translate" onclick="toggleTool(3, 'translate')">🇻🇳 Dịch câu hỏi</button>
+                <button class="tool-btn btn-paraphrase" onclick="toggleTool(3, 'paraphrase')">🔄 Paraphrase</button>
+            </div>
+            <div class="tool-content" id="explain-3">
+                <b>Đáp án C đúng.</b><br>
+                <i>Dẫn chứng:</i> Đoạn 3: "I <b>kept an interest in art</b> though and visited local exhibitions whenever I could..."<br>
+                <i>Giải thích:</i> "Kept an interest" (giữ sự quan tâm) đồng nghĩa với "still keen on" (vẫn thích/hứng thú).<br>
+                Loại A vì anh ấy có vẽ nhưng hiếm ("rarely"). Loại B và D vì những việc này xảy ra sau này ("later in my thirties").
+            </div>
+            <div class="tool-content" id="translate-3">
+                <b>Câu hỏi:</b> Chuyện gì đã xảy ra khi Robert học đại học?<br>
+                A. Anh ấy không vẽ chút nào.<br>
+                B. Anh ấy tìm lại được tình yêu với hội họa.<br>
+                C. Anh ấy vẫn hứng thú với nghệ thuật.<br>
+                D. Anh ấy vẽ ít nhất một buổi tối mỗi tuần.
+            </div>
+            <div class="tool-content" id="paraphrase-3">
+                <table class="para-table">
+                    <tr><td class="para-header">Câu hỏi</td><td class="para-header">Bài đọc</td></tr>
+                    <tr><td>still keen on (vẫn thích)</td><td>kept an interest in</td></tr>
+                </table>
+            </div>
+        </div>
+
+        <div class="question-card" id="q4">
+            <span class="q-number">Question 4</span>
+            <div class="q-text">Robert is holding the exhibition because</div>
+            <div class="options-grid">
+                <button class="option-btn" onclick="checkAnswer(4, 0, false)">A. his friends and relatives encouraged him to do this.</button>
+                <button class="option-btn" onclick="checkAnswer(4, 1, false)">B. the library asked him to.</button>
+                <button class="option-btn" onclick="checkAnswer(4, 2, false)">C. he is interested in getting opinions from friends and relatives.</button>
+                <button class="option-btn" onclick="checkAnswer(4, 3, true)">D. he wants to know what strangers think of his work.</button>
+            </div>
+            <div class="support-tools" id="tools-4">
+                <button class="tool-btn btn-explain" onclick="toggleTool(4, 'explain')">💡 Giải thích</button>
+                <button class="tool-btn btn-translate" onclick="toggleTool(4, 'translate')">🇻🇳 Dịch câu hỏi</button>
+                <button class="tool-btn btn-paraphrase" onclick="toggleTool(4, 'paraphrase')">🔄 Paraphrase</button>
+            </div>
+            <div class="tool-content" id="explain-4">
+                <b>Đáp án D đúng.</b><br>
+                <i>Dẫn chứng:</i> Đoạn 4: "...wondered what people who I didn’t know would think, people who could give me an <b>honest opinion</b>..."<br>
+                <i>Giải thích:</i> Robert muốn biết "people who I didn't know" (người lạ/strangers) nghĩ gì để nhận được ý kiến trung thực. Bạn bè/người thân thì luôn ủng hộ (support) nên ý kiến có thể không khách quan.
+            </div>
+            <div class="tool-content" id="translate-4">
+                <b>Câu hỏi:</b> Robert tổ chức triển lãm bởi vì:<br>
+                A. Bạn bè và người thân khuyến khích anh ấy làm vậy.<br>
+                B. Thư viện yêu cầu anh ấy làm.<br>
+                C. Anh ấy quan tâm đến việc nhận ý kiến từ bạn bè và người thân.<br>
+                D. Anh ấy muốn biết người lạ nghĩ gì về tác phẩm của mình.
+            </div>
+            <div class="tool-content" id="paraphrase-4">
+                 <table class="para-table">
+                    <tr><td class="para-header">Câu hỏi</td><td class="para-header">Bài đọc</td></tr>
+                    <tr><td>Strangers (người lạ)</td><td>People who I didn't know</td></tr>
+                    <tr><td>What they think</td><td>Honest opinion</td></tr>
+                </table>
+            </div>
+        </div>
+
+        <div class="question-card" id="q5">
+            <span class="q-number">Question 5</span>
+            <div class="q-text">What would be a good introduction to this article?</div>
+            <div class="options-grid">
+                <button class="option-btn" onclick="checkAnswer(5, 0, false)">A. Robert Taylor tells us how a love of art can lead to a change of career.</button>
+                <button class="option-btn" onclick="checkAnswer(5, 1, false)">B. If your child shows an interest in art, Robert Taylor will explain how to support this activity.</button>
+                <button class="option-btn" onclick="checkAnswer(5, 2, true)">C. After years in the shadows, Robert Taylor is about to face the public with his works.</button>
+                <button class="option-btn" onclick="checkAnswer(5, 3, false)">D. If you’re keen on developing your artistic skills, Robert Taylor explains how to get support from friends and relatives.</button>
+            </div>
+            <div class="support-tools" id="tools-5">
+                <button class="tool-btn btn-explain" onclick="toggleTool(5, 'explain')">💡 Giải thích</button>
+                <button class="tool-btn btn-translate" onclick="toggleTool(5, 'translate')">🇻🇳 Dịch câu hỏi</button>
+                <button class="tool-btn btn-paraphrase" onclick="toggleTool(5, 'paraphrase')">🔄 Paraphrase</button>
+            </div>
+            <div class="tool-content" id="explain-5">
+                <b>Đáp án C đúng.</b><br>
+                <i>Giải thích:</i> "In the shadows" (trong bóng tối/ẩn danh) tương ứng với việc anh ấy chỉ vẽ cho bản thân và người nhà xem. "Face the public" (đối mặt công chúng) tương ứng với việc tổ chức triển lãm cho người lạ xem. Đây là ý chính bao trùm bài viết.<br>
+                A sai vì anh ấy không đổi nghề (vẫn làm kinh doanh, vẽ buổi tối).
+            </div>
+            <div class="tool-content" id="translate-5">
+                <b>Câu hỏi:</b> Đâu sẽ là phần giới thiệu tốt cho bài báo này?<br>
+                A. R.T kể cho chúng ta tình yêu nghệ thuật có thể dẫn đến thay đổi nghề nghiệp thế nào.<br>
+                B. Nếu con bạn thích nghệ thuật, R.T sẽ giải thích cách ủng hộ hoạt động này.<br>
+                C. Sau nhiều năm trong bóng tối, R.T chuẩn bị đối mặt với công chúng bằng các tác phẩm của mình.<br>
+                D. Nếu bạn muốn phát triển kỹ năng, R.T giải thích cách tìm sự ủng hộ.
+            </div>
+            <div class="tool-content" id="paraphrase-5">
+                 <table class="para-table">
+                    <tr><td class="para-header">Câu hỏi</td><td class="para-header">Ý nghĩa</td></tr>
+                    <tr><td>In the shadows</td><td>Chỉ người quen biết, không công khai</td></tr>
+                    <tr><td>Face the public</td><td>Triển lãm cho mọi người xem</td></tr>
+                </table>
+            </div>
+        </div>
+
+        <div class="submit-area">
+            <button class="submit-btn" onclick="finishTest()">NỘP BÀI & XEM ĐIỂM</button>
+        </div>
+
+    </div>
+</div>
+
+<canvas id="confetti-canvas"></canvas>
+
+<div id="result-modal" class="modal">
+    <div class="modal-content">
+        <h2 style="color: var(--primary-pink); margin-bottom: 10px;">KẾT QUẢ CỦA BẠN</h2>
+        <div id="final-score" style="font-size: 3rem; font-weight: 800; color: var(--primary-teal);">0/5</div>
+        <p id="teacher-comment" style="margin-top: 10px; font-size: 1.1rem; color: #636e72;">...</p>
+        <button class="submit-btn" style="margin-top: 20px; font-size: 1rem;" onclick="closeModal()">Xem lại bài làm</button>
+    </div>
+</div>
+
+<script>
+    // --- TIMER LOGIC ---
+    let timeRemaining = 15 * 60; // 15 minutes in seconds
+    let timerInterval = null;
+    let isTimerRunning = false;
+
+    function formatTime(seconds) {
+        const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+        const s = (seconds % 60).toString().padStart(2, '0');
+        return `${m}:${s}`;
+    }
+
+    function toggleTimer() {
+        const btn = document.getElementById('timer-toggle');
+        const display = document.getElementById('timer-display');
+
+        if (isTimerRunning) {
+            clearInterval(timerInterval);
+            isTimerRunning = false;
+            btn.textContent = "TIẾP TỤC";
+            btn.style.color = "#f39c12";
+        } else {
+            if (timeRemaining <= 0) return;
+            isTimerRunning = true;
+            btn.textContent = "TẠM DỪNG";
+            btn.style.color = "var(--primary-pink)";
+            
+            timerInterval = setInterval(() => {
+                timeRemaining--;
+                display.textContent = formatTime(timeRemaining);
+                
+                if (timeRemaining <= 0) {
+                    clearInterval(timerInterval);
+                    alert("Đã hết giờ làm bài! Bạn vẫn có thể tiếp tục làm, nhưng nhớ là trong phòng thi thật, bạn chỉ nên làm một bài như thế này trong 15 phút thôi nha.");
+                    btn.textContent = "HẾT GIỜ";
+                }
+            }, 1000);
+        }
+    }
+
+    // --- INTERACTION LOGIC ---
+    let score = 0;
+    let answeredCount = 0;
+    const totalQuestions = 5;
+
+    // Audio Context for beeps (No external files needed)
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    
+    function playSound(type) {
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const oscillator = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        oscillator.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+
+        if (type === 'ding') {
+            oscillator.type = 'sine';
+            oscillator.frequency.setValueAtTime(500, audioCtx.currentTime);
+            oscillator.frequency.exponentialRampToValueAtTime(1000, audioCtx.currentTime + 0.1);
+            gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+            oscillator.start();
+            oscillator.stop(audioCtx.currentTime + 0.5);
+        } else {
+            // Fail sound (sawtooth down)
+            oscillator.type = 'sawtooth';
+            oscillator.frequency.setValueAtTime(150, audioCtx.currentTime);
+            oscillator.frequency.linearRampToValueAtTime(100, audioCtx.currentTime + 0.3);
+            gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+            oscillator.start();
+            oscillator.stop(audioCtx.currentTime + 0.3);
+        }
+    }
+
+    function checkAnswer(qIndex, optIndex, isCorrect) {
+        const card = document.getElementById(`q${qIndex}`);
+        const buttons = card.querySelectorAll('.option-btn');
+        const tools = document.getElementById(`tools-${qIndex}`);
+        
+        // Prevent re-clicking
+        if (card.getAttribute('data-answered') === 'true') return;
+        card.setAttribute('data-answered', 'true');
+        answeredCount++;
+
+        if (isCorrect) {
+            // Correct Case
+            buttons[optIndex].classList.add('correct');
+            playSound('ding');
+            fireConfetti();
+            score++;
+        } else {
+            // Wrong Case
+            buttons[optIndex].classList.add('wrong', 'shake');
+            playSound('fail');
+            
+            // Highlight the correct answer automatically
+            buttons.forEach(btn => {
+                if (btn.getAttribute('onclick').includes('true')) {
+                    btn.classList.add('correct'); // Show correct one green
+                }
+            });
+        }
+
+        // Show tools
+        tools.style.display = 'flex';
+    }
+
+    function toggleTool(qIndex, toolType) {
+        // Hide all contents first for this question
+        const contents = document.querySelectorAll(`#q${qIndex} .tool-content`);
+        contents.forEach(el => el.style.display = 'none');
+        
+        // Toggle specific one
+        const target = document.getElementById(`${toolType}-${qIndex}`);
+        if (target.style.display === 'block') {
+            target.style.display = 'none';
+        } else {
+            target.style.display = 'block';
+        }
+    }
+
+    function toggleTrans(btn) {
+        const textDiv = btn.nextElementSibling;
+        if (textDiv.style.display === 'block') {
+            textDiv.style.display = 'none';
+            btn.textContent = "BẢN DỊCH ĐẦY ĐỦ";
+        } else {
+            textDiv.style.display = 'block';
+            btn.textContent = "ẨN BẢN DỊCH";
+        }
+    }
+
+    function finishTest() {
+        const modal = document.getElementById('result-modal');
+        const scoreDisplay = document.getElementById('final-score');
+        const comment = document.getElementById('teacher-comment');
+        
+        scoreDisplay.textContent = `${score}/${totalQuestions}`;
+        
+        if (score === 5) {
+            comment.textContent = "🌟 Xuất sắc! Ms Mai An rất tự hào về bạn!";
+            fireConfetti();
+        } else if (score >= 3) {
+            comment.textContent = "👏 Khá lắm! Cố gắng thêm một chút nữa nhé!";
+        } else {
+            comment.textContent = "💪 Không sao cả! Hãy xem lại phần giải thích để hiểu bài hơn nhé.";
+        }
+        
+        modal.style.display = 'flex';
+    }
+
+    function closeModal() {
+        document.getElementById('result-modal').style.display = 'none';
+    }
+
+    // --- CONFETTI LOGIC (Minimal Implementation) ---
+    const canvas = document.getElementById('confetti-canvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    
+    let confettiParticles = [];
+
+    function fireConfetti() {
+        const colors = ['#8854C0', '#00C9A7', '#FF4757', '#eebb00'];
+        for (let i = 0; i < 100; i++) {
+            confettiParticles.push({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height - canvas.height,
+                w: Math.random() * 10 + 5,
+                h: Math.random() * 10 + 5,
+                color: colors[Math.floor(Math.random() * colors.length)],
+                speed: Math.random() * 5 + 2,
+                angle: Math.random() * 360,
+                spin: Math.random() * 10 - 5
+            });
+        }
+        requestAnimationFrame(updateConfetti);
+    }
+
+    function updateConfetti() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        confettiParticles.forEach((p, index) => {
+            p.y += p.speed;
+            p.angle += p.spin;
+            
+            ctx.save();
+            ctx.translate(p.x, p.y);
+            ctx.rotate(p.angle * Math.PI / 180);
+            ctx.fillStyle = p.color;
+            ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+            ctx.restore();
+
+            if (p.y > canvas.height) {
+                confettiParticles.splice(index, 1);
+            }
+        });
+
+        if (confettiParticles.length > 0) {
+            requestAnimationFrame(updateConfetti);
+        }
+    }
+
+    window.addEventListener('resize', () => {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    });
+</script>
+
+</body>
+</html>

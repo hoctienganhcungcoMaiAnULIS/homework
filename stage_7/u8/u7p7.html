@@ -1,0 +1,922 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Viết lại câu: Liên từ & Trạng từ liên kết (Ex 3) - Ms Mai An ULIS</title>
+    
+    <!-- Google Fonts: Nunito for friendly look -->
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Confetti Library -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <style>
+        :root {
+            --primary-purple: #8854C0;
+            --primary-teal: #00C9A7;
+            --success-green: #00D26A;
+            --error-red: #FF4757;
+            --bg-color: #f0f4f8;
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: var(--bg-color);
+            background-image: radial-gradient(#8854C0 0.8px, transparent 0.8px), radial-gradient(#8854C0 0.8px, var(--bg-color) 0.8px);
+            background-size: 32px 32px;
+            background-position: 0 0, 16px 16px;
+            color: #2d3748;
+        }
+
+        /* 3D Button Styles */
+        .btn-option {
+            transition: all 0.1s;
+            border-bottom: 6px solid #e2e8f0;
+            transform: translateY(0);
+        }
+
+        .btn-option:active {
+            transform: translateY(4px);
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .btn-option.selected-correct {
+            background-color: var(--success-green);
+            color: white;
+            border-color: #00a855;
+            pointer-events: none;
+        }
+
+        .btn-option.selected-wrong {
+            background-color: var(--error-red);
+            color: white;
+            border-color: #d63030;
+            animation: shake 0.5s;
+            pointer-events: none;
+        }
+
+        .btn-option.reveal-correct {
+            background-color: var(--success-green);
+            color: white;
+            border-color: #00a855;
+            pointer-events: none;
+            opacity: 0.9;
+        }
+
+        .btn-option:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        /* Animations */
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-5px) rotate(-5deg); }
+            50% { transform: translateX(5px) rotate(5deg); }
+            75% { transform: translateX(-5px) rotate(-5deg); }
+            100% { transform: translateX(0); }
+        }
+
+        @keyframes popIn {
+            0% { opacity: 0; transform: scale(0.8); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+
+        .card-anim {
+            animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .explanation-box {
+            border-left: 5px solid var(--primary-purple);
+            background: #fff;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .teacher-badge {
+            background: linear-gradient(135deg, #8854C0, #9F7AEA);
+        }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #c0a4e6; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #8854C0; 
+        }
+    </style>
+</head>
+<body class="min-h-screen pb-20">
+
+    <!-- Header -->
+    <header class="bg-white shadow-lg sticky top-0 z-50 border-b-4 border-purple-200">
+        <div class="max-w-4xl mx-auto px-4 py-3 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-12 h-12 rounded-full teacher-badge flex items-center justify-center text-white text-xl shadow-md">
+                    <i class="fas fa-graduation-cap"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl md:text-2xl font-extrabold text-purple-700 leading-tight">Ms Mai An ULIS</h1>
+                    <p class="text-sm text-gray-500 font-bold">Viết lại câu: Liên từ & Trạng từ liên kết (Ex 3)</p>
+                </div>
+            </div>
+            <div class="text-right">
+                <div class="text-sm text-gray-400 font-bold">Điểm số</div>
+                <div class="text-2xl font-black text-teal-500"><span id="score-display">0</span>/20</div>
+            </div>
+        </div>
+        <!-- Progress Bar -->
+        <div class="w-full bg-gray-200 h-2">
+            <div id="progress-bar" class="bg-teal-400 h-2 transition-all duration-500" style="width: 0%"></div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-3xl mx-auto p-4 mt-6 space-y-8" id="quiz-container">
+        <!-- Questions will be injected here via JS -->
+    </main>
+
+    <!-- Footer / Submit Section -->
+    <div class="max-w-3xl mx-auto px-4 mb-12 text-center hidden" id="finish-section">
+        <button onclick="showFinalResult()" class="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-bold py-4 px-10 rounded-full text-xl shadow-xl transform transition hover:scale-105 active:scale-95 border-b-4 border-purple-800">
+            <i class="fas fa-flag-checkered mr-2"></i> NỘP BÀI & XEM KẾT QUẢ
+        </button>
+    </div>
+
+    <!-- Result Modal -->
+    <div id="result-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden backdrop-blur-sm">
+        <div class="bg-white rounded-3xl p-8 max-w-md w-full mx-4 text-center shadow-2xl card-anim border-4 border-purple-100 relative overflow-hidden">
+            <div class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-teal-400 to-purple-500"></div>
+            
+            <div class="w-24 h-24 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4 animate-bounce">
+                <i class="fas fa-trophy text-4xl text-yellow-500"></i>
+            </div>
+            
+            <h2 class="text-3xl font-extrabold text-gray-800 mb-2">Hoàn Thành!</h2>
+            <p class="text-gray-500 mb-6" id="result-message">Bạn đã làm rất tốt!</p>
+            
+            <div class="bg-gray-50 rounded-xl p-6 mb-8 border-2 border-dashed border-gray-200">
+                <div class="text-sm text-gray-400 font-bold uppercase tracking-wider mb-1">Tổng điểm của bạn</div>
+                <div class="text-5xl font-black text-purple-600" id="final-score">0/20</div>
+            </div>
+            
+            <button onclick="location.reload()" class="w-full bg-teal-500 hover:bg-teal-600 text-white font-bold py-3 px-6 rounded-2xl shadow-lg transition transform hover:-translate-y-1 active:translate-y-0 border-b-4 border-teal-700">
+                <i class="fas fa-redo-alt mr-2"></i> Làm lại bài
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // --- DATA SOURCE ---
+        const quizData = {
+          "questions": [
+            {
+              "questionNumber": 1,
+              "question": "It rained heavily, so we didn't go camping. (BECAUSE)",
+              "answerOptions": [
+                {
+                  "text": "Because it rained heavily, we didn't go camping.",
+                  "rationale": "1. Dịch & Phân loại:\n- Đáp án này: Dịch: 'Bởi vì trời mưa to, chúng tôi đã không đi cắm trại.' (Because: conjunction - liên từ).\n2. Giải thích: 'Because' đứng đầu mệnh đề chỉ nguyên nhân. Cấu trúc: Because + S + V, S + V. Câu gốc dùng 'so' (kết quả), khi viết lại bằng 'because' (nguyên nhân) thì bỏ 'so'.",
+                  "isCorrect": true
+                },
+                {
+                  "text": "Because it rained heavily, so we didn't go camping.",
+                  "rationale": "1. Dịch: 'Bởi vì trời mưa to, nên chúng tôi đã không đi cắm trại.'\n2. Giải thích: Sai ngữ pháp tiếng Anh. Không dùng 'Because' và 'so' trong cùng một câu.",
+                  "isCorrect": false
+                },
+                {
+                  "text": "We didn't go camping because it rained heavily so.",
+                  "rationale": "1. Dịch: Câu này vô nghĩa về ngữ pháp.\n2. Giải thích: Từ 'so' ở cuối câu là thừa và sai ngữ pháp.",
+                  "isCorrect": false
+                },
+                {
+                  "text": "Because we didn't go camping, it rained heavily.",
+                  "rationale": "1. Dịch: 'Bởi vì chúng tôi không đi cắm trại, trời mới mưa to.'\n2. Giải thích: Sai về nghĩa (Ngược nhân quả).",
+                  "isCorrect": false
+                }
+              ],
+              "hint": "Mệnh đề chứa 'because' chỉ nguyên nhân (trời mưa)."
+            },
+            {
+              "questionNumber": 2,
+              "question": "Although the test was difficult, Lan finished it on time. (HOWEVER)",
+              "answerOptions": [
+                {
+                  "text": "The test was difficult however Lan finished it on time.",
+                  "rationale": "1. Dịch: 'Bài kiểm tra khó tuy nhiên Lan đã hoàn thành đúng giờ.'\n2. Giải thích: Sai dấu câu. 'However' cần có dấu chấm phẩy (;) phía trước hoặc dấu chấm (.) tách câu.",
+                  "isCorrect": false
+                },
+                {
+                  "text": "The test was difficult; however, Lan finished it on time.",
+                  "rationale": "1. Dịch & Phân loại:\n- Đáp án này: Dịch: 'Bài kiểm tra rất khó; tuy nhiên, Lan đã hoàn thành đúng giờ.' (However: conjunctive adverb - trạng từ liên kết).\n2. Giải thích: Đúng cấu trúc và dấu câu: S + V; however, S + V. Thay thế 'Although' (mặc dù) bằng 'However' (tuy nhiên) để chỉ sự tương phản.",
+                  "isCorrect": true
+                },
+                {
+                  "text": "However the test was difficult, Lan finished it on time.",
+                  "rationale": "1. Dịch: 'Tuy nhiên bài kiểm tra khó, Lan hoàn thành đúng giờ.'\n2. Giải thích: Sai cấu trúc. 'However' + adj + S + V (Dù ... đến đâu) mang nghĩa khác, hoặc 'However' đứng đầu câu đơn thì phải có dấu phẩy ngay sau nó.",
+                  "isCorrect": false
+                },
+                {
+                  "text": "The test was difficult, however, Lan finished it on time.",
+                  "rationale": "1. Dịch: 'Bài kiểm tra khó, tuy nhiên, Lan hoàn thành đúng giờ.'\n2. Giải thích: Sai lỗi nối câu (Comma splice). Không dùng dấu phẩy để nối hai mệnh đề độc lập với 'however'.",
+                  "isCorrect": false
+                }
+              ],
+              "hint": "Cấu trúc với However giữa câu: [Mệnh đề 1]; however, [Mệnh đề 2]."
+            },
+            {
+              "questionNumber": 3,
+              "question": "He is very tired, but he has to finish his homework. (HOWEVER)",
+              "answerOptions": [
+                {
+                  "text": "He is very tired; however, he has to finish his homework.",
+                  "rationale": "1. Dịch & Phân loại:\n- Đáp án này: Dịch: 'Anh ấy rất mệt; tuy nhiên, anh ấy phải hoàn thành bài tập về nhà.' (However: conjunctive adverb - trạng từ liên kết).\n2. Giải thích: 'But' (nhưng) được thay thế trang trọng hơn bằng 'However'. Cấu trúc chuẩn: Dấu chấm phẩy + however + dấu phẩy.",
+                  "isCorrect": true
+                },
+                {
+                  "text": "He is very tired however he has to finish his homework.",
+                  "rationale": "1. Dịch: Thiếu dấu câu ngắt nhịp.\n2. Giải thích: Sai dấu câu (Run-on sentence).",
+                  "isCorrect": false
+                },
+                {
+                  "text": "However he is very tired, he has to finish his homework.",
+                  "rationale": "1. Dịch: Sai cấu trúc câu nhượng bộ.\n2. Giải thích: 'However' đứng đầu mệnh đề nhượng bộ thường đi với tính từ (However tired he is...), cấu trúc này không khớp.",
+                  "isCorrect": false
+                },
+                {
+                  "text": "He is very tired, however he has to finish his homework.",
+                  "rationale": "1. Dịch: Sai dấu câu.\n2. Giải thích: Lỗi Comma Splice (dùng dấu phẩy nối hai câu hoàn chỉnh mà không có liên từ kết hợp).",
+                  "isCorrect": false
+                }
+              ],
+              "hint": "Thay 'but' bằng '; however,'."
+            },
+            {
+              "questionNumber": 4,
+              "question": "Because the weather is bad, the flight is delayed. (THEREFORE)",
+              "answerOptions": [
+                {
+                  "text": "The weather is bad therefore the flight is delayed.",
+                  "rationale": "1. Dịch: Thiếu dấu câu.\n2. Giải thích: Sai dấu câu (Run-on sentence). Cần dấu chấm phẩy hoặc chấm.",
+                  "isCorrect": false
+                },
+                {
+                  "text": "The weather is bad because therefore the flight is delayed.",
+                  "rationale": "1. Dịch: Thừa từ.\n2. Giải thích: Không dùng 'because' và 'therefore' cạnh nhau.",
+                  "isCorrect": false
+                },
+                {
+                  "text": "The weather is bad; therefore, the flight is delayed.",
+                  "rationale": "1. Dịch & Phân loại:\n- Đáp án này: Dịch: 'Thời tiết xấu; do đó, chuyến bay bị hoãn.' (Therefore: conjunctive adverb - trạng từ liên kết).\n2. Giải thích: Chuyển từ mệnh đề nguyên nhân (Because) sang cấu trúc kết quả (Therefore). Dấu câu: [Nguyên nhân]; therefore, [Kết quả].",
+                  "isCorrect": true
+                },
+                {
+                  "text": "The flight is delayed; therefore, the weather is bad.",
+                  "rationale": "1. Dịch: 'Chuyến bay bị hoãn; do đó, thời tiết xấu.'\n2. Giải thích: Sai logic nhân quả (Ngược).",
+                  "isCorrect": false
+                }
+              ],
+              "hint": "Therefore đứng trước mệnh đề kết quả (chuyến bay bị hoãn)."
+            },
+            {
+              "questionNumber": 5,
+              "question": "Nam learns English. He wants to talk to foreigners. (SO THAT)",
+              "answerOptions": [
+                {
+                  "text": "Nam learns English so that he talks to foreigners.",
+                  "rationale": "1. Dịch: 'Nam học tiếng Anh để anh ấy nói chuyện với người nước ngoài.'\n2. Giải thích: Mệnh đề sau 'so that' thường đi kèm modal verb (can/could/will/would) để chỉ khả năng/mục đích.",
+                  "isCorrect": false
+                },
+                {
+                  "text": "Nam learns English so that to talk to foreigners.",
+                  "rationale": "1. Dịch: Sai cấu trúc.\n2. Giải thích: Sau 'so that' phải là một mệnh đề (S + V), không phải động từ nguyên thể 'to V'.",
+                  "isCorrect": false
+                },
+                {
+                  "text": "Nam learns English so that he wants to talk to foreigners.",
+                  "rationale": "1. Dịch: 'Nam học tiếng Anh để mà anh ấy muốn nói chuyện...'\n2. Giải thích: Lặp từ 'wants' gây thừa nghĩa. Mục đích là 'để có thể nói', không phải 'để muốn'.",
+                  "isCorrect": false
+                },
+                {
+                  "text": "Nam learns English so that he can talk to foreigners.",
+                  "rationale": "1. Dịch & Phân loại:\n- Đáp án này: Dịch: 'Nam học tiếng Anh để (có thể) nói chuyện với người nước ngoài.' (So that: conjunction of purpose - liên từ chỉ mục đích).\n2. Giải thích: Cấu trúc: S + V + so that + S + can/could + V. Dùng 'can' vì mệnh đề đầu ở hiện tại đơn.",
+                  "isCorrect": true
+                }
+              ],
+              "hint": "Cấu trúc: So that + S + can + V."
+            },
+            {
+              "questionNumber": 6,
+              "question": "I didn't buy the shoes because they were too expensive. (AS)",
+              "answerOptions": [
+                {
+                  "text": "As the shoes were too expensive, I didn't buy them.",
+                  "rationale": "1. Dịch & Phân loại:\n- Đáp án này: Dịch: 'Vì đôi giày quá đắt, tôi đã không mua chúng.' (As: conjunction - liên từ).\n2. Giải thích: 'As' = 'Because'. Có thể đặt 'As' ở đầu câu, ngăn cách hai mệnh đề bằng dấu phẩy.",
+                  "isCorrect": true
+                },
+                {
+                  "text": "I didn't buy the shoes as because they were too expensive.",
+                  "rationale": "1. Dịch: Thừa từ.\n2. Giải thích: Dùng lặp hai liên từ cùng nghĩa là sai.",
+                  "isCorrect": false
+                },
+                {
+                  "text": "As I didn't buy the shoes, they were too expensive.",
+                  "rationale": "1. Dịch: 'Vì tôi không mua giày, nên chúng mới đắt.'\n2. Giải thích: Sai logic nhân quả (Ngược).",
+                  "isCorrect": false
+                },
+                {
+                  "text": "The shoes were too expensive as I didn't buy them.",
+                  "rationale": "1. Dịch: 'Đôi giày quá đắt vì tôi không mua chúng.'\n2. Giải thích: Sai logic.",
+                  "isCorrect": false
+                }
+              ],
+              "hint": "As thay thế cho Because, đi kèm mệnh đề nguyên nhân (đắt)."
+            },
+            {
+              "questionNumber": 7,
+              "question": "The film was boring, but I watched it until the end. (ALTHOUGH)",
+              "answerOptions": [
+                {
+                  "text": "Although the film was boring, I watched it until the end.",
+                  "rationale": "1. Dịch & Phân loại:\n- Đáp án này: Dịch: 'Mặc dù bộ phim nhàm chán, tôi vẫn xem nó đến cùng.' (Although: conjunction - liên từ).\n2. Giải thích: Although + Mệnh đề nhượng bộ (boring), Mệnh đề chính. Bỏ 'but'.",
+                  "isCorrect": true
+                },
+                {
+                  "text": "Although the film was boring, but I watched it until the end.",
+                  "rationale": "1. Dịch: Thừa từ nối.\n2. Giải thích: Trong tiếng Anh, không dùng 'Although' và 'but' trong cùng một câu.",
+                  "isCorrect": false
+                },
+                {
+                  "text": "The film was boring, although I watched it until the end.",
+                  "rationale": "1. Dịch: 'Bộ phim chán, mặc dù tôi xem đến cuối.'\n2. Giải thích: Nghĩa không thoát, sai logic nhấn mạnh.",
+                  "isCorrect": false
+                },
+                {
+                  "text": "Although I watched it until the end, the film was boring.",
+                  "rationale": "1. Dịch: 'Mặc dù tôi xem đến cuối, bộ phim lại chán.'\n2. Giải thích: Tuy ngữ pháp đúng nhưng nghĩa gốc là 'Dù chán -> vẫn xem'. Câu này đổi thành 'Dù xem -> vẫn chán' làm thay đổi trọng tâm câu.",
+                  "isCorrect": false
+                }
+              ],
+              "hint": "Bỏ 'but', đặt 'Although' trước mệnh đề 'the film was boring'."
+            },
+            {
+              "questionNumber": 8,
+              "question": "She is poor, but she is very honest. (HOWEVER)",
+              "answerOptions": [
+                {
+                  "text": "She is poor however she is very honest.",
+                  "rationale": "1. Dịch: Sai dấu câu.\n2. Giải thích: Thiếu dấu chấm phẩy và dấu phẩy.",
+                  "isCorrect": false
+                },
+                {
+                  "text": "She is poor; however, she is very honest.",
+                  "rationale": "1. Dịch & Phân loại:\n- Đáp án này: Dịch: 'Cô ấy nghèo; tuy nhiên, cô ấy rất trung thực.' (However: conjunctive adverb - trạng từ liên kết).\n2. Giải thích: Đúng cấu trúc tương phản trang trọng. S + V; however, S + V.",
+                  "isCorrect": true
+                },
+                {
+                  "text": "She is poor; however she is very honest.",
+                  "rationale": "1. Dịch: Thiếu dấu phẩy.\n2. Giải thích: Sau 'however' (khi là trạng từ liên kết) cần có dấu phẩy.",
+                  "isCorrect": false
+                },
+                {
+                  "text": "However she is poor, she is very honest.",
+                  "rationale": "1. Dịch: Sai cấu trúc.\n2. Giải thích: 'However' ở đầu câu theo cách này thường mang nghĩa 'Bất kể cô ấy nghèo thế nào...', nhưng cấu trúc chuẩn phải là 'However poor she is...'. Ở đây đề bài yêu cầu viết lại câu đơn giản.",
+                  "isCorrect": false
+                }
+              ],
+              "hint": "Cấu trúc: ; however, ..."
+            },
+            {
+              "questionNumber": 9,
+              "question": "Tuan stayed up late watching football, so he is tired now. (THEREFORE)",
+              "answerOptions": [
+                {
+                  "text": "Tuan stayed up late watching football therefore he is tired now.",
+                  "rationale": "1. Dịch: Sai dấu câu.\n2. Giải thích: Run-on sentence.",
+                  "isCorrect": false
+                },
+                {
+                  "text": "Tuan stayed up late watching football, therefore, he is tired now.",
+                  "rationale": "1. Dịch: Sai dấu câu nối.\n2. Giải thích: Comma splice. 'Therefore' không nối 2 câu chỉ bằng dấu phẩy phía trước được. Phải là dấu chấm phẩy (;).",
+                  "isCorrect": false
+                },
+                {
+                  "text": "Tuan stayed up late watching football; therefore, he is tired now.",
+                  "rationale": "1. Dịch & Phân loại:\n- Đáp án này: Dịch: 'Tuấn thức khuya xem bóng đá; do đó, bây giờ cậu ấy mệt.' (Therefore: conjunctive adverb - trạng từ liên kết).\n2. Giải thích: Chuẩn cấu trúc kết quả: [Nguyên nhân]; therefore, [Kết quả].",
+                  "isCorrect": true
+                },
+                {
+                  "text": "Therefore Tuan stayed up late watching football, he is tired now.",
+                  "rationale": "1. Dịch: 'Do đó Tuấn thức khuya...' (Vô lý).\n2. Giải thích: Therefore phải đứng trước mệnh đề kết quả (bị mệt), không đứng trước nguyên nhân.",
+                  "isCorrect": false
+                }
+              ],
+              "hint": "Thay 'so' bằng '; therefore,'."
+            },
+            {
+              "questionNumber": 10,
+              "question": "He wore warm clothes to avoid getting a cold. (SO THAT)",
+              "answerOptions": [
+                {
+                  "text": "He wore warm clothes so that he didn't get a cold.",
+                  "rationale": "1. Dịch: 'Anh ấy mặc ấm để anh ấy đã không bị cảm.'\n2. Giải thích: Mệnh đề mục đích thường dùng modal verb (wouldn't/couldn't). Dùng 'didn't' biến nó thành câu kể lại sự việc đã rồi chứ không rõ ý mục đích ban đầu.",
+                  "isCorrect": false
+                },
+                {
+                  "text": "He wore warm clothes so that he wouldn't get a cold.",
+                  "rationale": "1. Dịch & Phân loại:\n- Đáp án này: Dịch: 'Anh ấy mặc quần áo ấm để không bị cảm lạnh.' (So that: conjunction - liên từ).\n2. Giải thích: 'To avoid' (để tránh) = 'so that ... wouldn't' (để ... sẽ không). Dùng 'wouldn't' vì động từ chính 'wore' ở quá khứ.",
+                  "isCorrect": true
+                },
+                {
+                  "text": "He wore warm clothes so that he gets a cold.",
+                  "rationale": "1. Dịch: 'Anh ấy mặc ấm để bị cảm.'\n2. Giải thích: Sai nghĩa hoàn toàn.",
+                  "isCorrect": false
+                },
+                {
+                  "text": "He wore warm clothes so that to avoid getting a cold.",
+                  "rationale": "1. Dịch: Sai ngữ pháp.\n2. Giải thích: Sau 'so that' phải là S + V, không dùng To-infinitive.",
+                  "isCorrect": false
+                }
+              ],
+              "hint": "Chuyển 'to avoid' (để tránh) thành 'so that he wouldn't...' (để anh ấy sẽ không...)."
+            },
+            {
+              "questionNumber": 11,
+              "question": "Although the car is old, it runs very well. (HOWEVER)",
+              "answerOptions": [
+                {
+                  "text": "The car is old; however, it runs very well.",
+                  "rationale": "1. Dịch & Phân loại:\n- Đáp án này: Dịch: 'Chiếc xe đã cũ; tuy nhiên, nó chạy rất tốt.' (However: conjunctive adverb).\n2. Giải thích: Chuyển mệnh đề nhượng bộ (Although) sang câu ghép đẳng lập dùng trạng từ liên kết (However).",
+                  "isCorrect": true
+                },
+                {
+                  "text": "The car is old however it runs very well.",
+                  "rationale": "1. Dịch: Sai dấu câu.\n2. Giải thích: Thiếu dấu chấm phẩy/chấm.",
+                  "isCorrect": false
+                },
+                {
+                  "text": "However the car is old, it runs very well.",
+                  "rationale": "1. Dịch: Sai ngữ pháp/ngữ nghĩa.\n2. Giải thích: Sai cấu trúc với However.",
+                  "isCorrect": false
+                },
+                {
+                  "text": "The car is old, however it runs very well.",
+                  "rationale": "1. Dịch: Sai dấu câu.\n2. Giải thích: Lỗi Comma splice.",
+                  "isCorrect": false
+                }
+              ],
+              "hint": "Viết lại thành hai mệnh đề nối nhau bằng '; however,'."
+            },
+            {
+              "questionNumber": 12,
+              "question": "The street is very noisy, so I can't sleep. (BECAUSE)",
+              "answerOptions": [
+                {
+                  "text": "Because the street is very noisy, I can't sleep.",
+                  "rationale": "1. Dịch & Phân loại:\n- Đáp án này: Dịch: 'Vì đường phố rất ồn ào, tôi không thể ngủ.' (Because: conjunction).\n2. Giải thích: Thay cấu trúc kết quả (so) bằng cấu trúc nguyên nhân (because).",
+                  "isCorrect": true
+                },
+                {
+                  "text": "Because I can't sleep, the street is very noisy.",
+                  "rationale": "1. Dịch: 'Vì tôi không ngủ được nên đường phố mới ồn.'\n2. Giải thích: Sai logic nhân quả.",
+                  "isCorrect": false
+                },
+                {
+                  "text": "The street is very noisy because so I can't sleep.",
+                  "rationale": "1. Dịch: Thừa từ.\n2. Giải thích: Không dùng 'because' và 'so' cùng lúc.",
+                  "isCorrect": false
+                },
+                {
+                  "text": "I can't sleep, because the street is very noisy.",
+                  "rationale": "1. Dịch: 'Tôi không ngủ được, vì đường phố rất ồn.'\n2. Giải thích: Đáp án này cũng đúng về nghĩa, nhưng đáp án A đưa Because lên đầu câu là cách viết lại phổ biến hơn khi chuyển đổi từ câu gốc.",
+                  "isCorrect": true
+                }
+              ],
+              "hint": "Because + [Nguyên nhân: đường ồn]."
+            },
+            {
+              "questionNumber": 13,
+              "question": "I want to buy a new computer, but I don't have enough money. (HOWEVER)",
+              "answerOptions": [
+                {
+                  "text": "I want to buy a new computer however I don't have enough money.",
+                  "rationale": "1. Dịch: Sai dấu câu.\n2. Giải thích: Run-on sentence.",
+                  "isCorrect": false
+                },
+                {
+                  "text": "I want to buy a new computer; however, I don't have enough money.",
+                  "rationale": "1. Dịch & Phân loại:\n- Đáp án này: Dịch: 'Tôi muốn mua máy tính mới; tuy nhiên, tôi không đủ tiền.' (However: conjunctive adverb).\n2. Giải thích: Thay 'but' bằng '; however,'.",
+                  "isCorrect": true
+                },
+                {
+                  "text": "I want to buy a new computer, however I don't have enough money.",
+                  "rationale": "1. Dịch: Sai dấu câu.\n2. Giải thích: Comma splice.",
+                  "isCorrect": false
+                },
+                {
+                  "text": "However I want to buy a new computer, I don't have enough money.",
+                  "rationale": "1. Dịch: Sai ngữ pháp.\n2. Giải thích: 'However' không đứng đầu mệnh đề thứ nhất để nối nghĩa tương phản kiểu này (đó là chức năng của Although).",
+                  "isCorrect": false
+                }
+              ],
+              "hint": "Cấu trúc: ; however,"
+            },
+            {
+              "questionNumber": 14,
+              "question": "Because Ba was lazy, he failed the final exam. (THEREFORE)",
+              "answerOptions": [
+                {
+                  "text": "Ba was lazy therefore he failed the final exam.",
+                  "rationale": "1. Dịch: Sai dấu câu.\n2. Giải thích: Thiếu dấu chấm phẩy.",
+                  "isCorrect": false
+                },
+                {
+                  "text": "Ba was lazy; therefore, he failed the final exam.",
+                  "rationale": "1. Dịch & Phân loại:\n- Đáp án này: Dịch: 'Ba đã lười biếng; do đó, cậu ấy trượt kỳ thi cuối kỳ.' (Therefore: conjunctive adverb).\n2. Giải thích: Chuyển từ nguyên nhân (Because) sang kết quả (Therefore).",
+                  "isCorrect": true
+                },
+                {
+                  "text": "He failed the final exam; therefore, Ba was lazy.",
+                  "rationale": "1. Dịch: 'Cậu ấy trượt; do đó, Ba lười.'\n2. Giải thích: Sai logic nhân quả (Ngược). Trượt là kết quả, không phải nguyên nhân gây ra sự lười biếng.",
+                  "isCorrect": false
+                },
+                {
+                  "text": "Ba was lazy, therefore he failed the final exam.",
+                  "rationale": "1. Dịch: Sai dấu câu.\n2. Giải thích: Comma splice.",
+                  "isCorrect": false
+                }
+              ],
+              "hint": "Mệnh đề nguyên nhân (Ba lười) đứng trước, sau đó là '; therefore,' + mệnh đề kết quả."
+            },
+            {
+              "questionNumber": 15,
+              "question": "She whispered. She wanted to avoid disturbing her baby. (SO THAT)",
+              "answerOptions": [
+                {
+                  "text": "She whispered so that she wouldn't disturb her baby.",
+                  "rationale": "1. Dịch & Phân loại:\n- Đáp án này: Dịch: 'Cô ấy thì thầm để cô ấy sẽ không làm phiền em bé.' (So that: conjunction).\n2. Giải thích: 'To avoid disturbing' (để tránh làm phiền) = 'so that she wouldn't disturb'. Dùng 'wouldn't' vì câu gốc quá khứ (whispered).",
+                  "isCorrect": true
+                },
+                {
+                  "text": "She whispered so that she doesn't disturb her baby.",
+                  "rationale": "1. Dịch: Sai thì.\n2. Giải thích: Câu gốc quá khứ, không dùng 'doesn't' (hiện tại).",
+                  "isCorrect": false
+                },
+                {
+                  "text": "She whispered so that avoid disturbing her baby.",
+                  "rationale": "1. Dịch: Sai cấu trúc.\n2. Giải thích: Sau 'so that' phải là mệnh đề có chủ ngữ.",
+                  "isCorrect": false
+                },
+                {
+                  "text": "She whispered so that she wanted to avoid disturbing her baby.",
+                  "rationale": "1. Dịch: Thừa ý.\n2. Giải thích: Lặp lại 'wanted to avoid' làm câu rườm rà. Dùng 'wouldn't disturb' trực tiếp hơn.",
+                  "isCorrect": false
+                }
+              ],
+              "hint": "Cấu trúc: So that + S + wouldn't + V (nguyên thể)."
+            },
+            {
+              "questionNumber": 16,
+              "question": "Although it was cold, we went swimming. (HOWEVER)",
+              "answerOptions": [
+                {
+                  "text": "It was cold however we went swimming.",
+                  "rationale": "1. Dịch: Sai dấu câu.\n2. Giải thích: Run-on sentence.",
+                  "isCorrect": false
+                },
+                {
+                  "text": "It was cold; however, we went swimming.",
+                  "rationale": "1. Dịch & Phân loại:\n- Đáp án này: Dịch: 'Trời lạnh; tuy nhiên, chúng tôi vẫn đi bơi.' (However: conjunctive adverb).\n2. Giải thích: Đúng cấu trúc và dấu câu.",
+                  "isCorrect": true
+                },
+                {
+                  "text": "However it was cold, we went swimming.",
+                  "rationale": "1. Dịch: Sai cấu trúc.\n2. Giải thích: Không dùng 'However' thay 'Although' ở đầu câu trong trường hợp này.",
+                  "isCorrect": false
+                },
+                {
+                  "text": "We went swimming; however, it was cold.",
+                  "rationale": "1. Dịch: 'Chúng tôi đi bơi; tuy nhiên trời lạnh.'\n2. Giải thích: Logic hơi ngược. Thường người ta nói về hoàn cảnh khó khăn trước rồi mới đến hành động vượt qua hoàn cảnh đó.",
+                  "isCorrect": false
+                }
+              ],
+              "hint": "It was cold; however, ..."
+            },
+            {
+              "questionNumber": 17,
+              "question": "The traffic was heavy, so we arrived late. (AS)",
+              "answerOptions": [
+                {
+                  "text": "As the traffic was heavy, we arrived late.",
+                  "rationale": "1. Dịch & Phân loại:\n- Đáp án này: Dịch: 'Vì giao thông tắc nghẽn, chúng tôi đến muộn.' (As: conjunction).\n2. Giải thích: 'As' thay thế cho 'Because' để chỉ nguyên nhân.",
+                  "isCorrect": true
+                },
+                {
+                  "text": "As we arrived late, the traffic was heavy.",
+                  "rationale": "1. Dịch: 'Vì chúng tôi đến muộn nên đường tắc.'\n2. Giải thích: Sai logic nhân quả.",
+                  "isCorrect": false
+                },
+                {
+                  "text": "The traffic was heavy, as we arrived late.",
+                  "rationale": "1. Dịch: 'Đường tắc vì chúng tôi đến muộn.'\n2. Giải thích: Sai logic.",
+                  "isCorrect": false
+                },
+                {
+                  "text": "We arrived late so as the traffic was heavy.",
+                  "rationale": "1. Dịch: Sai cấu trúc.\n2. Giải thích: Cụm 'so as' sai ngữ cảnh.",
+                  "isCorrect": false
+                }
+              ],
+              "hint": "Đặt 'As' đầu câu + mệnh đề nguyên nhân."
+            },
+            {
+              "questionNumber": 18,
+              "question": "This exercise is very easy, so everyone can do it. (THEREFORE)",
+              "answerOptions": [
+                {
+                  "text": "This exercise is very easy; therefore, everyone can do it.",
+                  "rationale": "1. Dịch & Phân loại:\n- Đáp án này: Dịch: 'Bài tập này rất dễ; vì vậy, mọi người đều làm được.' (Therefore: conjunctive adverb).\n2. Giải thích: Đúng cấu trúc. Thay 'so' bằng '; therefore,'.",
+                  "isCorrect": true
+                },
+                {
+                  "text": "Everyone can do it; therefore, this exercise is very easy.",
+                  "rationale": "1. Dịch: 'Mọi người làm được; do đó bài này dễ.'\n2. Giải thích: Đây là suy luận ngược (từ kết quả suy ra nguyên nhân), nhưng câu gốc là quan hệ nhân quả xuôi (vì dễ -> nên làm được).",
+                  "isCorrect": false
+                },
+                {
+                  "text": "This exercise is very easy therefore everyone can do it.",
+                  "rationale": "1. Dịch: Sai dấu câu.\n2. Giải thích: Thiếu dấu chấm phẩy.",
+                  "isCorrect": false
+                },
+                {
+                  "text": "This exercise is very easy, therefore everyone can do it.",
+                  "rationale": "1. Dịch: Sai dấu câu.\n2. Giải thích: Lỗi Comma splice.",
+                  "isCorrect": false
+                }
+              ],
+              "hint": "Cấu trúc: ; therefore,"
+            },
+            {
+              "questionNumber": 19,
+              "question": "Even though he is strong, he can't lift that box. (HOWEVER)",
+              "answerOptions": [
+                {
+                  "text": "He is strong; however, he can't lift that box.",
+                  "rationale": "1. Dịch & Phân loại:\n- Đáp án này: Dịch: 'Anh ấy khỏe; tuy nhiên, anh ấy không nhấc nổi cái hộp đó.' (However: conjunctive adverb).\n2. Giải thích: Thay cụm nhượng bộ 'Even though' bằng câu ghép với 'However'.",
+                  "isCorrect": true
+                },
+                {
+                  "text": "He can't lift that box; however, he is strong.",
+                  "rationale": "1. Dịch: 'Anh ấy không nhấc nổi hộp; tuy nhiên anh ấy khỏe.'\n2. Giải thích: Ngữ nghĩa không tự nhiên bằng đáp án A (Khỏe mà không làm được -> bất ngờ).",
+                  "isCorrect": false
+                },
+                {
+                  "text": "He is strong however he can't lift that box.",
+                  "rationale": "1. Dịch: Sai dấu câu.\n2. Giải thích: Thiếu dấu chấm phẩy.",
+                  "isCorrect": false
+                },
+                {
+                  "text": "However he is strong, he can't lift that box.",
+                  "rationale": "1. Dịch: Sai cấu trúc.\n2. Giải thích: Sai cách dùng However.",
+                  "isCorrect": false
+                }
+              ],
+              "hint": "Chuyển thành 2 mệnh đề độc lập nối bởi '; however,'."
+            },
+            {
+              "questionNumber": 20,
+              "question": "Please turn down the radio to let me study. (SO THAT)",
+              "answerOptions": [
+                {
+                  "text": "Please turn down the radio so that I study.",
+                  "rationale": "1. Dịch: Thiếu động từ khuyết thiếu.\n2. Giải thích: Mệnh đề mục đích thường cần 'can/could'.",
+                  "isCorrect": false
+                },
+                {
+                  "text": "Please turn down the radio so that let me study.",
+                  "rationale": "1. Dịch: Sai ngữ pháp.\n2. Giải thích: Sau 'so that' phải là S + V, không dùng động từ 'let' ngay.",
+                  "isCorrect": false
+                },
+                {
+                  "text": "Please turn down the radio so that I can study.",
+                  "rationale": "1. Dịch & Phân loại:\n- Đáp án này: Dịch: 'Làm ơn vặn nhỏ đài để tôi có thể học.' (So that: conjunction).\n2. Giải thích: 'To let me study' -> 'so that I can study'. Dùng 'can' vì câu cầu khiến ở hiện tại.",
+                  "isCorrect": true
+                },
+                {
+                  "text": "Please turn down the radio so that to study.",
+                  "rationale": "1. Dịch: Sai ngữ pháp.\n2. Giải thích: Không dùng To V sau So that.",
+                  "isCorrect": false
+                }
+              ],
+              "hint": "Cấu trúc: So that + S + can + V."
+            }
+          ]
+        };
+
+        // --- GAME LOGIC ---
+        let score = 0;
+        let answeredCount = 0;
+        const totalQuestions = quizData.questions.length;
+        const container = document.getElementById('quiz-container');
+        const progressBar = document.getElementById('progress-bar');
+        const scoreDisplay = document.getElementById('score-display');
+        const finishSection = document.getElementById('finish-section');
+
+        // Audio Context for generated sounds
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        function playSound(type) {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            
+            if (type === 'correct') {
+                oscillator.type = 'sine';
+                oscillator.frequency.setValueAtTime(500, audioCtx.currentTime);
+                oscillator.frequency.exponentialRampToValueAtTime(1000, audioCtx.currentTime + 0.1);
+                gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+                oscillator.start();
+                oscillator.stop(audioCtx.currentTime + 0.3);
+            } else {
+                oscillator.type = 'sawtooth';
+                oscillator.frequency.setValueAtTime(150, audioCtx.currentTime);
+                oscillator.frequency.linearRampToValueAtTime(100, audioCtx.currentTime + 0.2);
+                gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+                oscillator.start();
+                oscillator.stop(audioCtx.currentTime + 0.3);
+            }
+        }
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        // Initialize Quiz
+        function initQuiz() {
+            // Shuffle questions and options
+            const shuffledQuestions = shuffleArray([...quizData.questions]);
+            
+            shuffledQuestions.forEach((q, index) => {
+                // Keep track of original correct answer before shuffling options
+                // Actually, let's keep options order fixed A,B,C,D as per teacher request to "Liệt kê và dịch nghĩa CẢ 4 ĐÁP ÁN"
+                // But for quiz fun, shuffling is better. Let's shuffle options but map the display letters (A,B,C,D) dynamically.
+                
+                // Note: The logic handles checking by object reference/property, so shuffling options is safe.
+                const shuffledOptions = shuffleArray([...q.answerOptions]);
+
+                const questionEl = document.createElement('div');
+                questionEl.className = 'bg-white rounded-3xl p-6 shadow-xl card-anim border-b-8 border-purple-100 relative';
+                questionEl.innerHTML = `
+                    <div class="absolute -left-2 -top-2 bg-purple-600 text-white font-bold w-10 h-10 rounded-full flex items-center justify-center shadow-lg border-2 border-white text-lg">
+                        ${index + 1}
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-800 mb-2 pl-6">${q.question}</h3>
+                    <p class="text-sm text-gray-500 italic mb-6 pl-6"><i class="fas fa-lightbulb text-yellow-400 mr-1"></i> Gợi ý: ${q.hint}</p>
+
+                    <div class="grid grid-cols-1 gap-4 mb-4" id="options-${index}">
+                        ${shuffledOptions.map((opt, i) => {
+                            // Escape quotes for HTML attribute
+                            const safeText = opt.text.replace(/"/g, '&quot;');
+                            // Use index to track logic
+                            return `<button 
+                                class="btn-option w-full text-left p-4 rounded-2xl bg-gray-50 hover:bg-white border-2 border-gray-200 font-semibold text-gray-700 relative overflow-hidden group"
+                                onclick="checkAnswer(this, ${opt.isCorrect}, ${index})"
+                                data-rationale="${encodeURIComponent(opt.rationale)}"
+                                data-correct="${opt.isCorrect}"
+                            >
+                                <span class="inline-block w-8 h-8 rounded-lg bg-gray-200 text-gray-500 font-bold text-center leading-8 mr-3 group-hover:bg-purple-200 group-hover:text-purple-700 transition-colors">${String.fromCharCode(65 + i)}</span>
+                                ${opt.text}
+                            </button>`;
+                        }).join('')}
+                    </div>
+
+                    <div id="explanation-${index}" class="hidden explanation-box mt-6 p-4 rounded-r-xl rounded-bl-xl bg-purple-50">
+                        <div class="flex items-start mb-2">
+                            <div class="flex-shrink-0 w-10 h-10 rounded-full teacher-badge flex items-center justify-center text-white mr-3 shadow-sm border-2 border-white">
+                                <i class="fas fa-chalkboard-teacher"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-purple-700 text-lg">Cô Mai An giải thích:</h4>
+                                <div class="text-gray-700 text-base leading-relaxed mt-2" id="explanation-content-${index}"></div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(questionEl);
+            });
+        }
+
+        function checkAnswer(btn, isCorrect, questionIndex) {
+            // Prevent multiple clicks
+            const optionsDiv = document.getElementById(`options-${questionIndex}`);
+            const buttons = optionsDiv.getElementsByTagName('button');
+            for (let b of buttons) {
+                b.disabled = true;
+                b.classList.add('opacity-50', 'cursor-not-allowed');
+                // Highlight the correct answer anyway if user chose wrong
+                if (b.dataset.correct === "true" && !isCorrect) {
+                    b.classList.remove('opacity-50');
+                    b.classList.add('reveal-correct');
+                }
+            }
+            btn.classList.remove('opacity-50', 'cursor-not-allowed');
+
+            const explanationBox = document.getElementById(`explanation-${questionIndex}`);
+            const explanationContent = document.getElementById(`explanation-content-${questionIndex}`);
+            
+            // Get rationale of the SELECTED option
+            let explanationText = decodeURIComponent(btn.dataset.rationale).replace(/\n/g, '<br>');
+
+            // If WRONG, append the Correct Answer's rationale too for learning
+            if (!isCorrect) {
+                for (let b of buttons) {
+                    if (b.dataset.correct === "true") {
+                        const correctRationale = decodeURIComponent(b.dataset.rationale).replace(/\n/g, '<br>');
+                        explanationText += `<br><br><div class="bg-green-100 p-3 rounded-lg border-l-4 border-green-500 text-green-800"><strong><i class="fas fa-check-circle"></i> Đáp án đúng phân tích:</strong><br>${correctRationale}</div>`;
+                        break;
+                    }
+                }
+            }
+
+            explanationContent.innerHTML = explanationText;
+            explanationBox.classList.remove('hidden');
+            explanationBox.classList.add('card-anim');
+
+            if (isCorrect) {
+                btn.classList.add('selected-correct');
+                playSound('correct');
+                score++;
+                scoreDisplay.innerText = score;
+                
+                // Confetti effect from the button position
+                const rect = btn.getBoundingClientRect();
+                const x = (rect.left + rect.width / 2) / window.innerWidth;
+                const y = (rect.top + rect.height / 2) / window.innerHeight;
+                
+                confetti({
+                    particleCount: 60,
+                    spread: 70,
+                    origin: { x: x, y: y },
+                    colors: ['#00D26A', '#8854C0', '#00C9A7']
+                });
+            } else {
+                btn.classList.add('selected-wrong');
+                playSound('wrong');
+            }
+
+            // Update Progress
+            answeredCount++;
+            const progressPercent = (answeredCount / totalQuestions) * 100;
+            progressBar.style.width = `${progressPercent}%`;
+
+            if (answeredCount === totalQuestions) {
+                finishSection.classList.remove('hidden');
+                finishSection.scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+
+        function showFinalResult() {
+            document.getElementById('final-score').innerText = `${score}/${totalQuestions}`;
+            const messageEl = document.getElementById('result-message');
+            
+            if (score === totalQuestions) {
+                messageEl.innerText = "Tuyệt đối! Em là thiên tài ngữ pháp!";
+                confetti({ particleCount: 200, spread: 100, origin: { y: 0.6 } });
+            } else if (score >= totalQuestions * 0.8) {
+                messageEl.innerText = "Rất tốt! Em nắm bài rất chắc!";
+            } else if (score >= totalQuestions * 0.5) {
+                messageEl.innerText = "Khá lắm! Cố gắng luyện tập thêm nhé.";
+            } else {
+                messageEl.innerText = "Đừng buồn! Hãy xem kỹ lại lời giải nhé.";
+            }
+            
+            document.getElementById('result-modal').classList.remove('hidden');
+            playSound('correct'); // Celebration sound
+        }
+
+        // Run
+        window.addEventListener('DOMContentLoaded', initQuiz);
+
+    </script>
+</body>
+</html>

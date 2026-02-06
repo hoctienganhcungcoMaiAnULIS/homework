@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bài tập Reading - Ms Mai An ULIS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+
+    <style>
+        :root {
+            --primary-purple: #8854C0;
+            --primary-teal: #00C9A7;
+            --pastel-pink: #FFD3E0;
+            --pastel-blue: #D4F1F4;
+            --correct: #00D26A;
+            --wrong: #FF4757;
+            --text-dark: #4b4b4b;
+            --white: #ffffff;
+        }
+
+        * {
+            box-sizing: border-box;
+            user-select: none;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Nunito', sans-serif;
+            background-color: #fdf2f8;
+            background-image: 
+                radial-gradient(at 10% 10%, hsla(253,16%,7%,0) 0, hsla(253,16%,7%,0) 50%), 
+                radial-gradient(at 50% 50%, #ffe4e6 0, #ccfbf1 100%);
+            height: 100vh;
+            overflow: hidden;
+            color: var(--text-dark);
+        }
+
+        /* --- Header --- */
+        header {
+            height: 60px;
+            background: rgba(255, 255, 255, 0.95);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+        }
+
+        .header-title {
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: var(--primary-purple);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .timer-container {
+            position: absolute;
+            right: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .timer-display {
+            font-weight: 900;
+            font-size: 1.5rem;
+            color: var(--primary-teal);
+            font-variant-numeric: tabular-nums;
+        }
+
+        .btn-control {
+            background: var(--primary-purple);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 4px 0 #6c429c;
+            transition: all 0.1s;
+        }
+
+        .btn-control:active {
+            transform: translateY(4px);
+            box-shadow: 0 0 0 #6c429c;
+        }
+
+        /* --- Main Layout Split Screen --- */
+        .main-container {
+            display: flex;
+            height: calc(100vh - 60px);
+            margin-top: 60px;
+        }
+
+        .panel {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            scroll-behavior: smooth;
+        }
+
+        .panel-left {
+            border-right: 3px dashed #e0e0e0;
+            background: rgba(255,255,255,0.6);
+        }
+
+        .panel-right {
+            background: rgba(255,255,255,0.3);
+            padding-bottom: 100px; /* Space for footer button */
+        }
+
+        /* Scrollbar cute */
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--pastel-pink); 
+            border-radius: 5px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--primary-purple); 
+        }
+
+        /* --- Reading Content Styles --- */
+        .store-card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            border: 2px solid transparent;
+            transition: transform 0.2s;
+        }
+
+        .store-card:hover {
+            transform: scale(1.01);
+            border-color: var(--pastel-blue);
+        }
+
+        .store-title {
+            color: var(--primary-purple);
+            font-weight: 800;
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+        }
+
+        .store-tag {
+            background: var(--primary-teal);
+            color: white;
+            padding: 4px 10px;
+            border-radius: 50px;
+            font-size: 0.9rem;
+            margin-right: 10px;
+        }
+
+        .trans-btn {
+            display: inline-block;
+            margin-top: 10px;
+            font-size: 0.85rem;
+            color: var(--primary-purple);
+            border: 1px dashed var(--primary-purple);
+            padding: 5px 10px;
+            border-radius: 10px;
+            cursor: pointer;
+            background: #fff;
+        }
+
+        .translation-text {
+            display: none;
+            margin-top: 10px;
+            padding: 10px;
+            background: #f0fdf4;
+            border-radius: 10px;
+            font-style: italic;
+            color: #333;
+            border-left: 4px solid var(--correct);
+            line-height: 1.6;
+        }
+
+        .glossary-box {
+            margin-top: 30px;
+            background: #fff;
+            border-radius: 15px;
+            padding: 15px;
+            border: 2px solid var(--pastel-pink);
+        }
+        
+        .glossary-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+        .glossary-table th {
+            text-align: left;
+            color: var(--primary-purple);
+            padding: 8px;
+            border-bottom: 2px solid #eee;
+        }
+        .glossary-table td {
+            padding: 8px;
+            border-bottom: 1px solid #eee;
+        }
+
+        /* --- Question Card Styles --- */
+        .question-card {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 0 rgba(0,0,0,0.05);
+            position: relative;
+        }
+
+        .q-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .q-avatar {
+            width: 50px;
+            height: 50px;
+            background: var(--pastel-blue);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-right: 15px;
+            border: 2px solid var(--primary-teal);
+        }
+
+        .q-text {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        .highlight-req {
+            background: #fff3cd;
+            padding: 0 4px;
+            border-radius: 4px;
+        }
+
+        /* --- Option Buttons --- */
+        .options-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+
+        .option-btn {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            padding: 15px 10px;
+            font-weight: 800;
+            color: var(--text-dark);
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px 0 #ccc;
+            text-align: center;
+            font-size: 1.2rem;
+        }
+
+        .option-btn:hover:not(.disabled) {
+            transform: scale(1.05);
+            border-color: var(--primary-purple);
+        }
+
+        .option-btn:active:not(.disabled) {
+            transform: translateY(4px);
+            box-shadow: 0 0 0 #ccc;
+        }
+
+        /* States */
+        .option-btn.correct {
+            background: var(--correct);
+            color: white;
+            border-color: #00a855;
+            box-shadow: 0 4px 0 #008f48;
+        }
+
+        .option-btn.wrong {
+            background: var(--wrong);
+            color: white;
+            border-color: #d63031;
+            box-shadow: 0 4px 0 #b71c1c;
+            animation: shake 0.5s;
+        }
+
+        .option-btn.disabled {
+            cursor: default;
+            opacity: 0.6;
+        }
+
+        /* --- Feedback --- */
+        .feedback-panel {
+            display: none;
+            margin-top: 20px;
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 15px;
+            border: 2px dashed var(--primary-purple);
+            animation: slideDown 0.3s ease-out;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .teacher-msg {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .teacher-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: url('https://api.dicebear.com/7.x/avataaars/svg?seed=MsMaiAn&clothing=blazerAndShirt&glasses=round') no-repeat center/cover;
+            background-color: #fff;
+            border: 2px solid var(--primary-purple);
+        }
+
+        .bubble {
+            background: white;
+            padding: 10px 15px;
+            border-radius: 0 15px 15px 15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            font-size: 0.95rem;
+            color: #444;
+        }
+
+        .action-btns {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+
+        .mini-btn {
+            font-size: 0.8rem;
+            padding: 6px 12px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-weight: 700;
+            color: white;
+            box-shadow: 0 3px 0 rgba(0,0,0,0.2);
+        }
+        
+        .btn-explain { background: #6c5ce7; }
+        .btn-trans { background: #00b894; }
+        .btn-para { background: #e17055; }
+        
+        .detail-content {
+            display: none;
+            margin-top: 10px;
+            padding: 10px;
+            background: white;
+            border-radius: 8px;
+            border: 1px solid #eee;
+        }
+
+        .para-table {
+            width: 100%;
+            font-size: 0.85rem;
+        }
+        .para-table td { padding: 5px; border-bottom: 1px solid #eee; }
+        .para-table td:first-child { font-weight: bold; color: var(--wrong); }
+        .para-table td:last-child { color: var(--correct); }
+
+        /* --- Footer & Modals --- */
+        .footer-bar {
+            text-align: center;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        
+        .submit-btn {
+            background: linear-gradient(45deg, #FF6B6B, #FF8E53);
+            color: white;
+            font-size: 1.5rem;
+            padding: 15px 40px;
+            border: none;
+            border-radius: 50px;
+            font-weight: 900;
+            cursor: pointer;
+            box-shadow: 0 6px 0 #c44026;
+            transition: all 0.2s;
+        }
+        .submit-btn:active {
+            transform: translateY(6px);
+            box-shadow: none;
+        }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(5px);
+        }
+        
+        .modal-box {
+            background: white;
+            padding: 30px;
+            border-radius: 25px;
+            max-width: 450px;
+            width: 90%;
+            text-align: center;
+            animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            border: 5px solid var(--pastel-pink);
+        }
+
+        .score-circle {
+            width: 120px;
+            height: 120px;
+            background: var(--primary-purple);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            font-weight: 900;
+            margin: 0 auto 20px;
+            box-shadow: 0 5px 15px rgba(136, 84, 192, 0.4);
+            border: 5px solid white;
+        }
+
+        .score-msg {
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            color: #444;
+        }
+
+        .score-title {
+            color: var(--primary-teal);
+            font-weight: 800;
+            font-size: 1.8rem;
+            margin: 10px 0;
+            text-transform: uppercase;
+        }
+
+        @keyframes popIn {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-5px) rotate(-5deg); }
+            50% { transform: translateX(5px) rotate(5deg); }
+            75% { transform: translateX(-5px) rotate(-5deg); }
+            100% { transform: translateX(0); }
+        }
+
+        @media (max-width: 768px) {
+            .main-container { flex-direction: column; height: auto; }
+            .panel-left { height: 40vh; overflow-y: scroll; border-bottom: 3px dashed #e0e0e0; }
+            .panel-right { height: auto; }
+            .options-grid { grid-template-columns: repeat(4, 1fr); }
+        }
+    </style>
+</head>
+<body>
+
+    <audio id="sound-correct" src="https://assets.mixkit.co/active_storage/sfx/2000/2000-preview.mp3"></audio> 
+    <audio id="sound-wrong" src="https://assets.mixkit.co/active_storage/sfx/2003/2003-preview.mp3"></audio> 
+    <audio id="sound-finish" src="https://assets.mixkit.co/active_storage/sfx/1435/1435-preview.mp3"></audio>
+
+    <header>
+        <div class="header-title">
+            <i class="fas fa-graduation-cap"></i>
+            Giáo viên tạo: Ms Mai An ULIS
+        </div>
+        <div class="timer-container">
+            <div class="timer-display" id="timer">10:00</div>
+            <button class="btn-control" id="btn-timer" onclick="toggleTimer()">BẮT ĐẦU</button>
+        </div>
+    </header>
+
+    <div class="main-container">
+        <div class="panel panel-left">
+            <h2 style="color: var(--primary-purple); text-align: center;">📖 Department Stores</h2>
+            <p style="text-align: center; font-style: italic; color: #666; margin-bottom: 20px;">Đọc kỹ thông tin 8 cửa hàng bên dưới</p>
+
+            <div class="store-card" id="store-A">
+                <div class="store-title"><span class="store-tag">A</span> Hallwick’s</div>
+                <p>People often visit Hallwick’s just for the displays of lights that make it so attractive to shop here. And it was the first to sell clothes made of pure, natural cotton, grown in conditions that avoid creating pollution. The assistants are polite and will help with any questions about goods.</p>
+                <div class="trans-btn" onclick="toggleTrans('trans-A')"><i class="fas fa-language"></i> Bản dịch đầy đủ</div>
+                <div class="translation-text" id="trans-A">Mọi người thường ghé thăm Hallwick’s chỉ để ngắm những màn trình diễn ánh sáng khiến nơi đây trở nên vô cùng hấp dẫn để mua sắm. Và đây là nơi đầu tiên bán quần áo làm từ cotton tự nhiên, nguyên chất, được trồng trong điều kiện tránh gây ô nhiễm. Các nhân viên bán hàng rất lịch sự và sẵn sàng giúp giải đáp mọi thắc mắc về hàng hóa.</div>
+            </div>
+
+            <div class="store-card" id="store-B">
+                <div class="store-title"><span class="store-tag">B</span> Crozier’s</div>
+                <p>This store is in a beautiful new building. One floor is full of toys and board games like chess, and downstairs there’s a huge variety of cakes, sweets and also fresh food that’s perfect for making a meal! The roof garden is popular here in summer, and the friendly staff serve delicious lunches.</p>
+                <div class="trans-btn" onclick="toggleTrans('trans-B')"><i class="fas fa-language"></i> Bản dịch đầy đủ</div>
+                <div class="translation-text" id="trans-B">Cửa hàng này nằm trong một tòa nhà mới tuyệt đẹp. Một tầng chứa đầy đồ chơi và các trò chơi cờ bàn như cờ vua, và tầng dưới có vô số loại bánh ngọt, kẹo và cả thực phẩm tươi sống hoàn hảo để nấu một bữa ăn! Khu vườn trên mái rất được yêu thích vào mùa hè, và đội ngũ nhân viên thân thiện phục vụ những bữa trưa ngon miệng.</div>
+            </div>
+
+            <div class="store-card" id="store-C">
+                <div class="store-title"><span class="store-tag">C</span> Stafford’s</div>
+                <p>This store is popular for its range of good-quality sportswear at very reasonable prices, which is hard to find elsewhere. And on the ground floor, you’ll find displays of their famous handmade candies – great for celebrations! And Stafford’s is always the first to offer new designs in men’s and women’s clothing, too!</p>
+                <div class="trans-btn" onclick="toggleTrans('trans-C')"><i class="fas fa-language"></i> Bản dịch đầy đủ</div>
+                <div class="translation-text" id="trans-C">Cửa hàng này nổi tiếng với các loại đồ thể thao chất lượng tốt với giá cả rất hợp lý, điều khó tìm thấy ở nơi khác. Và ở tầng trệt, bạn sẽ thấy các quầy trưng bày kẹo thủ công nổi tiếng của họ – rất tuyệt cho các dịp lễ kỷ niệm! Và Stafford’s cũng luôn là nơi đầu tiên cung cấp các mẫu thiết kế mới cho cả quần áo nam và nữ!</div>
+            </div>
+
+            <div class="store-card" id="store-D">
+                <div class="store-title"><span class="store-tag">D</span> Barton’s</div>
+                <p>Barton’s has been here since it opened in 1930, and still has its huge glass door and beautiful windows. The first floor is fantastic for children, as it’s packed with things to play with – at reasonable prices. And downstairs, you’ll find a huge selection of amazing fresh food rarely found elsewhere.</p>
+                <div class="trans-btn" onclick="toggleTrans('trans-D')"><i class="fas fa-language"></i> Bản dịch đầy đủ</div>
+                <div class="translation-text" id="trans-D">Barton’s đã ở đây từ khi mở cửa vào năm 1930, và vẫn giữ được cánh cửa kính khổng lồ cùng những khung cửa sổ tuyệt đẹp. Tầng một là nơi tuyệt vời cho trẻ em, vì nó chứa đầy những món đồ chơi – với giá cả hợp lý. Và ở tầng dưới, bạn sẽ tìm thấy vô số lựa chọn thực phẩm tươi sống tuyệt vời hiếm thấy ở nơi khác.</div>
+            </div>
+
+            <div class="store-card" id="store-E">
+                <div class="store-title"><span class="store-tag">E</span> Gardener and Bell’s</div>
+                <p>This store has been here since 1950, and is the place for cool clothes and jewellery, as it updates its items every few weeks – and many are made from environmentally-friendly materials. The sportswear section has clothes and equipment for almost any sport, although prices can be high.</p>
+                <div class="trans-btn" onclick="toggleTrans('trans-E')"><i class="fas fa-language"></i> Bản dịch đầy đủ</div>
+                <div class="translation-text" id="trans-E">Cửa hàng này đã có mặt từ năm 1950, và là nơi dành cho quần áo và trang sức sành điệu, vì họ cập nhật hàng hóa vài tuần một lần – và nhiều món được làm từ vật liệu thân thiện với môi trường. Khu vực đồ thể thao có quần áo và dụng cụ cho hầu hết mọi môn thể thao, mặc dù giá có thể hơi cao.</div>
+            </div>
+
+            <div class="store-card" id="store-F">
+                <div class="store-title"><span class="store-tag">F</span> Davidson’s</div>
+                <p>This traditional-looking store opened in 1860, and still offers high-class, fashionable goods at reasonable prices, with many made from natural materials. The men’s clothes are particularly recommended, and there’s also an area selling nothing but beautiful jewellery. And on fine days, try the rooftop restaurant – the food is fantastic.</p>
+                <div class="trans-btn" onclick="toggleTrans('trans-F')"><i class="fas fa-language"></i> Bản dịch đầy đủ</div>
+                <div class="translation-text" id="trans-F">Cửa hàng mang vẻ truyền thống này mở cửa từ năm 1860, và vẫn cung cấp các mặt hàng thời trang cao cấp với giá cả hợp lý, nhiều món làm từ vật liệu tự nhiên. Quần áo nam được đặc biệt khuyên dùng, và còn có một khu vực chỉ bán toàn trang sức đẹp. Và vào những ngày đẹp trời, hãy thử nhà hàng trên sân thượng – đồ ăn rất tuyệt.</div>
+            </div>
+
+             <div class="store-card" id="store-G">
+                <div class="store-title"><span class="store-tag">G</span> Ford and Madecroft’s</div>
+                <p>The café here serves fantastic meals, but also has amazing chocolates and frozen desserts of all kind, and the bakers produce fantastic biscuits and cakes to take away. Upstairs, you’ll find a display of toys and also a huge range of board games, together with instructions to help you play.</p>
+                <div class="trans-btn" onclick="toggleTrans('trans-G')"><i class="fas fa-language"></i> Bản dịch đầy đủ</div>
+                <div class="translation-text" id="trans-G">Quán cà phê ở đây phục vụ các bữa ăn tuyệt vời, nhưng cũng có sô-cô-la và các món tráng miệng lạnh tuyệt ngon đủ loại, và những người thợ làm bánh tạo ra các loại bánh quy và bánh ngọt tuyệt vời để mang đi. Ở tầng trên, bạn sẽ thấy quầy trưng bày đồ chơi và vô số trò chơi cờ bàn, cùng với hướng dẫn giúp bạn chơi.</div>
+            </div>
+
+            <div class="store-card" id="store-H">
+                <div class="store-title"><span class="store-tag">H</span> Oldridge’s</div>
+                <p>The customer service here is the best anywhere in the city, and staff will help you find what you’re looking for, from jewellery to children’s toys. And the café here, probably one of the most attractive you’ll ever visit, serves the biggest ice creams anywhere, too – and the best cakes!</p>
+                <div class="trans-btn" onclick="toggleTrans('trans-H')"><i class="fas fa-language"></i> Bản dịch đầy đủ</div>
+                <div class="translation-text" id="trans-H">Dịch vụ khách hàng ở đây là tốt nhất trong thành phố, và nhân viên sẽ giúp bạn tìm những gì bạn cần, từ trang sức đến đồ chơi trẻ em. Và quán cà phê ở đây, có lẽ là một trong những nơi hấp dẫn nhất bạn từng ghé thăm, phục vụ những ly kem to nhất – và cả những chiếc bánh ngon nhất!</div>
+            </div>
+
+            <div class="glossary-box">
+                <h3 style="color:var(--primary-purple); margin-top:0;"><i class="fas fa-book"></i> GLOSSARY (B1-C2 Words)</h3>
+                <table class="glossary-table" id="glossary-content">
+                    </table>
+            </div>
+        </div>
+
+        <div class="panel panel-right">
+            <h2 style="color: var(--primary-teal); text-align: center;">🎯 Matching Challenge</h2>
+            <p style="text-align: center; margin-bottom: 20px;">Chọn cửa hàng phù hợp nhất cho từng người</p>
+
+            <div class="question-card" id="q1">
+                <div class="q-header">
+                    <div class="q-avatar">👩</div>
+                    <div class="q-text">
+                        <strong>1. Jasmine:</strong> Would like to find a store where they can <span class="highlight-req">eat outside</span>, and her dad wants somewhere known for its <span class="highlight-req">good-quality suits</span>. They also want to buy a <span class="highlight-req">necklace</span> for Jasmine’s mum.
+                    </div>
+                </div>
+                <div class="options-grid" id="opt-1">
+                    </div>
+                <div class="feedback-panel" id="feed-1"></div>
+            </div>
+
+            <div class="question-card" id="q2">
+                <div class="q-header">
+                    <div class="q-avatar">👦</div>
+                    <div class="q-text">
+                        <strong>2. Peter & Nell:</strong> Peter wants <span class="highlight-req">special sweets</span> for grandma, Nell wants latest <span class="highlight-req">women’s fashions</span>. Need new <span class="highlight-req">tennis T-shirts</span> (cheap).
+                    </div>
+                </div>
+                <div class="options-grid" id="opt-2"></div>
+                <div class="feedback-panel" id="feed-2"></div>
+            </div>
+
+            <div class="question-card" id="q3">
+                <div class="q-header">
+                    <div class="q-avatar">👧</div>
+                    <div class="q-text">
+                        <strong>3. Maria:</strong> Wants clothes from <span class="highlight-req">materials without damaging environment</span>. Mum likes <span class="highlight-req">great customer service</span> and <span class="highlight-req">beautiful inside</span>.
+                    </div>
+                </div>
+                <div class="options-grid" id="opt-3"></div>
+                <div class="feedback-panel" id="feed-3"></div>
+            </div>
+
+            <div class="question-card" id="q4">
+                <div class="q-header">
+                    <div class="q-avatar">🧑‍🍳</div>
+                    <div class="q-text">
+                        <strong>4. John:</strong> Enjoys cooking, wants <span class="highlight-req">unusual ingredients</span>. Parents like stores in <span class="highlight-req">same buildings since they were young</span>, and great <span class="highlight-req">toys</span>.
+                    </div>
+                </div>
+                <div class="options-grid" id="opt-4"></div>
+                <div class="feedback-panel" id="feed-4"></div>
+            </div>
+
+            <div class="question-card" id="q5">
+                <div class="q-header">
+                    <div class="q-avatar">♟️</div>
+                    <div class="q-text">
+                        <strong>5. Samuel & Mark:</strong> Want <span class="highlight-req">chess sets</span>. Like <span class="highlight-req">delicious ice creams</span> and buy something <span class="highlight-req">made in the store</span> to eat later.
+                    </div>
+                </div>
+                <div class="options-grid" id="opt-5"></div>
+                <div class="feedback-panel" id="feed-5"></div>
+            </div>
+
+            <div class="footer-bar">
+                <button class="submit-btn" onclick="finishTest()">NỘP BÀI <i class="fas fa-paper-plane"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="timeUpModal">
+        <div class="modal-box">
+            <h2 style="color: var(--primary-purple);">⏰ HẾT GIỜ RỒI!</h2>
+            <p>Đã hết giờ làm bài. Bạn vẫn có thể tiếp tục làm, nhưng nhớ là trong phòng thi thật, bạn chỉ nên làm một bài như thế này trong 10 phút thôi nha.</p>
+            <button class="btn-control" onclick="document.getElementById('timeUpModal').style.display='none'">Tiếp tục làm</button>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="resultModal">
+        <div class="modal-box">
+            <div class="score-circle" id="final-score">0/5</div>
+            <h2 class="score-title" id="score-title">Title</h2>
+            <p class="score-msg" id="score-msg">Message</p>
+            <button class="submit-btn" onclick="document.getElementById('resultModal').style.display='none'" style="font-size: 1rem; padding: 10px 25px;">Xem lại bài</button>
+        </div>
+    </div>
+
+    <script>
+        // --- DATA ---
+        let userScore = 0;
+        
+        const glossaryData = [
+            { w: "Environmentally-friendly", t: "Adj", m: "Thân thiện với môi trường" },
+            { w: "Pollution", t: "Noun", m: "Sự ô nhiễm" },
+            { w: "Reasonable price", t: "Noun Phrase", m: "Giá cả hợp lý (phải chăng)" },
+            { w: "Ingredient", t: "Noun", m: "Nguyên liệu (nấu ăn)" },
+            { w: "Selection", t: "Noun", m: "Sự lựa chọn, tuyển tập" },
+            { w: "Display", t: "Noun", m: "Sự trưng bày" },
+            { w: "Instruction", t: "Noun", m: "Hướng dẫn" },
+            { w: "Traditional", t: "Adj", m: "Truyền thống" },
+            { w: "High-class", t: "Adj", m: "Cao cấp, thượng lưu" },
+            { w: "Board games", t: "Noun", m: "Trò chơi cờ bàn (như cờ vua, cá ngựa...)" }
+        ];
+
+        const questionsData = [
+            {
+                id: 1,
+                correct: 'F',
+                explain: "Jasmine cần nơi 'eat outside' -> Đoạn F có 'rooftop restaurant'. Bố cần 'good-quality suits' -> Đoạn F có 'men's clothes... recommended'. Mua 'necklace' -> Đoạn F có 'beautiful jewellery'.",
+                trans: "Jasmine muốn tìm nơi có thể ăn ngoài trời, bố cô ấy muốn nơi nổi tiếng với vest chất lượng tốt. Họ cũng muốn mua vòng cổ cho mẹ.",
+                para: [
+                    ["Eat outside", "Rooftop restaurant"],
+                    ["Good-quality suits", "High-class... men's clothes"],
+                    ["Necklace", "Jewellery"]
+                ]
+            },
+            {
+                id: 2,
+                correct: 'C',
+                explain: "Peter cần 'sweets' -> Đoạn C có 'handmade candies'. Nell cần 'latest women's fashions' -> Đoạn C có 'new designs in... women's clothing'. Cần 'tennis T-shirts' giá rẻ -> Đoạn C có 'sportswear at very reasonable prices'.",
+                trans: "Peter muốn mua kẹo đặc biệt cho sinh nhật bà, chị gái Nell muốn xem thời trang nữ mới nhất. Họ cũng cần mua áo phông tennis mới mà không tốn nhiều tiền.",
+                para: [
+                    ["Special sweets", "Handmade candies"],
+                    ["Latest women's fashions", "New designs in... women's clothing"],
+                    ["Without spending a lot", "Reasonable prices"]
+                ]
+            },
+            {
+                id: 3,
+                correct: 'A',
+                explain: "Maria cần 'materials... without damaging environment' -> Đoạn A có 'grown in conditions that avoid creating pollution'. Mẹ cần 'great customer service' -> Đoạn A có 'assistants are polite... help'. Cần 'beautiful inside' -> Đoạn A có 'displays of lights... attractive'.",
+                trans: "Maria muốn cửa hàng bán quần áo dùng vật liệu sản xuất không hại môi trường. Mẹ cô ấy muốn nơi có dịch vụ khách hàng tốt và bên trong đẹp.",
+                para: [
+                    ["Without damaging environment", "Avoid creating pollution"],
+                    ["Great customer service", "Assistants are polite and will help"],
+                    ["Beautiful inside", "Displays of lights... attractive"]
+                ]
+            },
+            {
+                id: 4,
+                correct: 'D',
+                explain: "John thích nấu ăn, cần 'unusual ingredients' -> Đoạn D có 'amazing fresh food rarely found elsewhere'. Bố mẹ thích 'same buildings since they were young' (cũ) -> Đoạn D 'opened in 1930'. Cần 'toys' -> Đoạn D có 'packed with things to play with'.",
+                trans: "John thích nấu ăn, muốn mua nguyên liệu lạ. Bố mẹ thích cửa hàng nằm trong tòa nhà cũ từ khi họ còn trẻ, và có đồ chơi hay cho em gái.",
+                para: [
+                    ["Unusual ingredients", "Food rarely found elsewhere"],
+                    ["Same buildings since young", "Since it opened in 1930"],
+                    ["Toys", "Things to play with"]
+                ]
+            },
+            {
+                id: 5,
+                correct: 'G',
+                explain: "Samuel & Mark cần 'chess sets' -> Đoạn G có 'huge range of board games'. Cần 'ice creams' -> Đoạn G có 'frozen desserts'. Cần 'made in store to eat later' -> Đoạn G có 'bakers produce... cakes to take away'.",
+                trans: "Samuel và Mark muốn đến cửa hàng có nhiều bộ cờ vua. Họ muốn ăn kem ngon và mua thứ gì đó làm tại cửa hàng để ăn sau.",
+                para: [
+                    ["Chess sets", "Board games"],
+                    ["Ice creams", "Frozen desserts"],
+                    ["Made in the store", "Bakers produce..."]
+                ]
+            }
+        ];
+
+        // --- INITIALIZATION ---
+        window.onload = function() {
+            renderGlossary();
+            renderOptions();
+        };
+
+        function renderGlossary() {
+            const table = document.getElementById('glossary-content');
+            let html = `<tr><th>Word</th><th>Type</th><th>Meaning</th></tr>`;
+            glossaryData.forEach(item => {
+                html += `<tr><td><strong>${item.w}</strong></td><td><em>${item.t}</em></td><td>${item.m}</td></tr>`;
+            });
+            table.innerHTML = html;
+        }
+
+        function renderOptions() {
+            questionsData.forEach(q => {
+                const container = document.getElementById(`opt-${q.id}`);
+                const options = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
+                let html = '';
+                options.forEach(opt => {
+                    html += `<button class="option-btn" id="btn-${q.id}-${opt}" onclick="check(${q.id}, '${opt}')">${opt}</button>`;
+                });
+                container.innerHTML = html;
+            });
+        }
+
+        // --- INTERACTION LOGIC ---
+        function check(qId, selectedOpt) {
+            const qData = questionsData.find(q => q.id === qId);
+            const correctOpt = qData.correct;
+            const btnSelected = document.getElementById(`btn-${qId}-${selectedOpt}`);
+            const btnCorrect = document.getElementById(`btn-${qId}-${correctOpt}`);
+            
+            // Disable all buttons in this question
+            const allBtns = document.getElementById(`opt-${qId}`).querySelectorAll('.option-btn');
+            allBtns.forEach(btn => btn.classList.add('disabled'));
+            allBtns.forEach(btn => btn.onclick = null);
+
+            if (selectedOpt === correctOpt) {
+                // Correct
+                btnSelected.classList.add('correct');
+                playSound('correct');
+                fireConfetti(btnSelected);
+                userScore++; // Increase Score
+            } else {
+                // Wrong
+                btnSelected.classList.add('wrong');
+                btnCorrect.classList.add('correct'); // Show correct immediately
+                playSound('wrong');
+            }
+
+            showFeedback(qId, qData);
+        }
+
+        function showFeedback(qId, data) {
+            const panel = document.getElementById(`feed-${qId}`);
+            panel.style.display = 'block';
+            
+            // Generate Para Table HTML
+            let paraHtml = '<table class="para-table">';
+            data.para.forEach(row => {
+                paraHtml += `<tr><td>${row[0]}</td><td>➡ ${row[1]}</td></tr>`;
+            });
+            paraHtml += '</table>';
+
+            panel.innerHTML = `
+                <div class="teacher-msg">
+                    <div class="teacher-avatar"></div>
+                    <div class="bubble">
+                        <strong>Ms. Mai An:</strong> Đáp án đúng là <strong>${data.correct}</strong> em nhé! <br>
+                        ${data.explain}
+                    </div>
+                </div>
+                <div class="action-btns">
+                    <button class="mini-btn btn-trans" onclick="toggleDetail('trans-${qId}')"><i class="fas fa-language"></i> Dịch câu hỏi</button>
+                    <button class="mini-btn btn-para" onclick="toggleDetail('para-${qId}')"><i class="fas fa-exchange-alt"></i> So sánh từ vựng</button>
+                </div>
+                <div id="trans-${qId}" class="detail-content">${data.trans}</div>
+                <div id="para-${qId}" class="detail-content">${paraHtml}</div>
+            `;
+        }
+
+        function toggleDetail(id) {
+            const el = document.getElementById(id);
+            if (el.style.display === 'block') el.style.display = 'none';
+            else el.style.display = 'block';
+        }
+
+        function toggleTrans(id) {
+            const el = document.getElementById(id);
+            if (el.style.display === 'block') el.style.display = 'none';
+            else el.style.display = 'block';
+        }
+
+        function playSound(type) {
+            let audio;
+            if(type === 'correct') audio = document.getElementById('sound-correct');
+            else if(type === 'wrong') audio = document.getElementById('sound-wrong');
+            else if(type === 'finish') audio = document.getElementById('sound-finish');
+
+            if (audio) {
+                audio.currentTime = 0;
+                audio.play();
+            }
+        }
+
+        function fireConfetti(element) {
+            const rect = element.getBoundingClientRect();
+            const x = (rect.left + rect.width / 2) / window.innerWidth;
+            const y = (rect.top + rect.height / 2) / window.innerHeight;
+
+            confetti({
+                particleCount: 100,
+                spread: 70,
+                origin: { x: x, y: y },
+                colors: ['#8854C0', '#00C9A7', '#FFD3E0']
+            });
+        }
+
+        // --- TIMER ---
+        let time = 600; // 10 minutes
+        let timerInterval;
+        let isRunning = false;
+
+        function toggleTimer() {
+            const btn = document.getElementById('btn-timer');
+            if (!isRunning) {
+                isRunning = true;
+                btn.textContent = "TẠM DỪNG";
+                btn.style.background = "#FF4757";
+                btn.style.boxShadow = "0 4px 0 #b71c1c";
+                timerInterval = setInterval(updateTimer, 1000);
+            } else {
+                isRunning = false;
+                btn.textContent = "TIẾP TỤC";
+                btn.style.background = "#8854C0";
+                btn.style.boxShadow = "0 4px 0 #6c429c";
+                clearInterval(timerInterval);
+            }
+        }
+
+        function updateTimer() {
+            time--;
+            const mins = Math.floor(time / 60);
+            const secs = time % 60;
+            document.getElementById('timer').textContent = 
+                `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+            
+            if (time <= 0) {
+                clearInterval(timerInterval);
+                document.getElementById('timeUpModal').style.display = 'flex';
+                playSound('wrong'); 
+            }
+        }
+
+        function finishTest() {
+            const total = questionsData.length;
+            const modal = document.getElementById('resultModal');
+            const scoreDisplay = document.getElementById('final-score');
+            const titleDisplay = document.getElementById('score-title');
+            const msgDisplay = document.getElementById('score-msg');
+
+            scoreDisplay.textContent = `${userScore}/${total}`;
+            playSound('finish');
+
+            // Feedback logic
+            if (userScore === total) {
+                titleDisplay.textContent = "XUẤT SẮC!";
+                msgDisplay.textContent = "Em làm đúng hết rồi! Ms Mai An rất tự hào về em! 🌟";
+                confetti({ particleCount: 300, spread: 180, origin: { y: 0.6 } });
+            } else if (userScore >= total - 1) {
+                titleDisplay.textContent = "TUYỆT VỜI!";
+                msgDisplay.textContent = "Chỉ sai một chút xíu thôi, em làm rất tốt! 👍";
+            } else if (userScore >= total / 2) {
+                titleDisplay.textContent = "KHÁ LẮM!";
+                msgDisplay.textContent = "Em đã nắm được bài rồi, cố gắng ôn lại các câu sai nhé! 💪";
+            } else {
+                titleDisplay.textContent = "CỐ LÊN NHÉ!";
+                msgDisplay.textContent = "Đừng nản lòng, hãy xem kỹ lại phần giải thích để hiểu bài hơn nha! ❤️";
+            }
+
+            modal.style.display = 'flex';
+        }
+    </script>
+</body>
+</html>

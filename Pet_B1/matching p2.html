@@ -1,0 +1,925 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ms Mai An ULIS - Jobs Available Reading Test</title>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #8854C0; /* Tím hồng nhạt */
+            --secondary: #00C9A7; /* Xanh ngọc */
+            --correct: #00D26A; /* Xanh lá */
+            --wrong: #FF4757; /* Đỏ cam */
+            --bg-color: #fdf2f8; /* Nền hồng phấn nhạt */
+            --card-bg: #ffffff;
+            --text-main: #2d3436;
+        }
+
+        * {
+            box-sizing: border-box;
+            scrollbar-width: thin;
+            scrollbar-color: var(--primary) #dfe6e9;
+        }
+
+        body {
+            font-family: 'Quicksand', sans-serif;
+            background-color: var(--bg-color);
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(255, 183, 197, 0.4) 0%, transparent 20%),
+                radial-gradient(circle at 90% 80%, rgba(136, 84, 192, 0.2) 0%, transparent 20%);
+            margin: 0;
+            padding: 0;
+            color: var(--text-main);
+            overflow: hidden; /* Prevent body scroll, handle inside containers */
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* --- HEADER --- */
+        header {
+            background: white;
+            padding: 10px 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 100;
+            height: 70px;
+        }
+
+        .teacher-name {
+            font-size: 0.9rem;
+            color: var(--primary);
+            font-weight: 700;
+            background: #f3e5f5;
+            padding: 5px 15px;
+            border-radius: 20px;
+        }
+
+        .timer-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        #timer-display {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--wrong);
+            font-variant-numeric: tabular-nums;
+        }
+
+        .btn-start {
+            background-color: var(--secondary);
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 12px;
+            font-weight: 700;
+            font-family: inherit;
+            cursor: pointer;
+            box-shadow: 0 4px 0 #009e82;
+            transition: all 0.1s;
+        }
+
+        .btn-start:active {
+            transform: translateY(4px);
+            box-shadow: none;
+        }
+
+        /* --- MAIN LAYOUT SPLIT SCREEN --- */
+        .main-container {
+            display: flex;
+            flex: 1;
+            height: calc(100vh - 130px); /* Minus header and footer */
+            overflow: hidden;
+        }
+
+        .panel {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .left-panel {
+            background: rgba(255, 255, 255, 0.6);
+            border-right: 2px dashed #ddd;
+        }
+
+        .right-panel {
+            background: rgba(240, 248, 255, 0.5);
+        }
+
+        /* --- READING PASSAGE STYLES --- */
+        .job-card {
+            background: white;
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            border-left: 5px solid var(--secondary);
+            transition: transform 0.2s;
+        }
+        
+        .job-card:hover {
+            transform: scale(1.01);
+        }
+
+        .job-title {
+            color: var(--primary);
+            font-weight: 800;
+            margin-top: 0;
+            font-size: 1.1rem;
+        }
+
+        .badge-letter {
+            background: var(--primary);
+            color: white;
+            width: 30px;
+            height: 30px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            margin-right: 10px;
+            font-weight: bold;
+        }
+
+        .btn-translate {
+            background: #dfe6e9;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            margin-top: 10px;
+            color: #636e72;
+            font-weight: 600;
+        }
+        
+        .translation-text {
+            display: none;
+            margin-top: 10px;
+            padding: 10px;
+            background: #f1f2f6;
+            border-radius: 8px;
+            font-style: italic;
+            color: #57606f;
+            font-size: 0.9rem;
+            border-left: 3px solid #74b9ff;
+        }
+
+        /* --- GLOSSARY --- */
+        .glossary-container {
+            margin-top: 30px;
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            border: 2px solid var(--primary);
+        }
+
+        .glossary-title {
+            text-align: center;
+            color: var(--primary);
+            text-transform: uppercase;
+            font-weight: 800;
+            margin-bottom: 15px;
+        }
+
+        .glossary-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+
+        .glossary-table th {
+            background: var(--secondary);
+            color: white;
+            padding: 8px;
+            border-radius: 5px;
+        }
+
+        .glossary-table td {
+            padding: 8px;
+            border-bottom: 1px solid #eee;
+        }
+
+        /* --- QUESTIONS STYLES --- */
+        .question-card {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 0 rgba(0,0,0,0.05);
+            border: 2px solid #eee;
+            position: relative;
+        }
+
+        .question-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .avatar {
+            width: 50px;
+            height: 50px;
+            background: #dfe6e9;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-right: 15px;
+            border: 2px solid var(--secondary);
+        }
+
+        .person-name {
+            font-weight: 800;
+            font-size: 1.2rem;
+            color: var(--text-main);
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .option-btn {
+            background: white;
+            border: 2px solid #dfe6e9;
+            padding: 10px;
+            border-radius: 10px;
+            font-weight: bold;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px 0 #dfe6e9;
+            color: #636e72;
+        }
+
+        .option-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            border-color: var(--secondary);
+        }
+
+        .option-btn:active:not(:disabled) {
+            transform: translateY(2px);
+            box-shadow: none;
+        }
+
+        /* --- FEEDBACK ANIMATIONS & STYLES --- */
+        .option-btn.correct {
+            background-color: var(--correct) !important;
+            color: white !important;
+            border-color: var(--correct) !important;
+            box-shadow: 0 4px 0 #00944a !important;
+            transform: translateY(2px);
+        }
+
+        .option-btn.wrong {
+            background-color: var(--wrong) !important;
+            color: white !important;
+            border-color: var(--wrong) !important;
+            box-shadow: 0 4px 0 #c41e3a !important;
+            animation: shake 0.5s;
+        }
+
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            50% { transform: translateX(5px); }
+            75% { transform: translateX(-5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* --- HELPER TOOLS --- */
+        .helper-tools {
+            display: none; /* Hidden initially */
+            margin-top: 20px;
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 10px;
+            border: 1px dashed var(--primary);
+        }
+
+        .tools-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .tool-btn {
+            flex: 1;
+            padding: 8px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.85rem;
+            transition: 0.2s;
+        }
+
+        .btn-explain { background: #fff0f6; color: #d63384; border: 1px solid #d63384; }
+        .btn-trans { background: #e7f5ff; color: #099268; border: 1px solid #099268; }
+        .btn-para { background: #fff9db; color: #f08c00; border: 1px solid #f08c00; }
+
+        .tool-content {
+            background: white;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            line-height: 1.5;
+            display: none; /* Hidden until clicked */
+        }
+        
+        .ms-mai-an-avatar {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            vertical-align: middle;
+            margin-right: 5px;
+        }
+
+        /* --- FOOTER --- */
+        footer {
+            height: 60px;
+            background: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 -4px 15px rgba(0,0,0,0.05);
+            z-index: 100;
+        }
+
+        .btn-submit {
+            background: linear-gradient(45deg, var(--primary), #a29bfe);
+            color: white;
+            border: none;
+            padding: 12px 40px;
+            font-size: 1.1rem;
+            border-radius: 30px;
+            font-weight: 800;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(136, 84, 192, 0.4);
+            transition: transform 0.2s;
+        }
+
+        .btn-submit:hover {
+            transform: scale(1.05);
+        }
+
+        /* --- MODAL RESULTS --- */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 1000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background: white;
+            padding: 40px;
+            border-radius: 30px;
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+            animation: popIn 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            border: 5px solid var(--secondary);
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0.5); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .score-big {
+            font-size: 4rem;
+            font-weight: 900;
+            color: var(--primary);
+            margin: 10px 0;
+        }
+
+        .feedback-msg {
+            font-size: 1.2rem;
+            color: #636e72;
+            margin-bottom: 20px;
+        }
+
+        /* Confetti Canvas */
+        #confetti-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 999;
+        }
+
+    </style>
+</head>
+<body>
+
+    <audio id="audio-correct" src="data:audio/wav;base64,UklGRi4AAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA="></audio> <canvas id="confetti-canvas"></canvas>
+
+    <header>
+        <div class="teacher-name">📝 Giáo viên tạo: Ms Mai An ULIS</div>
+        <div class="timer-container">
+            <div id="timer-display">10:00</div>
+            <button class="btn-start" onclick="toggleTimer()" id="btn-timer-ctrl">BẮT ĐẦU TÍNH GIỜ</button>
+        </div>
+    </header>
+
+    <div class="main-container">
+        <div class="panel left-panel">
+            <h2 style="color: var(--primary); text-align: center;">📖 JOBS AVAILABLE</h2>
+            <p style="text-align: center; color: #666;">Dịch và từ vựng tự động nằm ở dưới mỗi thẻ</p>
+
+            <div id="reading-content">
+                <div class="job-card">
+                    <div class="job-title"><span class="badge-letter">A</span> ABC Computer Specialists</div>
+                    <p>Do you have customer service skills? ABC Computer Specialists are looking for sales advisers to join our growing customer service team. This is a full-time post, 37 hours a week, with great opportunities for the right person.</p>
+                    <button class="btn-translate" onclick="toggleTrans('trans-a')">🇻🇳 BẢN DỊCH ĐẦY ĐỦ</button>
+                    <div id="trans-a" class="translation-text">Bạn có kỹ năng chăm sóc khách hàng không? ABC Computer Specialists đang tìm kiếm nhân viên tư vấn bán hàng để gia nhập đội ngũ chăm sóc khách hàng đang phát triển của chúng tôi. Đây là vị trí toàn thời gian, 37 giờ một tuần, với những cơ hội tuyệt vời cho người phù hợp.</div>
+                </div>
+
+                <div class="job-card">
+                    <div class="job-title"><span class="badge-letter">B</span> Mansion House Hotel</div>
+                    <p>An exciting opportunity for students wanting work experience in the Mansion House Hotel on a part-time basis. You will be dealing with international customers and a second language would be an advantage. Hours of work can be agreed to suit your needs though you would be required to work some weekends.</p>
+                    <button class="btn-translate" onclick="toggleTrans('trans-b')">🇻🇳 BẢN DỊCH ĐẦY ĐỦ</button>
+                    <div id="trans-b" class="translation-text">Một cơ hội thú vị cho các sinh viên muốn có kinh nghiệm làm việc tại Khách sạn Mansion House theo hình thức bán thời gian. Bạn sẽ làm việc với khách hàng quốc tế và biết ngôn ngữ thứ hai sẽ là một lợi thế. Giờ làm việc có thể thỏa thuận để phù hợp với nhu cầu của bạn, tuy nhiên bạn sẽ được yêu cầu làm việc vào một số ngày cuối tuần.</div>
+                </div>
+
+                <div class="job-card">
+                    <div class="job-title"><span class="badge-letter">C</span> Susie’s Hairdressing</div>
+                    <p>We are a new hairdresser’s and we want a young, hard-working volunteer to manage our reception desk. You will take calls, make bookings and help build a relationship with our customers. Suitable candidates will be offered a one-year contract.</p>
+                    <button class="btn-translate" onclick="toggleTrans('trans-c')">🇻🇳 BẢN DỊCH ĐẦY ĐỦ</button>
+                    <div id="trans-c" class="translation-text">Chúng tôi là một tiệm làm tóc mới và chúng tôi muốn một tình nguyện viên trẻ, chăm chỉ để quản lý quầy lễ tân. Bạn sẽ nhận cuộc gọi, đặt lịch hẹn và giúp xây dựng mối quan hệ với khách hàng của chúng tôi. Các ứng viên phù hợp sẽ được mời ký hợp đồng một năm.</div>
+                </div>
+
+                <div class="job-card">
+                    <div class="job-title"><span class="badge-letter">D</span> The Daily News</div>
+                    <p>Our business is growing and we need an assistant for our customer service team. The successful person will assist in managing our sales staff and be responsible for reporting on sales. The successful person will receive training.</p>
+                    <button class="btn-translate" onclick="toggleTrans('trans-d')">🇻🇳 BẢN DỊCH ĐẦY ĐỦ</button>
+                    <div id="trans-d" class="translation-text">Doanh nghiệp của chúng tôi đang phát triển và chúng tôi cần một trợ lý cho đội ngũ chăm sóc khách hàng. Người thành công sẽ hỗ trợ quản lý nhân viên bán hàng và chịu trách nhiệm báo cáo doanh số. Người trúng tuyển sẽ được đào tạo.</div>
+                </div>
+
+                <div class="job-card">
+                    <div class="job-title"><span class="badge-letter">E</span> Amega</div>
+                    <p>Would you like to work in a modern office environment, building relationships with customers, and working with our excellent team? If you’ve recently completed your studies at university and are looking for a career in the beauty industry, then please get in contact.</p>
+                    <button class="btn-translate" onclick="toggleTrans('trans-e')">🇻🇳 BẢN DỊCH ĐẦY ĐỦ</button>
+                    <div id="trans-e" class="translation-text">Bạn có muốn làm việc trong một môi trường văn phòng hiện đại, xây dựng mối quan hệ với khách hàng và làm việc với đội ngũ xuất sắc của chúng tôi không? Nếu bạn vừa hoàn thành việc học tại đại học và đang tìm kiếm sự nghiệp trong ngành công nghiệp làm đẹp, hãy liên hệ ngay.</div>
+                </div>
+
+                <div class="job-card">
+                    <div class="job-title"><span class="badge-letter">F</span> Peterfield Forum</div>
+                    <p>We are looking for keen volunteers to help run our summer school. You will have experience in working with young people and be prepared to accompany them on trips. The school is open from Monday to Friday and we need volunteers for at least two of these days.</p>
+                    <button class="btn-translate" onclick="toggleTrans('trans-f')">🇻🇳 BẢN DỊCH ĐẦY ĐỦ</button>
+                    <div id="trans-f" class="translation-text">Chúng tôi đang tìm kiếm các tình nguyện viên nhiệt tình để giúp điều hành trường hè của chúng tôi. Bạn cần có kinh nghiệm làm việc với thanh thiếu niên và sẵn sàng tháp tùng họ trong các chuyến đi. Trường mở cửa từ thứ Hai đến thứ Sáu và chúng tôi cần tình nguyện viên ít nhất hai trong số những ngày này.</div>
+                </div>
+
+                <div class="job-card">
+                    <div class="job-title"><span class="badge-letter">G</span> Hall Green Community Centre</div>
+                    <p>This is a great opportunity to gain experience in youth work. We are looking for a volunteer with work experience to support our young people as they begin to enter employment. You would be expected to work on Saturdays from 9 a.m. to 5 p.m. with occasional Sunday sessions.</p>
+                    <button class="btn-translate" onclick="toggleTrans('trans-g')">🇻🇳 BẢN DỊCH ĐẦY ĐỦ</button>
+                    <div id="trans-g" class="translation-text">Đây là cơ hội tuyệt vời để tích lũy kinh nghiệm trong công tác thanh thiếu niên. Chúng tôi đang tìm kiếm một tình nguyện viên có kinh nghiệm làm việc để hỗ trợ các bạn trẻ khi họ bắt đầu bước vào thị trường lao động. Bạn sẽ làm việc vào thứ Bảy từ 9 giờ sáng đến 5 giờ chiều, thỉnh thoảng có các buổi vào Chủ Nhật.</div>
+                </div>
+
+                <div class="job-card">
+                    <div class="job-title"><span class="badge-letter">H</span> Lucas Media</div>
+                    <p>Are you a student looking for work from Monday to Friday over the vacation period? We are offering a short-term contract to a keen young person to work with our sales team. You will get an idea of how a modern company operates, deal with customer enquiries and have the chance to help develop our website.</p>
+                    <button class="btn-translate" onclick="toggleTrans('trans-h')">🇻🇳 BẢN DỊCH ĐẦY ĐỦ</button>
+                    <div id="trans-h" class="translation-text">Bạn có phải là sinh viên đang tìm việc từ thứ Hai đến thứ Sáu trong kỳ nghỉ không? Chúng tôi đang cung cấp hợp đồng ngắn hạn cho một bạn trẻ nhiệt tình làm việc với đội ngũ bán hàng của chúng tôi. Bạn sẽ hiểu được cách một công ty hiện đại vận hành, giải quyết các thắc mắc của khách hàng và có cơ hội giúp phát triển trang web của chúng tôi.</div>
+                </div>
+            </div>
+
+            <div class="glossary-container">
+                <div class="glossary-title">📚 Ms Mai An's Dictionary (Từ vựng xịn)</div>
+                <table class="glossary-table">
+                    <thead>
+                        <tr>
+                            <th>Vocabulary</th>
+                            <th>Word Type</th>
+                            <th>Vietnamese Meaning</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>Volunteer</td><td>(n)</td><td>Tình nguyện viên</td></tr>
+                        <tr><td>Opportunity</td><td>(n)</td><td>Cơ hội</td></tr>
+                        <tr><td>Contract</td><td>(n)</td><td>Hợp đồng</td></tr>
+                        <tr><td>Environment</td><td>(n)</td><td>Môi trường</td></tr>
+                        <tr><td>Responsible</td><td>(adj)</td><td>Chịu trách nhiệm</td></tr>
+                        <tr><td>Accompany</td><td>(v)</td><td>Đi cùng, tháp tùng</td></tr>
+                        <tr><td>Employment</td><td>(n)</td><td>Việc làm</td></tr>
+                        <tr><td>Occasional</td><td>(adj)</td><td>Thỉnh thoảng</td></tr>
+                        <tr><td>Enquiries</td><td>(n)</td><td>Câu hỏi, thắc mắc</td></tr>
+                        <tr><td>Candidate</td><td>(n)</td><td>Ứng viên</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="panel right-panel">
+            <h2 style="color: var(--primary); text-align: center;">🎯 BÀI TẬP (Chọn công việc phù hợp)</h2>
+
+            <div class="question-card" id="q1">
+                <div class="question-header">
+                    <div class="avatar">👱‍♀️</div>
+                    <div class="person-name">1. Sandra</div>
+                </div>
+                <p>Sandra is doing a four-year degree in hair and beauty and wants to work as a volunteer for her third-year work experience. She likes to be part of a team and would enjoy dealing with customers.</p>
+                <div class="options-grid" data-qid="1" data-ans="C">
+                    <button class="option-btn" onclick="check(1, 'A')">A</button>
+                    <button class="option-btn" onclick="check(1, 'B')">B</button>
+                    <button class="option-btn" onclick="check(1, 'C')">C</button>
+                    <button class="option-btn" onclick="check(1, 'D')">D</button>
+                    <button class="option-btn" onclick="check(1, 'E')">E</button>
+                    <button class="option-btn" onclick="check(1, 'F')">F</button>
+                    <button class="option-btn" onclick="check(1, 'G')">G</button>
+                    <button class="option-btn" onclick="check(1, 'H')">H</button>
+                </div>
+                <div class="helper-tools" id="tools-1">
+                    <div class="tools-buttons">
+                        <button class="tool-btn btn-explain" onclick="showTool(1, 'explain')">💡 Giải thích</button>
+                        <button class="tool-btn btn-trans" onclick="showTool(1, 'trans')">📝 Dịch</button>
+                        <button class="tool-btn btn-para" onclick="showTool(1, 'para')">🔄 Paraphrase</button>
+                    </div>
+                    <div id="content-1-explain" class="tool-content"><b>Ms Mai An:</b> Sandra học về "hair and beauty" (tóc và làm đẹp) và muốn làm "volunteer" (tình nguyện viên). Ở đoạn C (Susie’s Hairdressing), họ đang tìm một "young, hard-working volunteer". Khớp cả về ngành nghề lẫn vị trí tình nguyện em nhé!</div>
+                    <div id="content-1-trans" class="tool-content">Sandra đang học bằng cử nhân 4 năm về tóc và làm đẹp, muốn làm tình nguyện viên cho kỳ thực tập năm 3. Cô ấy thích làm việc nhóm và thích giao tiếp với khách hàng.</div>
+                    <div id="content-1-para" class="tool-content">
+                        <b>hair and beauty</b> = hairdresser's (C)<br>
+                        <b>wants to work as a volunteer</b> = want a young... volunteer (C)<br>
+                        <b>dealing with customers</b> = build a relationship with our customers (C)
+                    </div>
+                </div>
+            </div>
+
+            <div class="question-card" id="q2">
+                <div class="question-header">
+                    <div class="avatar">👩🏽</div>
+                    <div class="person-name">2. Manuela</div>
+                </div>
+                <p>Manuela is from Spain and is looking for work to support herself financially while she studies English at a local college. She can only work on Saturdays and Sundays and some evenings.</p>
+                <div class="options-grid" data-qid="2" data-ans="B">
+                    <button class="option-btn" onclick="check(2, 'A')">A</button>
+                    <button class="option-btn" onclick="check(2, 'B')">B</button>
+                    <button class="option-btn" onclick="check(2, 'C')">C</button>
+                    <button class="option-btn" onclick="check(2, 'D')">D</button>
+                    <button class="option-btn" onclick="check(2, 'E')">E</button>
+                    <button class="option-btn" onclick="check(2, 'F')">F</button>
+                    <button class="option-btn" onclick="check(2, 'G')">G</button>
+                    <button class="option-btn" onclick="check(2, 'H')">H</button>
+                </div>
+                <div class="helper-tools" id="tools-2">
+                    <div class="tools-buttons">
+                        <button class="tool-btn btn-explain" onclick="showTool(2, 'explain')">💡 Giải thích</button>
+                        <button class="tool-btn btn-trans" onclick="showTool(2, 'trans')">📝 Dịch</button>
+                        <button class="tool-btn btn-para" onclick="showTool(2, 'para')">🔄 Paraphrase</button>
+                    </div>
+                    <div id="content-2-explain" class="tool-content"><b>Ms Mai An:</b> Manuela cần tiền (support herself financially) nên cần việc có trả lương, không làm tình nguyện. Cô ấy chỉ rảnh T7, CN và tối. Đoạn B (Mansion House Hotel) cần người làm "part-time" và yêu cầu làm "some weekends". Hơn nữa, Manuela là người Tây Ban Nha, khớp với ý "second language would be an advantage".</div>
+                    <div id="content-2-trans" class="tool-content">Manuela đến từ Tây Ban Nha và đang tìm việc để tự trang trải tài chính khi học tiếng Anh. Cô ấy chỉ có thể làm vào thứ 7, Chủ nhật và một số buổi tối.</div>
+                    <div id="content-2-para" class="tool-content">
+                        <b>support herself financially</b> = paid job (implied in part-time/not volunteer)<br>
+                        <b>Saturdays and Sundays</b> = work some weekends (B)<br>
+                        <b>from Spain (foreign language)</b> = second language would be an advantage (B)
+                    </div>
+                </div>
+            </div>
+
+            <div class="question-card" id="q3">
+                <div class="question-header">
+                    <div class="avatar">👩‍🦰</div>
+                    <div class="person-name">3. Stella</div>
+                </div>
+                <p>Stella is looking for work during the holidays. She’s studying business at college and would love somewhere she can gain experience in a business environment and put her IT skills into practice.</p>
+                <div class="options-grid" data-qid="3" data-ans="H">
+                    <button class="option-btn" onclick="check(3, 'A')">A</button>
+                    <button class="option-btn" onclick="check(3, 'B')">B</button>
+                    <button class="option-btn" onclick="check(3, 'C')">C</button>
+                    <button class="option-btn" onclick="check(3, 'D')">D</button>
+                    <button class="option-btn" onclick="check(3, 'E')">E</button>
+                    <button class="option-btn" onclick="check(3, 'F')">F</button>
+                    <button class="option-btn" onclick="check(3, 'G')">G</button>
+                    <button class="option-btn" onclick="check(3, 'H')">H</button>
+                </div>
+                <div class="helper-tools" id="tools-3">
+                    <div class="tools-buttons">
+                        <button class="tool-btn btn-explain" onclick="showTool(3, 'explain')">💡 Giải thích</button>
+                        <button class="tool-btn btn-trans" onclick="showTool(3, 'trans')">📝 Dịch</button>
+                        <button class="tool-btn btn-para" onclick="showTool(3, 'para')">🔄 Paraphrase</button>
+                    </div>
+                    <div id="content-3-explain" class="tool-content"><b>Ms Mai An:</b> Stella cần việc vào kỳ nghỉ (holidays). Đoạn H (Lucas Media) tuyển người "over the vacation period". Cô ấy muốn dùng kỹ năng IT, khớp với đoạn H là "help develop our website".</div>
+                    <div id="content-3-trans" class="tool-content">Stella đang tìm việc trong kỳ nghỉ. Cô ấy học kinh doanh và muốn tìm nơi có môi trường doanh nghiệp và áp dụng kỹ năng IT.</div>
+                    <div id="content-3-para" class="tool-content">
+                        <b>during the holidays</b> = over the vacation period (H)<br>
+                        <b>business environment</b> = how a modern company operates (H)<br>
+                        <b>IT skills</b> = help develop our website (H)
+                    </div>
+                </div>
+            </div>
+
+            <div class="question-card" id="q4">
+                <div class="question-header">
+                    <div class="avatar">👨‍🦱</div>
+                    <div class="person-name">4. John</div>
+                </div>
+                <p>John is looking for a job where he can work with customers. He recently completed a course in this area of work and is keen to find a job that would offer support in developing skills in managing staff.</p>
+                <div class="options-grid" data-qid="4" data-ans="D">
+                    <button class="option-btn" onclick="check(4, 'A')">A</button>
+                    <button class="option-btn" onclick="check(4, 'B')">B</button>
+                    <button class="option-btn" onclick="check(4, 'C')">C</button>
+                    <button class="option-btn" onclick="check(4, 'D')">D</button>
+                    <button class="option-btn" onclick="check(4, 'E')">E</button>
+                    <button class="option-btn" onclick="check(4, 'F')">F</button>
+                    <button class="option-btn" onclick="check(4, 'G')">G</button>
+                    <button class="option-btn" onclick="check(4, 'H')">H</button>
+                </div>
+                <div class="helper-tools" id="tools-4">
+                    <div class="tools-buttons">
+                        <button class="tool-btn btn-explain" onclick="showTool(4, 'explain')">💡 Giải thích</button>
+                        <button class="tool-btn btn-trans" onclick="showTool(4, 'trans')">📝 Dịch</button>
+                        <button class="tool-btn btn-para" onclick="showTool(4, 'para')">🔄 Paraphrase</button>
+                    </div>
+                    <div id="content-4-explain" class="tool-content"><b>Ms Mai An:</b> John muốn phát triển kỹ năng quản lý nhân viên (managing staff). Đoạn D (The Daily News) cần người "assist in managing our sales staff". Đoạn A cũng làm với khách hàng nhưng không nhắc đến quản lý nhân sự.</div>
+                    <div id="content-4-trans" class="tool-content">John đang tìm việc làm với khách hàng. Anh ấy vừa xong khóa học về lĩnh vực này và muốn tìm việc hỗ trợ phát triển kỹ năng quản lý nhân viên.</div>
+                    <div id="content-4-para" class="tool-content">
+                        <b>work with customers</b> = customer service team (D)<br>
+                        <b>developing skills in managing staff</b> = assist in managing our sales staff (D)
+                    </div>
+                </div>
+            </div>
+
+             <div class="question-card" id="q5">
+                <div class="question-header">
+                    <div class="avatar">🧔</div>
+                    <div class="person-name">5. Simon</div>
+                </div>
+                <p>Simon has a job but wants to work with teenagers during the weekend. He is planning a career change and is happy to work without pay in order to gain experience.</p>
+                <div class="options-grid" data-qid="5" data-ans="G">
+                    <button class="option-btn" onclick="check(5, 'A')">A</button>
+                    <button class="option-btn" onclick="check(5, 'B')">B</button>
+                    <button class="option-btn" onclick="check(5, 'C')">C</button>
+                    <button class="option-btn" onclick="check(5, 'D')">D</button>
+                    <button class="option-btn" onclick="check(5, 'E')">E</button>
+                    <button class="option-btn" onclick="check(5, 'F')">F</button>
+                    <button class="option-btn" onclick="check(5, 'G')">G</button>
+                    <button class="option-btn" onclick="check(5, 'H')">H</button>
+                </div>
+                <div class="helper-tools" id="tools-5">
+                    <div class="tools-buttons">
+                        <button class="tool-btn btn-explain" onclick="showTool(5, 'explain')">💡 Giải thích</button>
+                        <button class="tool-btn btn-trans" onclick="showTool(5, 'trans')">📝 Dịch</button>
+                        <button class="tool-btn btn-para" onclick="showTool(5, 'para')">🔄 Paraphrase</button>
+                    </div>
+                    <div id="content-5-explain" class="tool-content"><b>Ms Mai An:</b> Simon muốn làm việc với "teenagers" (thanh thiếu niên) vào cuối tuần (weekend). Anh ấy chấp nhận "without pay" (không lương). Đoạn G (Hall Green) là công việc tình nguyện (volunteer - không lương) và làm việc với "young people" (người trẻ) vào T7, CN.</div>
+                    <div id="content-5-trans" class="tool-content">Simon đã có việc nhưng muốn làm với thanh thiếu niên vào cuối tuần. Anh ấy định đổi nghề và vui vẻ làm không công để lấy kinh nghiệm.</div>
+                    <div id="content-5-para" class="tool-content">
+                        <b>work without pay</b> = volunteer (G)<br>
+                        <b>teenagers</b> = young people (G)<br>
+                        <b>during the weekend</b> = Saturdays... Sunday sessions (G)
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <footer>
+        <button class="btn-submit" onclick="submitExam()">NỘP BÀI & XEM ĐIỂM 🏆</button>
+    </footer>
+
+    <div class="modal-overlay" id="result-modal">
+        <div class="modal-content">
+            <h2>🎉 KẾT QUẢ CỦA BẠN 🎉</h2>
+            <div class="score-big" id="final-score">0/5</div>
+            <p class="feedback-msg" id="feedback-msg">Bạn chưa làm bài mà?</p>
+            <button class="btn-start" onclick="closeModal()">Xem lại bài làm</button>
+        </div>
+    </div>
+
+    <script>
+        // --- AUDIO ENGINE ---
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        
+        function playSound(type) {
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            
+            if (type === 'correct') {
+                // Ding sound (High pitch, short fade)
+                oscillator.type = 'sine';
+                oscillator.frequency.setValueAtTime(800, audioCtx.currentTime);
+                oscillator.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.1);
+                gainNode.gain.setValueAtTime(0.5, audioCtx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+                oscillator.start();
+                oscillator.stop(audioCtx.currentTime + 0.5);
+            } else if (type === 'wrong') {
+                // Sad wobble sound
+                oscillator.type = 'sawtooth';
+                oscillator.frequency.setValueAtTime(200, audioCtx.currentTime);
+                oscillator.frequency.linearRampToValueAtTime(150, audioCtx.currentTime + 0.3);
+                gainNode.gain.setValueAtTime(0.5, audioCtx.currentTime);
+                gainNode.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+                oscillator.start();
+                oscillator.stop(audioCtx.currentTime + 0.3);
+            }
+        }
+
+        // --- GAME LOGIC ---
+        let correctCount = 0;
+        let answered = [false, false, false, false, false]; // Track answered questions (index 0 is unused)
+
+        function check(qId, selected) {
+            const grid = document.querySelector(`.options-grid[data-qid="${qId}"]`);
+            const correctAns = grid.dataset.ans;
+            const buttons = grid.querySelectorAll('.option-btn');
+            
+            // Prevent re-answering
+            // But allows changing? No, requirements say immediate feedback. Let's lock it.
+            let isAlreadyAnswered = false;
+            buttons.forEach(btn => {
+                if(btn.disabled) isAlreadyAnswered = true;
+            });
+            if(isAlreadyAnswered) return;
+
+            // Mark this question as attempted for scoring count later if needed, 
+            // but for now we count correct immediately.
+            
+            if (selected === correctAns) {
+                // Correct
+                buttons.forEach(btn => {
+                    if (btn.innerText === selected) {
+                        btn.classList.add('correct');
+                    }
+                    btn.disabled = true;
+                });
+                playSound('correct');
+                fireConfetti();
+                correctCount++;
+            } else {
+                // Wrong
+                buttons.forEach(btn => {
+                    if (btn.innerText === selected) {
+                        btn.classList.add('wrong');
+                    }
+                    if (btn.innerText === correctAns) {
+                        btn.classList.add('correct'); // Show correct answer
+                    }
+                    btn.disabled = true;
+                });
+                playSound('wrong');
+            }
+
+            // Show Helper Tools
+            document.getElementById(`tools-${qId}`).style.display = 'block';
+        }
+
+        function showTool(qId, type) {
+            // Hide all first
+            const contents = document.querySelectorAll(`#tools-${qId} .tool-content`);
+            contents.forEach(c => c.style.display = 'none');
+            // Show selected
+            document.getElementById(`content-${qId}-${type}`).style.display = 'block';
+        }
+
+        function toggleTrans(id) {
+            const el = document.getElementById(id);
+            if (el.style.display === 'block') {
+                el.style.display = 'none';
+            } else {
+                el.style.display = 'block';
+            }
+        }
+
+        // --- TIMER ---
+        let timeRemaining = 600; // 10 minutes
+        let timerInterval = null;
+        let isRunning = false;
+
+        function toggleTimer() {
+            const btn = document.getElementById('btn-timer-ctrl');
+            if (isRunning) {
+                clearInterval(timerInterval);
+                btn.innerText = "TIẾP TỤC";
+                btn.style.backgroundColor = "#ff9f43";
+                isRunning = false;
+            } else {
+                btn.innerText = "TẠM DỪNG";
+                btn.style.backgroundColor = "#ff6b6b";
+                isRunning = true;
+                timerInterval = setInterval(() => {
+                    timeRemaining--;
+                    updateTimerDisplay();
+                    if (timeRemaining <= 0) {
+                        clearInterval(timerInterval);
+                        alert("⏰ Đã hết giờ làm bài. Bạn vẫn có thể tiếp tục làm, nhưng nhớ là trong phòng thi thật, bạn chỉ nên làm một bài như thế này trong 10 phút thôi nha.");
+                    }
+                }, 1000);
+            }
+        }
+
+        function updateTimerDisplay() {
+            const m = Math.floor(timeRemaining / 60);
+            const s = timeRemaining % 60;
+            document.getElementById('timer-display').innerText = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+        }
+
+        // --- SUBMIT & SCORING ---
+        function submitExam() {
+            const modal = document.getElementById('result-modal');
+            const scoreEl = document.getElementById('final-score');
+            const msgEl = document.getElementById('feedback-msg');
+
+            scoreEl.innerText = `${correctCount}/5`;
+
+            if (correctCount === 5) {
+                msgEl.innerText = "🌟 XUẤT SẮC! Bạn đúng là thiên tài ngôn ngữ! Ms Mai An rất tự hào về bạn!";
+                fireConfetti();
+                fireConfetti();
+            } else if (correctCount >= 3) {
+                msgEl.innerText = "😎 LÀM TỐT LẮM! Bạn đã nắm khá chắc bài, cố gắng thêm xíu nữa là tuyệt đối!";
+            } else {
+                msgEl.innerText = "💪 CỐ LÊN NHÉ! Đừng nản lòng, hãy xem kỹ phần giải thích của cô để rút kinh nghiệm nha.";
+            }
+
+            modal.style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('result-modal').style.display = 'none';
+        }
+
+        // --- CONFETTI EFFECT (Lightweight) ---
+        const canvas = document.getElementById("confetti-canvas");
+        const ctx = canvas.getContext("2d");
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        let particles = [];
+
+        function fireConfetti() {
+            for (let i = 0; i < 100; i++) {
+                particles.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height - canvas.height, // start above
+                    r: Math.random() * 6 + 2,
+                    d: Math.random() * 10 + 2, // density
+                    color: `hsl(${Math.random() * 360}, 100%, 50%)`,
+                    tilt: Math.floor(Math.random() * 10) - 10,
+                    tiltAngle: 0,
+                    tiltAngleIncremental: (Math.random() * 0.07) + 0.05
+                });
+            }
+            animateConfetti();
+        }
+
+        function animateConfetti() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            let stillFalling = false;
+            
+            particles.forEach((p, index) => {
+                p.tiltAngle += p.tiltAngleIncremental;
+                p.y += (Math.cos(p.d) + 3 + p.r / 2) / 2;
+                p.x += Math.sin(p.d);
+                p.tilt = Math.sin(p.tiltAngle) * 15;
+
+                ctx.beginPath();
+                ctx.lineWidth = p.r / 2;
+                ctx.strokeStyle = p.color;
+                ctx.moveTo(p.x + p.tilt + p.r / 4, p.y);
+                ctx.lineTo(p.x + p.tilt, p.y + p.tilt + p.r / 4);
+                ctx.stroke();
+
+                if (p.y < canvas.height) stillFalling = true;
+            });
+
+            if (stillFalling) {
+                requestAnimationFrame(animateConfetti);
+            } else {
+                particles = [];
+            }
+        }
+
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+
+    </script>
+</body>
+</html>

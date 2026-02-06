@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ms Mai An ULIS - Reading Challenge</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-purple: #8854C0;
+            --primary-teal: #00C9A7;
+            --success-green: #00D26A;
+            --error-red: #FF4757;
+            --bg-color: #F0F3F9;
+            --card-bg: #FFFFFF;
+            --text-dark: #2C3E50;
+        }
+
+        * {
+            box-sizing: border-box;
+            user-select: none; /* Ngăn bôi đen để trải nghiệm giống app */
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            overflow: hidden; /* Cố định màn hình, chỉ cuộn nội dung con */
+            background-color: #E0EAFC;
+            background-image: radial-gradient(#8854C0 1px, transparent 1px), radial-gradient(#00C9A7 1px, transparent 1px);
+            background-size: 20px 20px;
+            background-position: 0 0, 10px 10px;
+            color: var(--text-dark);
+        }
+
+        /* --- Header & Timer --- */
+        #top-bar {
+            height: 60px;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            position: relative;
+            z-index: 100;
+        }
+
+        #timer-btn {
+            background: var(--primary-purple);
+            color: white;
+            border: none;
+            padding: 10px 25px;
+            font-size: 18px;
+            font-weight: 800;
+            border-radius: 30px;
+            cursor: pointer;
+            box-shadow: 0 5px 0 #5E368C;
+            transition: transform 0.1s;
+        }
+
+        #timer-btn:active {
+            transform: translateY(5px);
+            box-shadow: none;
+        }
+
+        #timer-display {
+            font-size: 24px;
+            font-weight: 800;
+            color: var(--primary-purple);
+            margin-left: 15px;
+            display: none;
+            min-width: 80px;
+        }
+
+        .header-title {
+            position: absolute;
+            left: 20px;
+            font-size: 14px;
+            color: #888;
+            font-weight: 700;
+        }
+
+        /* --- Main Layout Split --- */
+        #main-container {
+            display: flex;
+            height: calc(100vh - 60px);
+            padding: 20px;
+            gap: 20px;
+        }
+
+        .panel {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 25px;
+            overflow-y: auto;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+            position: relative;
+        }
+
+        /* Scrollbar styling */
+        .panel::-webkit-scrollbar {
+            width: 8px;
+        }
+        .panel::-webkit-scrollbar-track {
+            background: #f1f1f1; 
+            border-radius: 10px;
+        }
+        .panel::-webkit-scrollbar-thumb {
+            background: #ccc; 
+            border-radius: 10px;
+        }
+        .panel::-webkit-scrollbar-thumb:hover {
+            background: #aaa; 
+        }
+
+        /* --- Left Side: Reading --- */
+        h2 {
+            color: var(--primary-purple);
+            border-bottom: 3px dashed var(--primary-teal);
+            padding-bottom: 10px;
+            margin-top: 0;
+        }
+
+        .paragraph {
+            margin-bottom: 20px;
+            line-height: 1.8;
+            font-size: 17px;
+        }
+
+        .trans-btn {
+            background: #EAEAEA;
+            color: #555;
+            border: none;
+            padding: 5px 15px;
+            border-radius: 15px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 700;
+            margin-top: 5px;
+            transition: all 0.2s;
+        }
+
+        .trans-btn:hover {
+            background: var(--primary-teal);
+            color: white;
+        }
+
+        .translation-text {
+            display: none;
+            background: #F0FCF9;
+            border-left: 4px solid var(--primary-teal);
+            padding: 10px;
+            margin-top: 10px;
+            font-size: 15px;
+            color: #333;
+            border-radius: 0 10px 10px 0;
+        }
+
+        /* Glossary Table */
+        .glossary-box {
+            margin-top: 30px;
+            background: #FFF5F7;
+            border: 2px solid #FFC1CC;
+            border-radius: 15px;
+            padding: 15px;
+        }
+        .glossary-title {
+            text-align: center;
+            font-weight: 800;
+            color: #D63031;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th {
+            background: #FFC1CC;
+            color: #D63031;
+            padding: 8px;
+            text-align: left;
+            border-radius: 5px;
+        }
+        td {
+            padding: 8px;
+            border-bottom: 1px solid #eee;
+            font-size: 15px;
+        }
+        .word-type {
+            font-style: italic;
+            color: #888;
+            font-size: 0.9em;
+        }
+
+        /* --- Right Side: Exercises --- */
+        .question-card {
+            background: white;
+            border: 2px solid #EEE;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+            transition: all 0.3s;
+        }
+        
+        .question-text {
+            font-weight: 700;
+            font-size: 18px;
+            margin-bottom: 15px;
+            color: var(--primary-purple);
+        }
+
+        .options-grid {
+            display: grid;
+            gap: 12px;
+        }
+
+        .option-btn {
+            display: block;
+            width: 100%;
+            padding: 15px 20px;
+            background: white;
+            border: 2px solid #E0E0E0;
+            border-radius: 15px;
+            text-align: left;
+            font-family: 'Nunito', sans-serif;
+            font-size: 16px;
+            cursor: pointer;
+            box-shadow: 0 4px 0 #E0E0E0;
+            transition: all 0.1s;
+            position: relative;
+        }
+
+        .option-btn:hover {
+            transform: scale(1.01);
+            border-color: var(--primary-purple);
+        }
+
+        .option-btn:active {
+            transform: translateY(4px);
+            box-shadow: none;
+        }
+
+        /* States */
+        .option-btn.correct {
+            background-color: var(--success-green);
+            color: white;
+            border-color: #00B058;
+            box-shadow: 0 4px 0 #00B058;
+            pointer-events: none;
+        }
+
+        .option-btn.wrong {
+            background-color: var(--error-red);
+            color: white;
+            border-color: #D63031;
+            box-shadow: 0 4px 0 #D63031;
+            animation: shake 0.5s;
+            pointer-events: none;
+        }
+
+        /* Feedback Panel */
+        .feedback-panel {
+            display: none;
+            margin-top: 15px;
+            background: #F8F0FF;
+            border: 2px solid var(--primary-purple);
+            border-radius: 15px;
+            padding: 15px;
+            animation: slideDown 0.3s ease-out;
+        }
+
+        .feedback-header {
+            font-weight: 800;
+            color: var(--primary-purple);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .feedback-content p {
+            margin: 5px 0;
+            font-size: 15px;
+        }
+
+        .highlight-quote {
+            background: #FFF9C4;
+            padding: 2px 5px;
+            border-radius: 4px;
+            font-style: italic;
+        }
+
+        .vocab-badge {
+            display: inline-block;
+            background: var(--primary-teal);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 12px;
+            margin-right: 5px;
+        }
+
+        /* Animations */
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            50% { transform: translateX(10px); }
+            75% { transform: translateX(-10px); }
+            100% { transform: translateX(0); }
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        #submit-section {
+            text-align: center;
+            margin-top: 30px;
+            padding-bottom: 30px;
+        }
+
+        #final-score {
+            font-size: 24px;
+            font-weight: 800;
+            color: var(--primary-purple);
+            margin-top: 15px;
+        }
+
+        /* Canvas for Confetti */
+        #confetti-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 999;
+        }
+
+        /* Overlay Modal for Timeout */
+        #modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            text-align: center;
+            max-width: 400px;
+            animation: slideDown 0.3s;
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="confetti-canvas"></canvas>
+
+    <div id="top-bar">
+        <div class="header-title">Giáo viên tạo: Ms Mai An ULIS</div>
+        <button id="timer-btn" onclick="toggleTimer()">BẮT ĐẦU TÍNH GIỜ ⏱️</button>
+        <div id="timer-display">15:00</div>
+    </div>
+
+    <div id="main-container">
+        <div class="panel" id="reading-panel">
+            <h2>📖 Reading Passage</h2>
+            
+            <div class="reading-content">
+                <h3>Steve Cummins talks about starting his own business</h3>
+
+                <div class="paragraph-box">
+                    <p class="paragraph">
+                        I’d worked for the company for almost ten years. They were good employers and the money wasn’t that bad. They trusted in my ability and always left me to get on with my work. And I shared an office and met some lovely people, so I certainly wasn’t unhappy there. But I just couldn’t stop wondering how better my life would be if I had my own business and could make my own decisions. And so one year ago this week I left my job.
+                    </p>
+                    <button class="trans-btn" onclick="toggleTrans(this)">🔍 BẢN DỊCH ĐẦY ĐỦ</button>
+                    <div class="translation-text">
+                        Tôi đã làm việc cho công ty được gần mười năm. Họ là những người chủ tốt và tiền lương cũng không tệ. Họ tin tưởng vào khả năng của tôi và luôn để tôi tự giải quyết công việc. Và tôi chia sẻ văn phòng và gặp gỡ một số người dễ mến, vì vậy tôi chắc chắn không hề cảm thấy bất hạnh ở đó. Nhưng tôi không thể ngừng tự hỏi cuộc sống của mình sẽ tốt hơn thế nào nếu tôi có doanh nghiệp riêng và có thể tự đưa ra quyết định. Và thế là một tuần trước đây tròn một năm, tôi đã nghỉ việc.
+                    </div>
+                </div>
+
+                <div class="paragraph-box">
+                    <p class="paragraph">
+                        We don’t have a spare room at home, so the kitchen table has been my office. It was difficult to begin with, but I soon got used to working in this way. I started by visiting small businesses in the area to see if I could interest them in my services. My proudest moment was making my first sale, a website for a local cake shop. Soon after, I started getting calls from other people asking for help with websites of their own and I found myself getting quite busy.
+                    </p>
+                    <button class="trans-btn" onclick="toggleTrans(this)">🔍 BẢN DỊCH ĐẦY ĐỦ</button>
+                    <div class="translation-text">
+                        Nhà tôi không có phòng dư, nên bàn bếp đã trở thành văn phòng của tôi. Ban đầu thì khó khăn, nhưng tôi sớm quen với cách làm việc này. Tôi bắt đầu bằng việc đi thăm các doanh nghiệp nhỏ trong khu vực để xem liệu tôi có thể khiến họ quan tâm đến dịch vụ của mình không. Khoảnh khắc tự hào nhất của tôi là thực hiện được đơn hàng đầu tiên, một trang web cho tiệm bánh địa phương. Ngay sau đó, tôi bắt đầu nhận được cuộc gọi từ những người khác nhờ giúp làm trang web cho họ và tôi thấy mình trở nên khá bận rộn.
+                    </div>
+                </div>
+
+                <div class="paragraph-box">
+                    <p class="paragraph">
+                        Of course, there have been challenges. I’m not earning quite as much as before but it’s enough. I don’t have to pay for transport to work anymore so that means I’m not spending quite so much. My biggest problem has been managing my time. There’s no boss to tell me what to do and I’m sometimes a little lazy. I have this rule that work stops on a Friday afternoon so I can spend time with the family at weekends, so I need to pay more attention to this.
+                    </p>
+                    <button class="trans-btn" onclick="toggleTrans(this)">🔍 BẢN DỊCH ĐẦY ĐỦ</button>
+                    <div class="translation-text">
+                        Tất nhiên, cũng có những thách thức. Tôi không kiếm được nhiều như trước nhưng cũng đủ sống. Tôi không phải trả tiền đi lại để đi làm nữa nên điều đó có nghĩa là tôi không tốn kém nhiều như vậy. Vấn đề lớn nhất của tôi là quản lý thời gian. Không có sếp bảo tôi phải làm gì và đôi khi tôi hơi lười biếng. Tôi có quy tắc là công việc dừng lại vào chiều thứ Sáu để tôi có thể dành thời gian cho gia đình vào cuối tuần, vì vậy tôi cần chú ý hơn đến điều này.
+                    </div>
+                </div>
+
+                <div class="paragraph-box">
+                    <p class="paragraph">
+                        So, I wouldn’t say it’s been easy, but I don’t regret my decision at all. I’ve enjoyed being my own boss and I’m quite hopeful about the future. During the next 12 months I plan to rent some office space as I’d like to be able to separate work from my home life. I’m going to need to earn more money to pay for it but I think it will help me to focus on my work.
+                    </p>
+                    <button class="trans-btn" onclick="toggleTrans(this)">🔍 BẢN DỊCH ĐẦY ĐỦ</button>
+                    <div class="translation-text">
+                        Vì vậy, tôi sẽ không nói là mọi chuyện dễ dàng, nhưng tôi không hề hối hận về quyết định của mình. Tôi thích việc làm chủ bản thân và tôi khá hy vọng vào tương lai. Trong 12 tháng tới, tôi dự định thuê một không gian văn phòng vì tôi muốn có thể tách biệt công việc khỏi cuộc sống gia đình. Tôi sẽ cần kiếm nhiều tiền hơn để chi trả cho nó nhưng tôi nghĩ nó sẽ giúp tôi tập trung vào công việc.
+                    </div>
+                </div>
+
+                <div class="glossary-box">
+                    <div class="glossary-title">📚 Glossary - Từ vựng xịn</div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Word</th>
+                                <th>Meaning (VN)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Employer</strong> <span class="word-type">(n)</span></td>
+                                <td>Nhà tuyển dụng, chủ</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Ability</strong> <span class="word-type">(n)</span></td>
+                                <td>Khả năng, năng lực</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Decision</strong> <span class="word-type">(n)</span></td>
+                                <td>Quyết định</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Service</strong> <span class="word-type">(n)</span></td>
+                                <td>Dịch vụ</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Challenge</strong> <span class="word-type">(n)</span></td>
+                                <td>Thử thách</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Transport</strong> <span class="word-type">(n)</span></td>
+                                <td>Giao thông, việc đi lại</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Manage</strong> <span class="word-type">(v)</span></td>
+                                <td>Quản lý, xoay xở</td>
+                            </tr>
+                             <tr>
+                                <td><strong>Regret</strong> <span class="word-type">(v)</span></td>
+                                <td>Hối hận</td>
+                            </tr>
+                             <tr>
+                                <td><strong>Separate</strong> <span class="word-type">(v)</span></td>
+                                <td>Tách biệt</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel" id="exercise-panel">
+            <h2>🎯 Exercises</h2>
+            
+            <div id="quiz-container">
+                <div class="question-card" id="q1">
+                    <div class="question-text">1. Why did Steve leave his job?</div>
+                    <div class="options-grid">
+                        <button class="option-btn" onclick="checkAnswer(1, 'A', 'B')">A. He didn’t like attending meetings.</button>
+                        <button class="option-btn" onclick="checkAnswer(1, 'B', 'B')">B. He wanted more control of his work.</button>
+                        <button class="option-btn" onclick="checkAnswer(1, 'C', 'B')">C. He had a great idea for a product.</button>
+                        <button class="option-btn" onclick="checkAnswer(1, 'D', 'B')">D. He wanted to earn more money.</button>
+                    </div>
+                    <div class="feedback-panel" id="fb-1">
+                        <div class="feedback-header">👩‍🏫 Ms. Mai An giải thích:</div>
+                        <div class="feedback-content">
+                            <p><strong>Đáp án đúng: B</strong></p>
+                            <p><strong>Dịch câu hỏi:</strong> Tại sao Steve nghỉ việc?</p>
+                            <p><strong>Dẫn chứng:</strong> Trong đoạn 1, Steve nói: <span class="highlight-quote">"But I just couldn’t stop wondering how better my life would be if I... could make my own decisions."</span> (Nhưng tôi không ngừng tự hỏi đời mình sẽ tốt hơn thế nào nếu tôi có thể tự đưa ra quyết định).</p>
+                            <p><strong>Paraphrase:</strong> <em>make my own decisions</em> = <em>have more control</em>.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="question-card" id="q2">
+                    <div class="question-text">2. Steve’s greatest pleasure so far has been</div>
+                    <div class="options-grid">
+                        <button class="option-btn" onclick="checkAnswer(2, 'A', 'A')">A. getting his first customer.</button>
+                        <button class="option-btn" onclick="checkAnswer(2, 'B', 'A')">B. not having to drive to work.</button>
+                        <button class="option-btn" onclick="checkAnswer(2, 'C', 'A')">C. having his own office.</button>
+                        <button class="option-btn" onclick="checkAnswer(2, 'D', 'A')">D. not having to answer the telephone.</button>
+                    </div>
+                    <div class="feedback-panel" id="fb-2">
+                        <div class="feedback-header">👩‍🏫 Ms. Mai An giải thích:</div>
+                        <div class="feedback-content">
+                            <p><strong>Đáp án đúng: A</strong></p>
+                            <p><strong>Dịch câu hỏi:</strong> Niềm vui lớn nhất của Steve cho đến nay là...</p>
+                            <p><strong>Dẫn chứng:</strong> Đoạn 2: <span class="highlight-quote">"My proudest moment was making my first sale"</span> (Khoảnh khắc tự hào nhất là bán được đơn hàng đầu tiên).</p>
+                            <p><strong>Paraphrase:</strong> <em>making my first sale</em> = <em>getting his first customer</em>.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="question-card" id="q3">
+                    <div class="question-text">3. What does Steve say is the most difficult about working for himself?</div>
+                    <div class="options-grid">
+                        <button class="option-btn" onclick="checkAnswer(3, 'A', 'A')">A. working hard enough</button>
+                        <button class="option-btn" onclick="checkAnswer(3, 'B', 'A')">B. not having a regular salary</button>
+                        <button class="option-btn" onclick="checkAnswer(3, 'C', 'A')">C. feeling lonely</button>
+                        <button class="option-btn" onclick="checkAnswer(3, 'D', 'A')">D. working at the weekend</button>
+                    </div>
+                    <div class="feedback-panel" id="fb-3">
+                        <div class="feedback-header">👩‍🏫 Ms. Mai An giải thích:</div>
+                        <div class="feedback-content">
+                            <p><strong>Đáp án đúng: A</strong></p>
+                            <p><strong>Dịch câu hỏi:</strong> Steve nói điều gì khó khăn nhất khi tự làm chủ?</p>
+                            <p><strong>Dẫn chứng:</strong> Đoạn 3: <span class="highlight-quote">"My biggest problem has been managing my time... and I’m sometimes a little lazy."</span> (Vấn đề lớn nhất là quản lý thời gian... đôi khi tôi hơi lười).</p>
+                            <p><strong>Giải thích:</strong> Việc "lười" (lazy) và khó quản lý thời gian đồng nghĩa với việc khó khăn trong việc làm việc chăm chỉ/đủ mức độ (working hard enough) khi không có sếp nhắc nhở.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="question-card" id="q4">
+                    <div class="question-text">4. In the next year, Steve thinks</div>
+                    <div class="options-grid">
+                        <button class="option-btn" onclick="checkAnswer(4, 'A', 'C')">A. he will get an office job.</button>
+                        <button class="option-btn" onclick="checkAnswer(4, 'B', 'C')">B. he will earn less money.</button>
+                        <button class="option-btn" onclick="checkAnswer(4, 'C', 'C')">C. he might not need to work in his kitchen.</button>
+                        <button class="option-btn" onclick="checkAnswer(4, 'D', 'C')">D. there will be much more competition.</button>
+                    </div>
+                    <div class="feedback-panel" id="fb-4">
+                        <div class="feedback-header">👩‍🏫 Ms. Mai An giải thích:</div>
+                        <div class="feedback-content">
+                            <p><strong>Đáp án đúng: C</strong></p>
+                            <p><strong>Dịch câu hỏi:</strong> Trong năm tới, Steve nghĩ rằng...</p>
+                            <p><strong>Dẫn chứng:</strong> Đoạn cuối: <span class="highlight-quote">"During the next 12 months I plan to rent some office space as I’d like to be able to separate work from my home life."</span> (Trong 12 tháng tới tôi định thuê văn phòng để tách công việc khỏi đời sống ở nhà).</p>
+                            <p><strong>Suy luận:</strong> Nếu thuê văn phòng, anh ấy sẽ không phải làm việc ở bàn bếp (kitchen) nữa.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="question-card" id="q5">
+                    <div class="question-text">5. What would be a good introduction to this article?</div>
+                    <div class="options-grid">
+                        <button class="option-btn" onclick="checkAnswer(5, 'A', 'C')">A. In this article, Steve Cummins explains the problems of starting your own business and dealing with difficult customers.</button>
+                        <button class="option-btn" onclick="checkAnswer(5, 'B', 'C')">B. Thinking of starting your own business? Steve Cummins did just that and now wishes he had done it sooner.</button>
+                        <button class="option-btn" onclick="checkAnswer(5, 'C', 'C')">C. Steve Cummins made a big decision last year to leave his job. Read on to find out about the ups and downs of being your own boss.</button>
+                        <button class="option-btn" onclick="checkAnswer(5, 'D', 'C')">D. Steve Cummins explains below how he dealt with not enjoying his job by leaving his employer and starting his own business.</button>
+                    </div>
+                    <div class="feedback-panel" id="fb-5">
+                        <div class="feedback-header">👩‍🏫 Ms. Mai An giải thích:</div>
+                        <div class="feedback-content">
+                            <p><strong>Đáp án đúng: C</strong></p>
+                            <p><strong>Giải thích:</strong> Bài viết nói về cả điều tích cực (pleasure, hopeful) và tiêu cực (challenges, earning less). Cụm từ "Ups and downs" (thăng trầm) tóm tắt chính xác nhất nội dung này. Câu A sai vì bài không nói nhiều về "difficult customers". Câu B sai vì anh ấy không nói "ước gì làm sớm hơn" cụ thể. Câu D sai vì đoạn 1 nói anh ấy "wasn't unhappy" (không chán ghét) công việc cũ.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="submit-section">
+                     <button id="timer-btn" onclick="finishTest()" style="background:var(--primary-teal); width: 200px;">NỘP BÀI 📝</button>
+                     <div id="final-score"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="modal-overlay">
+        <div class="modal-content">
+            <h2 style="color:var(--error-red)">HẾT GIỜ RỒI! ⏰</h2>
+            <p>Đã hết thời gian làm bài 15 phút.</p>
+            <p>Bạn vẫn có thể tiếp tục làm, nhưng nhớ là trong phòng thi thật, bạn chỉ nên làm một bài như thế này trong 15 phút thôi nha!</p>
+            <button id="timer-btn" onclick="closeModal()">Đã hiểu, làm tiếp!</button>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. Sound Logic (Using AudioContext for single file portability) ---
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        const audioCtx = new AudioContext();
+
+        function playSound(type) {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            
+            const osc = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            osc.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+
+            if (type === 'correct') {
+                // High pitch Ding (Sine wave)
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(600, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.1);
+                gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.5);
+            } else if (type === 'wrong') {
+                // Low pitch Buzz (Sawtooth)
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+                osc.frequency.linearRampToValueAtTime(100, audioCtx.currentTime + 0.3);
+                gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.3);
+            }
+        }
+
+        // --- 2. Quiz Logic ---
+        let correctCount = 0;
+        let totalQuestions = 5;
+
+        function checkAnswer(qId, selectedOption, correctOption) {
+            const card = document.getElementById(`q${qId}`);
+            const buttons = card.querySelectorAll('.option-btn');
+            const feedback = document.getElementById(`fb-${qId}`);
+            
+            // Disable all buttons in this card
+            buttons.forEach(btn => btn.style.pointerEvents = 'none');
+
+            // Find selected button
+            const selectedBtn = Array.from(buttons).find(btn => btn.textContent.startsWith(selectedOption));
+            
+            if (selectedOption === correctOption) {
+                // Correct
+                selectedBtn.classList.add('correct');
+                playSound('correct');
+                confettiEffect(selectedBtn);
+                correctCount++;
+            } else {
+                // Wrong
+                selectedBtn.classList.add('wrong');
+                playSound('wrong');
+                // Highlight correct one automatically
+                const correctBtn = Array.from(buttons).find(btn => btn.textContent.startsWith(correctOption));
+                correctBtn.classList.add('correct');
+            }
+
+            // Show feedback
+            feedback.style.display = 'block';
+        }
+
+        // --- 3. Translation Toggle ---
+        function toggleTrans(btn) {
+            const textDiv = btn.nextElementSibling;
+            if (textDiv.style.display === 'block') {
+                textDiv.style.display = 'none';
+                btn.textContent = '🔍 BẢN DỊCH ĐẦY ĐỦ';
+                btn.style.background = '#EAEAEA';
+                btn.style.color = '#555';
+            } else {
+                textDiv.style.display = 'block';
+                btn.textContent = '🙈 ẨN BẢN DỊCH';
+                btn.style.background = 'var(--primary-purple)';
+                btn.style.color = 'white';
+            }
+        }
+
+        // --- 4. Timer Logic ---
+        let timeRemaining = 15 * 60; // 15 minutes
+        let timerInterval = null;
+        let isRunning = false;
+        const display = document.getElementById('timer-display');
+        const timerBtn = document.getElementById('timer-btn');
+
+        function updateDisplay() {
+            const minutes = Math.floor(timeRemaining / 60);
+            const seconds = timeRemaining % 60;
+            display.textContent = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+        }
+
+        function toggleTimer() {
+            if (isRunning) {
+                // Pause
+                clearInterval(timerInterval);
+                timerBtn.textContent = 'TIẾP TỤC ▶️';
+                isRunning = false;
+            } else {
+                // Start/Resume
+                display.style.display = 'block';
+                timerBtn.textContent = 'TẠM DỪNG ⏸️';
+                isRunning = true;
+                timerInterval = setInterval(() => {
+                    timeRemaining--;
+                    updateDisplay();
+                    if (timeRemaining <= 0) {
+                        clearInterval(timerInterval);
+                        document.getElementById('modal-overlay').style.display = 'flex';
+                        timerBtn.textContent = 'HẾT GIỜ';
+                    }
+                }, 1000);
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('modal-overlay').style.display = 'none';
+        }
+
+        // --- 5. Finish & Score ---
+        function finishTest() {
+            const scoreDiv = document.getElementById('final-score');
+            const compliments = ["Xuất sắc! 🌟", "Làm tốt lắm! 🔥", "Cố gắng lên nhé! 💪", "Đỉnh của chóp! 🚀"];
+            const randomCompliment = compliments[Math.floor(Math.random() * compliments.length)];
+            
+            scoreDiv.innerHTML = `Bạn trả lời đúng: ${correctCount}/${totalQuestions}<br><span style="color:#00D26A; font-size: 0.8em">${randomCompliment}</span>`;
+            
+            // Big Confetti
+            confettiEffect(document.body, 100);
+            playSound('correct');
+        }
+
+        // --- 6. Confetti Effect (Simple JS implementation) ---
+        function confettiEffect(element, count = 30) {
+            const canvas = document.getElementById('confetti-canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+
+            const particles = [];
+            const colors = ['#8854C0', '#00C9A7', '#FF4757', '#FFC107', '#00D26A'];
+
+            // Get coordinates relative to viewport
+            let rect = element.getBoundingClientRect();
+            let xOrigin = rect.left + rect.width / 2;
+            let yOrigin = rect.top + rect.height / 2;
+            
+            if(element === document.body) {
+                xOrigin = window.innerWidth / 2;
+                yOrigin = window.innerHeight / 2;
+            }
+
+            for (let i = 0; i < count; i++) {
+                particles.push({
+                    x: xOrigin,
+                    y: yOrigin,
+                    color: colors[Math.floor(Math.random() * colors.length)],
+                    radius: Math.random() * 5 + 2,
+                    speedX: (Math.random() - 0.5) * 10,
+                    speedY: (Math.random() - 0.5) * 10 - 5,
+                    gravity: 0.5,
+                    life: 100
+                });
+            }
+
+            function draw() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                let active = false;
+                
+                particles.forEach(p => {
+                    if (p.life > 0) {
+                        ctx.beginPath();
+                        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                        ctx.fillStyle = p.color;
+                        ctx.fill();
+
+                        p.x += p.speedX;
+                        p.y += p.speedY;
+                        p.speedY += p.gravity;
+                        p.life--;
+                        active = true;
+                    }
+                });
+
+                if (active) requestAnimationFrame(draw);
+                else ctx.clearRect(0, 0, canvas.width, canvas.height);
+            }
+
+            draw();
+        }
+    </script>
+</body>
+</html>

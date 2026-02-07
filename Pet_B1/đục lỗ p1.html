@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bài Kiểm Tra: Ms Mai An ULIS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            /* Default Theme Colors (Will be changed by JS) */
+            --primary-color: #6c5ce7;
+            --secondary-color: #a29bfe;
+            --bg-gradient-start: #f5f6fa;
+            --bg-gradient-end: #dfe6e9;
+            --text-color: #2d3436;
+            --correct-color: #00b894;
+            --wrong-color: #ff7675;
+            --card-bg: #ffffff;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        body {
+            font-family: 'Nunito', sans-serif;
+            height: 100vh;
+            overflow: hidden; /* Prevent body scroll, handle in split panels */
+            background-color: #f0f2f5;
+            transition: background 1s ease;
+        }
+
+        /* DYNAMIC BACKGROUND SVG GENERATED VIA CSS */
+        .dynamic-bg {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -1;
+            transition: opacity 0.5s ease;
+            background-repeat: no-repeat;
+            background-size: cover;
+            background-position: center;
+        }
+
+        /* --- HEADER --- */
+        header {
+            height: 60px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            position: fixed;
+            top: 0; width: 100%;
+            z-index: 100;
+        }
+
+        .teacher-brand {
+            position: absolute;
+            left: 20px;
+            font-weight: 800;
+            color: var(--primary-color);
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .timer-container {
+            font-family: 'Quicksand', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #2d3436;
+            background: #dfe6e9;
+            padding: 5px 20px;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .timer-container:hover { transform: scale(1.05); }
+        .timer-container.urgent { color: #d63031; animation: pulse 1s infinite; }
+
+        /* --- MAIN LAYOUT --- */
+        .main-container {
+            display: flex;
+            height: calc(100vh - 60px);
+            margin-top: 60px;
+        }
+
+        .split-panel {
+            width: 50%;
+            padding: 20px;
+            overflow-y: auto;
+            scroll-behavior: smooth;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.2); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,0.4); }
+
+        /* --- LEFT PANEL: READING --- */
+        .reading-section {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            transition: transform 0.3s;
+            border-left: 5px solid var(--primary-color);
+        }
+
+        .reading-title {
+            font-family: 'Quicksand', sans-serif;
+            font-size: 1.8rem;
+            color: var(--primary-color);
+            margin-bottom: 20px;
+            border-bottom: 2px dashed #b2bec3;
+            padding-bottom: 10px;
+        }
+
+        .reading-content {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            color: #2d3436;
+            text-align: justify;
+        }
+
+        .reading-content span.gap {
+            font-weight: 800;
+            color: var(--primary-color);
+            background: rgba(0,0,0,0.05);
+            padding: 2px 8px;
+            border-radius: 5px;
+        }
+
+        .translate-btn {
+            background: linear-gradient(45deg, #6c5ce7, #a29bfe);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 20px;
+            margin-top: 15px;
+            cursor: pointer;
+            font-weight: 700;
+            box-shadow: 0 4px 0 #4834d4;
+            transition: all 0.1s;
+        }
+        .translate-btn:active { transform: translateY(4px); box-shadow: none; }
+
+        .translation-box {
+            display: none;
+            margin-top: 15px;
+            padding: 15px;
+            background: #e1f5fe;
+            border-radius: 10px;
+            color: #0277bd;
+            font-style: italic;
+        }
+
+        /* GLOSSARY TABLE */
+        .glossary-table {
+            width: 100%;
+            margin-top: 20px;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        .glossary-table th { background: var(--primary-color); color: white; padding: 10px; text-align: left; }
+        .glossary-table td { padding: 10px; border-bottom: 1px solid #eee; font-size: 0.95rem; }
+        .glossary-table tr:last-child td { border-bottom: none; }
+
+        /* --- RIGHT PANEL: EXERCISES --- */
+        .question-card {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 8px 0 rgba(0,0,0,0.05);
+            border: 2px solid #f0f0f0;
+            position: relative;
+            transition: all 0.3s;
+        }
+
+        .question-card:hover { transform: translateY(-5px); }
+
+        .q-header {
+            font-weight: 800;
+            color: #636e72;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .option-btn {
+            background: white;
+            border: 2px solid #dfe6e9;
+            border-radius: 15px;
+            padding: 15px;
+            font-size: 1rem;
+            font-family: 'Nunito', sans-serif;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+            box-shadow: 0 4px 0 #dfe6e9;
+            text-align: left;
+        }
+
+        .option-btn:hover:not(.disabled) {
+            transform: scale(1.02);
+            border-color: var(--primary-color);
+        }
+
+        .option-btn:active:not(.disabled) {
+            transform: translateY(4px);
+            box-shadow: none;
+        }
+
+        /* States */
+        .option-btn.correct {
+            background: var(--correct-color);
+            color: white;
+            border-color: #008f72;
+            box-shadow: 0 4px 0 #008f72;
+            animation: pop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        
+        .option-btn.wrong {
+            background: var(--wrong-color);
+            color: white;
+            border-color: #d63031;
+            box-shadow: 0 4px 0 #d63031;
+            animation: shake 0.5s;
+        }
+
+        .disabled { pointer-events: none; opacity: 0.7; }
+
+        /* EXPLANATION AREA */
+        .explanation-area {
+            display: none; /* Hidden initially */
+            margin-top: 20px;
+            border-top: 2px dashed #dfe6e9;
+            padding-top: 15px;
+            animation: slideDown 0.5s ease;
+        }
+
+        .teacher-avatar {
+            width: 40px; height: 40px;
+            background: #ffeaa7;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            margin-right: 10px;
+            border: 2px solid #fdcb6e;
+        }
+
+        .feedback-actions {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .mini-btn {
+            padding: 5px 15px;
+            border-radius: 15px;
+            border: none;
+            font-size: 0.8rem;
+            font-weight: 700;
+            cursor: pointer;
+            opacity: 0.8;
+            transition: 0.2s;
+        }
+        .mini-btn:hover { opacity: 1; transform: scale(1.05); }
+        
+        .btn-explain { background: #ffeaa7; color: #d35400; }
+        .btn-trans { background: #74b9ff; color: #0984e3; }
+        .btn-vocab { background: #55efc4; color: #00b894; }
+
+        .detail-box {
+            background: #fdfdfd;
+            border-left: 4px solid var(--primary-color);
+            padding: 10px;
+            margin-top: 10px;
+            font-size: 0.95rem;
+            color: #2d3436;
+            display: none; /* Toggled */
+        }
+
+        /* --- ANIMATIONS --- */
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-5px) rotate(-5deg); }
+            50% { transform: translateX(5px) rotate(5deg); }
+            75% { transform: translateX(-5px) rotate(-5deg); }
+            100% { transform: translateX(0); }
+        }
+        @keyframes pop {
+            0% { transform: scale(0.8); }
+            100% { transform: scale(1); }
+        }
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+
+        /* CONFETTI OVERLAY */
+        #confetti-canvas {
+            position: fixed; top: 0; left: 0; pointer-events: none; z-index: 999;
+        }
+
+        /* MODAL SCOREBOARD */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 2000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+        }
+        .scoreboard {
+            background: white;
+            padding: 40px;
+            border-radius: 30px;
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+            animation: pop 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+            position: relative;
+        }
+        .score-circle {
+            width: 150px; height: 150px;
+            background: var(--primary-color);
+            border-radius: 50%;
+            margin: 0 auto 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            color: white;
+            box-shadow: 0 10px 25px rgba(108, 92, 231, 0.4);
+        }
+        .score-number { font-size: 3rem; font-weight: 800; }
+        .score-label { font-size: 1rem; opacity: 0.9; }
+        .teacher-comment { font-style: italic; color: #636e72; margin-bottom: 20px; }
+        .btn-finish {
+            background: var(--primary-color); color: white;
+            padding: 15px 30px; border: none; border-radius: 50px;
+            font-size: 1.2rem; font-weight: 800; cursor: pointer;
+            box-shadow: 0 6px 0 rgba(0,0,0,0.2);
+            transition: 0.2s;
+        }
+        .btn-finish:active { transform: translateY(6px); box-shadow: none; }
+
+        /* Submit Button Fixed Bottom Right */
+        .submit-float {
+            position: fixed; bottom: 30px; right: 30px;
+            background: #d63031; color: white;
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-weight: 800;
+            box-shadow: 0 10px 20px rgba(214, 48, 49, 0.4);
+            cursor: pointer;
+            z-index: 101;
+            transition: all 0.3s;
+            border: 4px solid white;
+        }
+        .submit-float:hover { transform: scale(1.1); }
+    </style>
+</head>
+<body>
+
+<div id="dynamic-bg" class="dynamic-bg"></div>
+<canvas id="confetti-canvas"></canvas>
+
+<header>
+    <div class="teacher-brand">
+        <span>👩‍🏫</span> Ms Mai An ULIS
+    </div>
+    <div class="timer-container" onclick="toggleTimer()">
+        <span id="timer-icon">⏳</span>
+        <span id="time-display">10:00</span>
+    </div>
+</header>
+
+<div class="main-container">
+    
+    <div class="split-panel" id="reading-panel">
+        
+        <div class="reading-section" id="passage-1" data-theme="sheep">
+            <h2 class="reading-title">🐑 Sheep can recognise faces!</h2>
+            <div class="reading-content">
+                <p>Many people think sheep aren’t very intelligent creatures. But in fact, <b>(1)...........</b> to new research, they may be cleverer than we think. For example, sheep can actually be trained to recognise human faces from photographs!</p>
+                <p>Recognising faces is an important human social <b>(2)...........</b>. However, it seems that sheep are also social animals that can recognise other sheep as well as <b>(3)...........</b> humans. In experiments, researchers trained eight sheep to recognise the faces of celebrities from photographs. Training involved getting the sheep to <b>(4)...........</b> decisions about the photos they saw. At one end of a room, they would see two different photographs, and would receive a <b>(5)...........</b> of food for approaching the photograph of the celebrity; if they approached the wrong photograph, they got nothing. Over time, they learned to <b>(6)...........</b> getting food with the celebrity’s photograph. And after training, the sheep correctly chose the celebrity’s face eight times out of ten!</p>
+            </div>
+            <button class="translate-btn" onclick="toggleTrans('trans-1')">🇻🇳 BẢN DỊCH ĐẦY ĐỦ</button>
+            <div id="trans-1" class="translation-box">
+                Nhiều người nghĩ rằng cừu không phải là loài sinh vật thông minh lắm. Nhưng thực tế, theo nghiên cứu mới, chúng có thể thông minh hơn chúng ta nghĩ. Ví dụ, cừu thực sự có thể được huấn luyện để nhận diện khuôn mặt người từ các bức ảnh!<br><br>
+                Nhận diện khuôn mặt là một kỹ năng xã hội quan trọng của con người. Tuy nhiên, có vẻ như cừu cũng là động vật có tính xã hội, có thể nhận ra những con cừu khác cũng như những người quen thuộc. Trong các thí nghiệm, các nhà nghiên cứu đã huấn luyện tám con cừu để nhận diện khuôn mặt của những người nổi tiếng từ các bức ảnh. Quá trình huấn luyện bao gồm việc khiến cừu đưa ra quyết định về những bức ảnh chúng nhìn thấy. Ở một đầu phòng, chúng sẽ thấy hai bức ảnh khác nhau và sẽ nhận được phần thưởng thức ăn khi tiến lại gần bức ảnh của người nổi tiếng; nếu chúng tiến lại gần bức ảnh sai, chúng sẽ không nhận được gì. Theo thời gian, chúng học cách liên kết việc có thức ăn với bức ảnh của người nổi tiếng. Và sau khi huấn luyện, những con cừu đã chọn đúng khuôn mặt người nổi tiếng tám trên mười lần!
+            </div>
+            
+            <table class="glossary-table">
+                <thead><tr><th>Word</th><th>Type</th><th>Vietnamese Meaning</th></tr></thead>
+                <tbody>
+                    <tr><td>Intelligent</td><td>(adj)</td><td>Thông minh, sáng dạ</td></tr>
+                    <tr><td>Creature</td><td>(n)</td><td>Sinh vật, loài vật</td></tr>
+                    <tr><td>Recognise</td><td>(v)</td><td>Nhận ra, nhận diện</td></tr>
+                    <tr><td>Celebrity</td><td>(n)</td><td>Người nổi tiếng</td></tr>
+                    <tr><td>Experiment</td><td>(n)</td><td>Thí nghiệm</td></tr>
+                    <tr><td>Associate</td><td>(v)</td><td>Liên kết, liên tưởng</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="reading-section" id="passage-2" data-theme="ice">
+            <h2 class="reading-title">❄️ Ice Sculptures</h2>
+            <div class="reading-content">
+                <p>Many cities have parks for people to enjoy. And it’s very <b>(1)...........</b> to find wonderful sculptures in them. However, some sculptures found in Fairbanks, Alaska, aren’t quite the same as in other cities. When the temperature <b>(2)...........</b> at the end of winter, they all disappear – because they’re made of ice!</p>
+                <p>Fairbanks has been the home of the World Ice Art Championship for over 20 years, and artists from many different countries come to create spectacular ice sculptures. The ice is brought from a lake <b>(3)...........</b> near the sculpture park. It’s said to be so clear that visitors can read a newspaper through it – even though the individual pieces are over one metre <b>(4)...........</b>!</p>
+                <p>Visitors also have the <b>(5)...........</b> to make their own ice sculptures if they wish, as special classes. There’s a children’s play park, too, where <b>(6)...........</b> everything is made of ice, including sculptures of favourite animals. It’s a great place to visit!</p>
+            </div>
+            <button class="translate-btn" onclick="toggleTrans('trans-2')">🇻🇳 BẢN DỊCH ĐẦY ĐỦ</button>
+            <div id="trans-2" class="translation-box">
+                Nhiều thành phố có công viên để mọi người thưởng thức. Và việc tìm thấy những tác phẩm điêu khắc tuyệt đẹp trong đó là rất phổ biến. Tuy nhiên, một số tác phẩm điêu khắc ở Fairbanks, Alaska lại không giống ở các thành phố khác. Khi nhiệt độ tăng lên vào cuối mùa đông, tất cả chúng đều biến mất – bởi vì chúng được làm bằng băng!<br><br>
+                Fairbanks là nơi tổ chức Giải vô địch Nghệ thuật Băng Thế giới trong hơn 20 năm qua, và các nghệ sĩ từ nhiều quốc gia khác nhau đến để tạo ra những tác phẩm điêu khắc băng ngoạn mục. Băng được lấy từ một hồ nằm gần công viên điêu khắc. Người ta nói rằng băng trong đến mức du khách có thể đọc báo xuyên qua nó – mặc dù các khối băng dày hơn một mét!<br><br>
+                Du khách cũng có cơ hội tự làm các tác phẩm điêu khắc băng của riêng mình nếu muốn, thông qua các lớp học đặc biệt. Cũng có một công viên vui chơi cho trẻ em, nơi hoàn toàn mọi thứ đều được làm bằng băng, bao gồm cả các tác phẩm điêu khắc về những con vật yêu thích. Đó là một nơi tuyệt vời để ghé thăm!
+            </div>
+            <table class="glossary-table">
+                <thead><tr><th>Word</th><th>Type</th><th>Vietnamese Meaning</th></tr></thead>
+                <tbody>
+                    <tr><td>Sculpture</td><td>(n)</td><td>Tác phẩm điêu khắc</td></tr>
+                    <tr><td>Temperature</td><td>(n)</td><td>Nhiệt độ</td></tr>
+                    <tr><td>Spectacular</td><td>(adj)</td><td>Hùng vĩ, ngoạn mục</td></tr>
+                    <tr><td>Opportunity</td><td>(n)</td><td>Cơ hội</td></tr>
+                    <tr><td>Located</td><td>(adj)</td><td>Tọa lạc, nằm ở</td></tr>
+                    <tr><td>Absolutely</td><td>(adv)</td><td>Tuyệt đối, hoàn toàn</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+
+    <div class="split-panel" id="exercise-panel">
+        </div>
+
+</div>
+
+<div class="submit-float" onclick="finishTest()">📤 NỘP BÀI</div>
+
+<div class="modal-overlay" id="score-modal">
+    <div class="scoreboard">
+        <div class="score-circle">
+            <div class="score-number" id="final-score">0/12</div>
+            <div class="score-label">CORRECT</div>
+        </div>
+        <h2 id="feedback-title">Great Job!</h2>
+        <p class="teacher-comment" id="teacher-msg">...</p>
+        <button class="btn-finish" onclick="closeModal()">Review Answers</button>
+    </div>
+</div>
+
+<script>
+    // --- DATA ---
+    const quizData = [
+        // Passage 1: Sheep
+        {
+            id: 1, passageId: "passage-1",
+            q: "1. But in fact, (1)........... to new research...",
+            options: { A: "regarding", B: "following", C: "resulting", D: "according" },
+            correct: "D",
+            explain: "Cấu trúc 'According to + Noun' (Theo như...) là cụm cố định. Các từ còn lại không đi với 'to' để tạo nghĩa phù hợp trong ngữ cảnh trích dẫn nguồn tin.",
+            trans: "Nhưng thực tế, theo nghiên cứu mới..."
+        },
+        {
+            id: 2, passageId: "passage-1",
+            q: "2. Recognising faces is an important human social (2)...........",
+            options: { A: "skill", B: "talent", C: "knowledge", D: "method" },
+            correct: "A",
+            explain: "'Social skill' (Kỹ năng xã hội) là một collocations (cụm từ hay đi cùng nhau). Nhận diện khuôn mặt là một kỹ năng học được chứ không hẳn là tài năng thiên bẩm (talent) hay kiến thức (knowledge).",
+            trans: "Nhận diện khuôn mặt là một kỹ năng xã hội quan trọng..."
+        },
+        {
+            id: 3, passageId: "passage-1",
+            q: "3. ...recognise other sheep as well as (3)........... humans.",
+            options: { A: "ordinary", B: "usual", C: "familiar", D: "frequent" },
+            correct: "C",
+            explain: "'Familiar' (quen thuộc). Cừu nhận ra những người chúng đã gặp (quen). 'Ordinary' (bình thường), 'Usual' (thông thường) không diễn tả ý nghĩa 'đã biết mặt'.",
+            trans: "...nhận ra những con cừu khác cũng như những con người quen thuộc."
+        },
+        {
+            id: 4, passageId: "passage-1",
+            q: "4. Training involved getting the sheep to (4)........... decisions...",
+            options: { A: "set", B: "make", C: "have", D: "do" },
+            correct: "B",
+            explain: "Collocation: 'Make a decision' (Đưa ra quyết định). Các động từ khác không đi với decision trong ngữ cảnh này.",
+            trans: "...khiến những con cừu phải đưa ra quyết định..."
+        },
+        {
+            id: 5, passageId: "passage-1",
+            q: "5. ...receive a (5)........... of food for approaching the photograph...",
+            options: { A: "reward", B: "benefit", C: "tip", D: "goal" },
+            correct: "A",
+            explain: "'Reward' (phần thưởng). Thức ăn là phần thưởng cho hành động đúng. 'Benefit' (lợi ích), 'Tip' (tiền boa/mẹo), 'Goal' (mục tiêu) không phù hợp.",
+            trans: "...nhận được một phần thưởng thức ăn..."
+        },
+        {
+            id: 6, passageId: "passage-1",
+            q: "6. Over time, they learned to (6)........... getting food with the celebrity’s photograph.",
+            options: { A: "attach", B: "join", C: "add", D: "connect" }, // Key says Connect (D) - usually associate but connect works conceptually as linking ideas
+            correct: "D",
+            explain: "Trong ngữ cảnh này, 'connect A with B' có nghĩa là liên kết/kết nối ý tưởng này với ý tưởng kia (nhận ra ảnh -> có ăn). (Lưu ý: Associate cũng hay dùng nhưng không có trong đáp án, Connect là lựa chọn tốt nhất).",
+            trans: "...chúng học cách liên kết việc nhận thức ăn với bức ảnh..."
+        },
+        // Passage 2: Ice
+        {
+            id: 7, passageId: "passage-2",
+            q: "7. And it’s very (1)........... to find wonderful sculptures in them.",
+            options: { A: "usual", B: "general", C: "common", D: "familiar" },
+            correct: "C",
+            explain: "'Common' (phổ biến/thông thường) dùng để chỉ việc gì đó xảy ra thường xuyên ở nhiều nơi. 'Usual' thường đi với 'as usual', không đi với 'very'.",
+            trans: "Và rất phổ biến khi tìm thấy..."
+        },
+        {
+            id: 8, passageId: "passage-2",
+            q: "8. When the temperature (2)........... at the end of winter...",
+            options: { A: "develops", B: "rises", C: "grows", D: "builds" },
+            correct: "B",
+            explain: "Temperature rises (Nhiệt độ tăng lên). Đây là cách dùng từ chính xác cho nhiệt độ. Grows/Develops dùng cho sự phát triển của sinh vật/sự việc.",
+            trans: "Khi nhiệt độ tăng lên vào cuối mùa đông..."
+        },
+        {
+            id: 9, passageId: "passage-2",
+            q: "9. The ice is brought from a lake (3)........... near the sculpture park.",
+            options: { A: "located", B: "arranged", C: "contained", D: "attached" },
+            correct: "A",
+            explain: "'Located' (tọa lạc/nằm tại). Hồ nước nằm ở gần công viên. Các từ khác không chỉ vị trí địa lý.",
+            trans: "...từ một cái hồ nằm gần công viên điêu khắc."
+        },
+        {
+            id: 10, passageId: "passage-2",
+            q: "10. ...even though the individual pieces are over one metre (4)...........!",
+            options: { A: "heavy", B: "large", C: "strong", D: "thick" }, // Typo in prompt 'think' corrected to 'thick' based on logic
+            correct: "D",
+            explain: "'Thick' (dày). Đang mô tả kích thước tảng băng (độ dày).",
+            trans: "...mặc dù các khối riêng lẻ dày hơn một mét!"
+        },
+        {
+            id: 11, passageId: "passage-2",
+            q: "11. Visitors also have the (5)........... to make their own ice sculptures...",
+            options: { A: "occasion", B: "benefit", C: "opportunity", D: "ability" },
+            correct: "C",
+            explain: "'Have the opportunity' (có cơ hội) làm gì đó. 'Occasion' là dịp đặc biệt, không dùng trong cấu trúc 'have the occasion to verb' phổ biến như opportunity.",
+            trans: "Du khách cũng có cơ hội tự làm..."
+        },
+        {
+            id: 12, passageId: "passage-2",
+            q: "12. ...where (6)........... everything is made of ice...",
+            options: { A: "totally", B: "absolutely", C: "completely", D: "fully" },
+            correct: "B",
+            explain: "'Absolutely everything' là một cụm nhấn mạnh (collocation) rất tự nhiên. Các từ khác cũng có nghĩa tương tự nhưng 'absolutely' đi với 'everything' nghe tự nhiên nhất với người bản xứ.",
+            trans: "...nơi mà hoàn toàn mọi thứ đều làm bằng băng..."
+        }
+    ];
+
+    let userScore = 0;
+    let timerInterval;
+    let timeLeft = 600; // 10 minutes
+    let isPaused = true; // Start paused
+
+    // --- AUDIO SYSTEM (Web Audio API) ---
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    
+    function playSound(type) {
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        if (type === 'correct') {
+            // Ding sound (High Sine)
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(523.25, audioCtx.currentTime); // C5
+            osc.frequency.exponentialRampToValueAtTime(1046.5, audioCtx.currentTime + 0.1); // C6
+            gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.5);
+            triggerConfetti();
+        } else {
+            // Wrong sound (Low Sawtooth)
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+            osc.frequency.linearRampToValueAtTime(100, audioCtx.currentTime + 0.3);
+            gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.4);
+        }
+    }
+
+    // --- RENDER QUESTIONS ---
+    const exercisePanel = document.getElementById('exercise-panel');
+    quizData.forEach((item, index) => {
+        const card = document.createElement('div');
+        card.className = 'question-card';
+        card.setAttribute('data-passage', item.passageId);
+        
+        card.innerHTML = `
+            <div class="q-header">
+                <span>Câu ${index + 1}</span>
+                <span>${item.passageId === 'passage-1' ? '🐑 Sheep' : '❄️ Ice'}</span>
+            </div>
+            <p style="margin-bottom:15px; font-weight:600;">${item.q}</p>
+            <div class="options-grid" id="q${item.id}-options">
+                ${Object.entries(item.options).map(([key, val]) => 
+                    `<button class="option-btn" onclick="checkAnswer(${item.id}, '${key}', this)">${key}. ${val}</button>`
+                ).join('')}
+            </div>
+            
+            <div class="explanation-area" id="explain-${item.id}">
+                <div class="feedback-actions">
+                    <div class="teacher-avatar">👩‍🏫</div>
+                    <button class="mini-btn btn-explain" onclick="toggleDetail('exp-txt-${item.id}')">Giải thích</button>
+                    <button class="mini-btn btn-trans" onclick="toggleDetail('trans-txt-${item.id}')">Dịch</button>
+                    <button class="mini-btn btn-vocab" onclick="toggleDetail('voc-txt-${item.id}')">Từ vựng</button>
+                </div>
+                <div id="exp-txt-${item.id}" class="detail-box"><b>Tại sao chọn ${item.correct}?</b><br>${item.explain}</div>
+                <div id="trans-txt-${item.id}" class="detail-box"><b>Dịch nghĩa:</b><br>${item.trans}</div>
+                <div id="voc-txt-${item.id}" class="detail-box"><b>Từ mới:</b><br>Học sinh hãy chú ý các từ in đậm trong phần giải thích nhé!</div>
+            </div>
+        `;
+        exercisePanel.appendChild(card);
+    });
+
+    // --- INTERACTION LOGIC ---
+    function checkAnswer(qId, choice, btn) {
+        const qData = quizData.find(d => d.id === qId);
+        const parent = document.getElementById(`q${qId}-options`);
+        const btns = parent.getElementsByClassName('option-btn');
+
+        // Disable all buttons in this card
+        Array.from(btns).forEach(b => b.classList.add('disabled'));
+
+        if (choice === qData.correct) {
+            btn.classList.add('correct');
+            playSound('correct');
+            userScore++;
+        } else {
+            btn.classList.add('wrong');
+            playSound('wrong');
+            // Highlight correct answer
+            Array.from(btns).forEach(b => {
+                if(b.innerText.startsWith(qData.correct)) b.classList.add('correct');
+            });
+        }
+
+        // Show Explanation
+        document.getElementById(`explain-${qId}`).style.display = 'block';
+    }
+
+    function toggleDetail(id) {
+        const el = document.getElementById(id);
+        el.style.display = (el.style.display === 'block') ? 'none' : 'block';
+    }
+
+    function toggleTrans(id) {
+        const el = document.getElementById(id);
+        el.style.display = (el.style.display === 'block') ? 'none' : 'block';
+    }
+
+    // --- TIMER LOGIC ---
+    function formatTime(s) {
+        const m = Math.floor(s / 60).toString().padStart(2, '0');
+        const sec = (s % 60).toString().padStart(2, '0');
+        return `${m}:${sec}`;
+    }
+
+    function toggleTimer() {
+        if (isPaused) {
+            isPaused = false;
+            document.getElementById('timer-icon').innerText = '⏸️';
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                const display = document.getElementById('time-display');
+                display.innerText = formatTime(timeLeft);
+                if(timeLeft <= 60) document.querySelector('.timer-container').classList.add('urgent');
+                if(timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    alert("⏰ Đã hết giờ làm bài! Bạn hãy nộp bài để xem điểm nhé.");
+                }
+            }, 1000);
+        } else {
+            isPaused = true;
+            document.getElementById('timer-icon').innerText = '▶️';
+            clearInterval(timerInterval);
+        }
+    }
+
+    function finishTest() {
+        clearInterval(timerInterval);
+        document.getElementById('score-modal').style.display = 'flex';
+        document.getElementById('final-score').innerText = `${userScore}/12`;
+        
+        const title = document.getElementById('feedback-title');
+        const msg = document.getElementById('teacher-msg');
+        
+        if(userScore === 12) {
+            title.innerText = "TUYỆT ĐỐI! 🏆";
+            msg.innerText = "Con là một thiên tài ngôn ngữ! Ms Mai An cực kỳ tự hào.";
+        } else if (userScore >= 9) {
+            title.innerText = "XUẤT SẮC! 🌟";
+            msg.innerText = "Con làm rất tốt, chỉ suýt soát điểm tối đa thôi.";
+        } else if (userScore >= 6) {
+            title.innerText = "LÀM TỐT LẮM! 👍";
+            msg.innerText = "Con đã nắm được cơ bản, hãy xem lại phần giải thích để giỏi hơn nhé.";
+        } else {
+            title.innerText = "CỐ LÊN NHÉ! 💪";
+            msg.innerText = "Đừng buồn, quan trọng là con học được gì sau bài này. Hãy đọc kỹ giải thích của cô nhé.";
+        }
+    }
+
+    function closeModal() {
+        document.getElementById('score-modal').style.display = 'none';
+    }
+
+    // --- DYNAMIC THEME OBSERVER ---
+    // Change theme based on which passage is currently most visible in the left panel
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const theme = entry.target.getAttribute('data-theme');
+                applyTheme(theme);
+            }
+        });
+    }, { threshold: 0.5, root: document.getElementById('reading-panel') });
+
+    observer.observe(document.getElementById('passage-1'));
+    observer.observe(document.getElementById('passage-2'));
+
+    function applyTheme(theme) {
+        const root = document.documentElement;
+        const bg = document.getElementById('dynamic-bg');
+        
+        if (theme === 'sheep') {
+            root.style.setProperty('--primary-color', '#00b894'); // Green
+            root.style.setProperty('--secondary-color', '#55efc4');
+            // SVG Pattern: Green blobs + Sheep Emoji
+            bg.style.backgroundImage = `
+                radial-gradient(circle at 10% 20%, rgba(0, 184, 148, 0.1) 0%, transparent 20%),
+                radial-gradient(circle at 90% 80%, rgba(85, 239, 196, 0.1) 0%, transparent 20%),
+                url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Ctext x='50%' y='50%' font-size='40' text-anchor='middle' dominant-baseline='middle' fill-opacity='0.1'%3E🐑%3C/text%3E%3C/svg%3E")
+            `;
+        } else if (theme === 'ice') {
+            root.style.setProperty('--primary-color', '#0984e3'); // Blue
+            root.style.setProperty('--secondary-color', '#74b9ff');
+            // SVG Pattern: Blue blobs + Ice Emoji
+            bg.style.backgroundImage = `
+                radial-gradient(circle at 10% 20%, rgba(9, 132, 227, 0.1) 0%, transparent 20%),
+                radial-gradient(circle at 90% 80%, rgba(116, 185, 255, 0.1) 0%, transparent 20%),
+                url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Ctext x='50%' y='50%' font-size='40' text-anchor='middle' dominant-baseline='middle' fill-opacity='0.1'%3E❄️%3C/text%3E%3C/svg%3E")
+            `;
+        }
+    }
+
+    // --- CONFETTI EFFECT (Simple JS) ---
+    const confettiCanvas = document.getElementById('confetti-canvas');
+    const ctx = confettiCanvas.getContext('2d');
+    confettiCanvas.width = window.innerWidth;
+    confettiCanvas.height = window.innerHeight;
+
+    let particles = [];
+    
+    function triggerConfetti() {
+        for (let i = 0; i < 50; i++) {
+            particles.push({
+                x: Math.random() * window.innerWidth,
+                y: -10,
+                r: Math.random() * 6 + 2,
+                d: Math.random() * 5 + 2,
+                color: `hsl(${Math.random()*360}, 100%, 50%)`,
+                tilt: Math.floor(Math.random() * 10) - 10
+            });
+        }
+    }
+
+    function drawConfetti() {
+        ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+        particles.forEach((p, index) => {
+            p.y += p.d;
+            p.tilt += 1;
+            ctx.beginPath();
+            ctx.lineWidth = p.r;
+            ctx.strokeStyle = p.color;
+            ctx.moveTo(p.x + p.tilt, p.y);
+            ctx.lineTo(p.x, p.y + p.tilt + p.r/2);
+            ctx.stroke();
+
+            if (p.y > window.innerHeight) particles.splice(index, 1);
+        });
+        requestAnimationFrame(drawConfetti);
+    }
+    drawConfetti();
+
+    // Initial Theme
+    applyTheme('sheep');
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>English Practice - Ms Mai An ULIS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #00D26A; /* Mặc định */
+            --secondary-color: #eaffe8;
+            --accent-color: #FFC312;
+            --wrong-color: #FF4757;
+            --text-color: #2f3542;
+            --bg-gradient: radial-gradient(circle, #ffffff 0%, #f1f2f6 100%);
+        }
+
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Nunito', sans-serif;
+            height: 100vh;
+            overflow: hidden;
+            background: var(--bg-gradient);
+            background-size: cover;
+            transition: background 0.5s ease;
+        }
+
+        /* --- UI COMPONENTS --- */
+        /* Header & Timer */
+        header {
+            height: 60px;
+            background: rgba(255, 255, 255, 0.95);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 20px;
+            z-index: 100;
+            position: relative;
+        }
+
+        .brand {
+            font-family: 'Quicksand', sans-serif;
+            font-weight: 800;
+            font-size: 1.2rem;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .timer-box {
+            background: #2f3542;
+            color: white;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 1.2rem;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            box-shadow: 0 4px 0 rgba(0,0,0,0.2);
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .nav-btn {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            background: #f1f2f6;
+            color: #57606f;
+            transition: all 0.2s;
+        }
+        .nav-btn.active {
+            background: var(--primary-color);
+            color: white;
+            box-shadow: 0 4px 0 rgba(0,0,0,0.1);
+        }
+
+        /* Main Split Screen */
+        main {
+            display: flex;
+            height: calc(100vh - 60px);
+        }
+
+        /* Left Panel: Reading */
+        .reading-panel {
+            width: 50%;
+            padding: 30px;
+            overflow-y: auto;
+            border-right: 2px solid rgba(0,0,0,0.05);
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(5px);
+        }
+
+        .reading-title {
+            font-family: 'Quicksand', sans-serif;
+            color: var(--primary-color);
+            font-size: 2rem;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 0px rgba(0,0,0,0.1);
+        }
+
+        .paragraph {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            margin-bottom: 20px;
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            position: relative;
+        }
+
+        .gap-marker {
+            display: inline-block;
+            min-width: 40px;
+            text-align: center;
+            border-bottom: 2px dashed var(--primary-color);
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        .translate-btn {
+            display: inline-block;
+            margin-top: 10px;
+            font-size: 0.8rem;
+            color: #747d8c;
+            cursor: pointer;
+            font-weight: 700;
+            text-decoration: underline;
+        }
+        
+        .translation-text {
+            display: none;
+            margin-top: 10px;
+            padding: 10px;
+            background: #f1f2f6;
+            border-radius: 8px;
+            font-size: 1rem;
+            color: #2f3542;
+            font-style: italic;
+            border-left: 4px solid var(--primary-color);
+        }
+
+        /* Glossary Table */
+        .glossary-box {
+            margin-top: 30px;
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+        .glossary-title {
+            font-weight: 800;
+            color: var(--text-color);
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .glossary-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .glossary-table th, .glossary-table td {
+            text-align: left;
+            padding: 10px;
+            border-bottom: 1px solid #f1f2f6;
+        }
+        .glossary-table th { color: var(--primary-color); }
+        .tag {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.8rem;
+            background: #f1f2f6;
+            color: #57606f;
+            font-weight: bold;
+        }
+
+        /* Right Panel: Exercises */
+        .exercise-panel {
+            width: 50%;
+            padding: 30px;
+            overflow-y: auto;
+            background: rgba(255, 255, 255, 0.4);
+        }
+
+        .question-card {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+            transition: transform 0.3s;
+            border: 2px solid transparent;
+        }
+        .question-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .q-header {
+            font-weight: 800;
+            color: var(--primary-color);
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .option-btn {
+            background: white;
+            border: 2px solid #dfe4ea;
+            padding: 15px;
+            border-radius: 15px;
+            font-family: 'Nunito', sans-serif;
+            font-size: 1rem;
+            font-weight: 700;
+            color: #57606f;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px 0 #dfe4ea;
+            position: relative;
+        }
+
+        .option-btn:active {
+            transform: translateY(4px);
+            box-shadow: none;
+        }
+
+        .option-btn:hover:not([disabled]) {
+            border-color: var(--primary-color);
+            background: var(--secondary-color);
+            transform: scale(1.02);
+        }
+
+        /* States for answers */
+        .option-btn.correct {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+            box-shadow: 0 4px 0 #00944a;
+        }
+        .option-btn.wrong {
+            background: var(--wrong-color);
+            color: white;
+            border-color: var(--wrong-color);
+            box-shadow: 0 4px 0 #c23616;
+            animation: shake 0.5s;
+        }
+
+        /* Explanation Box */
+        .explanation-box {
+            display: none; /* Hidden initially */
+            margin-top: 20px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 15px;
+            border-left: 5px solid var(--primary-color);
+            font-size: 0.95rem;
+        }
+        .exp-title { font-weight: 800; color: #2f3542; margin-bottom: 10px; }
+        .exp-detail { margin-bottom: 8px; }
+        .exp-highlight { color: var(--primary-color); font-weight: bold; }
+        .exp-wrong { color: var(--wrong-color); text-decoration: line-through; opacity: 0.7; }
+
+        /* Animations */
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            50% { transform: translateX(5px); }
+            75% { transform: translateX(-5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Control Button */
+        .control-btn {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 10px 25px;
+            border-radius: 50px;
+            font-weight: 800;
+            font-size: 1rem;
+            cursor: pointer;
+            box-shadow: 0 4px 0 rgba(0,0,0,0.2);
+            transition: transform 0.1s;
+        }
+        .control-btn:active { transform: translateY(4px); box-shadow: none; }
+
+        /* Modal Results */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+        }
+        .modal-content {
+            background: white;
+            padding: 40px;
+            border-radius: 30px;
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.2);
+            animation: popUp 0.4s ease-out;
+        }
+        @keyframes popUp {
+            from { transform: scale(0.5); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        .score-display {
+            font-size: 4rem;
+            font-weight: 900;
+            color: var(--primary-color);
+            margin: 20px 0;
+        }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #ced6e0; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #a4b0be; }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            main { flex-direction: column; height: auto; overflow: auto; }
+            .reading-panel, .exercise-panel { width: 100%; height: auto; border: none; }
+            header { flex-direction: column; height: auto; padding: 10px; gap: 10px; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="brand">
+            <span>🎓 Ms Mai An ULIS</span>
+        </div>
+        <div class="timer-box">
+            <span>⏳</span>
+            <span id="timer">10:00</span>
+            <button class="control-btn" id="timerBtn" style="padding: 5px 15px; font-size: 0.8rem; margin-left:10px;">START</button>
+        </div>
+        <div class="nav-buttons">
+            <button class="nav-btn active" onclick="switchTopic(0)">🍎 Apples</button>
+            <button class="nav-btn" onclick="switchTopic(1)">🏄 Surfing</button>
+            <button class="control-btn" onclick="showResults()" style="background: #FFC312; color: #2f3542;">NỘP BÀI</button>
+        </div>
+    </header>
+
+    <main>
+        <div class="reading-panel" id="readingContainer">
+            </div>
+
+        <div class="exercise-panel" id="exerciseContainer">
+            </div>
+    </main>
+
+    <div class="modal-overlay" id="resultModal">
+        <div class="modal-content">
+            <h2 style="font-family: 'Quicksand'; margin:0;">TỔNG KẾT BÀI LÀM</h2>
+            <div class="score-display" id="finalScore">0/12</div>
+            <p id="feedbackMsg" style="font-size: 1.2rem; color: #57606f;">Hãy bắt đầu làm bài nhé!</p>
+            <button class="control-btn" onclick="closeModal()">Xem lại bài làm</button>
+        </div>
+    </div>
+
+    <canvas id="confetti-canvas" style="position:fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:999; display:none;"></canvas>
+
+    <script>
+        // --- DATA SOURCE ---
+        const topics = [
+            {
+                id: "apples",
+                title: "A brief history of apples",
+                theme: {
+                    primary: "#ff4757", // Red
+                    secondary: "#ffe0e3",
+                    bgEmojis: ["🍎", "🍏", "🌳", "🥧"],
+                    gradient: "radial-gradient(circle at top left, #fff0f1 0%, #ffeaa7 100%)"
+                },
+                content: [
+                    {
+                        text: "Do you always have a piece of fruit for your lunch? If you do, it’s probably an apple! This is true particularly in places like western Europe, where apples have grown for hundreds of years. So it would be easy to (1)........... that’s where they came from originally.",
+                        trans: "Bạn có luôn ăn một miếng trái cây cho bữa trưa không? Nếu có, đó có thể là một quả táo! Điều này đặc biệt đúng ở những nơi như Tây Âu, nơi táo đã mọc hàng trăm năm nay. Vì vậy, thật dễ dàng để (1) tưởng tượng/cho rằng đó là nơi chúng xuất phát ban đầu."
+                    },
+                    {
+                        text: "In fact, though, the fruit we know today has been on an extraordinary (2)........... over the centuries. Research suggests modern apples originally came all the way from Kazakhstan in Asia, and (3)........... up in Europe partly because of people carrying goods along the famous Silk Road, from western Europe all the way to China in the east.",
+                        trans: "Tuy nhiên, trên thực tế, loại trái cây chúng ta biết ngày nay đã trải qua một (2) hành trình phi thường qua nhiều thế kỷ. Nghiên cứu cho thấy táo hiện đại có nguồn gốc từ Kazakhstan ở châu Á, và (3) kết thúc (có mặt) ở châu Âu một phần là do những người mang hàng hóa dọc theo Con đường Tơ lụa nổi tiếng, từ Tây Âu đến tận Trung Quốc ở phía đông."
+                    },
+                    {
+                        text: "This helped to spread apples in both (4)........... . People (5)........... down their apples after they’d finished eating them, and the seeds entered the ground and produced new types of apple trees. Farmers were then able to start developing a much (6)........... range of apples.",
+                        trans: "Điều này đã giúp lan truyền táo theo cả hai (4) hướng. Mọi người (5) ném xuống những quả táo (lõi táo) sau khi họ ăn xong, và hạt giống rơi xuống đất tạo ra những loại cây táo mới. Nông dân sau đó đã có thể bắt đầu phát triển một phạm vi (6) rộng lớn hơn nhiều các loại táo."
+                    }
+                ],
+                glossary: [
+                    { w: "Extraordinary", t: "adj", m: "Phi thường, đặc biệt" },
+                    { w: "Originally", t: "adv", m: "Ban đầu, nguồn gốc" },
+                    { w: "Suggest", t: "v", m: "Gợi ý, cho thấy" },
+                    { w: "Goods", t: "n", m: "Hàng hóa" },
+                    { w: "Spread", t: "v", m: "Lan truyền, phát tán" },
+                    { w: "Develop", t: "v", m: "Phát triển" },
+                    { w: "Range", t: "n", m: "Phạm vi, loại" }
+                ],
+                questions: [
+                    {
+                        id: 1, text: "Question 1", options: ["A. consider", "B. wonder", "C. imagine", "D. expect"], correct: 2, // Index 0-3
+                        exp: {
+                            def: "A. cân nhắc | B. tự hỏi | C. tưởng tượng/cho rằng | D. mong đợi",
+                            reason: "Dựa vào ngữ cảnh: 'thật dễ để [cho rằng] chúng đến từ đó'. 'Imagine' ở đây mang nghĩa suy đoán hợp lý. 'Consider' thường cần tân ngữ trực tiếp (consider sth).",
+                            trans: "Vậy nên thật dễ để tưởng tượng rằng đó là nơi chúng bắt nguồn."
+                        }
+                    },
+                    {
+                        id: 2, text: "Question 2", options: ["A. distance", "B. travel", "C. course", "D. journey"], correct: 3,
+                        exp: {
+                            def: "A. khoảng cách | B. sự đi lại (chung chung) | C. khóa học/tiến trình | D. hành trình",
+                            reason: "Cụm từ 'extraordinary journey' (hành trình phi thường) dùng để miêu tả quá trình di chuyển và phát triển qua lịch sử. 'Travel' là danh từ không đếm được trong ngữ cảnh này nên không dùng 'an'.",
+                            trans: "Trái cây chúng ta biết ngày nay đã trải qua một hành trình phi thường."
+                        }
+                    },
+                    {
+                        id: 3, text: "Question 3", options: ["A. reached", "B. ended", "C. set", "D. kept"], correct: 1,
+                        exp: {
+                            def: "Phrasal verb: end up (kết thúc tại/có mặt tại)",
+                            reason: "Cấu trúc: 'end up in [place]' nghĩa là cuối cùng lại có mặt ở đâu đó. Các từ khác không đi với 'up' theo nghĩa phù hợp: 'reach' không đi với up.",
+                            trans: "...và cuối cùng đã có mặt ở châu Âu..."
+                        }
+                    },
+                    {
+                        id: 4, text: "Question 4", options: ["A. routes", "B. ways", "C. directions", "D. paths"], correct: 2,
+                        exp: {
+                            def: "A. tuyến đường | B. cách/lối | C. hướng | D. đường mòn",
+                            reason: "Câu trước nói về việc di chuyển từ Tây sang Đông (Silk Road). Vậy táo lan truyền theo cả 2 'directions' (hướng Đông và Tây).",
+                            trans: "Điều này giúp lan truyền táo theo cả hai hướng."
+                        }
+                    },
+                    {
+                        id: 5, text: "Question 5", options: ["A. threw", "B. dropped", "C. fell", "D. let"], correct: 0,
+                        exp: {
+                            def: "A. ném | B. làm rơi | C. ngã/rơi | D. để",
+                            reason: "Cụm động từ 'throw down' (ném xuống đất). Ngữ cảnh là ăn xong thì vứt lõi táo xuống. 'Drop' thường là vô tình.",
+                            trans: "Mọi người ném táo xuống sau khi ăn xong."
+                        }
+                    },
+                    {
+                        id: 6, text: "Question 6", options: ["A. longer", "B. deeper", "C. higher", "D. broader"], correct: 3,
+                        exp: {
+                            def: "Collocation: a broad range of (một phạm vi rộng lớn/đa dạng)",
+                            reason: "Khi nói về sự đa dạng (range), ta dùng tính từ 'broad' hoặc 'wide'.",
+                            trans: "Nông dân có thể phát triển sự đa dạng các loại táo rộng lớn hơn nhiều."
+                        }
+                    }
+                ]
+            },
+            {
+                id: "surfing",
+                title: "Surfing",
+                theme: {
+                    primary: "#1e90ff", // Blue
+                    secondary: "#dff9fb",
+                    bgEmojis: ["🏄", "🌊", "🏖️", "🌤️"],
+                    gradient: "radial-gradient(circle at top right, #dff9fb 0%, #c7ecee 100%)"
+                },
+                content: [
+                    {
+                        text: "Surfing grew throughout the 20th century to (1)........... a popular sport all over the world, but surfers have been around for many years. The explorer James Cook saw surfing in action in 1778 during an (2)........... to the Pacific.",
+                        trans: "Lướt sóng đã phát triển trong suốt thế kỷ 20 để (1) trở thành một môn thể thao phổ biến trên toàn thế giới, nhưng những người lướt sóng đã xuất hiện từ nhiều năm trước. Nhà thám hiểm James Cook đã thấy lướt sóng vào năm 1778 trong một (2) chuyến thám hiểm đến Thái Bình Dương."
+                    },
+                    {
+                        text: "In fact, surfing took (3)........... in the same areas then that have since become popular surfing resorts now, such as Hawaii and Tahiti. Surfing wasn’t encouraged by local officials (4)........... the 19th century but young Hawaiians took up the activity again in the early 1900s.",
+                        trans: "Trên thực tế, lướt sóng đã (3) diễn ra ở cùng những khu vực mà sau này trở thành các khu nghỉ dưỡng lướt sóng nổi tiếng hiện nay, như Hawaii và Tahiti. Lướt sóng không được các quan chức địa phương khuyến khích (4) trong suốt thế kỷ 19 nhưng những người Hawaii trẻ tuổi đã bắt đầu lại hoạt động này vào đầu những năm 1900."
+                    },
+                    {
+                        text: "Following the invention of lighter surfboards, surfing attracted people around the world. The 1960s saw a huge increase in the (5)........... of surfers as the activity was promoted through the media and popular music. The hobby quickly became the professional sport it is now, and (6)........... and national organisations were created that organised competitions and raised money to hold events.",
+                        trans: "Sau khi phát minh ra ván lướt sóng nhẹ hơn, lướt sóng đã thu hút mọi người trên khắp thế giới. Những năm 1960 chứng kiến sự gia tăng to lớn về (5) số lượng người lướt sóng khi hoạt động này được quảng bá qua truyền thông và âm nhạc. Sở thích này nhanh chóng trở thành môn thể thao chuyên nghiệp như hiện nay, và các tổ chức (6) địa phương và quốc gia đã được thành lập..."
+                    }
+                ],
+                glossary: [
+                    { w: "Throughout", t: "prep", m: "Trong suốt (thời gian/không gian)" },
+                    { w: "Explorer", t: "n", m: "Nhà thám hiểm" },
+                    { w: "Expedition", t: "n", m: "Cuộc thám hiểm" },
+                    { w: "Encourage", t: "v", m: "Khuyến khích" },
+                    { w: "Promote", t: "v", m: "Quảng bá, thúc đẩy" },
+                    { w: "Invention", t: "n", m: "Sự phát minh" },
+                    { w: "Organisation", t: "n", m: "Tổ chức" }
+                ],
+                questions: [
+                    {
+                        id: 1, text: "Question 1", options: ["A. create", "B. turn", "C. become", "D. play"], correct: 2,
+                        exp: {
+                            def: "A. tạo ra | B. biến thành | C. trở thành | D. chơi",
+                            reason: "Cấu trúc: grow to become (phát triển để trở thành). 'Turn' thường đi với 'into'.",
+                            trans: "...phát triển trong suốt thế kỷ 20 để trở thành một môn thể thao phổ biến..."
+                        }
+                    },
+                    {
+                        id: 2, text: "Question 2", options: ["A. expedition", "B. travel", "C. drive", "D. move"], correct: 0,
+                        exp: {
+                            def: "A. cuộc thám hiểm | B. du lịch | C. lái xe | D. di chuyển",
+                            reason: "James Cook là nhà thám hiểm (explorer), nên chuyến đi của ông gọi là 'expedition' (cuộc hành trình có mục đích cụ thể/nghiên cứu).",
+                            trans: "...trong một cuộc thám hiểm tới Thái Bình Dương."
+                        }
+                    },
+                    {
+                        id: 3, text: "Question 3", options: ["A. part", "B. place", "C. point", "D. position"], correct: 1,
+                        exp: {
+                            def: "Idiom: take place (diễn ra/xảy ra)",
+                            reason: "Đây là cụm từ cố định (collocation). Take part = tham gia (sai nghĩa).",
+                            trans: "Thực tế, lướt sóng đã diễn ra ở cùng những khu vực đó."
+                        }
+                    },
+                    {
+                        id: 4, text: "Question 4", options: ["A. while", "B. along", "C. for", "D. during"], correct: 3,
+                        exp: {
+                            def: "A. trong khi (cộng mệnh đề) | B. dọc theo | C. khoảng (thời lượng) | D. trong suốt (thời kỳ)",
+                            reason: "Trước 'the 19th century' (một danh từ chỉ thời kỳ), ta dùng 'during'. 'While' phải đi với mệnh đề (S + V).",
+                            trans: "Lướt sóng không được khuyến khích trong suốt thế kỷ 19."
+                        }
+                    },
+                    {
+                        id: 5, text: "Question 5", options: ["A. group", "B. total", "C. number", "D. sum"], correct: 2,
+                        exp: {
+                            def: "Collocation: the number of + N (số lượng...)",
+                            reason: "Dùng 'the number of surfers' để chỉ số lượng người đếm được. 'Amount' dùng cho không đếm được. 'Sum' là tổng số (toán học).",
+                            trans: "Những năm 60 chứng kiến sự gia tăng lớn về số lượng người lướt sóng."
+                        }
+                    },
+                    {
+                        id: 6, text: "Question 6", options: ["A. near", "B. close", "C. next", "D. local"], correct: 3,
+                        exp: {
+                            def: "A/B/C: gần/kế tiếp | D. địa phương",
+                            reason: "Đối lập với 'national' (quốc gia) trong câu này là 'local' (địa phương). Hai cấp độ tổ chức thường thấy.",
+                            trans: "...các tổ chức địa phương và quốc gia đã được thành lập."
+                        }
+                    }
+                ]
+            }
+        ];
+
+        let currentTopicIdx = 0;
+        let userAnswers = {}; // Store answers { "topicIndex-qIndex": optionIndex }
+        let timerInterval;
+        let timeLeft = 600; // 10 minutes
+        let isTimerRunning = false;
+
+        // --- SOUNDS (Base64 for Single File) ---
+        // Short Beep for Correct, Buzz for Wrong
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        function playSound(type) {
+            const osc = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            osc.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+
+            if (type === 'correct') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(500, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(1000, audioCtx.currentTime + 0.1);
+                gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.5);
+                fireConfetti();
+            } else if (type === 'wrong') {
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+                osc.frequency.linearRampToValueAtTime(100, audioCtx.currentTime + 0.3);
+                gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                gainNode.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.3);
+            }
+        }
+
+        // --- DOM RENDERER ---
+        function init() {
+            renderContent(0);
+        }
+
+        function switchTopic(idx) {
+            currentTopicIdx = idx;
+            renderContent(idx);
+            // Update buttons style
+            document.querySelectorAll('.nav-btn').forEach((btn, i) => {
+                if(i === idx) btn.classList.add('active');
+                else btn.classList.remove('active');
+            });
+        }
+
+        function renderContent(idx) {
+            const data = topics[idx];
+            
+            // 1. Apply Theme
+            document.documentElement.style.setProperty('--primary-color', data.theme.primary);
+            document.documentElement.style.setProperty('--secondary-color', data.theme.secondary);
+            document.documentElement.style.setProperty('--bg-gradient', data.theme.gradient);
+            generateSvgBackground(data.theme.bgEmojis);
+
+            // 2. Render Reading Passage
+            const readPanel = document.getElementById('readingContainer');
+            readPanel.innerHTML = `<h2 class="reading-title">${data.title}</h2>`;
+            
+            data.content.forEach((para, pIdx) => {
+                readPanel.innerHTML += `
+                    <div class="paragraph">
+                        ${para.text}
+                        <br>
+                        <span class="translate-btn" onclick="toggleTrans('trans-${idx}-${pIdx}')">📝 Dịch đầy đủ (Ms Mai An)</span>
+                        <div id="trans-${idx}-${pIdx}" class="translation-text">
+                            ${para.trans}
+                        </div>
+                    </div>
+                `;
+            });
+
+            // 3. Render Glossary
+            let glossaryHtml = `
+                <div class="glossary-box">
+                    <div class="glossary-title">📚 GLOSSARY (Từ vựng học thuật)</div>
+                    <table class="glossary-table">
+                        <tr><th>Word</th><th>Type</th><th>Meaning</th></tr>`;
+            data.glossary.forEach(g => {
+                glossaryHtml += `<tr><td><strong>${g.w}</strong></td><td><span class="tag">${g.t}</span></td><td>${g.m}</td></tr>`;
+            });
+            glossaryHtml += `</table></div>`;
+            readPanel.innerHTML += glossaryHtml;
+
+            // 4. Render Exercises
+            const exPanel = document.getElementById('exerciseContainer');
+            exPanel.innerHTML = "";
+            data.questions.forEach((q, qIdx) => {
+                const qKey = `${idx}-${qIdx}`;
+                const savedAns = userAnswers[qKey];
+                
+                let optionsHtml = "";
+                q.options.forEach((opt, oIdx) => {
+                    let btnClass = "option-btn";
+                    let disabled = "";
+                    
+                    if (savedAns !== undefined) {
+                        disabled = "disabled";
+                        if (oIdx === q.correct) btnClass += " correct";
+                        else if (oIdx === savedAns) btnClass += " wrong";
+                        else btnClass += " fade"; // Fade other options
+                    }
+
+                    optionsHtml += `<button class="${btnClass}" ${disabled} onclick="checkAnswer(${idx}, ${qIdx}, ${oIdx})">${opt}</button>`;
+                });
+
+                // Explanation Block (Visible if answered)
+                let expStyle = savedAns !== undefined ? "display:block;" : "";
+                
+                exPanel.innerHTML += `
+                    <div class="question-card" id="card-${idx}-${qIdx}">
+                        <div class="q-header">${q.text} (Gap ${qIdx+1})</div>
+                        <div class="options-grid">
+                            ${optionsHtml}
+                        </div>
+                        <div class="explanation-box" id="exp-${idx}-${qIdx}" style="${expStyle}">
+                            <div class="exp-title">💡 Giải thích chi tiết bởi Ms Mai An:</div>
+                            <div class="exp-detail"><strong>Phân tích:</strong> ${q.exp.def}</div>
+                            <div class="exp-detail"><span class="exp-highlight">Tại sao chọn đáp án này?</span> ${q.exp.reason}</div>
+                            <div class="exp-detail"><em>Dịch: "${q.exp.trans}"</em></div>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        // --- LOGIC ---
+        function checkAnswer(topicIdx, qIdx, selectedOpt) {
+            const key = `${topicIdx}-${qIdx}`;
+            if (userAnswers[key] !== undefined) return; // Already answered
+
+            userAnswers[key] = selectedOpt;
+            const correctOpt = topics[topicIdx].questions[qIdx].correct;
+
+            // Play Sound
+            if (selectedOpt === correctOpt) {
+                playSound('correct');
+            } else {
+                playSound('wrong');
+            }
+
+            // Re-render specifically this card to update UI states
+            // Or simpler: just reload content to apply classes.
+            // For efficiency, let's manipulate DOM directly here.
+            const card = document.getElementById(`card-${topicIdx}-${qIdx}`);
+            const buttons = card.querySelectorAll('.option-btn');
+            
+            buttons.forEach((btn, idx) => {
+                btn.disabled = true;
+                if (idx === correctOpt) btn.classList.add('correct');
+                else if (idx === selectedOpt) btn.classList.add('wrong');
+            });
+
+            // Show explanation
+            const expBox = document.getElementById(`exp-${topicIdx}-${qIdx}`);
+            expBox.style.display = "block";
+        }
+
+        function toggleTrans(id) {
+            const el = document.getElementById(id);
+            if (el.style.display === "block") el.style.display = "none";
+            else el.style.display = "block";
+        }
+
+        function generateSvgBackground(emojis) {
+            // Create a simple SVG pattern with emojis
+            const svgString = `
+            <svg width="200" height="200" xmlns="http://www.w3.org/2000/svg">
+                <text x="20" y="50" font-size="40" opacity="0.1">${emojis[0]}</text>
+                <text x="120" y="150" font-size="40" opacity="0.1">${emojis[1]}</text>
+                <text x="50" y="180" font-size="30" opacity="0.1">${emojis[2] || emojis[0]}</text>
+            </svg>`;
+            const url = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svgString)}`;
+            // We append this image over the gradient
+            document.body.style.backgroundImage = `${topics[currentTopicIdx].theme.gradient}, url('${url}')`;
+        }
+
+        // --- TIMER ---
+        const timerEl = document.getElementById('timer');
+        const timerBtn = document.getElementById('timerBtn');
+
+        timerBtn.addEventListener('click', () => {
+            if (isTimerRunning) {
+                clearInterval(timerInterval);
+                isTimerRunning = false;
+                timerBtn.innerText = "RESUME";
+            } else {
+                isTimerRunning = true;
+                timerBtn.innerText = "PAUSE";
+                timerInterval = setInterval(() => {
+                    timeLeft--;
+                    let m = Math.floor(timeLeft / 60);
+                    let s = timeLeft % 60;
+                    timerEl.innerText = `${m}:${s < 10 ? '0'+s : s}`;
+                    if (timeLeft <= 0) {
+                        clearInterval(timerInterval);
+                        alert("Đã hết giờ làm bài! Bạn vẫn có thể tiếp tục, nhưng hãy nhớ luyện tập tốc độ nhé!");
+                    }
+                }, 1000);
+            }
+        });
+
+        // --- RESULTS ---
+        function showResults() {
+            clearInterval(timerInterval);
+            isTimerRunning = false;
+            timerBtn.innerText = "START";
+
+            let totalQ = 0;
+            let correctC = 0;
+            
+            topics.forEach((t, tIdx) => {
+                t.questions.forEach((q, qIdx) => {
+                    totalQ++;
+                    const key = `${tIdx}-${qIdx}`;
+                    if (userAnswers[key] === q.correct) correctC++;
+                });
+            });
+
+            document.getElementById('finalScore').innerText = `${correctC}/${totalQ}`;
+            
+            const msgEl = document.getElementById('feedbackMsg');
+            const percent = (correctC/totalQ)*100;
+            
+            if (percent === 100) msgEl.innerText = "🌟 XUẤT SẮC! Bạn đúng là thiên tài tiếng Anh!";
+            else if (percent >= 80) msgEl.innerText = "💪 Làm tốt lắm! Bạn nắm rất chắc kiến thức.";
+            else if (percent >= 50) msgEl.innerText = "👍 Khá tốt, nhưng hãy đọc kỹ giải thích để hiểu sâu hơn nhé.";
+            else msgEl.innerText = "🌱 Cố lên! Hãy xem kỹ phần 'Giải thích chi tiết' để rút kinh nghiệm nha.";
+
+            document.getElementById('resultModal').style.display = "flex";
+            if (percent >= 80) fireConfetti();
+        }
+
+        function closeModal() {
+            document.getElementById('resultModal').style.display = "none";
+        }
+
+        // --- CONFETTI EFFECT (Minimal Script) ---
+        function fireConfetti() {
+            const canvas = document.getElementById('confetti-canvas');
+            canvas.style.display = 'block';
+            const ctx = canvas.getContext('2d');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+
+            const particles = [];
+            for(let i=0; i<100; i++) {
+                particles.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height - canvas.height,
+                    color: `hsl(${Math.random()*360}, 100%, 50%)`,
+                    size: Math.random() * 10 + 5,
+                    speed: Math.random() * 5 + 2
+                });
+            }
+
+            let animationId;
+            function update() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                let active = false;
+                particles.forEach(p => {
+                    p.y += p.speed;
+                    if (p.y < canvas.height) active = true;
+                    ctx.fillStyle = p.color;
+                    ctx.fillRect(p.x, p.y, p.size, p.size);
+                });
+
+                if (active) animationId = requestAnimationFrame(update);
+                else {
+                    canvas.style.display = 'none';
+                    cancelAnimationFrame(animationId);
+                }
+            }
+            update();
+        }
+
+        // Initialize
+        init();
+
+    </script>
+</body>
+</html>

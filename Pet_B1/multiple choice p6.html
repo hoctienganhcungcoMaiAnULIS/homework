@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coasteering Adventure - Ms Mai An ULIS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #00a8ff;
+            --secondary-color: #f5f6fa;
+            --correct-color: #00D26A;
+            --wrong-color: #FF4757;
+            --text-color: #2f3640;
+            --accent-color: #fbc531;
+        }
+
+        body {
+            font-family: 'Quicksand', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #e0f7fa;
+            /* Auto-generated Background SVG with Ocean & Rock emojis */
+            background-image: 
+                radial-gradient(circle at center, rgba(255,255,255,0.8) 0%, rgba(224,247,250,0.4) 100%),
+                url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Ctext x='10' y='30' font-size='20'%3E🌊%3C/text%3E%3Ctext x='60' y='80' font-size='20'%3E🧗%3C/text%3E%3Ctext x='40' y='50' font-size='15'%3E🐠%3C/text%3E%3C/svg%3E");
+            color: var(--text-color);
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        /* Header Area */
+        header {
+            height: 60px;
+            background: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            position: relative;
+            z-index: 1000;
+        }
+
+        .teacher-info h4 { margin: 0; color: var(--primary-color); font-size: 14px; }
+        
+        #timer-container {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-timer {
+            background: var(--accent-color);
+            border: none;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 0 #d39e00;
+            transition: all 0.2s;
+        }
+
+        .btn-timer:active { transform: translateY(2px); box-shadow: 0 2px 0 #d39e00; }
+
+        /* Main Layout */
+        main {
+            display: flex;
+            height: calc(100vh - 60px);
+        }
+
+        .pane {
+            flex: 1;
+            overflow-y: auto;
+            padding: 30px;
+            scroll-behavior: smooth;
+        }
+
+        .left-pane { border-right: 4px solid #dcdde1; background: rgba(255, 255, 255, 0.7); }
+        .right-pane { background: rgba(255, 255, 255, 0.5); }
+
+        /* Reading Content */
+        .passage-card {
+            background: white;
+            padding: 25px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            line-height: 1.8;
+            font-size: 17px;
+        }
+
+        .translation-box {
+            display: none;
+            margin-top: 15px;
+            padding: 15px;
+            background: #f0f9ff;
+            border-left: 5px solid var(--primary-color);
+            border-radius: 10px;
+            font-style: italic;
+        }
+
+        .btn-translate {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 5px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        /* Glossary Table */
+        .glossary-table {
+            width: 100%;
+            margin-top: 30px;
+            border-collapse: collapse;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+        .glossary-table th { background: var(--primary-color); color: white; padding: 12px; }
+        .glossary-table td { background: white; padding: 10px; border-bottom: 1px solid #eee; text-align: center;}
+
+        /* Question Cards */
+        .question-card {
+            background: white;
+            margin-bottom: 40px;
+            padding: 25px;
+            border-radius: 25px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+            border-bottom: 6px solid #ddd;
+            transition: transform 0.3s;
+        }
+
+        .options-container {
+            display: grid;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .option {
+            padding: 15px 20px;
+            background: white;
+            border: 2px solid #e1e8ed;
+            border-radius: 15px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+            box-shadow: 0 4px 0 #e1e8ed;
+            display: flex;
+            align-items: center;
+        }
+
+        .option:hover { transform: scale(1.02); background-color: #f8f9fa; }
+
+        .option.correct {
+            background-color: var(--correct-color) !important;
+            color: white;
+            border-color: #00b35a;
+            box-shadow: 0 4px 0 #009e50;
+        }
+
+        .option.wrong {
+            background-color: var(--wrong-color) !important;
+            color: white;
+            border-color: #e84118;
+            box-shadow: 0 4px 0 #c23616;
+            animation: shake 0.4s;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        /* Support Buttons */
+        .support-tools {
+            display: none;
+            margin-top: 20px;
+            gap: 10px;
+            border-top: 1px dashed #ccc;
+            padding-top: 15px;
+        }
+
+        .btn-support {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: bold;
+            color: white;
+            font-size: 13px;
+        }
+
+        .btn-explain { background: #9b59b6; }
+        .btn-dict { background: #34495e; }
+        .btn-vocab { background: #e67e22; }
+
+        .detail-info {
+            display: none;
+            background: #fff9e6;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 10px;
+            font-size: 14px;
+            border-left: 4px solid #f1c40f;
+        }
+
+        /* Final Result Modal */
+        #result-modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 40px;
+            border-radius: 30px;
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 20px 0 var(--primary-color);
+        }
+
+        .submit-all-container {
+            text-align: center;
+            margin: 40px 0;
+        }
+
+        .btn-submit-test {
+            padding: 15px 40px;
+            font-size: 20px;
+            background: #e67e22;
+            color: white;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 6px 0 #d35400;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="teacher-info">
+            <h4>Giáo viên: Ms Mai An ULIS</h4>
+        </div>
+        <div id="timer-container">
+            <button class="btn-timer" id="timer-toggle" onclick="toggleTimer()">BẮT ĐẦU TÍNH GIỜ</button>
+            <span id="time-display" style="font-weight: bold; font-size: 20px; display:none;">10:00</span>
+        </div>
+        <div></div>
+    </header>
+
+    <main>
+        <div class="pane left-pane">
+            <div class="passage-card">
+                <h1 style="color: var(--primary-color);">Coasteering</h1>
+                <p>Lily Carter had no idea what present she wanted for her 14th birthday. But she’d always been keen on challenging sports, especially to do with water, like surfing and sailing. So when her parents heard about an activity called coasteering – exploring rocks along the coast by climbing and swimming – they thought Lily would love it. They found a course offered at an activity centre called Porthdean, just along the coast from the family home, which was perfect. So after checking it was led by experienced instructors, they signed her up.</p>
+                
+                <button class="btn-translate" onclick="toggleParaTrans(1)">BẢN DỊCH ĐẦY ĐỦ</button>
+                <div id="trans-1" class="translation-box">
+                    Lily Carter không hề biết mình muốn quà gì cho sinh nhật lần thứ 14. Nhưng cô luôn yêu thích các môn thể thao thử thách, đặc biệt là những môn liên quan đến nước như lướt sóng và lướt ván buồm. Vì vậy, khi bố mẹ cô nghe nói về một hoạt động gọi là coasteering – khám phá các vách đá dọc bờ biển bằng cách leo trèo và bơi lội – họ nghĩ Lily sẽ thích nó. Họ tìm thấy một khóa học tại trung tâm hoạt động Porthdean, nằm ngay dọc bờ biển gần nhà, điều này thật hoàn hảo. Sau khi kiểm tra kỹ rằng khóa học được dẫn dắt bởi các hướng dẫn viên giàu kinh nghiệm, họ đã đăng ký cho cô.
+                </div>
+
+                <p>Lily had seen a TV show about coasteering, and was interested in doing it, although she’d thought only adults could take part. But then she discovered that on courses at Porthdean, there’d also be people her age jumping from rocks into the sea, and also exploring caves – which she was never normally allowed to do, so she really wanted to go. But she still asked her dad to go along too and, although he wondered whether he’d like coasteering himself, he knew how much Lily wanted someone to accompany her, so he agreed.</p>
+                
+                <button class="btn-translate" onclick="toggleParaTrans(2)">BẢN DỊCH ĐẦY ĐỦ</button>
+                <div id="trans-2" class="translation-box">
+                    Lily từng xem một chương trình truyền hình về coasteering và thấy hứng thú, dù cô từng nghĩ chỉ người lớn mới được tham gia. Nhưng rồi cô phát hiện ra tại các khóa học ở Porthdean, cũng có những người bằng tuổi cô nhảy từ vách đá xuống biển và khám phá hang động – những việc cô thường không được phép làm, nên cô rất muốn đi. Tuy nhiên, cô vẫn nhờ bố đi cùng và mặc dù ông băn khoăn không biết mình có thích môn này không, ông biết Lily rất muốn có người đi cùng nên đã đồng ý.
+                </div>
+
+                <p>Lily and her dad drove to Porthdean, where they attended a session with their instructors to learn basic safety and techniques and be given helmets and special wetsuits to keep the cold out. The group they joined was quite small, which meant they got lots of individual attention. Says Lily, ‘The entire trip was awesome – although the water was freezing! But our instructors encouraged the whole group so much, we were ready to try absolutely all the challenges, even stuff we hadn’t expected at all, like jumping off high cliffs! I must admit, the one I jumped off wasn’t that high, but Dad went much higher!’</p>
+                
+                <button class="btn-translate" onclick="toggleParaTrans(3)">BẢN DỊCH ĐẦY ĐỦ</button>
+                <div id="trans-3" class="translation-box">
+                    Lily và bố lái xe đến Porthdean, nơi họ tham gia một buổi học với hướng dẫn viên để học các kỹ thuật và an toàn cơ bản, đồng thời được cấp mũ bảo hiểm và bộ đồ lặn đặc biệt để giữ ấm. Nhóm họ tham gia khá nhỏ, nghĩa là họ nhận được rất nhiều sự quan tâm cá nhân. Lily nói: "Toàn bộ chuyến đi thật tuyệt vời – mặc dù nước lạnh buốt! Nhưng các hướng dẫn viên đã khích lệ cả nhóm rất nhiều, chúng tôi sẵn sàng thử tuyệt đối mọi thử thách, ngay cả những thứ chúng tôi hoàn toàn không ngờ tới, như nhảy từ vách đá cao! Tôi phải thừa nhận rằng vách đá tôi nhảy không cao lắm, nhưng bố tôi đã nhảy từ nơi cao hơn nhiều!"
+                </div>
+
+                <p>‘Anyway, Dad and I hadn’t realised how hard it would be physically, so we were glad we were fit,’ explains Lily. ‘Even so, afterwards, we actually felt like we’d done loads of hard exercise in the gym! But I’ll keep the memories of that trip forever, I reckon. And the instructors are going to put a video of it onto the website, so my friends will see it. They’d never believe me otherwise!’</p>
+                
+                <button class="btn-translate" onclick="toggleParaTrans(4)">BẢN DỊCH ĐẦY ĐỦ</button>
+                <div id="trans-4" class="translation-box">
+                    "Dù sao thì, tôi và bố đã không nhận ra nó đòi hỏi thể lực đến mức nào, vì vậy chúng tôi mừng là mình khỏe mạnh," Lily giải thích. "Mặc dù vậy, sau đó, chúng tôi thực sự cảm thấy như vừa tập thể dục cường độ cao trong phòng gym! Nhưng tôi nghĩ mình sẽ giữ mãi những kỷ niệm về chuyến đi đó. Và các hướng dẫn viên sẽ đăng một video về nó lên trang web để bạn bè tôi có thể xem. Nếu không họ sẽ chẳng bao giờ tin tôi đâu!"
+                </div>
+
+                <h3 style="margin-top:40px; border-bottom: 2px solid var(--primary-color);">Vocabulary Glossary</h3>
+                <table class="glossary-table">
+                    <thead>
+                        <tr><th>Từ vựng</th><th>Loại từ</th><th>Nghĩa tiếng Việt</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>Coasteering</td><td>(n)</td><td>Môn thể thao khám phá bờ biển</td></tr>
+                        <tr><td>Experienced</td><td>(adj)</td><td>Giàu kinh nghiệm</td></tr>
+                        <tr><td>Instructor</td><td>(n)</td><td>Hướng dẫn viên / Người dạy</td></tr>
+                        <tr><td>Explore</td><td>(v)</td><td>Khám phá</td></tr>
+                        <tr><td>Accompany</td><td>(v)</td><td>Đi cùng, hộ tống</td></tr>
+                        <tr><td>Technique</td><td>(n)</td><td>Kỹ thuật</td></tr>
+                        <tr><td>Wetsuit</td><td>(n)</td><td>Bộ đồ lặn (giữ nhiệt)</td></tr>
+                        <tr><td>Freezing</td><td>(adj)</td><td>Lạnh giá / Lạnh buốt</td></tr>
+                        <tr><td>Physically</td><td>(adv)</td><td>Về mặt thể chất</td></tr>
+                        <tr><td>Memory</td><td>(n)</td><td>Kỷ niệm / Trí nhớ</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="pane right-pane">
+            <div id="quiz-container">
+                <div class="question-card" id="q1" data-answer="C">
+                    <h3>Question 1: Why did Lily’s parents choose Porthdean for her coasteering present?</h3>
+                    <div class="options-container">
+                        <div class="option" onclick="checkAnswer(this, 'A', 1)">A. It offered various courses in her favourite watersport.</div>
+                        <div class="option" onclick="checkAnswer(this, 'B', 1)">B. The instructors there were highly recommended.</div>
+                        <div class="option" onclick="checkAnswer(this, 'C', 1)">C. It wasn’t too far away from where they lived.</div>
+                        <div class="option" onclick="checkAnswer(this, 'D', 1)">D. She had already tried some activities there.</div>
+                    </div>
+                    <div class="support-tools" id="support-1">
+                        <button class="btn-support btn-explain" onclick="showDetail(1, 'explain')">Giải thích</button>
+                        <button class="btn-support btn-dict" onclick="showDetail(1, 'dict')">Dịch</button>
+                        <button class="btn-support btn-vocab" onclick="showDetail(1, 'vocab')">Từ vựng</button>
+                    </div>
+                    <div class="detail-info" id="detail-1"></div>
+                </div>
+
+                <div class="question-card" id="q2" data-answer="A">
+                    <h3>Question 2: How did Lily feel about the coasteering course?</h3>
+                    <div class="options-container">
+                        <div class="option" onclick="checkAnswer(this, 'A', 2)">A. pleased that it included something she’d always wanted to try</div>
+                        <div class="option" onclick="checkAnswer(this, 'B', 2)">B. excited about doing the experience all on her own</div>
+                        <div class="option" onclick="checkAnswer(this, 'C', 2)">C. keen to find out more about what it involved</div>
+                        <div class="option" onclick="checkAnswer(this, 'D', 2)">D. interested to see whether she was the only teenager</div>
+                    </div>
+                    <div class="support-tools" id="support-2">
+                        <button class="btn-support btn-explain" onclick="showDetail(2, 'explain')">Giải thích</button>
+                        <button class="btn-support btn-dict" onclick="showDetail(2, 'dict')">Dịch</button>
+                        <button class="btn-support btn-vocab" onclick="showDetail(2, 'vocab')">Từ vựng</button>
+                    </div>
+                    <div class="detail-info" id="detail-2"></div>
+                </div>
+
+                <div class="question-card" id="q3" data-answer="B">
+                    <h3>Question 3: Lily particularly liked her instructors because they made sure everyone</h3>
+                    <div class="options-container">
+                        <div class="option" onclick="checkAnswer(this, 'A', 3)">A. was comfortable with the kit they were given.</div>
+                        <div class="option" onclick="checkAnswer(this, 'B', 3)">B. felt confident about the new things they would attempt.</div>
+                        <div class="option" onclick="checkAnswer(this, 'C', 3)">C. got the same amount of attention.</div>
+                        <div class="option" onclick="checkAnswer(this, 'D', 3)">D. knew all the activities they would take part in.</div>
+                    </div>
+                    <div class="support-tools" id="support-3">
+                        <button class="btn-support btn-explain" onclick="showDetail(3, 'explain')">Giải thích</button>
+                        <button class="btn-support btn-dict" onclick="showDetail(3, 'dict')">Dịch</button>
+                        <button class="btn-support btn-vocab" onclick="showDetail(3, 'vocab')">Từ vựng</button>
+                    </div>
+                    <div class="detail-info" id="detail-3"></div>
+                </div>
+
+                <div class="question-card" id="q4" data-answer="D">
+                    <h3>Question 4: Lily says that after the course, she was</h3>
+                    <div class="options-container">
+                        <div class="option" onclick="checkAnswer(this, 'A', 4)">A. happy she’d shared something so exciting with her dad.</div>
+                        <div class="option" onclick="checkAnswer(this, 'B', 4)">B. sorry she hadn’t worked at getting fitter before she went.</div>
+                        <div class="option" onclick="checkAnswer(this, 'C', 4)">C. proud that her friends all thought she’d done well.</div>
+                        <div class="option" onclick="checkAnswer(this, 'D', 4)">D. surprised at how exhausted she was by the activities.</div>
+                    </div>
+                    <div class="support-tools" id="support-4">
+                        <button class="btn-support btn-explain" onclick="showDetail(4, 'explain')">Giải thích</button>
+                        <button class="btn-support btn-dict" onclick="showDetail(4, 'dict')">Dịch</button>
+                        <button class="btn-support btn-vocab" onclick="showDetail(4, 'vocab')">Từ vựng</button>
+                    </div>
+                    <div class="detail-info" id="detail-4"></div>
+                </div>
+
+                <div class="question-card" id="q5" data-answer="A">
+                    <h3>Question 5: What would Lily text to a friend while she was away on the course?</h3>
+                    <div class="options-container">
+                        <div class="option" onclick="checkAnswer(this, 'A', 5)">A. I don’t think Dad was sure before he came that he’d enjoy it – but actually, he’s been braver than me!</div>
+                        <div class="option" onclick="checkAnswer(this, 'B', 5)">B. I wanted to do the coasteering course, and mentioned it to my parents before my birthday. But I never expected they’d let me go!</div>
+                        <div class="option" onclick="checkAnswer(this, 'C', 5)">C. Our session before the activities was great, although I really didn’t think I’d need a wetsuit for the cold – and I was right!</div>
+                        <div class="option" onclick="checkAnswer(this, 'D', 5)">D. Going into caves was amazing. I’d love to explore them by myself when we’re next at the beach – I’m sure my parents will let me!</div>
+                    </div>
+                    <div class="support-tools" id="support-5">
+                        <button class="btn-support btn-explain" onclick="showDetail(5, 'explain')">Giải thích</button>
+                        <button class="btn-support btn-dict" onclick="showDetail(5, 'dict')">Dịch</button>
+                        <button class="btn-support btn-vocab" onclick="showDetail(5, 'vocab')">Từ vựng</button>
+                    </div>
+                    <div class="detail-info" id="detail-5"></div>
+                </div>
+
+                <div class="submit-all-container">
+                    <button class="btn-submit-test" onclick="finishTest()">NỘP BÀI (FINISH)</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div id="result-modal">
+        <div class="modal-content">
+            <h1 id="score-text">0/5</h1>
+            <p id="comment-text" style="font-size: 1.2rem;"></p>
+            <button class="btn-submit-test" onclick="location.reload()">LÀM LẠI</button>
+        </div>
+    </div>
+
+    <audio id="sound-correct" src="https://assets.mixkit.co/active_storage/sfx/2000/2000-preview.mp3"></audio>
+    <audio id="sound-wrong" src="https://assets.mixkit.co/active_storage/sfx/2108/2108-preview.mp3"></audio>
+
+    <script>
+        let timeLeft = 600;
+        let timerId = null;
+        let score = 0;
+        const totalQuestions = 5;
+        let answeredQuestions = new Set();
+
+        const dataDetails = {
+            1: {
+                explain: "Dẫn chứng trong bài: '...found a course offered at an activity centre called Porthdean, just along the coast from the family home, which was perfect.' -> Gần nhà là lý do họ chọn Porthdean. Các đáp án khác sai vì: A (không nói nhiều khóa học), B (không nói được giới thiệu cao), D (chưa từng thử ở đây).",
+                dict: "Tại sao bố mẹ Lily chọn Porthdean? A. Nó cung cấp nhiều khóa học. B. Hướng dẫn viên được đề xuất. C. Nó không quá xa nhà. D. Cô ấy đã thử hoạt động ở đó.",
+                vocab: "Perfect (adj): hoàn hảo; Just along (prep): ngay dọc theo; Sign up (phr v): đăng ký."
+            },
+            2: {
+                explain: "Dẫn chứng: 'exploring caves – which she was never normally allowed to do, so she really wanted to go.' -> Cô ấy hài lòng vì được khám phá hang động, thứ mà bình thường không được phép. A đúng.",
+                dict: "Lily cảm thấy thế nào? A. Vui vì có thứ cô luôn muốn thử. B. Hào hứng vì tự trải nghiệm 1 mình. C. Muốn biết thêm thông tin. D. Muốn xem có thiếu niên nào khác không.",
+                vocab: "Discover (v): khám phá; Allowed (adj): được cho phép; Accompany (v): đi cùng."
+            },
+            3: {
+                explain: "Dẫn chứng: 'our instructors encouraged the whole group so much, we were ready to try absolutely all the challenges...' -> Sự khích lệ (encouragement) giúp mọi người tự tin (confident) để thử cái mới. Chọn B.",
+                dict: "Lily thích hướng dẫn viên vì họ đảm bảo mọi người: A. Thoải mái với đồ bảo hộ. B. Tự tin với những thứ mới. C. Nhận sự chú ý như nhau. D. Biết hết các hoạt động.",
+                vocab: "Encourage (v): khích lệ; Confidence (n): sự tự tin; Attempt (v/n): thử sức/nỗ lực."
+            },
+            4: {
+                explain: "Dẫn chứng: 'afterwards, we actually felt like we’d done loads of hard exercise in the gym!' -> So sánh với việc tập gym cực khổ cho thấy cô ấy ngạc nhiên vì sự kiệt sức (exhausted). Chọn D.",
+                dict: "Sau khóa học, Lily thấy: A. Hạnh phúc vì chia sẻ với bố. B. Tiếc vì không tập thể dục trước. C. Tự hào vì bạn bè khen. D. Ngạc nhiên vì sự mệt mỏi.",
+                vocab: "Exhausted (adj): kiệt sức; Physically (adv): thể chất; Memory (n): kỷ niệm."
+            },
+            5: {
+                explain: "Dẫn chứng: 'Dad went much higher!' -> Bố cô ấy dũng cảm hơn cô ấy khi nhảy từ vách đá cao. Đoạn 2 cũng nói bố băn khoăn lúc đầu nhưng sau đó rất hăng hái. Chọn A.",
+                dict: "Lily sẽ nhắn gì cho bạn? A. Bố tớ ban đầu không chắc sẽ thích nhưng thực ra ông ấy còn dũng cảm hơn tớ! B. Tớ không ngờ bố mẹ cho đi. C. Tớ đúng khi nghĩ không cần wetsuit (Lily sai, nước rất lạnh). D. Bố mẹ sẽ cho tớ đi hang động một mình (Lily nói bình thường không được cho phép).",
+                vocab: "Brave (adj): dũng cảm; Mention (v): đề cập; Expected (v): kỳ vọng."
+            }
+        };
+
+        function toggleTimer() {
+            const btn = document.getElementById('timer-toggle');
+            const display = document.getElementById('time-display');
+            if (!timerId) {
+                display.style.display = 'inline';
+                btn.innerText = 'TẠM DỪNG';
+                timerId = setInterval(() => {
+                    timeLeft--;
+                    let m = Math.floor(timeLeft / 60);
+                    let s = timeLeft % 60;
+                    display.innerText = `${m}:${s < 10 ? '0'+s : s}`;
+                    if (timeLeft <= 0) {
+                        clearInterval(timerId);
+                        alert("Đã hết giờ làm bài. Bạn vẫn có thể tiếp tục làm, nhưng nhớ là trong phòng thi thật, bạn chỉ nên làm một bài như thế này trong 10 phút thôi nha.");
+                    }
+                }, 1000);
+            } else {
+                clearInterval(timerId);
+                timerId = null;
+                btn.innerText = 'TIẾP TỤC';
+            }
+        }
+
+        function toggleParaTrans(id) {
+            const el = document.getElementById(`trans-${id}`);
+            el.style.display = el.style.display === 'block' ? 'none' : 'block';
+        }
+
+        function checkAnswer(element, choice, qNum) {
+            if (answeredQuestions.has(qNum)) return;
+
+            const card = document.getElementById(`q${qNum}`);
+            const correctAnswer = card.getAttribute('data-answer');
+            const options = card.querySelectorAll('.option');
+
+            if (choice === correctAnswer) {
+                element.classList.add('correct');
+                document.getElementById('sound-correct').play();
+                score++;
+                confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+            } else {
+                element.classList.add('wrong');
+                document.getElementById('sound-wrong').play();
+                options.forEach(opt => {
+                    if (opt.innerText.startsWith(correctAnswer)) opt.classList.add('correct');
+                });
+            }
+
+            answeredQuestions.add(qNum);
+            document.getElementById(`support-${qNum}`).style.display = 'flex';
+        }
+
+        function showDetail(qNum, type) {
+            const detailBox = document.getElementById(`detail-${qNum}`);
+            detailBox.style.display = 'block';
+            let content = "";
+            if(type === 'explain') content = "<strong>👩‍🏫 Giải thích:</strong> " + dataDetails[qNum].explain;
+            if(type === 'dict') content = "<strong>📖 Dịch câu hỏi:</strong> " + dataDetails[qNum].dict;
+            if(type === 'vocab') content = "<strong>💡 Từ vựng:</strong> " + dataDetails[qNum].vocab;
+            detailBox.innerHTML = content;
+        }
+
+        function finishTest() {
+            const modal = document.getElementById('result-modal');
+            const scoreTxt = document.getElementById('score-text');
+            const commentTxt = document.getElementById('comment-text');
+            
+            modal.style.display = 'flex';
+            scoreTxt.innerText = `${score}/${totalQuestions}`;
+            
+            if (score === 5) commentTxt.innerText = "THIÊN TÀI! Bạn thật xuất sắc! 🌟";
+            else if (score >= 3) commentTxt.innerText = "Làm tốt lắm! Cố gắng phát huy nhé! 👍";
+            else commentTxt.innerText = "Cố lên nhé! Luyện tập thêm một chút nữa thôi! 💪";
+        }
+    </script>
+</body>
+</html>

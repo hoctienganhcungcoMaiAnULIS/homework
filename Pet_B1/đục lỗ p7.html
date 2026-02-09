@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bài Kiểm Tra: Art & Strategy - Ms Mai An ULIS</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            /* Theme: Creative & Strategy (Purple/Gold) */
+            --primary-color: #6c5ce7; /* Soft Purple */
+            --secondary-color: #fdcb6e; /* Muted Gold */
+            --accent-color: #00b894; /* Mint Green */
+            --correct-color: #00D26A;
+            --wrong-color: #FF4757;
+            --text-color: #2d3436;
+            --font-main: 'Nunito', sans-serif;
+            --card-shadow: 0 8px 0 rgba(0,0,0,0.1), 0 10px 20px rgba(0,0,0,0.1);
+        }
+
+        /* --- SVG Background: Palette & Chess Piece --- */
+        body {
+            font-family: var(--font-main);
+            color: var(--text-color);
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            overflow: hidden;
+            background-color: #dfe6e9;
+            /* SVG Pattern: Palette, Pawn, Scroll */
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'%3E%3Ctext x='10' y='40' font-size='25'%3E🎨%3C/text%3E%3Ctext x='70' y='90' font-size='25'%3E♟️%3C/text%3E%3Ctext x='80' y='30' font-size='20'%3E📜%3C/text%3E%3C/svg%3E");
+            background-attachment: fixed;
+        }
+
+        /* --- Top Control Bar --- */
+        .top-bar {
+            height: 70px;
+            background: white;
+            box-shadow: 0 4px 15px rgba(108, 92, 231, 0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 30px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+        }
+
+        .teacher-brand {
+            font-weight: 800;
+            font-size: 1.4rem;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .teacher-brand span {
+            font-size: 0.8rem;
+            background: var(--secondary-color);
+            padding: 4px 10px;
+            border-radius: 20px;
+            color: #2d3436;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .timer-container {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            background: #f1f2f6;
+            padding: 5px 10px 5px 20px;
+            border-radius: 30px;
+        }
+
+        .timer-display {
+            font-size: 1.6rem;
+            font-weight: 900;
+            font-variant-numeric: tabular-nums;
+            color: var(--wrong-color);
+        }
+
+        .btn-timer {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 10px 25px;
+            border-radius: 20px;
+            font-weight: 700;
+            font-family: var(--font-main);
+            cursor: pointer;
+            box-shadow: 0 4px 0 #4834d4;
+            transition: all 0.2s;
+        }
+
+        .btn-timer:active {
+            transform: translateY(4px);
+            box-shadow: none;
+        }
+
+        /* --- Main Layout --- */
+        .main-container {
+            display: flex;
+            height: calc(100vh - 70px);
+            margin-top: 70px;
+        }
+
+        .left-panel, .right-panel {
+            flex: 1;
+            padding: 40px;
+            overflow-y: auto;
+            scroll-behavior: smooth;
+        }
+
+        /* Reading Section */
+        .left-panel {
+            background: rgba(255, 255, 255, 0.95);
+            border-right: 3px solid #b2bec3;
+        }
+
+        .passage-card {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 40px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            border: 2px solid #eee;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .passage-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; bottom: 0;
+            width: 6px;
+            background: var(--primary-color);
+        }
+
+        .passage-card h2 {
+            margin-top: 0;
+            color: var(--primary-color);
+            border-bottom: 2px dashed #dfe6e9;
+            padding-bottom: 15px;
+            font-size: 1.5rem;
+        }
+
+        .passage-text {
+            font-size: 1.15rem;
+            line-height: 1.8;
+            color: #2d3436;
+            text-align: justify;
+        }
+
+        .blank-num {
+            background: var(--secondary-color);
+            color: #2d3436;
+            font-weight: 800;
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            vertical-align: middle;
+            margin: 0 3px;
+        }
+
+        /* Translation & Glossary */
+        .btn-translate {
+            background: white;
+            border: 2px solid #b2bec3;
+            color: #636e72;
+            padding: 10px 20px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 700;
+            font-family: var(--font-main);
+            margin-top: 20px;
+            transition: 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-translate:hover {
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+            background: #fdfdfd;
+        }
+
+        .trans-box {
+            display: none;
+            background: #f1f2f6;
+            padding: 20px;
+            border-radius: 15px;
+            margin-top: 15px;
+            border-left: 5px solid var(--accent-color);
+            font-style: italic;
+            line-height: 1.6;
+        }
+
+        .glossary-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0 8px;
+            margin-top: 25px;
+        }
+
+        .glossary-table th {
+            text-align: left;
+            padding: 10px;
+            color: #b2bec3;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+        }
+
+        .glossary-table td {
+            background: #f9f9f9;
+            padding: 12px;
+            border-top: 1px solid #eee;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .glossary-table tr td:first-child {
+            border-left: 1px solid #eee;
+            border-top-left-radius: 10px;
+            border-bottom-left-radius: 10px;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+        
+        .glossary-table tr td:last-child {
+            border-right: 1px solid #eee;
+            border-top-right-radius: 10px;
+            border-bottom-right-radius: 10px;
+        }
+
+        .tag {
+            font-size: 0.75rem;
+            background: #dfe6e9;
+            padding: 3px 8px;
+            border-radius: 5px;
+            color: #636e72;
+            font-weight: 600;
+        }
+
+        /* Right Panel (Quiz) */
+        .right-panel {
+            background: rgba(223, 230, 233, 0.5);
+        }
+
+        .question-card {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: var(--card-shadow);
+            animation: slideIn 0.5s ease-out;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .q-header {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: var(--text-color);
+            display: flex;
+            gap: 10px;
+        }
+
+        .q-badge {
+            background: var(--primary-color);
+            color: white;
+            padding: 2px 10px;
+            border-radius: 8px;
+            height: fit-content;
+            font-size: 0.9rem;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .option-btn {
+            background: white;
+            border: 2px solid #e1e1e1;
+            padding: 15px;
+            border-radius: 15px;
+            font-size: 1rem;
+            font-weight: 700;
+            color: #636e72;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px 0 #e1e1e1;
+            text-align: left;
+            font-family: var(--font-main);
+        }
+
+        .option-btn:hover {
+            transform: scale(1.02);
+            border-color: var(--primary-color);
+        }
+
+        .option-btn:active {
+            transform: translateY(4px);
+            box-shadow: none;
+        }
+
+        .option-btn.correct {
+            background: var(--correct-color);
+            color: white;
+            border-color: var(--correct-color);
+            box-shadow: 0 4px 0 #00b894;
+        }
+
+        .option-btn.wrong {
+            background: var(--wrong-color);
+            color: white;
+            border-color: var(--wrong-color);
+            box-shadow: 0 4px 0 #d63031;
+            animation: shake 0.4s;
+        }
+
+        /* Explanation */
+        .explain-box {
+            display: none;
+            margin-top: 20px;
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            border: 1px solid #dfe6e9;
+        }
+
+        .avatar-ms {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: white;
+            float: left;
+            margin-right: 15px;
+            box-shadow: 0 4px 10px rgba(108, 92, 231, 0.3);
+        }
+
+        .explain-content h4 {
+            margin: 0 0 5px 0;
+            color: var(--primary-color);
+        }
+
+        .explain-content p, .explain-content ul {
+            margin: 5px 0;
+            font-size: 0.95rem;
+            color: #2d3436;
+        }
+        
+        .explain-content li {
+            margin-bottom: 5px;
+        }
+
+        /* Submit Section */
+        .submit-area {
+            text-align: center;
+            margin-top: 40px;
+            margin-bottom: 60px;
+        }
+
+        .btn-submit {
+            background: linear-gradient(135deg, #6c5ce7, #a29bfe);
+            color: white;
+            font-size: 1.3rem;
+            padding: 18px 60px;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 10px 25px rgba(108, 92, 231, 0.4);
+            font-weight: 800;
+            transition: transform 0.2s;
+            font-family: var(--font-main);
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-5px) scale(1.05);
+        }
+
+        /* Modal */
+        .modal-wrap {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(45, 52, 54, 0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            backdrop-filter: blur(8px);
+        }
+
+        .modal-box {
+            background: white;
+            padding: 50px;
+            border-radius: 40px;
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+            animation: popUp 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        @keyframes popUp {
+            from { transform: scale(0.5); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-8px); }
+            75% { transform: translateX(8px); }
+        }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            .main-container { flex-direction: column; height: auto; }
+            .left-panel, .right-panel { height: auto; overflow: visible; }
+            .top-bar { padding: 0 15px; }
+            .teacher-brand span { display: none; }
+        }
+
+        canvas { position: fixed; top: 0; left: 0; pointer-events: none; z-index: 9999; }
+    </style>
+</head>
+<body>
+
+    <canvas id="confetti"></canvas>
+
+    <div class="top-bar">
+        <div class="teacher-brand">
+            Ms Mai An ULIS <span>Teacher</span>
+        </div>
+        <div class="timer-container">
+            <div class="timer-display" id="timer">10:00</div>
+            <button class="btn-timer" id="btnTimer" onclick="toggleTimer()">BẮT ĐẦU</button>
+        </div>
+    </div>
+
+    <div class="main-container">
+        <div class="left-panel">
+            
+            <div class="passage-card">
+                <h2>PASSAGE 1: DRAWING 🎨</h2>
+                <div class="passage-text">
+                    Drawing is one of the earliest forms of communication and goes back much <span class="blank-num">(1)</span> than the written word. However, despite its long history, it has not always been <span class="blank-num">(2)</span> of as a form of art.
+                    <br><br>
+                    When paper became easily <span class="blank-num">(3)</span> in the 14th century, the use of drawing in the arts increased. Some of the great artists of the Renaissance produced drawings of the highest <span class="blank-num">(4)</span> and presented the human body in a more realistic way than ever before. However, it was often practised <span class="blank-num">(5)</span> order to plan a larger painting and wasn’t taken very seriously as a form of art.
+                    <br><br>
+                    Today, drawing is regarded as a <span class="blank-num">(6)</span> skill and no less important than oil painting or other creative works.
+                </div>
+                
+                <button class="btn-translate" onclick="toggleTrans('trans1')">📖 BẢN DỊCH (TRANSLATION)</button>
+                <div id="trans1" class="trans-box">
+                    <strong>Vẽ (Drawing):</strong><br>
+                    Vẽ là một trong những hình thức giao tiếp sớm nhất và có từ <strong>xa xưa hơn nhiều</strong> so với chữ viết. Tuy nhiên, bất chấp lịch sử lâu đời của nó, nó không phải lúc nào cũng được <strong>coi là</strong> một loại hình nghệ thuật.<br>
+                    Khi giấy trở nên <strong>có sẵn (dễ kiếm)</strong> vào thế kỷ 14, việc sử dụng hình vẽ trong nghệ thuật đã tăng lên. Một số nghệ sĩ vĩ đại của thời kỳ Phục hưng đã tạo ra những bức vẽ có <strong>chất lượng</strong> cao nhất và thể hiện cơ thể con người một cách chân thực hơn bao giờ hết. Tuy nhiên, nó thường được thực hiện <strong>để</strong> lên kế hoạch cho một bức tranh lớn hơn và không được coi trọng lắm như một hình thức nghệ thuật.<br>
+                    Ngày nay, vẽ được coi là một kỹ năng <strong>có giá trị</strong> và không kém phần quan trọng so với tranh sơn dầu hay các tác phẩm sáng tạo khác.
+                </div>
+
+                <h3>📚 TỪ VỰNG TINH HOA (GLOSSARY)</h3>
+                <table class="glossary-table">
+                    <tr><th>Từ vựng</th><th>Loại từ</th><th>Nghĩa tiếng Việt</th></tr>
+                    <tr><td>Renaissance</td><td><span class="tag">noun</span></td><td>Thời kỳ Phục hưng</td></tr>
+                    <tr><td>Realistic</td><td><span class="tag">adj</span></td><td>Chân thực, thực tế</td></tr>
+                    <tr><td>Regarded (as)</td><td><span class="tag">verb</span></td><td>Được xem như là</td></tr>
+                    <tr><td>Communication</td><td><span class="tag">noun</span></td><td>Sự giao tiếp</td></tr>
+                </table>
+            </div>
+
+            <div class="passage-card" style="border-left-color: #fdcb6e;">
+                <h2>PASSAGE 2: THE FIRST CHESS CHAMPION ♟️</h2>
+                <div class="passage-text">
+                    Most chess historians agree that the first chess world championship <span class="blank-num">(7)</span> place in 1886 in the United States. On one side was an Austrian chess champion Wilhelm Steinitz, who for many years was <span class="blank-num">(8)</span> to be one of the best in the world. Playing against him was Johannes Zukertort from Poland, living in the UK, and another player who many believed at the time was one of the world’s greats. 
+                    <br><br>
+                    According <span class="blank-num">(9)</span> the contract, the match would be for the championship of the world and would <span class="blank-num">(10)</span> of 20 games played in three different cities: New York, St Louis and New Orleans. Steinitz won 10-5 and was world champion until 1894. Steinitz was <span class="blank-num">(11)</span> in how the game should be played and many of his ideas had a big influence <span class="blank-num">(12)</span> the modern game.
+                </div>
+
+                <button class="btn-translate" onclick="toggleTrans('trans2')">📖 BẢN DỊCH (TRANSLATION)</button>
+                <div id="trans2" class="trans-box">
+                    <strong>Nhà vô địch cờ vua đầu tiên của thế giới:</strong><br>
+                    Hầu hết các nhà sử học cờ vua đều đồng ý rằng giải vô địch cờ vua thế giới đầu tiên <strong>diễn ra</strong> vào năm 1886 tại Hoa Kỳ. Một bên là nhà vô địch cờ vua người Áo Wilhelm Steinitz, người mà trong nhiều năm được <strong>cho là</strong> một trong những người giỏi nhất thế giới...<br>
+                    <strong>Theo</strong> hợp đồng, trận đấu sẽ giành chức vô địch thế giới và sẽ <strong>bao gồm</strong> 20 ván đấu diễn ra tại ba thành phố khác nhau... Steinitz đã thắng 10-5 và là nhà vô địch thế giới cho đến năm 1894. Steinitz <strong>quan tâm</strong> đến cách chơi trò chơi này và nhiều ý tưởng của ông đã có ảnh hưởng lớn <strong>đến</strong> trò chơi hiện đại.
+                </div>
+
+                <h3>📚 TỪ VỰNG TINH HOA (GLOSSARY)</h3>
+                <table class="glossary-table">
+                    <tr><th>Từ vựng</th><th>Loại từ</th><th>Nghĩa tiếng Việt</th></tr>
+                    <tr><td>Historian</td><td><span class="tag">noun</span></td><td>Nhà sử học</td></tr>
+                    <tr><td>Championship</td><td><span class="tag">noun</span></td><td>Giải vô địch</td></tr>
+                    <tr><td>Contract</td><td><span class="tag">noun</span></td><td>Hợp đồng</td></tr>
+                    <tr><td>Influence</td><td><span class="tag">noun</span></td><td>Sự ảnh hưởng</td></tr>
+                </table>
+            </div>
+
+        </div>
+
+        <div class="right-panel">
+            <h3 style="text-align: center; color: #636e72; margin-bottom: 30px;">📝 PHÒNG THI TRẮC NGHIỆM</h3>
+            
+            <div id="quiz-area"></div>
+
+            <div class="submit-area">
+                <button class="btn-submit" onclick="finishTest()">NỘP BÀI & XEM ĐIỂM 🏆</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-wrap" id="resultModal">
+        <div class="modal-box">
+            <h2 style="color: var(--primary-color)">KẾT QUẢ CỦA BẠN</h2>
+            <div style="font-size: 5rem; font-weight: 900; color: var(--secondary-color); margin: 20px 0" id="finalScore">0/12</div>
+            <p id="feedbackText" style="font-size: 1.2rem; color: #636e72;">...</p>
+            <button class="btn-timer" onclick="closeModal()">Xem lại bài làm</button>
+        </div>
+    </div>
+
+    <audio id="sfx-correct" src="https://assets.mixkit.co/active_storage/sfx/2000/2000-preview.mp3"></audio>
+    <audio id="sfx-wrong" src="https://assets.mixkit.co/active_storage/sfx/2572/2572-preview.mp3"></audio>
+    <audio id="sfx-win" src="https://assets.mixkit.co/active_storage/sfx/1435/1435-preview.mp3"></audio>
+
+    <script>
+        // --- DATA ---
+        const questions = [
+            // PASSAGE 1: DRAWING
+            {
+                id: 1, blank: "(1)", q: "...goes back much (1)__ than the written word.",
+                opts: ["A. wider", "B. further", "C. bigger", "D. greater"],
+                ans: 1,
+                exp: "<b>Đáp án B: further</b><br><ul><li><b>Context:</b> Nói về thời gian (lịch sử lâu đời hơn).</li><li><b>Further</b>: Xa hơn (dùng cho cả khoảng cách và thời gian/mức độ).</li><li>Wider (rộng hơn), Bigger (to hơn), Greater (lớn hơn) không dùng để so sánh về mốc thời gian trong quá khứ theo cách này.</li></ul>"
+            },
+            {
+                id: 2, blank: "(2)", q: "...has not always been (2)__ of as a form of art.",
+                opts: ["A. taken", "B. seen", "C. thought", "D. made"],
+                ans: 2,
+                exp: "<b>Đáp án C: thought</b><br><ul><li><b>Cấu trúc:</b> To be thought of as... (Được nghĩ đến như là/được coi là).</li><li>Seen as (được xem là) - nhưng 'seen' không đi với 'of'.</li><li>Made of (làm bằng gì).</li></ul>"
+            },
+            {
+                id: 3, blank: "(3)", q: "When paper became easily (3)__ in the 14th century...",
+                opts: ["A. free", "B. open", "C. around", "D. available"],
+                ans: 3,
+                exp: "<b>Đáp án D: available</b><br><ul><li><b>Easily available:</b> Dễ dàng có được/sẵn có để sử dụng.</li><li>Open (mở), Free (miễn phí), Around (xung quanh) không sát nghĩa bằng 'available' trong ngữ cảnh lịch sử về vật liệu.</li></ul>"
+            },
+            {
+                id: 4, blank: "(4)", q: "...produced drawings of the highest (4)__...",
+                opts: ["A. quality", "B. type", "C. kind", "D. sort"],
+                ans: 0,
+                exp: "<b>Đáp án A: quality</b><br><ul><li><b>Of the highest quality:</b> Có chất lượng cao nhất/thượng hạng.</li><li>Type/Kind/Sort (loại) thường không đi với 'highest' để chỉ sự tuyệt hảo của tác phẩm.</li></ul>"
+            },
+            {
+                id: 5, blank: "(5)", q: "...practised (5)__ order to plan a larger painting...",
+                opts: ["A. for", "B. in", "C. on", "D. with"],
+                ans: 1,
+                exp: "<b>Đáp án B: in</b><br><ul><li><b>Phrase:</b> In order to + V (Để mà, nhằm mục đích...).</li><li>Đây là cụm cố định (Fixed phrase), không dùng giới từ khác.</li></ul>"
+            },
+            {
+                id: 6, blank: "(6)", q: "...drawing is regarded as a (6)__ skill...",
+                opts: ["A. valuable", "B. correct", "C. dear", "D. likely"],
+                ans: 0,
+                exp: "<b>Đáp án A: valuable</b><br><ul><li><b>Valuable:</b> Có giá trị, quý giá (quan trọng).</li><li>Correct (đúng), Dear (thân thiết/đắt), Likely (có thể) không phù hợp để mô tả tầm quan trọng của một kỹ năng nghệ thuật.</li></ul>"
+            },
+
+            // PASSAGE 2: CHESS
+            {
+                id: 7, blank: "(7)", q: "...first chess world championship (1)__ place in 1886...",
+                opts: ["A. took", "B. went", "C. laid", "D. set"],
+                ans: 0,
+                exp: "<b>Đáp án A: took</b><br><ul><li><b>Collocation:</b> Take place = Happen (Diễn ra, xảy ra).</li><li>Quá khứ là 'Took place'. Các từ còn lại không tạo thành cụm từ có nghĩa tương đương.</li></ul>"
+            },
+            {
+                id: 8, blank: "(8)", q: "...who for many years was (2)__ to be one of the best...",
+                opts: ["A. held", "B. thought", "C. placed", "D. looked"],
+                ans: 1,
+                exp: "<b>Đáp án B: thought</b><br><ul><li><b>Passive Voice:</b> S + be + thought + to V (Được cho là...).</li><li>Held (được tổ chức), Placed (được đặt), Looked (được nhìn) không hợp lý về ngữ nghĩa 'được công nhận/tin là'.</li></ul>"
+            },
+            {
+                id: 9, blank: "(9)", q: "According (3)__ the contract...",
+                opts: ["A. for", "B. in", "C. with", "D. to"],
+                ans: 3,
+                exp: "<b>Đáp án D: to</b><br><ul><li><b>Phrase:</b> According to... (Theo như...).</li><li>Đây là giới từ bắt buộc đi sau 'According'.</li></ul>"
+            },
+            {
+                id: 10, blank: "(10)", q: "...would (4)__ of 20 games...",
+                opts: ["A. contain", "B. consist", "C. make", "D. include"],
+                ans: 1,
+                exp: "<b>Đáp án B: consist</b><br><ul><li><b>Phrase:</b> Consist of... (Bao gồm...).</li><li>Contain/Include: Bao gồm (nhưng không đi với giới từ 'of').</li><li>Make of: Làm bằng (chất liệu).</li></ul>"
+            },
+            {
+                id: 11, blank: "(11)", q: "Steinitz was (5)__ in how the game should be played...",
+                opts: ["A. interested", "B. excited", "C. keen", "D. attracted"],
+                ans: 0,
+                exp: "<b>Đáp án A: interested</b><br><ul><li><b>Structure:</b> Interested in (Quan tâm đến).</li><li>Keen on.</li><li>Excited about.</li><li>Attracted to.</li><li>Chỉ có 'interested' đi với giới từ 'in'.</li></ul>"
+            },
+            {
+                id: 12, blank: "(12)", q: "...had a big influence (6)__ the modern game.",
+                opts: ["A. to", "B. in", "C. on", "D. at"],
+                ans: 2,
+                exp: "<b>Đáp án C: on</b><br><ul><li><b>Noun Phrase:</b> Have an influence on somebody/something (Có ảnh hưởng lên...).</li></ul>"
+            }
+        ];
+
+        let score = 0;
+        let timer;
+        let timeLeft = 600; // 10 minutes
+        let running = false;
+
+        function init() {
+            const container = document.getElementById('quiz-area');
+            questions.forEach((q, idx) => {
+                // Add separator for passage 2
+                if (idx === 6) {
+                    const sep = document.createElement('h3');
+                    sep.innerHTML = "♟️ CHESS PASSAGE QUESTIONS";
+                    sep.style.textAlign = "center";
+                    sep.style.color = "#fdcb6e";
+                    sep.style.margin = "40px 0 20px 0";
+                    sep.style.borderTop = "2px dashed #ccc";
+                    sep.style.paddingTop = "20px";
+                    container.appendChild(sep);
+                }
+
+                const card = document.createElement('div');
+                card.className = 'question-card';
+                card.innerHTML = `
+                    <div class="q-header">
+                        <div class="q-badge">${q.blank}</div>
+                        <span>${q.q}</span>
+                    </div>
+                    <div class="options-grid" id="opt-grid-${q.id}">
+                        ${q.opts.map((opt, i) => `
+                            <button class="option-btn" onclick="checkAnswer(${q.id}, ${i}, ${q.ans}, this)">${opt}</button>
+                        `).join('')}
+                    </div>
+                    <div class="explain-box" id="explain-${q.id}">
+                        <div class="avatar-ms">Ms</div>
+                        <div class="explain-content">
+                            <h4>Giải thích chi tiết:</h4>
+                            ${q.exp}
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function checkAnswer(qId, selectedIdx, correctIdx, btn) {
+            const grid = document.getElementById(`opt-grid-${qId}`);
+            if (grid.dataset.done) return; // Prevent re-click
+            grid.dataset.done = "true";
+
+            const btns = grid.getElementsByClassName('option-btn');
+            const explain = document.getElementById(`explain-${qId}`);
+
+            if (selectedIdx === correctIdx) {
+                // Correct
+                btn.classList.add('correct');
+                score++;
+                document.getElementById('sfx-correct').play();
+                createConfetti(btn);
+            } else {
+                // Wrong
+                btn.classList.add('wrong');
+                btns[correctIdx].classList.add('correct');
+                document.getElementById('sfx-wrong').play();
+            }
+
+            // Disable all
+            for (let b of btns) b.style.cursor = 'default';
+
+            // Show explanation
+            explain.style.display = 'block';
+            explain.style.animation = 'slideIn 0.3s';
+        }
+
+        function toggleTimer() {
+            const btn = document.getElementById('btnTimer');
+            if (running) {
+                clearInterval(timer);
+                btn.innerText = "TIẾP TỤC";
+                btn.style.background = "#b2bec3";
+            } else {
+                timer = setInterval(() => {
+                    timeLeft--;
+                    if (timeLeft <= 0) {
+                        clearInterval(timer);
+                        alert("HẾT GIỜ RỒI! Nộp bài thôi!");
+                    }
+                    let m = Math.floor(timeLeft / 60).toString().padStart(2, '0');
+                    let s = (timeLeft % 60).toString().padStart(2, '0');
+                    document.getElementById('timer').innerText = `${m}:${s}`;
+                }, 1000);
+                btn.innerText = "TẠM DỪNG";
+                btn.style.background = "#d63031";
+            }
+            running = !running;
+        }
+
+        function toggleTrans(id) {
+            const box = document.getElementById(id);
+            box.style.display = box.style.display === "block" ? "none" : "block";
+        }
+
+        function finishTest() {
+            clearInterval(timer);
+            document.getElementById('sfx-win').play();
+            
+            const modal = document.getElementById('resultModal');
+            document.getElementById('finalScore').innerText = `${score}/12`;
+            
+            let msg = "";
+            if (score === 12) msg = "TUYỆT ĐỐI! Bạn là thiên tài ngôn ngữ! 🌟👑";
+            else if (score >= 9) msg = "Rất tốt! Kiến thức của bạn rất vững! 🔥";
+            else if (score >= 6) msg = "Được rồi, nhưng cần cố gắng hơn ở phần từ vựng nhé! 💪";
+            else msg = "Đừng nản lòng, hãy xem kỹ lại phần giải thích nhé! ❤️";
+            
+            document.getElementById('feedbackText').innerText = msg;
+            modal.style.display = 'flex';
+            
+            if (score >= 8) launchConfetti();
+        }
+
+        function closeModal() {
+            document.getElementById('resultModal').style.display = 'none';
+        }
+
+        // --- Confetti Effect (Simple Canvas) ---
+        function createConfetti(element) {
+            // Mini burst effect logic (simplified for single file)
+            // In a full environment, we would use a library like canvas-confetti
+        }
+
+        function launchConfetti() {
+            // Full screen confetti logic placeholder
+        }
+
+        window.onload = init;
+    </script>
+</body>
+</html>

@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bài Kiểm Tra Viết & Sửa Lỗi - Ms Mai An ULIS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;800;900&family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <style>
+        :root {
+            --primary: #8854C0; 
+            --secondary: #00C9A7; 
+            --correct: #00D26A; 
+            --incorrect: #FF4757; 
+            --bg-color: #f8f4ff;
+            --text-main: #333333;
+            --card-bg: #ffffff;
+        }
+
+        * { box-sizing: border-box; font-family: 'Nunito', sans-serif; }
+
+        body {
+            margin: 0; padding: 20px; background-color: var(--bg-color);
+            background-image: radial-gradient(var(--secondary) 10%, transparent 11%), radial-gradient(var(--secondary) 10%, transparent 11%);
+            background-size: 60px 60px; background-position: 0 0, 30px 30px;
+            background-attachment: fixed; color: var(--text-main);
+        }
+
+        .header-container {
+            background: linear-gradient(135deg, var(--primary), #a675e8);
+            color: white; text-align: center; padding: 20px; border-radius: 20px;
+            box-shadow: 0 8px 0 #6a3a9e; margin: 0 auto 40px auto; max-width: 900px;
+        }
+        .header-container h1 { margin: 0; font-family: 'Quicksand', sans-serif; font-weight: 900; font-size: 28px; }
+
+        .quiz-container { max-width: 900px; margin: 0 auto; }
+        .part-title {
+            background-color: #FFC312; color: #fff; display: inline-block; padding: 10px 25px;
+            border-radius: 15px; font-weight: 800; font-size: 20px; box-shadow: 0 5px 0 #d9a50b;
+            margin: 30px 0 20px 0; width: 100%; text-align: center; text-transform: uppercase;
+        }
+
+        .question-card {
+            background: var(--card-bg); border-radius: 20px; padding: 25px; margin-bottom: 30px;
+            box-shadow: 0 8px 0 rgba(0,0,0,0.1); border: 3px solid #eee; transition: transform 0.2s;
+        }
+        .question-card:hover { border-color: var(--secondary); }
+
+        .question-text { font-size: 20px; font-weight: 800; margin-bottom: 20px; line-height: 1.5; color: #2d3436; }
+        .question-text u { color: var(--primary); text-decoration: underline dashed 2px; text-underline-offset: 4px; padding: 0 2px;}
+        .hint-text { font-size: 16px; color: #666; font-style: italic; margin-bottom: 15px; display: block;}
+
+        .options-grid { display: grid; grid-template-columns: 1fr; gap: 15px; }
+        .grid-2 { grid-template-columns: 1fr 1fr; }
+
+        .option-btn {
+            background: #fff; border: 2px solid #e0e0e0; border-radius: 15px; padding: 15px 20px;
+            font-size: 17px; font-weight: 700; color: #555; cursor: pointer; box-shadow: 0 6px 0 #e0e0e0;
+            transition: all 0.1s ease; text-align: left; display: flex; align-items: center; line-height: 1.4;
+        }
+        .option-btn .opt-letter {
+            background: #f1f2f6; min-width: 30px; height: 30px; display: flex; align-items: center;
+            justify-content: center; border-radius: 50%; margin-right: 15px; font-weight: 900; color: #999; flex-shrink: 0;
+        }
+        .option-btn:hover:not(:disabled) { transform: translateY(2px); box-shadow: 0 4px 0 #e0e0e0; border-color: var(--secondary); }
+        .option-btn:active:not(:disabled) { transform: translateY(6px); box-shadow: 0 0px 0 #e0e0e0; }
+        
+        .option-btn.correct { background: var(--correct); border-color: var(--correct); color: white; box-shadow: 0 6px 0 #00a653; }
+        .option-btn.correct .opt-letter { background: rgba(255,255,255,0.3); color: white;}
+        .option-btn.incorrect { background: var(--incorrect); border-color: var(--incorrect); color: white; box-shadow: 0 6px 0 #cc3945; }
+        .option-btn.incorrect .opt-letter { background: rgba(255,255,255,0.3); color: white;}
+        .option-btn:disabled { cursor: not-allowed; opacity: 0.9; }
+
+        .explanation-box {
+            display: none; margin-top: 20px; background: #fdf2f8; border: 2px dashed var(--primary);
+            border-radius: 15px; padding: 20px; animation: fadeIn 0.5s ease-in-out;
+        }
+        .explanation-box h4 { margin-top: 0; color: var(--primary); font-family: 'Quicksand', sans-serif; font-size: 20px; }
+        .explanation-box p { margin: 10px 0; font-size: 16px; line-height: 1.6; }
+        .tag-correct { color: var(--correct); font-weight: 800; }
+        .tag-incorrect { color: var(--incorrect); font-weight: 800; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25%, 75% { transform: translateX(-8px) rotate(-1deg); }
+            50% { transform: translateX(8px) rotate(1deg); }
+        }
+        .shake { animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both; }
+
+        .submit-area { text-align: center; margin: 50px 0; }
+        .btn-submit {
+            background: linear-gradient(135deg, #FF6B6B, #FF4757); color: white; font-size: 24px; font-weight: 900;
+            padding: 15px 50px; border: none; border-radius: 25px; cursor: pointer; box-shadow: 0 8px 0 #cc3945;
+            text-transform: uppercase; transition: all 0.2s;
+        }
+        .btn-submit:hover { transform: translateY(3px); box-shadow: 0 5px 0 #cc3945; }
+        .btn-submit:active { transform: translateY(8px); box-shadow: 0 0 0 #cc3945; }
+
+        .modal-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7); z-index: 1000; justify-content: center; align-items: center;
+        }
+        .score-modal {
+            background: white; padding: 40px; border-radius: 30px; text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3); max-width: 500px; width: 90%; animation: fadeIn 0.3s;
+        }
+        .score-modal h2 { color: var(--primary); font-size: 32px; margin-bottom: 10px; }
+        .score-number { font-size: 60px; font-weight: 900; color: var(--correct); margin: 20px 0; }
+    </style>
+</head>
+<body>
+
+    <div class="header-container">
+        <h1><i class="fas fa-pencil-alt"></i> Ms Mai An ULIS - Error & Rewrite Quiz</h1>
+        <p>15 Câu Tìm Lỗi + 30 Câu Viết Lại - Chấm Điểm Tức Thì!</p>
+    </div>
+
+    <div class="quiz-container" id="quiz-container"></div>
+
+    <div class="submit-area">
+        <button class="btn-submit" onclick="showScore()"><i class="fas fa-flag-checkered"></i> Hoàn Thành</button>
+    </div>
+
+    <div class="modal-overlay" id="scoreModal">
+        <div class="score-modal">
+            <h2>Kết Quả Của Bạn!</h2>
+            <p id="score-message"></p>
+            <div class="score-number" id="score-display">0/0</div>
+            <button class="btn-submit" style="font-size: 18px; padding: 10px 30px;" onclick="location.reload()">Luyện Tập Lại</button>
+        </div>
+    </div>
+
+<script>
+// --- AUDIO ENGINE ---
+const AudioContext = window.AudioContext || window.webkitAudioContext;
+let audioCtx;
+function initAudio() { if (!audioCtx) audioCtx = new AudioContext(); }
+function playSound(type) {
+    initAudio(); if (audioCtx.state === 'suspended') audioCtx.resume();
+    const osc = audioCtx.createOscillator(); const gainNode = audioCtx.createGain();
+    osc.connect(gainNode); gainNode.connect(audioCtx.destination);
+    if (type === 'correct') {
+        osc.type = 'sine'; osc.frequency.setValueAtTime(800, audioCtx.currentTime); osc.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.1);
+        gainNode.gain.setValueAtTime(0.5, audioCtx.currentTime); gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+        osc.start(); osc.stop(audioCtx.currentTime + 0.3);
+    } else {
+        osc.type = 'sawtooth'; osc.frequency.setValueAtTime(150, audioCtx.currentTime); osc.frequency.exponentialRampToValueAtTime(80, audioCtx.currentTime + 0.3);
+        gainNode.gain.setValueAtTime(0.5, audioCtx.currentTime); gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+        osc.start(); osc.stop(audioCtx.currentTime + 0.4);
+    }
+}
+
+// --- FULL DATABASE ---
+const quizData = [
+    { type: 'title', text: "Part 10: Find and correct the mistakes" },
+    {
+        id: 1, q: "After Mrs. Wang <u>returned (A)</u> to her house <u>from (B)</u> work, she <u>cooking (C)</u> <u>dinner (D)</u>.",
+        opts: ["returned", "from", "cooking", "dinner"], ans: 2, cols: 2,
+        trans: "Sau khi bà Wang trở về nhà từ chỗ làm, bà ấy đã nấu bữa tối.",
+        right: "Lỗi ở <b>(C) cooking</b>. Trong một câu có chủ ngữ 'she', động từ không thể tự nhiên ở dạng V-ing mà không có tobe. Sửa thành <b>cooked</b> để hòa hợp thì Quá khứ đơn với vế 'returned'.",
+        wrong: "Các phần (A) returned, (B) from, (D) dinner đều đúng ngữ pháp và ngữ cảnh."
+    },
+    {
+        id: 2, q: "if he <u>need (A)</u> a <u>ticket (B)</u>, he <u>can (C)</u> get me <u>one (D)</u>.",
+        opts: ["need", "ticket", "can", "one"], ans: 0, cols: 2,
+        trans: "Nếu anh ấy cần một vé, anh ấy có thể lấy cho tôi một cái.",
+        right: "Lỗi ở <b>(A) need</b>. Chủ ngữ 'he' là ngôi thứ ba số ít trong thì Hiện tại đơn, động từ phải thêm 's'. Sửa thành <b>needs</b>.",
+        wrong: "(B), (C), (D) đều đúng. 'One' thay thế cho 'a ticket'."
+    },
+    {
+        id: 3, q: "How far <u>it is (A)</u> from here <u>to (B)</u> your <u>wanted (C)</u> <u>destination? (D)</u>",
+        opts: ["it is", "to", "wanted", "destination"], ans: 0, cols: 2,
+        trans: "Khoảng cách từ đây đến điểm đến mong muốn của bạn là bao xa?",
+        right: "Lỗi ở <b>(A) it is</b>. Đây là câu hỏi (có dấu chấm hỏi), nên phải đảo tobe lên trước chủ ngữ. Sửa thành <b>is it</b>.",
+        wrong: "Cấu trúc 'from... to...' đúng. 'Wanted destination' đúng ngữ pháp."
+    },
+    {
+        id: 4, q: "<u>What (A)</u> do you prefer <u>to study (B)</u>, Math <u>or (C)</u> Literature? – I prefer <u>Math (D)</u>.",
+        opts: ["What", "to study", "or", "Math"], ans: 0, cols: 2,
+        trans: "Bạn thích học môn nào hơn, Toán hay Văn? - Tôi thích Toán hơn.",
+        right: "Lỗi ở <b>(A) What</b>. Khi đưa ra sự lựa chọn cụ thể giữa 2 đối tượng (Toán hay Văn), ta phải dùng từ để hỏi là <b>Which</b> (Cái nào/Môn nào).",
+        wrong: "Prefer to V (đúng). Cấu trúc A or B (đúng)."
+    },
+    {
+        id: 5, q: "What is the <u>distant (A)</u> <u>between (B)</u> your house <u>and (C)</u> the festivals' <u>venue? (D)</u>",
+        opts: ["distant", "between", "and", "venue"], ans: 0, cols: 2,
+        trans: "Khoảng cách giữa nhà bạn và địa điểm tổ chức lễ hội là bao nhiêu?",
+        right: "Lỗi ở <b>(A) distant</b>. 'Distant' là tính từ (xa xôi). Sau mạo từ 'the' cần một Danh từ. Sửa thành <b>distance</b> (khoảng cách).",
+        wrong: "Cấu trúc 'between... and...' hoàn toàn đúng."
+    },
+    {
+        id: 6, q: "<u>Although (A)</u> <u>the fact that (B)</u> Louis is <u>not so (C)</u> rich, he often <u>does (D)</u> charity.",
+        opts: ["Although", "the fact that", "not so", "does"], ans: 0, cols: 2,
+        trans: "Mặc dù thực tế là Louis không quá giàu, anh ấy vẫn thường làm từ thiện.",
+        right: "Lỗi ở <b>(A) Although</b>. Ta có cụm 'the fact that' (thực tế là), do đó từ đi kèm phải là <b>Despite / In spite of</b> (Despite the fact that...). Mặc dù Although cũng mang nghĩa tương tự nhưng Although đi thẳng với mệnh đề, KHÔNG đi với 'the fact that'.",
+        wrong: "(B), (C), (D) đều đúng theo cụm."
+    },
+    {
+        id: 7, q: "When I <u>was (A)</u> a kid, my parents <u>used to (B)</u> <u>took (C)</u> me <u>to (D)</u> the movie theater.",
+        opts: ["was", "used to", "took", "to"], ans: 2, cols: 2,
+        trans: "Khi tôi còn nhỏ, bố mẹ tôi thường dẫn tôi đi rạp chiếu phim.",
+        right: "Lỗi ở <b>(C) took</b>. Cấu trúc thói quen quá khứ 'used to + V (nguyên thể)'. 'Took' đang chia ở V2. Phải sửa thành <b>take</b>.",
+        wrong: "'used to' đã đúng sẵn. 'take sb to' đúng giới từ."
+    },
+    {
+        id: 8, q: "She <u>goes (A)</u> shopping every week <u>in spite (B)</u> <u>having (C)</u> many <u>clothes (D)</u>.",
+        opts: ["goes", "in spite", "having", "clothes"], ans: 1, cols: 2,
+        trans: "Cô ấy đi mua sắm mỗi tuần mặc dù có rất nhiều quần áo.",
+        right: "Lỗi ở <b>(B) in spite</b>. Cụm từ đúng bắt buộc phải có 'of': <b>in spite of</b> + V-ing/N. Sửa thành 'in spite of' hoặc 'despite'.",
+        wrong: "Goes chia đúng HTĐ. Having đúng vì đứng sau giới từ."
+    },
+    {
+        id: 9, q: "I am <u>exhausted (A)</u> after school. <u>Or (B)</u>, I still <u>help (C)</u> mom do <u>housework (D)</u>.",
+        opts: ["exhausted", "Or", "help", "housework"], ans: 1, cols: 2,
+        trans: "Tôi kiệt sức sau giờ học. Tuy nhiên, tôi vẫn giúp mẹ làm việc nhà.",
+        right: "Lỗi ở <b>(B) Or</b>. Hai câu mang nghĩa tương phản (Kiệt sức <=> Vẫn giúp). 'Or' (Hoặc) sai logic. Phải sửa thành <b>However</b> (Tuy nhiên).",
+        wrong: "Exhausted (Kiệt sức) đúng tính từ. Help sb do sth đúng."
+    },
+    {
+        id: 10, q: "You <u>have better (A)</u> <u>not do (B)</u> that, it's <u>against (C)</u> the <u>rules (D)</u>.",
+        opts: ["have better", "not do", "against", "rules"], ans: 0, cols: 2,
+        trans: "Tốt hơn hết bạn không nên làm vậy, điều đó trái quy định.",
+        right: "Lỗi ở <b>(A) have better</b>. Cấu trúc khuyên bảo đúng chuẩn là <b>had better</b> + V. Tuyệt đối không có 'have better'.",
+        wrong: "Phủ định 'not do' đúng. 'Against the rules' đúng."
+    },
+    {
+        id: 11, q: "I will <u>treat (A)</u> her <u>a (B)</u> meal if she <u>come (C)</u> here with <u>me (D)</u>.",
+        opts: ["treat", "a", "come", "me"], ans: 2, cols: 2,
+        trans: "Tôi sẽ khao cô ấy một bữa ăn nếu cô ấy đến đây với tôi.",
+        right: "Lỗi ở <b>(C) come</b>. Trong câu điều kiện loại 1, mệnh đề if chia ở Hiện tại đơn. Chủ ngữ 'she' (số ít) thì động từ phải thêm 's'. Sửa thành <b>comes</b>.",
+        wrong: "Treat sb a meal (khao ai) đúng."
+    },
+    {
+        id: 12, q: "People here <u>holds (A)</u> to <u>thank (B)</u> the Rice God <u>for (C)</u> the <u>crop (D)</u>.",
+        opts: ["holds", "thank", "for", "crop"], ans: 0, cols: 2,
+        trans: "Người dân ở đây tổ chức (lễ hội) để tạ ơn Thần Lúa cho vụ mùa.",
+        right: "Lỗi ở <b>(A) holds</b>. Từ 'People' (mọi người) luôn là danh từ số nhiều, động từ theo sau không bao giờ thêm 's'. Sửa thành <b>hold</b>.",
+        wrong: "Thank sb for sth (cảm ơn ai vì điều gì) đúng."
+    },
+    {
+        id: 13, q: "The <u>restaurant (A)</u> is <u>about (B)</u> 3 kilometers <u>to (C)</u> <u>here (D)</u>.",
+        opts: ["restaurant", "about", "to", "here"], ans: 2, cols: 2,
+        trans: "Nhà hàng cách đây khoảng 3 km.",
+        right: "Lỗi ở <b>(C) to</b>. Để nói khoảng cách tính từ điểm này đến điểm khác, ta dùng giới từ <b>from</b> (from here = tính từ đây). Sửa thành 'from'.",
+        wrong: "Các từ còn lại đúng ngữ pháp."
+    },
+    {
+        id: 14, q: "<u>Even though (A)</u> his <u>old (B)</u> age, Mark performed <u>excellently (C)</u> in his <u>latest (D)</u> film.",
+        opts: ["Even though", "old", "excellently", "latest"], ans: 0, cols: 2,
+        trans: "Mặc dù tuổi đã cao, Mark vẫn diễn xuất xuất sắc trong bộ phim mới nhất của ông.",
+        right: "Lỗi ở <b>(A) Even though</b>. Phía sau là cụm danh từ 'his old age' (tuổi già của ông ấy), không phải một mệnh đề S+V. Do đó phải đổi thành <b>Despite / In spite of</b>.",
+        wrong: "Excellently (trạng từ bổ nghĩa cho performed) đúng."
+    },
+    {
+        id: 15, q: "<u>Despite of (A)</u> <u>having to (B)</u> work the <u>next (C)</u> day, Tom watched films on <u>DVD (D)</u> till midnight.",
+        opts: ["Despite of", "having to", "next", "DVD"], ans: 0, cols: 2,
+        trans: "Mặc dù phải làm việc vào ngày hôm sau, Tom vẫn xem phim trên DVD cho đến tận nửa đêm.",
+        right: "Lỗi ở <b>(A) Despite of</b>. Trong tiếng Anh KHÔNG CÓ chữ 'Despite of'. Chỉ có 'Despite' hoặc 'In spite of'. Sửa bỏ chữ 'of'.",
+        wrong: "having to (đứng sau giới từ) đúng."
+    },
+
+    { type: 'title', text: "Part 11: Rewrite the sentences" },
+    {
+        id: 16, q: "Although he's got an English name, he is in fact German.<br><i class='fas fa-arrow-right' style='color:var(--primary)'></i> Despite ___________________",
+        opts: [
+            "Despite of having an English name, he is in fact German.",
+            "Despite having an English name, he is in fact German.",
+            "Despite he has an English name, he is in fact German.",
+            "Despite to have an English name, he is in fact German."
+        ], ans: 1, cols: 1,
+        trans: "Mặc dù anh ấy có một cái tên tiếng Anh, thực tế anh ấy là người Đức.",
+        right: "Cấu trúc <b>Despite + V-ing/N</b>. Vì 2 vế cùng chủ ngữ 'he', ta rút gọn động từ vế đầu thành V-ing: 'has got' -> 'having'.",
+        wrong: "A sai vì Despite không đi với 'of'. C sai vì Despite không đi với Mệnh đề (S+V). D sai vì không dùng 'to V' sau Despite."
+    },
+    {
+        id: 17, q: "Although she has a physical handicap, she has become a successful woman.<br><i class='fas fa-arrow-right' style='color:var(--primary)'></i> In spite of ___________________",
+        opts: [
+            "In spite of having a physical handicap, she has become a successful woman.",
+            "In spite of she has a physical handicap, she has become a successful woman.",
+            "In spite of a physical handicap she has become a successful woman.",
+            "In spite of her physical handicap is, she has become a successful woman."
+        ], ans: 0, cols: 1,
+        trans: "Mặc dù bị khuyết tật về thể chất, cô ấy vẫn trở thành một người phụ nữ thành đạt.",
+        right: "Cấu trúc <b>In spite of + V-ing</b>. Chủ ngữ giống nhau, ta biến 'has' thành 'having'.",
+        wrong: "B sai vì cộng với Mệnh đề. C thiếu dấu phẩy ngăn cách 2 vế. D sai vì biến thành mệnh đề thừa chữ 'is'."
+    },
+    {
+        id: 18, q: "Despite her friendliness, some people are scared of her.<br><i class='fas fa-arrow-right' style='color:var(--primary)'></i> Although ___________________",
+        opts: [
+            "Although her friendliness, some people are scared of her.",
+            "Although she friendliness, some people are scared of her.",
+            "Although she is friendly, some people are scared of her.",
+            "Although being friendly, some people are scared of her."
+        ], ans: 2, cols: 1,
+        trans: "Mặc dù cô ấy thân thiện, một số người vẫn sợ cô ấy.",
+        right: "Cấu trúc <b>Although + S + V</b>. Biến cụm danh từ 'her friendliness' thành mệnh đề hoàn chỉnh 'she is friendly'.",
+        wrong: "A sai vì cộng cụm danh từ. B sai vì 'friendliness' là danh từ, không đứng sau chủ ngữ 'she' thay động từ. D 'Although' rất hiếm khi rút gọn V-ing kiểu này trong bài thi cơ bản."
+    },
+    {
+        id: 19, q: "We lost the match although we were the better team.<br><i class='fas fa-arrow-right' style='color:var(--primary)'></i> In spite of ___________________",
+        opts: [
+            "In spite of being the better team, we lost the match.",
+            "We lost the match in spite of we were the better team.",
+            "In spite of the better team, we lost the match.",
+            "We lost the match in spite of be the better team."
+        ], ans: 0, cols: 1,
+        trans: "Chúng tôi đã thua trận mặc dù chúng tôi là đội chơi tốt hơn.",
+        right: "Rút gọn 'we were' thành V-ing: 'being'. In spite of being the better team...",
+        wrong: "B sai vì cộng mệnh đề. C sai nghĩa (mặc cho đội tốt hơn). D sai vì dùng động từ nguyên thể 'be' thay vì V-ing."
+    },
+    {
+        id: 20, q: "In spite of the high price, my daughter insists on buying that toy.<br><i class='fas fa-arrow-right' style='color:var(--primary)'></i> Even though ___________________",
+        opts: [
+            "Even though the high price, my daughter insists on buying that toy.",
+            "Even though the price was high, my daughter insists on buying that toy.",
+            "Even though the price is high, my daughter insists on buying that toy.",
+            "Even though the high price is, my daughter insists on buying that toy."
+        ], ans: 2, cols: 1,
+        trans: "Mặc dù giá cao, con gái tôi vẫn khăng khăng đòi mua món đồ chơi đó.",
+        right: "Cấu trúc <b>Even though + S + V</b>. Cụm 'the high price' -> mệnh đề 'the price is high'. Vế sau dùng thì HTĐ (insists) nên tobe vế đầu cũng là Hiện tại (is).",
+        wrong: "A sai vì cộng cụm danh từ. B sai thì (was). D sai ngữ pháp trật tự từ."
+    },
+    {
+        id: 21, q: "How much is the bicycle?<br><i class='fas fa-arrow-right' style='color:var(--primary)'></i> What is the price ___________________",
+        opts: [
+            "What is the price for the bicycle?",
+            "What is the price of the bicycle?",
+            "What is the price the bicycle?",
+            "What is the price with the bicycle?"
+        ], ans: 1, cols: 1,
+        trans: "Chiếc xe đạp này giá bao nhiêu?",
+        right: "Cấu trúc hỏi giá: <b>What is the price OF sth?</b> (Giá của cái gì là bao nhiêu?).",
+        wrong: "Không dùng các giới từ khác như for, with cho cấu trúc 'price of'."
+    },
+    {
+        id: 22, q: "Be careful or you'll hurt yourself.<br><i class='fas fa-arrow-right' style='color:var(--primary)'></i> If you are ___________________",
+        opts: [
+            "If you aren't careful, you'll hurt yourself.",
+            "If you are careful, you'll hurt yourself.",
+            "If you are not care, you'll hurt yourself.",
+            "If you aren't carefully, you'll hurt yourself."
+        ], ans: 0, cols: 1,
+        trans: "Cẩn thận nếu không bạn sẽ làm đau chính mình.",
+        right: "Dịch sang Câu điều kiện loại 1: <b>Nếu bạn không cẩn thận, bạn sẽ bị đau.</b> (If you aren't careful...).",
+        wrong: "B sai nghĩa (Nếu cẩn thận thì bị đau?). C sai vì 'care' là danh từ/động từ. D sai vì sau tobe phải dùng Tính từ (careful), không dùng Trạng từ (carefully)."
+    },
+    {
+        id: 23, q: "Although it rained heavily, my brother went to work.<br><i class='fas fa-arrow-right' style='color:var(--primary)'></i> Despite the fact ___________________",
+        opts: [
+            "Despite the fact that it rained heavily, my brother went to work.",
+            "Despite the fact it rained heavily, my brother went to work.",
+            "Despite the fact that raining heavily, my brother went to work.",
+            "Despite the fact of it rained heavily, my brother went to work."
+        ], ans: 0, cols: 1,
+        trans: "Mặc dù trời mưa to, anh trai tôi vẫn đi làm.",
+        right: "Cấu trúc <b>Despite the fact that + Mệnh đề (S+V)</b> (Mặc dù sự thật là...). Chép nguyên vế sau Although vào sau 'that'.",
+        wrong: "B thiếu 'that' (ngữ pháp chuẩn bài thi cần 'that'). C sai vì tự nhiên thành V-ing. D sai vì 'of' không đi với fact."
+    },
+    {
+        id: 24, q: "Because there was a big storm, I stayed at home.<br><i class='fas fa-arrow-right' style='color:var(--primary)'></i> Because of ___________________",
+        opts: [
+            "Because of there was a big storm, I stayed at home.",
+            "Because of a big storm, I stayed at home.",
+            "Because of a big storm was, I stayed at home.",
+            "Because of being a big storm, I stayed at home."
+        ], ans: 1, cols: 1,
+        trans: "Bởi vì có một cơn bão lớn, tôi đã ở nhà.",
+        right: "Cấu trúc <b>Because of + Cụm danh từ / V-ing</b>. Cụm 'there was a big storm' (mệnh đề) -> 'a big storm' (cụm danh từ).",
+        wrong: "A sai vì cộng cả mệnh đề 'there was'. C và D sai vì nhét thêm động từ thừa (was / being)."
+    },
+    {
+        id: 25, q: "How far is it from the city center to Eco park?<br><i class='fas fa-arrow-right' style='color:var(--primary)'></i> What is the distance ___________________",
+        opts: [
+            "What is the distance from the city center to Eco park?",
+            "What is the distance between the city center to Eco park?",
+            "What is the distance between the city center and Eco park?",
+            "What is the distance of the city center to Eco park?"
+        ], ans: 2, cols: 1,
+        trans: "Từ trung tâm thành phố đến Eco park là bao xa?",
+        right: "Hỏi khoảng cách dùng 'What is the distance'. Khi dùng distance, cấu trúc nối là <b>between A and B</b> (giữa A và B).",
+        wrong: "Tuy A (from...to) nghe lọt tai nhưng trong tiếng Anh chuẩn, với 'distance' người ta dùng 'between...and' để chỉ khoảng cách giữa 2 điểm."
+    },
+    {
+        id: 26, q: "How did they get through the traffic jam this afternoon?<br><i class='fas fa-arrow-right' style='color:var(--primary)'></i> In what way ___________________",
+        opts: [
+            "In what way did they get through the traffic jam this afternoon?",
+            "In what way they got through the traffic jam this afternoon?",
+            "In what way do they get through the traffic jam this afternoon?",
+            "In what way did they got through the traffic jam this afternoon?"
+        ], ans: 0, cols: 1,
+        trans: "Làm thế nào họ vượt qua được vụ tắc đường chiều nay?",
+        right: "'How' (Như thế nào) = 'In what way' (Bằng cách nào). Phần sau giữ nguyên cấu trúc câu hỏi đảo trợ động từ: did + S + V(nguyên).",
+        wrong: "B chưa đảo trợ động từ. C sai thì. D sai vì đã có 'did' mà 'get' vẫn chia QK 'got'."
+    },
+    {
+        id: 27, q: "If John is late, we will wait for him.<br><i class='fas fa-arrow-right' style='color:var(--primary)'></i> Should ___________________",
+        opts: [
+            "Should John is late, we will wait for him.",
+            "Should John be late, we will wait for him.",
+            "Should John late, we will wait for him.",
+            "Should John to be late, we will wait for him."
+        ], ans: 1, cols: 1,
+        trans: "Nếu John đến muộn, chúng tôi sẽ đợi anh ấy.",
+        right: "Đây là <b>Đảo ngữ câu điều kiện loại 1</b>: Bỏ If, mượn 'Should' đảo lên trước chủ ngữ. Động từ chính bắt buộc trả về <b>nguyên thể không to</b> (be).",
+        wrong: "A sai vì tobe vẫn chia 'is'. C thiếu tobe 'be'. D thừa chữ 'to'."
+    },
+    {
+        id: 28, q: "If it rains, we will cancel the trip.<br><i class='fas fa-arrow-right' style='color:var(--primary)'></i> Should ___________________",
+        opts: [
+            "Should it rains, we will cancel the trip.",
+            "Should it raining, we will cancel the trip.",
+            "Should it rain, we will cancel the trip.",
+            "Should it to rain, we will cancel the trip."
+        ], ans: 2, cols: 1,
+        trans: "Nếu trời mưa, chúng tôi sẽ hủy chuyến đi.",
+        right: "Đảo ngữ câu điều kiện loại 1: <b>Should + S + V(nguyên thể)</b>. Trả 'rains' về 'rain'.",
+        wrong: "A sai vì động từ vẫn có 's'. B sai vì V-ing. D thừa chữ 'to'."
+    },
+    {
+        id: 29, q: "She is quite fat although she plays sport every day.<br><i class='fas fa-arrow-right' style='color:var(--primary)'></i> Despite ___________________",
+        opts: [
+            "Despite she plays sport every day, she is quite fat.",
+            "Despite playing sport every day, she is quite fat.",
+            "Despite of playing sport every day, she is quite fat.",
+            "Despite playing sport every day she is quite fat."
+        ], ans: 1, cols: 1,
+        trans: "Cô ấy khá béo mặc dù cô ấy chơi thể thao mỗi ngày.",
+        right: "Rút gọn mệnh đề cùng chủ ngữ bằng V-ing: <b>Despite playing sport every day, she is quite fat.</b>",
+        wrong: "A sai vì Despite không cộng mệnh đề. C sai vì dư chữ 'of'. D thiếu dấu phẩy ngăn cách 2 vế."
+    },
+    {
+        id: 30, q: "My sister is so excited because she is going on holiday tomorrow.<br><i class='fas fa-arrow-right' style='color:var(--primary)'></i> My sister finds ___________________",
+        opts: [
+            "My sister finds it exciting to go on holiday tomorrow.",
+            "My sister finds going on holiday tomorrow is exciting.",
+            "My sister finds it excited to go on holiday tomorrow.",
+            "My sister finds to go on holiday tomorrow exciting."
+        ], ans: 0, cols: 1,
+        trans: "Em gái tôi rất háo hức vì cô ấy sẽ đi nghỉ mát vào ngày mai.",
+        right: "Cấu trúc: <b>Find it + Adj (chỉ vật V-ing) + to V</b> (Thấy việc gì đó như thế nào). Việc đi nghỉ mát gây ra sự hào hứng -> Dùng tính từ đuôi 'ing': exciting.",
+        wrong: "B sai cấu trúc Find. C sai vì dùng tính từ đuôi 'ed' (excited chỉ cảm xúc con người, ở đây mô tả việc đi nghỉ mát). D thiếu tân ngữ giả 'it'."
+    },
+
+    { type: 'title', text: "Part 5: Rewrite with given words" },
+    {
+        id: 31, q: "Although the ticket was not very expensive, I didn't want to buy it. (HOWEVER)<br><i class='fas fa-arrow-right' style='color:var(--primary)'></i> The ticket ___________________",
+        opts: [
+            "The ticket was not very expensive. However, I didn't want to buy it.",
+            "The ticket was not very expensive, however I didn't want to buy it.",
+            "However the ticket was not very expensive, I didn't want to buy it.",
+            "The ticket was not very expensive However, I didn't want to buy it."
+        ], ans: 0, cols: 1,
+        trans: "Mặc dù vé không quá đắt, tôi không muốn mua nó.",
+        right: "<b>However</b> mang nghĩa tương phản nhưng luôn đứng sau dấu chấm (.) và trước dấu phẩy (,). Câu A chuẩn nhất về chấm phẩy.",
+        wrong: "B sai vì However không dùng làm liên từ nối 2 vế bằng dấu phẩy. C sai vì Although mới đứng vị trí đó. D thiếu dấu chấm câu."
+    },
+    {
+        id: 32, q: "I wanted to see a science-fiction film, but we chose a romantic film in the end. (NEVERTHELESS)<br><i class='fas fa-arrow-right' style='color:var(--primary)'></i> I wanted ___________________",
+        opts: [
+            "I wanted to see a science-fiction film. Nevertheless, we chose a romantic film in the end.",
+            "I wanted to see a science-fiction film, nevertheless we chose a romantic film in the end.",
+            "Nevertheless I wanted to see a science-fiction film, we chose a romantic film in the end.",
+            "I wanted to see a science-fiction film. Nevertheless we chose a romantic film in the end."
+        ], ans: 0, cols: 1,
+        trans: "Tôi muốn xem phim viễn tưởng, nhưng rốt cuộc chúng tôi lại chọn phim lãng mạn.",
+        right: "<b>Nevertheless</b> (Tuy nhiên) có cách dùng y hệt However: Đứng sau dấu chấm, trước dấu phẩy.",
+        wrong: "B, C, D sai cách dùng dấu phẩy/chấm câu theo chuẩn ngữ pháp Anh Quốc."
+    },
+    {
+        id: 33, q: "What is the price of the bicycle? (HOW MUCH)<br><i class='fas fa-arrow-right' style='color:var(--primary)'></i> How much ___________________",
+        opts: [
+            "How much is the bicycle cost?",
+            "How much the bicycle is?",
+            "How much does the bicycle cost?",
+            "How much price is the bicycle?"
+        ], ans: 2, cols: 1,
+        trans: "Giá của chiếc xe đạp là bao nhiêu?",
+        right: "Có 2 cách hỏi: 'How much is the bicycle?' HOẶC 'How much does the bicycle cost?'. Ở đây đáp án C đảo trợ động từ 'does' là chuẩn xác nhất.",
+        wrong: "A sai vì đã có is lại có cost. B chưa đảo tobe. D sai vì thừa chữ price."
+    },
+    {
+        id: 34, q: "Jane was absent from class because of her sickness. (BECAUSE)<br><i class='fas fa-arrow-right' style='color:var(--primary)'></i> Jane ___________________",
+        opts: [
+            "Jane was absent from class because she was sickness.",
+            "Jane was absent from class because she was sick.",
+            "Jane was absent from class because her was sick.",
+            "Jane was absent from class because of she was sick."
+        ], ans: 1, cols: 1,
+        trans: "Jane đã vắng mặt ở lớp vì bệnh của cô ấy.",
+        right: "Đổi <b>Because of + N</b> (her sickness) thành <b>Because + S + V</b> (she was sick). 'Sickness' (danh từ) chuyển về tính từ 'sick'.",
+        wrong: "A sai từ loại (sickness là danh từ). C sai đại từ (her). D thừa chữ 'of'."
+    },
+    {
+        id: 35, q: "She usually tells lies. Many people believe her. (EVEN THOUGH)<br><i class='fas fa-arrow-right' style='color:var(--primary)'></i> Many people ___________________",
+        opts: [
+            "Many people believe her even though she usually tells lies.",
+            "Many people believe her even though usually telling lies.",
+            "Even though many people believe her, she usually tells lies.",
+            "Many people believe her, even though she usually tells lies."
+        ], ans: 0, cols: 1,
+        trans: "Cô ấy thường xuyên nói dối. (Nhưng) Nhiều người tin cô ấy.",
+        right: "<b>Even though + S + V</b>. Đặt Even though ở giữa để nối vế câu không cần dấu phẩy.",
+        wrong: "B sai vì Even though không cộng V-ing. C ngược nghĩa. D thừa dấu phẩy (khi liên từ ở giữa câu thì không dùng phẩy)."
+    },
+    {
+        id: 36, q: "What was the price of the first ticket? (COST)<br><i class='fas fa-arrow-right' style='color:var(--primary)'></i> How much ___________________",
+        opts: [
+            "How much did the first ticket cost?",
+            "How much was the first ticket cost?",
+            "How much does the first ticket cost?",
+            "How much the first ticket costed?"
+        ], ans: 0, cols: 1,
+        trans: "Giá của chiếc vé đầu tiên là bao nhiêu?",
+        right: "Câu gốc dùng thì Quá khứ đơn (was). Khi viết lại với động từ 'cost', ta phải mượn trợ động từ <b>did</b>. Động từ 'cost' trở về nguyên thể.",
+        wrong: "B sai vì có 'was' lại có 'cost' (hai động từ không đi với nhau). C sai thì (hiện tại). D không đảo trợ động từ."
+    },
+    {
+        id: 37, q: "She can play guitar, but she is not a singer. (ALTHOUGH)<br><i class='fas fa-arrow-right' style='color:var(--primary)'></i> Although ___________________",
+        opts: [
+            "Although she can play guitar, but she is not a singer.",
+            "Although she can play guitar, she is not a singer.",
+            "Although she is not a singer, she can play guitar.",
+            "Although playing guitar, she is not a singer."
+        ], ans: 1, cols: 1,
+        trans: "Cô ấy có thể chơi guitar, nhưng cô ấy không phải là ca sĩ.",
+        right: "Cấu trúc <b>Although S+V, S+V</b>. Lưu ý quy tắc vàng: Đã có Although thì <b>KHÔNG</b> dùng But, và ngược lại.",
+        wrong: "A sai vì có cả Although và but (lỗi học sinh VN hay mắc nhất). C ngược nghĩa. D ngữ pháp rút gọn V-ing chưa chặt chẽ vì 'play' không có túc từ hợp lý."
+    },
+    {
+        id: 38, q: "Whose car is this? (BELONG TO)<br><i class='fas fa-arrow-right' style='color:var(--primary)'></i> Who ___________________",
+        opts: [
+            "Who does this car belong to?",
+            "Who belongs to this car?",
+            "Who does belong this car to?",
+            "Who this car belong to?"
+        ], ans: 0, cols: 1,
+        trans: "Chiếc ô tô này là của ai?",
+        right: "Cấu trúc <b>belong to</b> (thuộc về ai). Câu hỏi: 'Who does sth belong to?'.",
+        wrong: "B sai vì có nghĩa 'Ai thuộc về ô tô này?'. C đảo ngữ sai vị trí từ. D thiếu trợ động từ 'does'."
+    },
+    {
+        id: 39, q: "How much does this table cost? (PRICE)<br><i class='fas fa-arrow-right' style='color:var(--primary)'></i> What ___________________",
+        opts: [
+            "What is the price of this table?",
+            "What is the price for this table?",
+            "What is this table price?",
+            "What price does this table cost?"
+        ], ans: 0, cols: 1,
+        trans: "Chiếc bàn này giá bao nhiêu?",
+        right: "Đổi từ 'cost' sang 'price' ta dùng cấu trúc danh từ: <b>What is the price of + N?</b>.",
+        wrong: "Các giới từ/cấu trúc khác trong B, C, D không chuẩn tiếng Anh bản xứ."
+    },
+    {
+        id: 40, q: "I'm frightened by horror films; however, I enjoy watching them. (ALTHOUGH)<br><i class='fas fa-arrow-right' style='color:var(--primary)'></i> Although ___________________",
+        opts: [
+            "Although I am frightened by horror films, I enjoy watching them.",
+            "Although I enjoy watching horror films, I'm frightened by them.",
+            "Although I'm frightened by horror films, but I enjoy watching them.",
+            "Although frightened by horror films, however I enjoy watching them."
+        ], ans: 0, cols: 1,
+        trans: "Tôi bị dọa sợ bởi phim kinh dị; tuy nhiên, tôi lại thích xem chúng.",
+        right: "Viết lại thành 2 mệnh đề nối bằng dấu phẩy. Bỏ chữ 'however'.",
+        wrong: "B ngược nghĩa. C có cả Although và but. D có cả Although và however (sai luật ngữ pháp)."
+    },
+    {
+        id: 41, q: "The water was warm, but I didn't go swimming. (HOWEVER)<br><i class='fas fa-arrow-right' style='color:var(--primary)'></i> The water ___________________",
+        opts: [
+            "The water was warm. However I didn't go swimming.",
+            "The water was warm; however, I didn't go swimming.",
+            "The water was warm, however, I didn't go swimming.",
+            "However the water was warm, I didn't go swimming."
+        ], ans: 1, cols: 1,
+        trans: "Nước rất ấm, nhưng tôi không đi bơi.",
+        right: "Tuyệt chiêu dấu câu nâng cao: <b>However</b> có thể đứng sau DẤU CHẤM PHẨY (;) và trước DẤU PHẨY (,). Đáp án B là chuẩn học thuật nhất.",
+        wrong: "A thiếu dấu phẩy sau However. C sai vì trước However không dùng phẩy để nối 2 vế. D sai vì However đứng đầu như Although."
+    },
+    {
+        id: 42, q: "Hoa is still beautiful although this year she is 40 years old. (BUT)<br><i class='fas fa-arrow-right' style='color:var(--primary)'></i> This year ___________________",
+        opts: [
+            "This year Hoa is 40 years old but she is still beautiful.",
+            "This year Hoa is 40 years old, but she is still beautiful.",
+            "This year Hoa is 40 years old, but is still beautiful.",
+            "This year Hoa is 40 years old but although she is still beautiful."
+        ], ans: 1, cols: 1,
+        trans: "Hoa vẫn rất xinh đẹp dù năm nay cô ấy 40 tuổi.",
+        right: "Nối 2 câu độc lập bằng <b>but</b> thì luôn có dấu phẩy đằng trước.",
+        wrong: "A thiếu dấu phẩy. C thiếu chủ ngữ 'she'. D dùng cả but và although."
+    },
+    {
+        id: 43, q: "Although it is not a rush hour, there is a lot of traffic now. (HOWEVER)<br><i class='fas fa-arrow-right' style='color:var(--primary)'></i> It is ___________________",
+        opts: [
+            "It is not a rush hour. However, there is a lot of traffic now.",
+            "It is not a rush hour, however, there is a lot of traffic now.",
+            "It is not a rush hour however there is a lot of traffic now.",
+            "It is not a rush hour. However there is a lot of traffic now."
+        ], ans: 0, cols: 1,
+        trans: "Mặc dù không phải giờ cao điểm, bây giờ vẫn có rất nhiều xe cộ.",
+        right: "Nguyên tắc dấu câu kinh điển: <b>Chấm - However - Phẩy</b>. (Chấm hết câu 1. Tuy nhiên, Câu 2).",
+        wrong: "B, C, D đều sai vị trí dấu câu so với chuẩn ngữ pháp tiếng Anh."
+    },
+    {
+        id: 44, q: "The plot wasn't very interesting, but the special effects were spectacular. (ALTHOUGH)<br><i class='fas fa-arrow-right' style='color:var(--primary)'></i> Although ___________________",
+        opts: [
+            "Although the plot wasn't very interesting, but the special effects were spectacular.",
+            "Although the plot wasn't very interesting, the special effects were spectacular.",
+            "Although the special effects were spectacular, the plot wasn't very interesting.",
+            "Although the plot wasn't very interesting; the special effects were spectacular."
+        ], ans: 1, cols: 1,
+        trans: "Cốt truyện không thú vị lắm, nhưng hiệu ứng đặc biệt lại rất hoành tráng.",
+        right: "Biến đổi tương đương: Thay 'but' bằng dấu phẩy, đặt 'Although' ở đầu câu chứa nhược điểm.",
+        wrong: "A sai vì có 'but'. C sai nghĩa logic (hoặc làm mất trọng tâm muốn nhấn mạnh). D sai vì dùng dấu chấm phẩy (;)."
+    },
+    {
+        id: 45, q: "I wanted to see a science-fiction film, but we chose a romantic film in the end. (NEVERTHELESS)<br><i class='fas fa-arrow-right' style='color:var(--primary)'></i> <i>(Lặp câu 32 nhưng hỏi ở dạng viết khác)</i>",
+        opts: [
+            "I wanted to see a science-fiction film; nevertheless, we chose a romantic film in the end.",
+            "I wanted to see a science-fiction film, nevertheless we chose a romantic film in the end.",
+            "I wanted to see a science-fiction film nevertheless, we chose a romantic film in the end.",
+            "Nevertheless I wanted to see a science-fiction film, we chose a romantic film."
+        ], ans: 0, cols: 1,
+        trans: "Tôi muốn xem phim viễn tưởng, nhưng rốt cuộc chúng tôi lại chọn phim lãng mạn.",
+        right: "Giống câu 41, <b>nevertheless</b> nối hai vế bằng Dấu chấm phẩy (;) đằng trước và Dấu phẩy (,) đằng sau. Đây là cấu trúc nâng cao giúp ghi điểm tuyệt đối!",
+        wrong: "Các đáp án khác sai quy tắc ngắt câu."
+    }
+];
+
+let totalScore = 0; let answeredQuestions = 0;
+const totalQuestions = quizData.filter(q => q.id).length;
+
+function renderQuiz() {
+    const container = document.getElementById('quiz-container');
+    let html = ''; const letters = ['A', 'B', 'C', 'D'];
+
+    quizData.forEach((data) => {
+        if (data.type === 'title') {
+            html += `<div class="part-title">${data.text}</div>`;
+        } else {
+            html += `
+            <div class="question-card" id="card-${data.id}">
+                <div class="question-text">${data.id}. ${data.q}</div>
+                <div class="options-grid ${data.cols === 2 ? 'grid-2' : ''}">
+            `;
+
+            data.opts.forEach((opt, idx) => {
+                const isCorrect = idx === data.ans;
+                const safeText = data.opts[data.ans].replace(/'/g, "\\'");
+                html += `
+                    <button class="option-btn" onclick="checkAnswer(${data.id}, this, ${isCorrect}, '${safeText}')">
+                        <span class="opt-letter">${letters[idx]}</span> ${opt}
+                    </button>
+                `;
+            });
+
+            html += `
+                </div>
+                <div class="explanation-box" id="exp-${data.id}">
+                    <h4><i class="fas fa-magic"></i> Cô Mai An giải thích:</h4>
+                    <p><strong><i class="fas fa-language"></i> Dịch:</strong> ${data.trans}</p>
+                    <p><span class="tag-correct"><i class="fas fa-check-circle"></i> Vì sao ĐÚNG?</span> ${data.right}</p>
+                    <p><span class="tag-incorrect"><i class="fas fa-times-circle"></i> Vì sao SAI?</span> ${data.wrong}</p>
+                </div>
+            </div>`;
+        }
+    });
+    container.innerHTML = html;
+}
+
+function checkAnswer(qId, btnElement, isCorrect, correctText) {
+    const card = document.getElementById(`card-${qId}`);
+    const buttons = card.querySelectorAll('.option-btn');
+    const expBox = document.getElementById(`exp-${qId}`);
+
+    buttons.forEach(btn => btn.disabled = true);
+    answeredQuestions++;
+
+    if (isCorrect) {
+        playSound('correct'); btnElement.classList.add('correct'); totalScore++;
+        const rect = btnElement.getBoundingClientRect();
+        const x = (rect.left + rect.width / 2) / window.innerWidth; const y = (rect.top + rect.height / 2) / window.innerHeight;
+        confetti({ particleCount: 60, spread: 60, origin: { x: x, y: y }, colors: ['#00D26A', '#FFC312', '#8854C0'] });
+    } else {
+        playSound('incorrect'); btnElement.classList.add('incorrect'); card.classList.add('shake');
+        buttons.forEach(btn => { if (btn.innerText.includes(correctText)) btn.classList.add('correct'); });
+        setTimeout(() => card.classList.remove('shake'), 500);
+    }
+    expBox.style.display = 'block';
+}
+
+function showScore() {
+    const modal = document.getElementById('scoreModal');
+    const scoreDisplay = document.getElementById('score-display');
+    const msg = document.getElementById('score-message');
+
+    scoreDisplay.innerText = `${totalScore}/${totalQuestions}`;
+    if (totalScore === totalQuestions) {
+        msg.innerText = "Wow! Tuyệt đỉnh 45/45! Học trò cưng của cô Mai An làm bài xuất sắc quá! 🏆";
+        confetti({ particleCount: 300, spread: 150, origin: {y: 0.3}});
+    } else if (totalScore > totalQuestions / 2) {
+        msg.innerText = "Rất tốt! Nhớ đọc lại phần giải thích những câu sai để rèn luyện thêm kĩ năng Viết câu nhé! 🌟";
+        confetti({ particleCount: 100, spread: 70, origin: {y: 0.3}});
+    } else {
+        msg.innerText = "Đừng vội buồn! Phần Viết lại câu rất dễ nhầm lẫn. Cứ xem thật kỹ giải thích của cô là nắm bài liền! 💪";
+    }
+    modal.style.display = 'flex';
+}
+
+window.onload = renderQuiz;
+</script>
+</body>
+</html>

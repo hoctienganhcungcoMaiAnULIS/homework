@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ms Mai An ULIS - Jack Calder Reading</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Music Theme Colors */
+            --primary: #6C5CE7;      /* Deep Purple */
+            --secondary: #00CEC9;    /* Teal (Ocean Blue vibes) */
+            --accent: #FD79A8;       /* Pink/Spotlight */
+            --correct: #00D26A;
+            --wrong: #FF4757;
+            --text-dark: #2d3436;
+            --bg-glass: rgba(255, 255, 255, 0.95);
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: 'Nunito', sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            overflow: hidden;
+            color: var(--text-dark);
+            /* Gradient Background: Purple to Blue to Pink */
+            background: linear-gradient(135deg, #a29bfe, #74b9ff, #dfe6e9);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            height: 100vh;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* SVG Pattern Overlay: Violin, Notes, Ocean Wave */
+        .pattern-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Ctext x='20' y='50' font-size='35'%3E🎻%3C/text%3E%3Ctext x='120' y='140' font-size='35'%3E🎵%3C/text%3E%3Ctext x='150' y='40' font-size='30'%3E🌊%3C/text%3E%3Ctext x='50' y='160' font-size='25'%3E🎸%3C/text%3E%3C/svg%3E");
+            opacity: 0.15;
+            pointer-events: none;
+            z-index: 0;
+            animation: floatPattern 50s linear infinite;
+        }
+
+        @keyframes floatPattern {
+            from { background-position: 0 0; }
+            to { background-position: 500px 500px; }
+        }
+
+        /* Header */
+        header {
+            position: relative;
+            z-index: 10;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 30px;
+            background: rgba(255, 255, 255, 0.95);
+            box-shadow: 0 4px 20px rgba(108, 92, 231, 0.2);
+            border-bottom: 4px solid var(--primary);
+        }
+
+        .header-title {
+            font-size: 1.3rem;
+            color: var(--primary);
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .timer-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .btn-action {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 5px 0 rgba(0,0,0,0.15);
+        }
+
+        .btn-start {
+            background-color: var(--accent);
+            color: white;
+        }
+        .btn-start:active { transform: translateY(4px); box-shadow: none; }
+
+        #timer-display {
+            font-size: 1.8rem;
+            font-weight: 900;
+            color: var(--primary);
+            background: #dfe6e9;
+            padding: 5px 15px;
+            border-radius: 10px;
+            min-width: 110px;
+            text-align: center;
+        }
+
+        /* Layout */
+        .main-container {
+            display: flex;
+            height: calc(100vh - 80px);
+            position: relative;
+            z-index: 5;
+        }
+
+        .panel {
+            flex: 1;
+            overflow-y: auto;
+            padding: 30px;
+            scroll-behavior: smooth;
+        }
+
+        .left-panel {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(12px);
+            border-right: 3px dashed var(--primary);
+        }
+
+        /* Reading Passage */
+        .passage-title {
+            font-size: 2.2rem;
+            color: var(--primary);
+            margin-bottom: 10px;
+            text-align: center;
+            font-weight: 900;
+        }
+        
+        .sub-title {
+            text-align: center;
+            color: #636e72;
+            font-style: italic;
+            margin-bottom: 25px;
+            font-size: 1.1rem;
+        }
+
+        .paragraph-box {
+            background: #fff;
+            padding: 25px;
+            border-radius: 20px;
+            margin-bottom: 25px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            border-left: 5px solid var(--secondary);
+            font-size: 1.15rem;
+            line-height: 1.8;
+            transition: transform 0.2s;
+        }
+        .paragraph-box:hover { transform: translateX(5px); }
+
+        .btn-translate {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            margin-top: 15px;
+            cursor: pointer;
+            opacity: 0.9;
+        }
+        .btn-translate:hover { opacity: 1; }
+
+        .translation-text {
+            display: none;
+            margin-top: 15px;
+            padding: 15px;
+            background: #f1f2f6;
+            border-radius: 10px;
+            font-size: 1rem;
+            color: #2d3436;
+            font-style: italic;
+        }
+
+        /* Glossary */
+        .glossary-wrapper {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            margin-top: 40px;
+            border: 3px solid var(--primary);
+            box-shadow: 8px 8px 0 rgba(108, 92, 231, 0.2);
+        }
+        .glossary-title {
+            color: var(--primary);
+            text-align: center;
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            font-weight: 800;
+        }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #dfe6e9; }
+        th { background: var(--primary); color: white; border-radius: 5px 5px 0 0; }
+        tr:last-child td { border-bottom: none; }
+        
+        /* Quiz Section */
+        .question-card {
+            background: white;
+            border-radius: 25px;
+            padding: 30px;
+            margin-bottom: 35px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            position: relative;
+            border: 2px solid transparent;
+            transition: all 0.3s;
+        }
+        .question-card:hover { border-color: var(--secondary); transform: translateY(-5px); }
+
+        .question-text {
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: #2d3436;
+            margin-bottom: 20px;
+        }
+
+        .option-btn {
+            width: 100%;
+            background: #f1f2f6;
+            border: 2px solid #dfe6e9;
+            padding: 18px 25px;
+            border-radius: 15px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #2d3436;
+            cursor: pointer;
+            text-align: left;
+            margin-bottom: 12px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+        }
+        
+        .option-btn:hover:not(:disabled) {
+            background: white;
+            border-color: var(--primary);
+            box-shadow: 0 4px 10px rgba(108, 92, 231, 0.2);
+        }
+
+        .option-btn.correct {
+            background: #d4edda;
+            border-color: var(--correct);
+            color: #155724;
+            position: relative;
+        }
+        .option-btn.correct::after {
+            content: "✓";
+            position: absolute;
+            right: 20px;
+            font-weight: 900;
+        }
+
+        .option-btn.wrong {
+            background: #f8d7da;
+            border-color: var(--wrong);
+            color: #721c24;
+            opacity: 0.7;
+        }
+
+        /* Explanation Box */
+        .explanation-box {
+            display: none;
+            margin-top: 20px;
+            padding: 20px;
+            background: #eef2f3;
+            border-left: 5px solid var(--accent);
+            border-radius: 0 10px 10px 0;
+            animation: slideDown 0.4s ease-out;
+        }
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .explanation-box h4 { color: var(--primary); margin-bottom: 10px; }
+        .explanation-box li { margin-bottom: 8px; list-style-type: none; }
+        .explanation-box .highlight { background: #ffeaa7; padding: 0 4px; font-weight: bold; border-radius: 3px; }
+
+        /* Submit & Modal */
+        .btn-submit {
+            width: 100%;
+            background: linear-gradient(45deg, var(--primary), var(--accent));
+            color: white;
+            font-size: 1.4rem;
+            font-weight: 900;
+            padding: 20px;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 10px 20px rgba(108, 92, 231, 0.4);
+            margin-top: 20px;
+            transition: transform 0.2s;
+        }
+        .btn-submit:hover { transform: scale(1.03); }
+
+        #result-modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(5px);
+        }
+        .modal-content {
+            background: white;
+            padding: 50px;
+            border-radius: 40px;
+            text-align: center;
+            width: 90%;
+            max-width: 500px;
+            animation: zoomIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        @keyframes zoomIn { from { transform: scale(0.5); } to { transform: scale(1); } }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 10px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #b2bec3; border-radius: 5px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--primary); }
+
+        #confetti-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 999; }
+    </style>
+</head>
+<body>
+
+    <div class="pattern-overlay"></div>
+    <canvas id="confetti-canvas"></canvas>
+
+    <header>
+        <div class="header-title">🎻 Reading Challenge: The Violinist</div>
+        <div class="timer-container">
+            <div id="timer-display">10:00</div>
+            <button class="btn-action btn-start" id="btn-timer" onclick="toggleTimer()">BẮT ĐẦU TÍNH GIỜ</button>
+        </div>
+    </header>
+
+    <div class="main-container">
+        <div class="panel left-panel">
+            <h1 class="passage-title">Jack Calder</h1>
+            <p class="sub-title">Violin player Jack Calder plays in the Australian band, Ocean Blue.</p>
+
+            <div class="paragraph-box">
+                <p>Jack Calder started playing the violin when he was ten. ‘My music teacher played and one day he asked if anyone wanted to learn. Some girls put up their hands and so did I. I didn’t have a violin, but my uncle said I could use his. The lessons were really hard at first, but playing the violin soon became important to me.’</p>
+                <button class="btn-translate" onclick="toggleTranslation(this)">BẢN DỊCH ĐẦY ĐỦ</button>
+                <div class="translation-text">Jack Calder bắt đầu chơi violin khi anh mười tuổi. "Thầy giáo dạy nhạc của tôi cũng chơi violin và một ngày nọ, thầy hỏi có ai muốn học không. Một vài bạn nữ giơ tay và tôi cũng vậy. Tôi không có đàn violin, nhưng chú tôi bảo tôi có thể dùng cây đàn của chú. Những bài học đầu tiên thực sự rất khó, nhưng việc chơi violin sớm trở nên quan trọng đối với tôi."</div>
+            </div>
+
+            <div class="paragraph-box">
+                <p>After leaving school, Jack moved to Melbourne. For a time, he preferred listening to music to playing it. The rock music he listened to sounded very different from violin music, so he bought an electric violin, and started putting the things he liked about rock music into the music he played on his violin.</p>
+                <button class="btn-translate" onclick="toggleTranslation(this)">BẢN DỊCH ĐẦY ĐỦ</button>
+                <div class="translation-text">Sau khi ra trường, Jack chuyển đến Melbourne. Trong một khoảng thời gian, anh thích nghe nhạc hơn là chơi nhạc. Nhạc rock mà anh nghe có âm thanh rất khác so với nhạc violin, vì vậy anh đã mua một cây violin điện, và bắt đầu đưa những thứ anh thích ở nhạc rock vào trong những bản nhạc anh chơi trên cây violin của mình.</div>
+            </div>
+
+            <div class="paragraph-box">
+                <p>A year later, Jack met a small group of Melbourne musicians. ‘We all thought about music in the same way and started Ocean Blue together. A year later, we were playing lots of concerts, and our music was selling well. But we didn’t want this to make us different people. We didn’t want to stop being friends.’</p>
+                <button class="btn-translate" onclick="toggleTranslation(this)">BẢN DỊCH ĐẦY ĐỦ</button>
+                <div class="translation-text">Một năm sau, Jack gặp một nhóm nhỏ các nhạc sĩ ở Melbourne. "Tất cả chúng tôi đều có cùng tư duy về âm nhạc và đã cùng nhau thành lập ban nhạc Ocean Blue. Một năm sau đó, chúng tôi đã biểu diễn rất nhiều buổi hòa nhạc, và âm nhạc của chúng tôi bán rất chạy. Nhưng chúng tôi không muốn điều này làm thay đổi con người mình. Chúng tôi không muốn đánh mất tình bạn."</div>
+            </div>
+
+            <div class="paragraph-box">
+                <p>Jack meets many people who think playing the violin is an unusual career, but he doesn’t agree with them. ‘I think it’s the best thing in the world. I guess I’m lucky that way. The internet has changed music, but when I walk into a violin shop it’s like entering another world – one where time has stopped. Someone has looked after these beautiful old instruments that are two or three hundred years old. I think that’s amazing.’</p>
+                <button class="btn-translate" onclick="toggleTranslation(this)">BẢN DỊCH ĐẦY ĐỦ</button>
+                <div class="translation-text">Jack gặp nhiều người nghĩ rằng chơi violin là một nghề nghiệp khác thường, nhưng anh không đồng ý với họ. "Tôi nghĩ đó là điều tuyệt vời nhất trên thế giới. Tôi đoán là tôi may mắn theo cách đó. Internet đã thay đổi âm nhạc, nhưng khi tôi bước vào một cửa hàng violin, cảm giác như bước vào một thế giới khác – nơi thời gian nhưng ngừng lại. Ai đó đã chăm sóc những nhạc cụ cổ xinh đẹp có tuổi đời hai hoặc ba trăm năm này. Tôi nghĩ điều đó thật tuyệt vời."</div>
+            </div>
+
+            <div class="glossary-wrapper">
+                <h3 class="glossary-title">🎼 Music & Life Vocabulary (B1-C2)</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Từ vựng</th>
+                            <th>Loại từ</th>
+                            <th>Nghĩa Tiếng Việt</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>1. Instrument</td><td>Noun</td><td>Nhạc cụ</td></tr>
+                        <tr><td>2. Career</td><td>Noun</td><td>Sự nghiệp, nghề nghiệp</td></tr>
+                        <tr><td>3. Concert</td><td>Noun</td><td>Buổi hòa nhạc</td></tr>
+                        <tr><td>4. Prefer (+ V-ing)</td><td>Verb</td><td>Thích cái gì hơn</td></tr>
+                        <tr><td>5. Unusual</td><td>Adj</td><td>Khác thường, lạ lẫm</td></tr>
+                        <tr><td>6. Amazing</td><td>Adj</td><td>Tuyệt vời, kinh ngạc</td></tr>
+                        <tr><td>7. Electric</td><td>Adj</td><td>(Thuộc) Điện / Chạy bằng điện</td></tr>
+                        <tr><td>8. Musician</td><td>Noun</td><td>Nhạc sĩ, người chơi nhạc</td></tr>
+                        <tr><td>9. Agree (with)</td><td>Verb</td><td>Đồng ý (với ai)</td></tr>
+                        <tr><td>10. Look after</td><td>Phrasal Verb</td><td>Chăm sóc, trông coi</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="panel right-panel">
+            <div id="quiz-container">
+                </div>
+            <button class="btn-submit" onclick="submitQuiz()">NỘP BÀI</button>
+        </div>
+    </div>
+
+    <div id="result-modal">
+        <div class="modal-content">
+            <h2 style="color: var(--primary); font-size: 2.5rem;">KẾT QUẢ</h2>
+            <div id="final-score" style="font-size: 4rem; color: var(--accent); font-weight: 900; margin: 20px 0;">0/5</div>
+            <p id="feedback-msg" style="font-size: 1.2rem; margin-bottom: 30px; color: #636e72;"></p>
+            <button class="btn-action btn-start" onclick="location.reload()" style="width: 100%; padding: 15px;">LÀM LẠI BÀI</button>
+        </div>
+    </div>
+
+    <script>
+        // --- DATA ---
+        const quizData = [
+            {
+                id: 1,
+                question: "1. What do we learn about Jack in the first paragraph?",
+                options: [
+                    { text: "He was the only person at school to play the violin.", isCorrect: false },
+                    { text: "He learned to play on an instrument that he borrowed.", isCorrect: true },
+                    { text: "He enjoyed playing the violin as soon as he started learning.", isCorrect: false }
+                ],
+                explanation: `
+                    <h4>Giải thích chi tiết Câu 1:</h4>
+                    <ul>
+                        <li><strong>Dịch câu hỏi:</strong> Chúng ta biết được gì về Jack trong đoạn đầu tiên?</li>
+                        <li><strong>Tại sao chọn B?</strong> (Anh ấy học chơi trên một nhạc cụ đi mượn): Trong bài Jack nói: <span class="highlight">"I didn’t have a violin, but my uncle said I could use his."</span> (Tôi không có đàn, nhưng chú tôi bảo có thể dùng đàn của chú).</li>
+                        <li><strong>Tại sao loại A?</strong> Sai vì bài nói <span class="highlight">"Some girls put up their hands and so did I"</span> (Vài bạn nữ giơ tay và tôi cũng vậy) -> Không phải chỉ mình anh ấy.</li>
+                        <li><strong>Tại sao loại C?</strong> Sai vì <span class="highlight">"The lessons were really hard at first"</span> (Lúc đầu rất khó), ngụ ý anh chưa thấy thích ngay lập tức.</li>
+                    </ul>
+                `
+            },
+            {
+                id: 2,
+                question: "2. What is the writer doing in the second paragraph?",
+                options: [
+                    { text: "explaining why Jack thought some music was easy to play", isCorrect: false },
+                    { text: "saying why only a few people liked the music Jack played", isCorrect: false },
+                    { text: "describing how Jack changed the kind of music he played", isCorrect: true }
+                ],
+                explanation: `
+                    <h4>Giải thích chi tiết Câu 2:</h4>
+                    <ul>
+                        <li><strong>Dịch câu hỏi:</strong> Tác giả đang làm gì trong đoạn thứ hai?</li>
+                        <li><strong>Tại sao chọn C?</strong> (Mô tả cách Jack thay đổi thể loại nhạc anh chơi): Đoạn 2 nói Jack mua <span class="highlight">"electric violin"</span> và bắt đầu đưa chất liệu <span class="highlight">"rock music"</span> vào tiếng đàn của mình. Đây là sự thay đổi phong cách.</li>
+                        <li><strong>Tại sao loại A?</strong> Sai, bài không nói nhạc rock dễ chơi.</li>
+                        <li><strong>Tại sao loại B?</strong> Sai, không có thông tin về việc ít người thích nhạc của Jack trong đoạn này.</li>
+                    </ul>
+                `
+            },
+            {
+                id: 3,
+                question: "3. What does Jack say about Ocean Blue?",
+                options: [
+                    { text: "Nobody in the band liked travelling far to play in a concert.", isCorrect: false },
+                    { text: "The band members were interested in different kinds of music.", isCorrect: false },
+                    { text: "Everyone wanted to stay friends when the band became successful.", isCorrect: true }
+                ],
+                explanation: `
+                    <h4>Giải thích chi tiết Câu 3:</h4>
+                    <ul>
+                        <li><strong>Dịch câu hỏi:</strong> Jack nói gì về ban nhạc Ocean Blue?</li>
+                        <li><strong>Tại sao chọn C?</strong> (Mọi người muốn duy trì tình bạn khi ban nhạc thành công): Dẫn chứng: <span class="highlight">"our music was selling well... We didn’t want to stop being friends."</span></li>
+                        <li><strong>Tại sao loại A?</strong> Sai, bài chỉ nói họ "playing lots of concerts" (diễn nhiều), không nói họ ghét đi xa.</li>
+                        <li><strong>Tại sao loại B?</strong> Sai, bài nói <span class="highlight">"We all thought about music in the same way"</span> (Tất cả đều có cùng tư duy âm nhạc).</li>
+                    </ul>
+                `
+            },
+            {
+                id: 4,
+                question: "4. Why does Jack think he is lucky?",
+                options: [
+                    { text: "He meets lots of people.", isCorrect: false },
+                    { text: "He loves what he does.", isCorrect: true },
+                    { text: "He has an unusual career.", isCorrect: false }
+                ],
+                explanation: `
+                    <h4>Giải thích chi tiết Câu 4:</h4>
+                    <ul>
+                        <li><strong>Dịch câu hỏi:</strong> Tại sao Jack nghĩ anh ấy may mắn?</li>
+                        <li><strong>Tại sao chọn B?</strong> (Anh ấy yêu công việc mình làm): Jack nói về việc chơi violin: <span class="highlight">"I think it’s the best thing in the world. I guess I’m lucky that way."</span> (Tôi nghĩ đó là điều tuyệt nhất trên đời -> Tôi may mắn).</li>
+                        <li><strong>Tại sao loại A & C?</strong> Jack có gặp nhiều người và người ta nói nghề này lạ (unusual), nhưng đó không phải lý do anh thấy mình may mắn.</li>
+                    </ul>
+                `
+            },
+            {
+                id: 5,
+                question: "5. Jack thinks it is a good idea...",
+                options: [
+                    { text: "to keep some things that people used in the past.", isCorrect: true },
+                    { text: "to make more music available on the internet.", isCorrect: false },
+                    { text: "to teach more people to play an instrument.", isCorrect: false }
+                ],
+                explanation: `
+                    <h4>Giải thích chi tiết Câu 5:</h4>
+                    <ul>
+                        <li><strong>Dịch câu hỏi:</strong> Jack nghĩ rằng đó là một ý tưởng hay để...</li>
+                        <li><strong>Tại sao chọn A?</strong> (giữ gìn những thứ người xưa từng dùng): Jack ca ngợi việc: <span class="highlight">"Someone has looked after these beautiful old instruments that are two or three hundred years old."</span> (Ai đó đã chăm sóc những nhạc cụ cổ... Tôi thấy điều đó thật tuyệt).</li>
+                        <li><strong>Tại sao loại B?</strong> Jack chỉ nói Internet đã thay đổi âm nhạc, không nói cần đưa thêm nhạc lên đó.</li>
+                        <li><strong>Tại sao loại C?</strong> Không có thông tin khuyên mọi người nên học nhạc cụ.</li>
+                    </ul>
+                `
+            }
+        ];
+
+        // --- LOGIC ---
+        let score = 0;
+        let answeredIds = new Set();
+        let timerInterval;
+        let timeLeft = 600;
+
+        // Shuffle
+        function shuffle(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        function initQuiz() {
+            const container = document.getElementById('quiz-container');
+            container.innerHTML = '';
+            
+            quizData.forEach((q, idx) => {
+                shuffle(q.options);
+                
+                const card = document.createElement('div');
+                card.className = 'question-card';
+                card.innerHTML = `<div class="question-text">${q.question}</div>`;
+
+                const optContainer = document.createElement('div');
+                q.options.forEach(opt => {
+                    const btn = document.createElement('button');
+                    btn.className = 'option-btn';
+                    btn.innerText = opt.text;
+                    btn.onclick = () => checkAnswer(btn, opt.isCorrect, idx, optContainer, q.explanation);
+                    optContainer.appendChild(btn);
+                });
+                card.appendChild(optContainer);
+
+                // Explanation container
+                const expDiv = document.createElement('div');
+                expDiv.className = 'explanation-box';
+                expDiv.id = `expl-${idx}`;
+                expDiv.innerHTML = q.explanation;
+                card.appendChild(expDiv);
+
+                container.appendChild(card);
+            });
+        }
+
+        // Updated Check Answer Logic: Show explanation ALWAYS
+        function checkAnswer(btn, isCorrect, qIdx, container, explanation) {
+            if (answeredIds.has(qIdx)) return;
+            answeredIds.add(qIdx);
+
+            const allBtns = container.querySelectorAll('.option-btn');
+            allBtns.forEach(b => b.disabled = true);
+
+            // Luôn hiện giải thích
+            document.getElementById(`expl-${qIdx}`).style.display = 'block';
+
+            if (isCorrect) {
+                btn.classList.add('correct');
+                playSound('correct');
+                fireConfetti();
+                score++;
+            } else {
+                btn.classList.add('wrong');
+                playSound('wrong');
+                // Highlight đúng
+                allBtns.forEach(b => {
+                    // Logic tìm nút đúng dựa trên text (đơn giản hóa)
+                    const dataOpt = quizData[qIdx].options.find(o => o.text === b.innerText);
+                    if (dataOpt && dataOpt.isCorrect) b.classList.add('correct');
+                });
+            }
+        }
+
+        // Audio
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playSound(type) {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            if (type === 'correct') {
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(440, audioCtx.currentTime); // A4
+                osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.1);
+                gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.5);
+                osc.start(); osc.stop(audioCtx.currentTime + 0.5);
+            } else {
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+                osc.frequency.linearRampToValueAtTime(100, audioCtx.currentTime + 0.3);
+                gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.3);
+                osc.start(); osc.stop(audioCtx.currentTime + 0.3);
+            }
+        }
+
+        // Timer
+        function toggleTimer() {
+            const btn = document.getElementById('btn-timer');
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+                btn.innerText = "TIẾP TỤC";
+                btn.style.background = "#e17055";
+            } else {
+                btn.innerText = "TẠM DỪNG";
+                btn.style.background = "#fdcb6e";
+                timerInterval = setInterval(() => {
+                    timeLeft--;
+                    let m = Math.floor(timeLeft / 60);
+                    let s = timeLeft % 60;
+                    document.getElementById('timer-display').innerText = 
+                        `${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+                    if (timeLeft <= 0) clearInterval(timerInterval);
+                }, 1000);
+            }
+        }
+
+        function toggleTranslation(btn) {
+            const div = btn.nextElementSibling;
+            const isHidden = getComputedStyle(div).display === 'none';
+            div.style.display = isHidden ? 'block' : 'none';
+            btn.innerText = isHidden ? 'ẨN BẢN DỊCH' : 'BẢN DỊCH ĐẦY ĐỦ';
+        }
+
+        function submitQuiz() {
+            if (answeredIds.size < quizData.length) {
+                if(!confirm("Chưa làm xong đâu, nộp thật hả?")) return;
+            }
+            clearInterval(timerInterval);
+            document.getElementById('result-modal').style.display = 'flex';
+            document.getElementById('final-score').innerText = `${score}/5`;
+            
+            const msg = score === 5 ? "🌟 ĐỈNH CAO! BẠN LÀ THẦN ĐỒNG! 🌟" : 
+                        score >= 3 ? "👏 KHÁ LẮM! CỐ TÍ NỮA LÀ 10 ĐIỂM!" : 
+                        "😅 CẦN LUYỆN THÊM NHA!";
+            document.getElementById('feedback-msg').innerText = msg;
+            
+            if (score >= 3) fireConfetti();
+        }
+
+        // Confetti
+        const canvas = document.getElementById('confetti-canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        let particles = [];
+
+        function fireConfetti() {
+            for(let i=0; i<100; i++) {
+                particles.push({
+                    x: canvas.width/2, y: canvas.height/2,
+                    vx: (Math.random()-0.5)*15, vy: (Math.random()-0.5)*15 - 5,
+                    c: `hsl(${Math.random()*360}, 100%, 50%)`,
+                    s: Math.random()*10 + 5
+                });
+            }
+            requestAnimationFrame(drawConfetti);
+        }
+
+        function drawConfetti() {
+            ctx.clearRect(0,0,canvas.width,canvas.height);
+            particles.forEach((p,i) => {
+                p.x += p.vx; p.y += p.vy; p.vy += 0.5;
+                ctx.fillStyle = p.c;
+                ctx.fillRect(p.x, p.y, p.s, p.s);
+                if(p.y > canvas.height) particles.splice(i,1);
+            });
+            if(particles.length > 0) requestAnimationFrame(drawConfetti);
+        }
+
+        initQuiz();
+    </script>
+</body>
+</html>

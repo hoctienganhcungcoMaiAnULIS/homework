@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ms Mai An ULIS - Museum Reading Challenge</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Museum & Art Gallery Gamification Palette */
+            --primary: #6c5ce7;      /* Royal Purple */
+            --secondary: #e84393;    /* Artistic Pink */
+            --accent: #fdcb6e;       /* Gold Frame */
+            --correct: #00b894;      /* Mint Correct */
+            --wrong: #d63031;        /* Red Wrong */
+            --text-dark: #2d3436;
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: 'Nunito', sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* 1. LỚP NỀN ANIMATED GRADIENT (MƯỢT MÀ) */
+        body {
+            overflow: hidden;
+            color: var(--text-dark);
+            background: linear-gradient(-45deg, #a29bfe, #81ecec, #fab1a0, #fdcb6e);
+            background-size: 400% 400%;
+            animation: smoothGradient 20s ease infinite;
+            height: 100vh;
+            position: relative;
+        }
+
+        @keyframes smoothGradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* 2. LỚP HỌA TIẾT SVG TRÔI NỔI ĐỘC LẬP (MUSEUM VIBES) */
+        .pattern-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            /* Emojis: Museum, Painting, Vase, Dinosaur */
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='250' height='250'%3E%3Ctext x='20' y='60' font-size='45'%3E🏛️%3C/text%3E%3Ctext x='150' y='120' font-size='40'%3E🖼️%3C/text%3E%3Ctext x='40' y='210' font-size='45'%3E🦖%3C/text%3E%3Ctext x='180' y='230' font-size='35'%3E🏺%3C/text%3E%3C/svg%3E");
+            opacity: 0.3;
+            pointer-events: none;
+            z-index: 1;
+            animation: floatSVG 45s linear infinite;
+        }
+
+        @keyframes floatSVG {
+            from { background-position: 0 0; }
+            to { background-position: 600px 600px; }
+        }
+
+        /* TOP CONTROL BAR */
+        header {
+            position: relative;
+            z-index: 10;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 30px;
+            background: rgba(255, 255, 255, 0.95);
+            box-shadow: 0 6px 20px rgba(108, 92, 231, 0.2);
+            border-bottom: 5px solid var(--primary);
+        }
+
+        .header-title {
+            font-size: 1.5rem;
+            color: var(--primary);
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .timer-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .btn-action {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 20px;
+            font-size: 1.1rem;
+            font-weight: 900;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 6px 0 rgba(0,0,0,0.15);
+        }
+
+        .btn-start { background-color: var(--accent); color: #d35400; text-shadow: 1px 1px 0 rgba(255,255,255,0.5); }
+        .btn-start:active { transform: translateY(6px); box-shadow: none; }
+
+        #timer-display {
+            font-size: 2rem;
+            font-weight: 900;
+            color: var(--primary);
+            background: #f4ecf7;
+            padding: 5px 20px;
+            border-radius: 15px;
+            border: 3px dashed var(--primary);
+            min-width: 120px;
+            text-align: center;
+        }
+
+        /* SPLIT SCREEN */
+        .main-container {
+            display: flex;
+            height: calc(100vh - 85px);
+            position: relative;
+            z-index: 5;
+        }
+
+        .panel {
+            flex: 1;
+            overflow-y: auto;
+            padding: 30px;
+            scroll-behavior: smooth;
+        }
+
+        .left-panel {
+            background: rgba(255, 255, 255, 0.75);
+            backdrop-filter: blur(15px);
+            border-right: 4px dashed var(--primary);
+        }
+
+        /* READING CONTENT */
+        .passage-title {
+            font-size: 2.8rem;
+            color: var(--primary);
+            margin-bottom: 5px;
+            text-align: center;
+            font-weight: 900;
+            text-shadow: 2px 2px 0px white;
+        }
+        
+        .sub-title {
+            text-align: center;
+            color: var(--secondary);
+            font-style: italic;
+            margin-bottom: 25px;
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+
+        .paragraph-card {
+            background: white;
+            padding: 25px;
+            border-radius: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 8px 15px rgba(0,0,0,0.05);
+            border-left: 6px solid var(--secondary);
+            font-size: 1.2rem;
+            line-height: 1.7;
+        }
+
+        .person-name {
+            display: inline-block;
+            background: var(--primary);
+            color: white;
+            padding: 5px 20px;
+            border-radius: 15px;
+            font-size: 1.5rem;
+            font-weight: 900;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 0 #4a4e69;
+        }
+
+        .btn-translate {
+            background: var(--secondary);
+            color: white;
+            border: none;
+            padding: 10px 18px;
+            border-radius: 12px;
+            font-weight: 800;
+            font-size: 1rem;
+            margin-top: 15px;
+            cursor: pointer;
+            box-shadow: 0 5px 0 #b71540;
+            transition: 0.2s;
+        }
+        .btn-translate:active { transform: translateY(5px); box-shadow: none; }
+
+        .translation-text {
+            display: none;
+            margin-top: 20px;
+            padding: 15px 20px;
+            background: #fdf2e9;
+            border-radius: 10px;
+            font-size: 1.15rem;
+            color: #b71540;
+            font-weight: 700;
+            border: 2px dashed var(--accent);
+        }
+
+        /* GLOSSARY */
+        .glossary-wrapper {
+            background: white;
+            border-radius: 25px;
+            padding: 25px;
+            margin-top: 40px;
+            border: 4px solid var(--primary);
+            box-shadow: 0 10px 0 rgba(108, 92, 231, 0.2);
+        }
+        .glossary-title {
+            color: var(--primary);
+            text-align: center;
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            font-weight: 900;
+        }
+        table { width: 100%; border-collapse: collapse; font-size: 1.1rem; }
+        th, td { padding: 15px; text-align: left; border-bottom: 2px dashed #bdc3c7; }
+        th { background: var(--primary); color: white; border-radius: 10px; font-size: 1.2rem;}
+        tr:hover td { background: #f4ecf7; font-weight: 700; color: var(--primary); cursor: pointer; }
+
+        /* QUIZ CARDS */
+        .question-card {
+            background: white;
+            border-radius: 25px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 12px 0 rgba(0,0,0,0.08);
+            border: 4px solid #fff;
+            transition: all 0.3s;
+        }
+        .question-card:hover { transform: translateY(-5px); border-color: var(--primary); }
+
+        .question-text {
+            font-size: 1.4rem;
+            font-weight: 900;
+            color: var(--text-dark);
+            margin-bottom: 25px;
+        }
+
+        .options-grid { display: flex; flex-direction: row; flex-wrap: wrap; gap: 15px; }
+
+        .option-btn {
+            flex: 1;
+            min-width: 100px;
+            background: #f1f2f6;
+            border: 3px solid #dfe6e9;
+            padding: 18px 25px;
+            border-radius: 18px;
+            font-size: 1.3rem;
+            font-weight: 900;
+            color: #2d3436;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 6px 0 #dfe6e9;
+        }
+        
+        .option-btn:hover:not(:disabled) {
+            transform: scale(1.05);
+            background: white;
+            border-color: var(--primary);
+            color: var(--primary);
+            box-shadow: 0 6px 0 var(--primary);
+        }
+
+        .option-btn:active:not(:disabled) { transform: translateY(6px); box-shadow: none; }
+        .option-btn.correct { background: var(--correct); border-color: #009432; color: white; box-shadow: 0 6px 0 #009432; }
+        .option-btn.wrong { background: var(--wrong); border-color: #b33939; color: white; box-shadow: 0 6px 0 #b33939; animation: shake 0.4s; }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px) rotate(-2deg); }
+            75% { transform: translateX(10px) rotate(2deg); }
+        }
+
+        /* DETAILED EXPLANATION BOX */
+        .explanation-box {
+            display: none;
+            margin-top: 25px;
+            padding: 20px;
+            background: #fff9c4;
+            border: 4px dashed var(--accent);
+            border-radius: 15px;
+            animation: bounceIn 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+        @keyframes bounceIn {
+            0% { opacity: 0; transform: scale(0.8); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+        .explanation-box h4 { color: #d35400; margin-bottom: 15px; font-size: 1.3rem; font-weight: 900; }
+        .explanation-box p { margin-bottom: 10px; font-size: 1.15rem; line-height: 1.6; color: #2d3436;}
+        .explanation-box .highlight { background: var(--accent); color: #2d3436; padding: 2px 8px; border-radius: 5px; font-weight: bold; }
+
+        /* SUBMIT BUTTON */
+        .btn-submit {
+            display: block; width: 100%;
+            background: var(--primary); color: white;
+            font-size: 1.8rem; font-weight: 900;
+            padding: 25px; border: none; border-radius: 25px;
+            cursor: pointer; box-shadow: 0 10px 0 #4a4e69;
+            margin-top: 30px; transition: all 0.2s;
+            text-transform: uppercase; letter-spacing: 2px;
+        }
+        .btn-submit:hover { transform: scale(1.02); }
+        .btn-submit:active { transform: translateY(10px); box-shadow: none; }
+
+        /* MODAL POPUP */
+        #result-modal {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85); z-index: 100; justify-content: center; align-items: center; backdrop-filter: blur(8px);
+        }
+        .modal-content {
+            background: white; padding: 50px; border-radius: 40px; text-align: center;
+            max-width: 550px; width: 90%; border: 8px solid var(--accent);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            animation: popIn 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+        @keyframes popIn { 0% { transform: scale(0.3) rotate(-10deg); opacity: 0; } 100% { transform: scale(1) rotate(0); opacity: 1; } }
+        
+        .score-circle {
+            width: 180px; height: 180px; background: var(--primary); border-radius: 50%;
+            display: flex; justify-content: center; align-items: center;
+            font-size: 4.5rem; font-weight: 900; color: white; margin: 0 auto 25px;
+            border: 10px solid var(--accent); box-shadow: inset 0 0 20px rgba(0,0,0,0.2);
+        }
+
+        /* CUSTOM SCROLLBAR */
+        ::-webkit-scrollbar { width: 14px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 20px; border: 3px solid white; }
+        ::-webkit-scrollbar-thumb:hover { background: #4a4e69; }
+
+        #confetti-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 999; }
+    </style>
+</head>
+<body>
+
+    <div class="pattern-overlay"></div>
+    <canvas id="confetti-canvas"></canvas>
+
+    <header>
+        <div class="header-title">🏛️ Ms Mai An ULIS | Night at the Museum</div>
+        <div class="timer-container">
+            <div id="timer-display">10:00</div>
+            <button class="btn-action btn-start" id="btn-timer" onclick="toggleTimer()">▶ BẮT ĐẦU THAM QUAN</button>
+        </div>
+    </header>
+
+    <div class="main-container">
+        <div class="panel left-panel">
+            <h1 class="passage-title">How important are museums to you?</h1>
+            <p class="sub-title">We asked three young people this question and this is what they told us.</p>
+
+            <div class="paragraph-card">
+                <div class="person-name">🧑‍🎨 Chris</div>
+                <p>A lot of my friends think museums are boring but I love them. I prefer ones where they move things round regularly, and bring in new things to keep it interesting. I also like to have things to listen to as well as look at. I suppose I like museums because I’m really interested in history and art. We study these subjects at college, but I’ve actually found out a lot more about them from museums than from my textbooks.</p>
+                <button class="btn-translate" onclick="toggleTranslation(this)">📖 BẢN DỊCH ĐẦY ĐỦ</button>
+                <div class="translation-text">Nhiều người bạn của tôi nghĩ bảo tàng rất nhàm chán nhưng tôi lại yêu thích chúng. Tôi thích những nơi mà họ thường xuyên thay đổi vị trí các hiện vật, và mang đến những thứ mới để giữ sự thú vị. Tôi cũng thích có những thứ để nghe cũng như để nhìn. Tôi cho rằng tôi thích bảo tàng vì tôi thực sự quan tâm đến lịch sử và nghệ thuật. Chúng tôi học những môn này ở trường đại học, nhưng thực tế tôi đã khám phá ra nhiều điều về chúng từ các bảo tàng hơn là từ sách giáo khoa của mình.</div>
+            </div>
+
+            <div class="paragraph-card">
+                <div class="person-name">👩‍🦰 Emily</div>
+                <p>I’m lucky because I live in New York, so there are lots of great museums for me to visit. One thing I’ve learnt is that you should never try to see a whole museum the first time you go. Just go to one or two rooms, and then return as often as you can to see the rest. For me, it’s important that the people who work in the museum are pleasant, and happy to talk to me about the things in the exhibition. That makes a big difference.</p>
+                <button class="btn-translate" onclick="toggleTranslation(this)">📖 BẢN DỊCH ĐẦY ĐỦ</button>
+                <div class="translation-text">Tôi thật may mắn vì tôi sống ở New York, nên có rất nhiều bảo tàng tuyệt vời để tôi tham quan. Một điều tôi học được là bạn không bao giờ nên cố gắng xem toàn bộ bảo tàng trong lần đầu tiên tới đó. Hãy chỉ đi đến một hoặc hai phòng, và sau đó quay lại thường xuyên nhất có thể để xem phần còn lại. Đối với tôi, điều quan trọng là những người làm việc trong bảo tàng phải thân thiện và vui vẻ nói chuyện với tôi về các hiện vật trong buổi triển lãm. Điều đó tạo ra sự khác biệt lớn.</div>
+            </div>
+
+            <div class="paragraph-card">
+                <div class="person-name">👱‍♂️ Daniel</div>
+                <p>I don’t go to museums much, except during my holidays in new cities. Then I make sure I spend at least a day going to the most famous ones. If it’s a big museum and I don’t have much time, I sometimes walk into a room and choose just five things to look at. I also take a tour if there is one, as I learn so much more from listening to the person showing us round than I do if I’m by myself.</p>
+                <button class="btn-translate" onclick="toggleTranslation(this)">📖 BẢN DỊCH ĐẦY ĐỦ</button>
+                <div class="translation-text">Tôi không thường xuyên đến bảo tàng, ngoại trừ những kỳ nghỉ ở các thành phố mới. Lúc đó, tôi luôn đảm bảo dành ít nhất một ngày để đến những bảo tàng nổi tiếng nhất. Nếu đó là một bảo tàng lớn và tôi không có nhiều thời gian, đôi khi tôi bước vào một căn phòng và chỉ chọn đúng năm thứ để xem. Tôi cũng sẽ tham gia một chuyến tham quan có hướng dẫn viên nếu có, vì tôi học được nhiều điều hơn từ việc lắng nghe người hướng dẫn so với khi tôi đi một mình.</div>
+            </div>
+
+            <div class="glossary-wrapper">
+                <h3 class="glossary-title">💎 Museum Vocabulary (A2-B2)</h3>
+                <table>
+                    <thead><tr><th>Từ vựng</th><th>Loại từ</th><th>Nghĩa Tiếng Việt</th></tr></thead>
+                    <tbody>
+                        <tr><td>1. Regularly</td><td>Adverb</td><td>Thường xuyên, đều đặn</td></tr>
+                        <tr><td>2. Textbook</td><td>Noun</td><td>Sách giáo khoa / giáo trình</td></tr>
+                        <tr><td>3. Exhibition</td><td>Noun</td><td>Buổi triển lãm</td></tr>
+                        <tr><td>4. Pleasant</td><td>Adjective</td><td>Thân thiện, dễ chịu, vui vẻ</td></tr>
+                        <tr><td>5. Make a difference</td><td>Phrase</td><td>Tạo ra sự khác biệt</td></tr>
+                        <tr><td>6. Except</td><td>Preposition</td><td>Ngoại trừ</td></tr>
+                        <tr><td>7. Famous</td><td>Adjective</td><td>Nổi tiếng</td></tr>
+                        <tr><td>8. Tour / Guide</td><td>Noun</td><td>Chuyến tham quan / Hướng dẫn viên</td></tr>
+                        <tr><td>9. By myself</td><td>Phrase</td><td>Một mình, tự bản thân</td></tr>
+                        <tr><td>10. Actually</td><td>Adverb</td><td>Thực sự, thực tế là</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="panel right-panel">
+            <div id="quiz-container"></div>
+            <button class="btn-submit" onclick="submitQuiz()">🖼️ NỘP BÀI THÔI! 🖼️</button>
+        </div>
+    </div>
+
+    <div id="result-modal">
+        <div class="modal-content">
+            <h2 style="color: var(--primary); font-size: 2.5rem; margin-bottom: 20px;">KẾT QUẢ THAM QUAN</h2>
+            <div class="score-circle" id="final-score">0/7</div>
+            <h3 id="feedback-msg" style="color: #2d3436; margin-bottom: 20px; font-size: 1.6rem; line-height: 1.5;"></h3>
+            <button class="btn-action btn-start" onclick="location.reload()" style="width: 100%; font-size: 1.3rem; padding: 18px; border-radius: 15px;">🔄 ĐI THAM QUAN LẠI</button>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. DỮ LIỆU ĐỀ BÀI & GIẢI THÍCH CHI TIẾT (PARAPHRASE) ---
+        const quizData = [
+            {
+                id: 1, 
+                question: "1. Who always visits museums when they travel?",
+                answer: "Daniel",
+                explanation: `<p><strong>Dịch câu hỏi:</strong> Ai luôn đến thăm các bảo tàng khi đi du lịch?</p>
+                <p><strong>Dấu vết Paraphrase:</strong> Daniel nói: <span class="highlight">"I don’t go to museums much, except during my holidays in new cities."</span> (Tôi không đi nhiều, ngoại trừ trong kỳ nghỉ ở các thành phố mới). Cụm từ "holidays in new cities" (kỳ nghỉ ở thành phố mới) đồng nghĩa hoàn toàn với "travel" (đi du lịch).</p>`
+            },
+            {
+                id: 2, 
+                question: "2. Who says it is important to visit the same museum several times?",
+                answer: "Emily",
+                explanation: `<p><strong>Dịch câu hỏi:</strong> Ai nói rằng việc đến thăm cùng một bảo tàng nhiều lần là rất quan trọng?</p>
+                <p><strong>Dấu vết Paraphrase:</strong> Emily khuyên: <span class="highlight">"...and then return as often as you can to see the rest."</span> (...và sau đó quay lại thường xuyên nhất có thể để xem phần còn lại). Việc "return as often as you can" (quay lại thường xuyên) chính là "visit several times" (đi thăm nhiều lần).</p>`
+            },
+            {
+                id: 3, 
+                question: "3. Who likes museums where the exhibitions often change?",
+                answer: "Chris",
+                explanation: `<p><strong>Dịch câu hỏi:</strong> Ai thích những bảo tàng nơi mà các cuộc triển lãm thường xuyên thay đổi?</p>
+                <p><strong>Dấu vết Paraphrase:</strong> Chris chia sẻ: <span class="highlight">"I prefer ones where they move things round regularly, and bring in new things..."</span> (Tôi thích những nơi họ thường xuyên thay đổi vị trí đồ vật và mang đồ mới tới). Cụm "move things round regularly" mang nghĩa là sự thay đổi không gian trưng bày (exhibitions often change).</p>`
+            },
+            {
+                id: 4, 
+                question: "4. Who says that museums should have friendly staff?",
+                answer: "Emily",
+                explanation: `<p><strong>Dịch câu hỏi:</strong> Ai nói rằng bảo tàng nên có đội ngũ nhân viên thân thiện?</p>
+                <p><strong>Dấu vết Paraphrase:</strong> Emily nhấn mạnh: <span class="highlight">"...it’s important that the people who work in the museum are pleasant..."</span> (quan trọng là người làm việc ở bảo tàng phải thân thiện/dễ chịu). Ở đây, "people who work" = "staff" (nhân viên), và "pleasant" = "friendly" (thân thiện).</p>`
+            },
+            {
+                id: 5, 
+                question: "5. Who says that they sometimes only look at a few things in a room?",
+                answer: "Daniel",
+                explanation: `<p><strong>Dịch câu hỏi:</strong> Ai nói rằng đôi khi họ chỉ xem một vài thứ trong một căn phòng?</p>
+                <p><strong>Dấu vết Paraphrase:</strong> Daniel tiết lộ: <span class="highlight">"...I sometimes walk into a room and choose just five things to look at."</span> (...đôi khi tôi bước vào phòng và chỉ chọn đúng 5 thứ để xem). Cụm "just five things" (chỉ 5 thứ) ứng với "a few things" (một vài thứ).</p>`
+            },
+            {
+                id: 6, 
+                question: "6. Who learns more in a museum than in a classroom?",
+                answer: "Chris",
+                explanation: `<p><strong>Dịch câu hỏi:</strong> Ai học được nhiều điều ở bảo tàng hơn là trong lớp học?</p>
+                <p><strong>Dấu vết Paraphrase:</strong> Chris tâm sự: <span class="highlight">"We study these subjects at college, but I’ve actually found out a lot more about them from museums than from my textbooks."</span> (Chúng tôi học ở trường... nhưng tôi khám phá ra nhiều hơn từ bảo tàng so với từ sách giáo khoa). "college/textbooks" chính là ẩn dụ cho việc học ở "classroom" (lớp học).</p>`
+            },
+            {
+                id: 7, 
+                question: "7. Who prefers going around a museum with a guide to going alone?",
+                answer: "Daniel",
+                explanation: `<p><strong>Dịch câu hỏi:</strong> Ai thích đi tham quan bảo tàng với hướng dẫn viên hơn là đi một mình?</p>
+                <p><strong>Dấu vết Paraphrase:</strong> Daniel khẳng định: <span class="highlight">"...I learn so much more from listening to the person showing us round than I do if I’m by myself."</span> (...tôi học được nhiều hơn từ việc nghe người dẫn đường so với khi đi một mình). "person showing us round" = "guide" (người hướng dẫn), "by myself" = "alone" (một mình).</p>`
+            }
+        ];
+
+        let score = 0;
+        let answeredQuestions = new Set();
+        const names = ["Chris", "Emily", "Daniel"];
+
+        // Thuật toán xáo trộn vị trí nút bấm
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        // --- 2. RENDER GIAO DIỆN CÂU HỎI ---
+        function renderQuiz() {
+            const container = document.getElementById('quiz-container');
+            container.innerHTML = '';
+
+            quizData.forEach((q, index) => {
+                const shuffledNames = shuffleArray([...names]);
+
+                const card = document.createElement('div');
+                card.className = 'question-card';
+                card.innerHTML = `<div class="question-text">${q.question}</div>`;
+
+                const optionsGrid = document.createElement('div');
+                optionsGrid.className = 'options-grid';
+
+                shuffledNames.forEach(name => {
+                    const btn = document.createElement('button');
+                    btn.className = 'option-btn';
+                    btn.innerText = name;
+                    btn.onclick = () => handleAnswer(btn, name === q.answer, index, q.explanation, optionsGrid, q.answer);
+                    optionsGrid.appendChild(btn);
+                });
+                card.appendChild(optionsGrid);
+
+                // Hộp giải thích (Ẩn đi, chỉ hiện khi click)
+                const explBox = document.createElement('div');
+                explBox.className = 'explanation-box';
+                explBox.id = `expl-${index}`;
+                explBox.innerHTML = `<h4>💡 Tại sao lại là ${q.answer}?</h4>` + q.explanation;
+                card.appendChild(explBox);
+
+                container.appendChild(card);
+            });
+        }
+
+        // --- 3. HỆ THỐNG ÂM THANH WEB AUDIO API ---
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        let audioCtx;
+
+        function playSound(type) {
+            if (!audioCtx) audioCtx = new AudioContext();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            
+            const osc = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            osc.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+
+            if (type === 'correct') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(587.33, audioCtx.currentTime); // D5
+                osc.frequency.exponentialRampToValueAtTime(1174.66, audioCtx.currentTime + 0.15); // D6
+                gainNode.gain.setValueAtTime(0.5, audioCtx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+                osc.start(); osc.stop(audioCtx.currentTime + 0.4);
+            } else {
+                osc.type = 'sawtooth'; // Âm báo lỗi rung
+                osc.frequency.setValueAtTime(200, audioCtx.currentTime);
+                osc.frequency.linearRampToValueAtTime(120, audioCtx.currentTime + 0.3);
+                gainNode.gain.setValueAtTime(0.4, audioCtx.currentTime);
+                gainNode.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+                osc.start(); osc.stop(audioCtx.currentTime + 0.3);
+            }
+        }
+
+        // --- 4. XỬ LÝ LƯỢT CHƠI (TỰ ĐỘNG HIỆN GIẢI THÍCH) ---
+        function handleAnswer(btn, isCorrect, qIndex, explanationHTML, grid, correctAnswer) {
+            if (answeredQuestions.has(qIndex)) return; 
+            answeredQuestions.add(qIndex);
+
+            const allBtns = grid.querySelectorAll('.option-btn');
+            allBtns.forEach(b => b.disabled = true); 
+
+            // BẬT BẢNG GIẢI THÍCH NGAY LẬP TỨC ĐỂ HỌC SINH ĐỌC
+            document.getElementById(`expl-${qIndex}`).style.display = 'block';
+
+            if (isCorrect) {
+                btn.classList.add('correct');
+                playSound('correct');
+                fireConfetti();
+                score++;
+            } else {
+                btn.classList.add('wrong');
+                playSound('wrong');
+                // Tự động highlight màu xanh cho đáp án đúng
+                allBtns.forEach(b => {
+                    if (b.innerText === correctAnswer) {
+                        b.classList.add('correct');
+                        b.style.opacity = '0.6';
+                    }
+                });
+            }
+        }
+
+        // --- 5. BỘ ĐẾM THỜI GIAN ---
+        let timerInterval;
+        let timeLeft = 600; // 10 phút
+        let isRunning = false;
+
+        function toggleTimer() {
+            const btn = document.getElementById('btn-timer');
+            if (isRunning) {
+                clearInterval(timerInterval);
+                btn.innerText = "▶ TIẾP TỤC THAM QUAN";
+                btn.style.backgroundColor = "#fdcb6e";
+            } else {
+                btn.innerText = "⏸ DỪNG TẠM NGHỈ";
+                btn.style.backgroundColor = "#d63031"; // Đỏ
+                btn.style.color = "white";
+                timerInterval = setInterval(() => {
+                    timeLeft--;
+                    let m = Math.floor(timeLeft / 60);
+                    let s = timeLeft % 60;
+                    document.getElementById('timer-display').innerText = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+                    if (timeLeft <= 0) {
+                        clearInterval(timerInterval);
+                        alert("⏰ Đã hết giờ tham quan bảo tàng! Bạn hãy cố gắng đẩy nhanh tốc độ đọc quét (scanning) nha!");
+                    }
+                }, 1000);
+            }
+            isRunning = !isRunning;
+        }
+
+        // Bật tắt dịch thuật
+        function toggleTranslation(btn) {
+            const div = btn.nextElementSibling;
+            const isHidden = getComputedStyle(div).display === 'none';
+            div.style.display = isHidden ? 'block' : 'none';
+            btn.innerHTML = isHidden ? '🙈 ẨN BẢN DỊCH' : '📖 BẢN DỊCH ĐẦY ĐỦ';
+        }
+
+        // --- 6. TỔNG KẾT NỘP BÀI ---
+        function submitQuiz() {
+            if (answeredQuestions.size < quizData.length) {
+                if(!confirm("Bạn chưa tham quan hết các gian hàng (chưa làm hết câu). Vẫn muốn nộp bài chứ?")) return;
+            }
+            clearInterval(timerInterval);
+            
+            const modal = document.getElementById('result-modal');
+            document.getElementById('final-score').innerText = `${score}/7`;
+            
+            const msgObj = document.getElementById('feedback-msg');
+            if (score === 7) {
+                msgObj.innerText = "🏆 XUẤT SẮC! BẠN CHÍNH LÀ CHUYÊN GIA NGHỆ THUẬT!";
+                for(let i=0; i<4; i++) setTimeout(fireConfetti, i*300);
+            } else if (score >= 4) {
+                msgObj.innerText = "✨ RẤT TỐT! Hãy nhớ đọc kỹ phần giải thích Paraphrase màu vàng để rút kinh nghiệm nhé.";
+                fireConfetti();
+            } else {
+                msgObj.innerText = "💪 CỐ LÊN NHA! Kỹ năng tìm từ khóa đồng nghĩa (Paraphrase) cần luyện tập nhiều hơn, đừng nản lòng!";
+            }
+            modal.style.display = 'flex';
+        }
+
+        // --- 7. HIỆU ỨNG PHÁO GIẤY CONFETTI ---
+        const canvas = document.getElementById('confetti-canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        let particles = [];
+        const colors = ['#6c5ce7', '#e84393', '#fdcb6e', '#00b894'];
+
+        function fireConfetti() {
+            for(let i=0; i<80; i++) {
+                particles.push({
+                    x: canvas.width / 2, y: canvas.height / 2 + 100,
+                    r: Math.random() * 8 + 4,
+                    dx: (Math.random() - 0.5) * 20, dy: Math.random() * -20 - 5,
+                    color: colors[Math.floor(Math.random() * colors.length)],
+                    tilt: Math.random() * 10 - 10, tiltAngleInc: (Math.random() * 0.07) + 0.05, tiltAngle: 0
+                });
+            }
+            requestAnimationFrame(animateConfetti);
+        }
+
+        function animateConfetti() {
+            ctx.clearRect(0,0,canvas.width,canvas.height);
+            particles.forEach((p, i) => {
+                p.tiltAngle += p.tiltAngleInc;
+                p.y += (Math.cos(p.tiltAngle) + 1 + p.r / 2) / 2;
+                p.x += Math.sin(p.tiltAngle) * 2;
+                p.dy += 0.3; p.y += p.dy;
+                ctx.beginPath(); ctx.lineWidth = p.r; ctx.strokeStyle = p.color;
+                ctx.moveTo(p.x + p.tilt + p.r, p.y); ctx.lineTo(p.x + p.tilt, p.y + p.tilt + p.r); ctx.stroke();
+                if (p.y > canvas.height) particles.splice(i,1);
+            });
+            if(particles.length > 0) requestAnimationFrame(animateConfetti);
+        }
+
+        window.addEventListener('resize', () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; });
+        window.onload = renderQuiz;
+    </script>
+</body>
+</html>

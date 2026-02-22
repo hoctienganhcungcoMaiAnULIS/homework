@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ms Mai An ULIS - TV Shows Reading</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Cinema & Entertainment Theme */
+            --primary: #8e44ad;      /* Midnight Purple */
+            --secondary: #e74c3c;    /* Red Carpet */
+            --accent: #f1c40f;       /* Popcorn Yellow */
+            --correct: #27ae60;      /* Emerald Green */
+            --wrong: #c0392b;        /* Dark Red */
+            --text-dark: #2c3e50;
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: 'Nunito', sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* 1. LỚP NỀN ANIMATED GRADIENT (MƯỢT MÀ) */
+        body {
+            overflow: hidden;
+            color: var(--text-dark);
+            background: linear-gradient(-45deg, #9b59b6, #34495e, #e74c3c, #f39c12);
+            background-size: 400% 400%;
+            animation: smoothGradient 20s ease infinite;
+            height: 100vh;
+            position: relative;
+        }
+
+        @keyframes smoothGradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* 2. LỚP HỌA TIẾT SVG TRÔI NỔI ĐỘC LẬP */
+        .pattern-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            /* Emojis: TV, Popcorn, Clapperboard, Drama Masks */
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='250' height='250'%3E%3Ctext x='20' y='60' font-size='45'%3E📺%3C/text%3E%3Ctext x='150' y='120' font-size='40'%3E🍿%3C/text%3E%3Ctext x='40' y='210' font-size='45'%3E🎬%3C/text%3E%3Ctext x='180' y='230' font-size='35'%3E🎭%3C/text%3E%3C/svg%3E");
+            opacity: 0.25;
+            pointer-events: none;
+            z-index: 1;
+            animation: floatSVG 45s linear infinite;
+        }
+
+        @keyframes floatSVG {
+            from { background-position: 0 0; }
+            to { background-position: 600px 600px; }
+        }
+
+        /* TOP CONTROL BAR */
+        header {
+            position: relative;
+            z-index: 10;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 30px;
+            background: rgba(255, 255, 255, 0.95);
+            box-shadow: 0 6px 20px rgba(142, 68, 173, 0.3);
+            border-bottom: 5px solid var(--accent);
+        }
+
+        .header-title {
+            font-size: 1.5rem;
+            color: var(--primary);
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .timer-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .btn-action {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 20px;
+            font-size: 1.1rem;
+            font-weight: 900;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 6px 0 rgba(0,0,0,0.15);
+        }
+
+        .btn-start { background-color: var(--accent); color: #d35400; text-shadow: 1px 1px 0 rgba(255,255,255,0.5); }
+        .btn-start:active { transform: translateY(6px); box-shadow: none; }
+
+        #timer-display {
+            font-size: 2rem;
+            font-weight: 900;
+            color: var(--primary);
+            background: #f5eef8;
+            padding: 5px 20px;
+            border-radius: 15px;
+            border: 3px dashed var(--primary);
+            min-width: 120px;
+            text-align: center;
+        }
+
+        /* SPLIT SCREEN */
+        .main-container {
+            display: flex;
+            height: calc(100vh - 85px);
+            position: relative;
+            z-index: 5;
+        }
+
+        .panel {
+            flex: 1;
+            overflow-y: auto;
+            padding: 30px;
+            scroll-behavior: smooth;
+        }
+
+        .left-panel {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(15px);
+            border-right: 4px dashed var(--primary);
+        }
+
+        /* READING CONTENT */
+        .passage-title {
+            font-size: 2.8rem;
+            color: var(--primary);
+            margin-bottom: 25px;
+            text-align: center;
+            font-weight: 900;
+            text-shadow: 2px 2px 0px white;
+        }
+
+        .show-card {
+            background: white;
+            padding: 25px;
+            border-radius: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 8px 15px rgba(0,0,0,0.05);
+            border-left: 6px solid var(--secondary);
+            font-size: 1.2rem;
+            line-height: 1.7;
+        }
+
+        .show-name {
+            display: inline-block;
+            background: var(--primary);
+            color: white;
+            padding: 5px 20px;
+            border-radius: 15px;
+            font-size: 1.5rem;
+            font-weight: 900;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 0 #5b2c6f;
+        }
+
+        .btn-translate {
+            background: var(--secondary);
+            color: white;
+            border: none;
+            padding: 10px 18px;
+            border-radius: 12px;
+            font-weight: 800;
+            font-size: 1rem;
+            margin-top: 15px;
+            cursor: pointer;
+            box-shadow: 0 5px 0 #922b21;
+            transition: 0.2s;
+        }
+        .btn-translate:active { transform: translateY(5px); box-shadow: none; }
+
+        .translation-text {
+            display: none;
+            margin-top: 20px;
+            padding: 15px 20px;
+            background: #fdf2e9;
+            border-radius: 10px;
+            font-size: 1.15rem;
+            color: #922b21;
+            font-weight: 700;
+            border: 2px dashed var(--accent);
+        }
+
+        /* GLOSSARY */
+        .glossary-wrapper {
+            background: white;
+            border-radius: 25px;
+            padding: 25px;
+            margin-top: 40px;
+            border: 4px solid var(--primary);
+            box-shadow: 0 10px 0 rgba(142, 68, 173, 0.2);
+        }
+        .glossary-title {
+            color: var(--primary);
+            text-align: center;
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            font-weight: 900;
+        }
+        table { width: 100%; border-collapse: collapse; font-size: 1.1rem; }
+        th, td { padding: 15px; text-align: left; border-bottom: 2px dashed #bdc3c7; }
+        th { background: var(--primary); color: white; border-radius: 10px; font-size: 1.2rem;}
+        tr:hover td { background: #f5eef8; font-weight: 700; color: var(--primary); cursor: pointer; }
+
+        /* QUIZ CARDS */
+        .question-card {
+            background: white;
+            border-radius: 25px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 12px 0 rgba(0,0,0,0.08);
+            border: 4px solid #fff;
+            transition: all 0.3s;
+        }
+        .question-card:hover { transform: translateY(-5px); border-color: var(--primary); }
+
+        .question-text {
+            font-size: 1.4rem;
+            font-weight: 900;
+            color: var(--text-dark);
+            margin-bottom: 25px;
+        }
+
+        .options-grid { display: flex; flex-direction: row; flex-wrap: wrap; gap: 15px; }
+
+        .option-btn {
+            flex: 1;
+            min-width: 130px;
+            background: #ecf0f1;
+            border: 3px solid #bdc3c7;
+            padding: 18px 20px;
+            border-radius: 18px;
+            font-size: 1.25rem;
+            font-weight: 900;
+            color: #2c3e50;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 6px 0 #bdc3c7;
+        }
+        
+        .option-btn:hover:not(:disabled) {
+            transform: scale(1.05);
+            background: white;
+            border-color: var(--primary);
+            color: var(--primary);
+            box-shadow: 0 6px 0 var(--primary);
+        }
+
+        .option-btn:active:not(:disabled) { transform: translateY(6px); box-shadow: none; }
+        .option-btn.correct { background: var(--correct); border-color: #1e8449; color: white; box-shadow: 0 6px 0 #1e8449; }
+        .option-btn.wrong { background: var(--wrong); border-color: #922b21; color: white; box-shadow: 0 6px 0 #922b21; animation: shake 0.4s; }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px) rotate(-2deg); }
+            75% { transform: translateX(10px) rotate(2deg); }
+        }
+
+        /* DETAILED EXPLANATION BOX */
+        .explanation-box {
+            display: none;
+            margin-top: 25px;
+            padding: 20px;
+            background: #fff9c4;
+            border: 4px dashed var(--accent);
+            border-radius: 15px;
+            animation: bounceIn 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+        @keyframes bounceIn {
+            0% { opacity: 0; transform: scale(0.8); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+        .explanation-box h4 { color: #d35400; margin-bottom: 15px; font-size: 1.3rem; font-weight: 900; }
+        .explanation-box p { margin-bottom: 10px; font-size: 1.15rem; line-height: 1.6; color: #2d3436;}
+        .explanation-box .highlight { background: var(--accent); color: #2d3436; padding: 2px 8px; border-radius: 5px; font-weight: bold; }
+
+        /* SUBMIT BUTTON */
+        .btn-submit {
+            display: block; width: 100%;
+            background: var(--primary); color: white;
+            font-size: 1.8rem; font-weight: 900;
+            padding: 25px; border: none; border-radius: 25px;
+            cursor: pointer; box-shadow: 0 10px 0 #5b2c6f;
+            margin-top: 30px; transition: all 0.2s;
+            text-transform: uppercase; letter-spacing: 2px;
+        }
+        .btn-submit:hover { transform: scale(1.02); }
+        .btn-submit:active { transform: translateY(10px); box-shadow: none; }
+
+        /* MODAL POPUP */
+        #result-modal {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85); z-index: 100; justify-content: center; align-items: center; backdrop-filter: blur(8px);
+        }
+        .modal-content {
+            background: white; padding: 50px; border-radius: 40px; text-align: center;
+            max-width: 550px; width: 90%; border: 8px solid var(--accent);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            animation: popIn 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+        @keyframes popIn { 0% { transform: scale(0.3) rotate(-10deg); opacity: 0; } 100% { transform: scale(1) rotate(0); opacity: 1; } }
+        
+        .score-circle {
+            width: 180px; height: 180px; background: var(--primary); border-radius: 50%;
+            display: flex; justify-content: center; align-items: center;
+            font-size: 4.5rem; font-weight: 900; color: white; margin: 0 auto 25px;
+            border: 10px solid var(--accent); box-shadow: inset 0 0 20px rgba(0,0,0,0.2);
+        }
+
+        /* CUSTOM SCROLLBAR */
+        ::-webkit-scrollbar { width: 14px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 20px; border: 3px solid white; }
+        ::-webkit-scrollbar-thumb:hover { background: #5b2c6f; }
+
+        #confetti-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 999; }
+    </style>
+</head>
+<body>
+
+    <div class="pattern-overlay"></div>
+    <canvas id="confetti-canvas"></canvas>
+
+    <header>
+        <div class="header-title">🎬 Ms Mai An ULIS | Cinema Challenge</div>
+        <div class="timer-container">
+            <div id="timer-display">10:00</div>
+            <button class="btn-action btn-start" id="btn-timer" onclick="toggleTimer()">▶ BẮT ĐẦU XEM PHIM</button>
+        </div>
+    </header>
+
+    <div class="main-container">
+        <div class="panel left-panel">
+            <h1 class="passage-title">Three great TV shows</h1>
+
+            <div class="show-card">
+                <div class="show-name">🎨 A. Active Art</div>
+                <p><em>Active Art</em> is a new show for 12–15-year-olds. Each week, the world-famous artist Tony Moldino shows viewers how to make an amazing work of art. He’s great in front of the camera and surprisingly funny. Last week’s show was all about painting faces. This week, it’s drawing with pencil and next week, it’s digital photography. You can see <em>Active Art</em> every Tuesday and Thursday at 5.00 p.m.</p>
+                <button class="btn-translate" onclick="toggleTranslation(this)">📖 BẢN DỊCH ĐẦY ĐỦ</button>
+                <div class="translation-text"><em>Active Art</em> là một chương trình mới dành cho thanh thiếu niên từ 12-15 tuổi. Mỗi tuần, nghệ sĩ nổi tiếng thế giới Tony Moldino sẽ hướng dẫn khán giả cách tạo ra một tác phẩm nghệ thuật tuyệt vời. Chú ấy rất tuyệt vời trước ống kính và hài hước một cách đáng ngạc nhiên. Chương trình tuần trước hoàn toàn về việc vẽ mặt. Tuần này, đó là vẽ bằng bút chì và tuần tới sẽ là nhiếp ảnh kỹ thuật số. Bạn có thể xem <em>Active Art</em> vào mỗi thứ Ba và thứ Năm lúc 5 giờ chiều.</div>
+            </div>
+
+            <div class="show-card">
+                <div class="show-name">💃 B. Dance!</div>
+                <p><em>Dance!</em> is a new drama for teenagers, about the lives of teachers and students at a dance school in New York. The most important person in the story is Tina Giles, a young girl from a poor part of town who dreams of becoming a big star. On her first day at the school she meets Joe, Heather and John. They become close and together they have many exciting adventures. <em>Dance!</em> is on every Monday night at 7.00.</p>
+                <button class="btn-translate" onclick="toggleTranslation(this)">📖 BẢN DỊCH ĐẦY ĐỦ</button>
+                <div class="translation-text"><em>Dance!</em> là một bộ phim truyền hình (drama) mới dành cho tuổi teen, kể về cuộc sống của các giáo viên và học sinh tại một trường dạy khiêu vũ ở New York. Nhân vật quan trọng nhất trong câu chuyện là Tina Giles, một cô gái trẻ đến từ một khu phố nghèo có ước mơ trở thành một ngôi sao lớn. Vào ngày đầu tiên ở trường, cô gặp Joe, Heather và John. Họ trở nên thân thiết và cùng nhau trải qua nhiều cuộc phiêu lưu thú vị. <em>Dance!</em> được phát sóng vào mỗi tối thứ Hai lúc 7 giờ.</div>
+            </div>
+
+            <div class="show-card">
+                <div class="show-name">👨‍👩‍👧‍👦 C. You and Me</div>
+                <p>The new series of <em>You and Me</em> returns this Saturday at 16.00 p.m. with a special show that’s twice as long as usual. This show is perfect for the whole family to watch together, as everyone will find something to laugh at. Each week, we get a different story about the life of Harriet, a high school student. In this week’s episode, her younger brother gets a part in the school play. Harriet wants to be in the play too and does everything she can think of to make this happen!</p>
+                <button class="btn-translate" onclick="toggleTranslation(this)">📖 BẢN DỊCH ĐẦY ĐỦ</button>
+                <div class="translation-text">Phần mới của loạt phim <em>You and Me</em> sẽ quay trở lại vào thứ Bảy tuần này lúc 16:00 chiều với một chương trình đặc biệt dài gấp đôi bình thường. Chương trình này hoàn hảo để cả gia đình cùng xem, vì ai cũng sẽ tìm thấy điều gì đó để cười sảng khoái. Mỗi tuần, chúng ta lại được theo dõi một câu chuyện khác nhau về cuộc sống của Harriet, một nữ sinh trung học. Trong tập tuần này, em trai cô nhận được một vai trong vở kịch của trường. Harriet cũng muốn tham gia vở kịch và làm mọi cách cô có thể nghĩ ra để biến điều này thành hiện thực!</div>
+            </div>
+
+            <div class="glossary-wrapper">
+                <h3 class="glossary-title">🍿 Entertainment Vocabulary (A2-B2)</h3>
+                <table>
+                    <thead><tr><th>Từ vựng</th><th>Loại từ</th><th>Nghĩa Tiếng Việt</th></tr></thead>
+                    <tbody>
+                        <tr><td>1. Viewer</td><td>Noun</td><td>Khán giả truyền hình</td></tr>
+                        <tr><td>2. Digital photography</td><td>Noun Phrase</td><td>Nhiếp ảnh kỹ thuật số</td></tr>
+                        <tr><td>3. Drama</td><td>Noun</td><td>Phim truyền hình, kịch</td></tr>
+                        <tr><td>4. Dream of (+ V-ing)</td><td>Verb Phrase</td><td>Mơ ước về việc gì</td></tr>
+                        <tr><td>5. Adventure</td><td>Noun</td><td>Chuyến phiêu lưu</td></tr>
+                        <tr><td>6. Series</td><td>Noun</td><td>Phim/Chương trình nhiều tập</td></tr>
+                        <tr><td>7. Episode</td><td>Noun</td><td>Tập phim</td></tr>
+                        <tr><td>8. Comedy</td><td>Noun</td><td>Phim hài, hài kịch</td></tr>
+                        <tr><td>9. World-famous</td><td>Adjective</td><td>Nổi tiếng toàn thế giới</td></tr>
+                        <tr><td>10. Well-known</td><td>Adjective</td><td>Nổi tiếng (Từ đồng nghĩa)</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="panel right-panel">
+            <div id="quiz-container"></div>
+            <button class="btn-submit" onclick="submitQuiz()">🏆 CHỐT ĐÁP ÁN! 🏆</button>
+        </div>
+    </div>
+
+    <div id="result-modal">
+        <div class="modal-content">
+            <h2 style="color: var(--primary); font-size: 2.5rem; margin-bottom: 20px;">TỔNG KẾT RẠP PHIM</h2>
+            <div class="score-circle" id="final-score">0/7</div>
+            <h3 id="feedback-msg" style="color: #2c3e50; margin-bottom: 20px; font-size: 1.6rem; line-height: 1.5;"></h3>
+            <button class="btn-action btn-start" onclick="location.reload()" style="width: 100%; font-size: 1.3rem; padding: 18px; border-radius: 15px;">🔄 CHƠI LẠI TỪ ĐẦU</button>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. QUIZ DATA CHUẨN KÈM GIẢI THÍCH (BÔI ĐẬM DẪN CHỨNG) ---
+        const quizData = [
+            {
+                id: 1, question: "1. Which show is on twice a week?", answer: "Active Art",
+                explanation: `<p><strong>Dịch câu hỏi:</strong> Chương trình nào chiếu 2 lần một tuần?</p>
+                <p><strong>Dấu vết Paraphrase:</strong> Phần A viết: <span class="highlight">"You can see Active Art every Tuesday and Thursday at 5.00 p.m."</span> (Bạn có thể xem vào mỗi thứ Ba và thứ Năm). Thứ Ba và thứ Năm tức là 2 lần/tuần (twice a week).</p>`
+            },
+            {
+                id: 2, question: "2. Which show is about a group of friends?", answer: "Dance!",
+                explanation: `<p><strong>Dịch câu hỏi:</strong> Chương trình nào nói về một nhóm bạn?</p>
+                <p><strong>Dấu vết Paraphrase:</strong> Phần B mô tả về Tina: <span class="highlight">"On her first day at the school she meets Joe, Heather and John. They become close..."</span> (Cô ấy gặp Joe, Heather và John. Họ trở nên thân thiết). Những người trở nên thân thiết chính là một nhóm bạn (a group of friends).</p>`
+            },
+            {
+                id: 3, question: "3. Which show teaches you how to do something?", answer: "Active Art",
+                explanation: `<p><strong>Dịch câu hỏi:</strong> Chương trình nào dạy bạn cách làm một việc gì đó?</p>
+                <p><strong>Dấu vết Paraphrase:</strong> Phần A giới thiệu nghệ sĩ Tony: <span class="highlight">"...shows viewers how to make an amazing work of art."</span> (...hướng dẫn khán giả cách tạo ra tác phẩm nghệ thuật). Chữ "shows... how to make" đồng nghĩa hoàn toàn với "teaches you how to do something".</p>`
+            },
+            {
+                id: 4, question: "4. Which show is a comedy?", answer: "You and Me",
+                explanation: `<p><strong>Dịch câu hỏi:</strong> Chương trình nào là một bộ phim hài?</p>
+                <p><strong>Dấu vết Paraphrase:</strong> Phần C khẳng định: <span class="highlight">"...everyone will find something to laugh at."</span> (...ai cũng sẽ tìm thấy điều gì đó để cười). Thể loại mang lại tiếng cười chính là phim hài (a comedy).</p>`
+            },
+            {
+                id: 5, question: "5. Which show is about someone who wants to change her life?", answer: "Dance!",
+                explanation: `<p><strong>Dịch câu hỏi:</strong> Chương trình nào nói về một người muốn thay đổi cuộc đời mình?</p>
+                <p><strong>Dấu vết Paraphrase:</strong> Phần B kể về cô gái Tina: <span class="highlight">"...a young girl from a poor part of town who dreams of becoming a big star."</span> (...cô gái trẻ đến từ khu phố nghèo mơ ước trở thành ngôi sao lớn). Mong ước thoát nghèo và làm ngôi sao chính là muốn thay đổi cuộc đời (wants to change her life).</p>`
+            },
+            {
+                id: 6, question: "6. Which show has a well-known star?", answer: "Active Art",
+                explanation: `<p><strong>Dịch câu hỏi:</strong> Chương trình nào có sự góp mặt của một ngôi sao nổi tiếng?</p>
+                <p><strong>Dấu vết Paraphrase:</strong> Phần A giới thiệu người dẫn chương trình là: <span class="highlight">"the world-famous artist Tony Moldino"</span> (Nghệ sĩ nổi tiếng toàn thế giới Tony). Từ "world-famous" là từ đồng nghĩa siêu chuẩn của "well-known".</p>`
+            },
+            {
+                id: 7, question: "7. Which show is good for people of all ages?", answer: "You and Me",
+                explanation: `<p><strong>Dịch câu hỏi:</strong> Chương trình nào phù hợp cho người ở mọi lứa tuổi?</p>
+                <p><strong>Dấu vết Paraphrase:</strong> Phần C đề xuất: <span class="highlight">"This show is perfect for the whole family to watch together..."</span> (Chương trình này hoàn hảo để cả gia đình cùng xem). Cả gia đình (the whole family) bao hàm ông bà, cha mẹ, con cái -> Mọi lứa tuổi (people of all ages).</p>`
+            }
+        ];
+
+        let score = 0;
+        let answeredQuestions = new Set();
+        const showNames = ["Active Art", "Dance!", "You and Me"];
+
+        // Thuật toán xáo trộn vị trí nút bấm
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        // --- 2. RENDER GIAO DIỆN CÂU HỎI ---
+        function renderQuiz() {
+            const container = document.getElementById('quiz-container');
+            container.innerHTML = '';
+
+            quizData.forEach((q, index) => {
+                const shuffledNames = shuffleArray([...showNames]);
+
+                const card = document.createElement('div');
+                card.className = 'question-card';
+                card.innerHTML = `<div class="question-text">${q.question}</div>`;
+
+                const optionsGrid = document.createElement('div');
+                optionsGrid.className = 'options-grid';
+
+                shuffledNames.forEach(name => {
+                    const btn = document.createElement('button');
+                    btn.className = 'option-btn';
+                    btn.innerText = name;
+                    btn.onclick = () => handleAnswer(btn, name === q.answer, index, q.explanation, optionsGrid, q.answer);
+                    optionsGrid.appendChild(btn);
+                });
+                card.appendChild(optionsGrid);
+
+                // Hộp giải thích (Ẩn đi, chỉ hiện khi click)
+                const explBox = document.createElement('div');
+                explBox.className = 'explanation-box';
+                explBox.id = `expl-${index}`;
+                explBox.innerHTML = `<h4>💡 Tại sao lại là đáp án này?</h4>` + q.explanation;
+                card.appendChild(explBox);
+
+                container.appendChild(card);
+            });
+        }
+
+        // --- 3. HỆ THỐNG ÂM THANH WEB AUDIO API ---
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        let audioCtx;
+
+        function playSound(type) {
+            if (!audioCtx) audioCtx = new AudioContext();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            
+            const osc = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            osc.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+
+            if (type === 'correct') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(587.33, audioCtx.currentTime); 
+                osc.frequency.exponentialRampToValueAtTime(1174.66, audioCtx.currentTime + 0.15); 
+                gainNode.gain.setValueAtTime(0.5, audioCtx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+                osc.start(); osc.stop(audioCtx.currentTime + 0.4);
+            } else {
+                osc.type = 'sawtooth'; // Âm báo lỗi
+                osc.frequency.setValueAtTime(200, audioCtx.currentTime);
+                osc.frequency.linearRampToValueAtTime(120, audioCtx.currentTime + 0.3);
+                gainNode.gain.setValueAtTime(0.4, audioCtx.currentTime);
+                gainNode.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+                osc.start(); osc.stop(audioCtx.currentTime + 0.3);
+            }
+        }
+
+        // --- 4. XỬ LÝ LƯỢT CHƠI (TỰ ĐỘNG HIỆN GIẢI THÍCH) ---
+        function handleAnswer(btn, isCorrect, qIndex, explanationHTML, grid, correctAnswer) {
+            if (answeredQuestions.has(qIndex)) return; 
+            answeredQuestions.add(qIndex);
+
+            const allBtns = grid.querySelectorAll('.option-btn');
+            allBtns.forEach(b => b.disabled = true); 
+
+            // BẬT BẢNG GIẢI THÍCH NGAY LẬP TỨC ĐỂ HỌC SINH ĐỌC
+            document.getElementById(`expl-${qIndex}`).style.display = 'block';
+
+            if (isCorrect) {
+                btn.classList.add('correct');
+                playSound('correct');
+                fireConfetti();
+                score++;
+            } else {
+                btn.classList.add('wrong');
+                playSound('wrong');
+                // Tự động highlight màu xanh cho đáp án đúng
+                allBtns.forEach(b => {
+                    if (b.innerText === correctAnswer) {
+                        b.classList.add('correct');
+                        b.style.opacity = '0.7';
+                    }
+                });
+            }
+        }
+
+        // --- 5. BỘ ĐẾM THỜI GIAN ---
+        let timerInterval;
+        let timeLeft = 600; // 10 phút
+        let isRunning = false;
+
+        function toggleTimer() {
+            const btn = document.getElementById('btn-timer');
+            if (isRunning) {
+                clearInterval(timerInterval);
+                btn.innerText = "▶ TIẾP TỤC XEM PHIM";
+                btn.style.backgroundColor = "#f1c40f";
+            } else {
+                btn.innerText = "⏸ DỪNG TẠM NGHỈ";
+                btn.style.backgroundColor = "#e74c3c"; 
+                btn.style.color = "white";
+                timerInterval = setInterval(() => {
+                    timeLeft--;
+                    let m = Math.floor(timeLeft / 60);
+                    let s = timeLeft % 60;
+                    document.getElementById('timer-display').innerText = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+                    if (timeLeft <= 0) {
+                        clearInterval(timerInterval);
+                        alert("⏰ Đã hết giờ xem phim! Trong phòng thi thật bạn hãy cố gắng đọc lướt nhanh hơn nhé!");
+                    }
+                }, 1000);
+            }
+            isRunning = !isRunning;
+        }
+
+        // Bật tắt dịch thuật
+        function toggleTranslation(btn) {
+            const div = btn.nextElementSibling;
+            const isHidden = getComputedStyle(div).display === 'none';
+            div.style.display = isHidden ? 'block' : 'none';
+            btn.innerHTML = isHidden ? '🙈 ẨN BẢN DỊCH' : '📖 BẢN DỊCH ĐẦY ĐỦ';
+        }
+
+        // --- 6. TỔNG KẾT NỘP BÀI ---
+        function submitQuiz() {
+            if (answeredQuestions.size < quizData.length) {
+                if(!confirm("Chương trình chưa kết thúc, bạn chưa trả lời hết các câu hỏi. Vẫn muốn nộp bài chứ?")) return;
+            }
+            clearInterval(timerInterval);
+            
+            const modal = document.getElementById('result-modal');
+            document.getElementById('final-score').innerText = `${score}/7`;
+            
+            const msgObj = document.getElementById('feedback-msg');
+            if (score === 7) {
+                msgObj.innerText = "🏆 XUẤT SẮC! BẠN LÀ SIÊU SAO ĐỌC HIỂU!";
+                for(let i=0; i<4; i++) setTimeout(fireConfetti, i*300);
+            } else if (score >= 4) {
+                msgObj.innerText = "✨ RẤT TỐT! Hãy nhớ đọc kỹ phần phân tích bôi vàng để hiểu sâu hơn về tư duy ra đề nhé.";
+                fireConfetti();
+            } else {
+                msgObj.innerText = "💪 ĐỪNG BỎ CUỘC! Bài này có nhiều từ đồng nghĩa (paraphrase), hãy xem kỹ bảng từ vựng nhé!";
+            }
+            modal.style.display = 'flex';
+        }
+
+        // --- 7. HIỆU ỨNG PHÁO GIẤY CONFETTI ---
+        const canvas = document.getElementById('confetti-canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        let particles = [];
+        const colors = ['#8e44ad', '#e74c3c', '#f1c40f', '#27ae60'];
+
+        function fireConfetti() {
+            for(let i=0; i<80; i++) {
+                particles.push({
+                    x: canvas.width / 2, y: canvas.height / 2 + 100,
+                    r: Math.random() * 8 + 4,
+                    dx: (Math.random() - 0.5) * 20, dy: Math.random() * -20 - 5,
+                    color: colors[Math.floor(Math.random() * colors.length)],
+                    tilt: Math.random() * 10 - 10, tiltAngleInc: (Math.random() * 0.07) + 0.05, tiltAngle: 0
+                });
+            }
+            requestAnimationFrame(animateConfetti);
+        }
+
+        function animateConfetti() {
+            ctx.clearRect(0,0,canvas.width,canvas.height);
+            particles.forEach((p, i) => {
+                p.tiltAngle += p.tiltAngleInc;
+                p.y += (Math.cos(p.tiltAngle) + 1 + p.r / 2) / 2;
+                p.x += Math.sin(p.tiltAngle) * 2;
+                p.dy += 0.3; p.y += p.dy;
+                ctx.beginPath(); ctx.lineWidth = p.r; ctx.strokeStyle = p.color;
+                ctx.moveTo(p.x + p.tilt + p.r, p.y); ctx.lineTo(p.x + p.tilt, p.y + p.tilt + p.r); ctx.stroke();
+                if (p.y > canvas.height) particles.splice(i,1);
+            });
+            if(particles.length > 0) requestAnimationFrame(animateConfetti);
+        }
+
+        window.addEventListener('resize', () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; });
+        window.onload = renderQuiz;
+    </script>
+</body>
+</html>

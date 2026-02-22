@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bài Kiểm Tra Tiếng Anh - Ms Mai An ULIS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;800;900&display=swap" rel="stylesheet">
+    <style>
+        /* ================= COLOR PALETTE & DYNAMIC THEME ================= */
+        :root {
+            /* Theme: Storms & Environment (Xanh dương đậm và Xanh ngọc) */
+            --primary-color: #1E3A8A; /* Dark Blue - Storm */
+            --secondary-color: #10B981; /* Emerald Green - Nature */
+            --correct-color: #00D26A;
+            --wrong-color: #FF4757;
+            --bg-light: #F0FDF4;
+            --text-main: #333333;
+            --card-bg: #FFFFFF;
+        }
+
+        /* SVG Background Theme: Bão (Tornado/Hurricane) & Trái Đất */
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Nunito', sans-serif;
+            color: var(--text-main);
+            background: radial-gradient(circle at center, rgba(30, 58, 138, 0.05), rgba(16, 185, 129, 0.15)), 
+                        url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="150" height="150" opacity="0.1"><text x="20" y="50" font-size="40">🌪️</text><text x="80" y="110" font-size="40">🌍</text><text x="10" y="140" font-size="30">🌧️</text></svg>');
+            background-attachment: fixed;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* ================= TOP CONTROL BAR ================= */
+        .top-bar {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            z-index: 100;
+        }
+        
+        .teacher-title {
+            font-size: 1.2rem;
+            font-weight: 800;
+            margin: 0;
+            color: #FCD34D; /* Yellow highlight */
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+        }
+
+        .timer-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .timer-display {
+            font-size: 1.5rem;
+            font-weight: 900;
+            background: rgba(255,255,255,0.2);
+            padding: 5px 15px;
+            border-radius: 10px;
+            letter-spacing: 2px;
+        }
+
+        .btn-3d {
+            background-color: var(--secondary-color);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 1rem;
+            font-weight: 800;
+            font-family: 'Nunito', sans-serif;
+            border-radius: 15px;
+            cursor: pointer;
+            box-shadow: 0 5px 0 #047857;
+            transition: all 0.1s ease;
+            text-transform: uppercase;
+        }
+
+        .btn-3d:active {
+            transform: translateY(5px);
+            box-shadow: 0 0 0 #047857;
+        }
+
+        .btn-3d:hover {
+            transform: scale(1.05);
+            box-shadow: 0 7px 0 #047857;
+        }
+
+        /* ================= SPLIT SCREEN LAYOUT ================= */
+        .main-container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+            padding: 20px;
+            gap: 20px;
+        }
+
+        .left-panel, .right-panel {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 20px;
+            padding: 20px;
+            overflow-y: auto;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            border: 2px solid #E5E7EB;
+        }
+
+        /* Tùy chỉnh thanh cuộn (Scrollbar) */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        /* ================= LEFT PANEL: READING ================= */
+        .passage-content {
+            font-size: 1.15rem;
+            line-height: 1.8;
+            margin-bottom: 20px;
+            text-align: justify;
+        }
+
+        .passage-title {
+            color: var(--primary-color);
+            font-size: 1.3rem;
+            font-weight: 800;
+            border-bottom: 3px dashed var(--secondary-color);
+            padding-bottom: 10px;
+            margin-top: 30px;
+        }
+        .passage-title:first-child { margin-top: 0; }
+
+        .btn-translate {
+            background-color: #8B5CF6;
+            box-shadow: 0 5px 0 #5B21B6;
+            margin-bottom: 20px;
+            width: 100%;
+        }
+        .btn-translate:active { box-shadow: 0 0 0 #5B21B6; }
+        .btn-translate:hover { box-shadow: 0 7px 0 #5B21B6; }
+
+        .translation-box {
+            display: none;
+            background-color: #F3F4F6;
+            padding: 15px;
+            border-left: 5px solid #8B5CF6;
+            border-radius: 0 10px 10px 0;
+            margin-bottom: 20px;
+            font-style: italic;
+        }
+
+        .glossary-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+        .glossary-table th {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 12px;
+            text-align: left;
+        }
+        .glossary-table td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #E5E7EB;
+        }
+        .glossary-table tr:last-child td { border-bottom: none; }
+        .glossary-table tr:hover { background-color: #F9FAFB; }
+
+        /* ================= RIGHT PANEL: EXERCISES ================= */
+        .question-card {
+            background: var(--card-bg);
+            border: 2px solid #E5E7EB;
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 25px;
+            box-shadow: 0 6px 15px rgba(0,0,0,0.03);
+            transition: all 0.3s ease;
+        }
+        
+        .question-card:hover { border-color: var(--secondary-color); }
+
+        .question-text {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+            color: var(--primary-color);
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+        }
+
+        .option-btn {
+            background-color: white;
+            border: 2px solid #E5E7EB;
+            border-radius: 15px;
+            padding: 12px 20px;
+            font-size: 1.1rem;
+            font-family: 'Nunito', sans-serif;
+            font-weight: 600;
+            text-align: left;
+            cursor: pointer;
+            box-shadow: 0 4px 0 #E5E7EB;
+            transition: all 0.15s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .option-btn:hover:not(:disabled) {
+            transform: scale(1.02);
+            border-color: #9CA3AF;
+            box-shadow: 0 6px 0 #9CA3AF;
+        }
+
+        .option-btn:active:not(:disabled) {
+            transform: translateY(4px);
+            box-shadow: 0 0 0 transparent;
+        }
+
+        .option-btn.correct {
+            background-color: var(--correct-color);
+            color: white;
+            border-color: #00A653;
+            box-shadow: 0 4px 0 #00A653;
+        }
+
+        .option-btn.wrong {
+            background-color: var(--wrong-color);
+            color: white;
+            border-color: #D63031;
+            box-shadow: 0 4px 0 #D63031;
+        }
+
+        .option-btn:disabled { cursor: not-allowed; }
+
+        /* Animation: Shake */
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-8px); }
+            50% { transform: translateX(8px); }
+            75% { transform: translateX(-8px); }
+            100% { transform: translateX(0); }
+        }
+        .shake { animation: shake 0.4s ease-in-out; }
+
+        /* Explanation Box */
+        .explanation-box {
+            display: none;
+            margin-top: 15px;
+            padding: 15px;
+            background-color: #FFFBEB;
+            border-left: 5px solid #F59E0B;
+            border-radius: 10px;
+            font-size: 1.05rem;
+            line-height: 1.6;
+            animation: fadeIn 0.5s ease;
+        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .btn-submit {
+            width: 100%;
+            background-color: #EF4444;
+            box-shadow: 0 6px 0 #B91C1C;
+            font-size: 1.3rem;
+            padding: 15px;
+            margin-top: 20px;
+        }
+        .btn-submit:hover { box-shadow: 0 8px 0 #B91C1C; }
+        .btn-submit:active { box-shadow: 0 0 0 #B91C1C; }
+
+        /* ================= CONFETTI & MODAL ================= */
+        .confetti {
+            position: fixed;
+            top: -10px;
+            width: 10px;
+            height: 10px;
+            z-index: 9999;
+            animation: fall linear forwards;
+        }
+        @keyframes fall {
+            to { transform: translateY(100vh) rotate(720deg); }
+        }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background: white;
+            padding: 40px;
+            border-radius: 30px;
+            text-align: center;
+            max-width: 500px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+            animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        @keyframes popIn {
+            from { transform: scale(0.5); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .score-display {
+            font-size: 4rem;
+            font-weight: 900;
+            color: var(--primary-color);
+            margin: 20px 0;
+            text-shadow: 2px 2px 0px #FCD34D;
+        }
+        
+        /* Blur overlay before start */
+        #quiz-overlay {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(255,255,255,0.6);
+            backdrop-filter: blur(8px);
+            z-index: 50;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="top-bar">
+        <h1 class="teacher-title">👩‍🏫 Ms Mai An ULIS</h1>
+        <div class="timer-container">
+            <div class="timer-display" id="timer">10:00</div>
+            <button class="btn-3d" id="btn-start" onclick="startQuiz()">BẮT ĐẦU TÍNH GIỜ LÀM BÀI</button>
+        </div>
+    </div>
+
+    <div class="main-container">
+        <div class="left-panel">
+            
+            <h2 class="passage-title">📖 Reading Passage 1: Storms in America</h2>
+            <div class="passage-content">
+                Two of the most dangerous storms which affect America are hurricanes and tornadoes. They are very much feared by anyone who may live in the path of their destruction. Every year homes are destroyed by their fury and often lives are lost. Most people who live near the coast are forced to evacuate their homes and to move to safer areas until the storm passes. Floods are caused along the coasts by both the heavy rain and a storm tide that is considerably above normal water level. The high winds, coastal flooding and heavy rains associated with a hurricane cause enormous damage. Hurricanes usually develop between July and October. Once they hit land they carry tremendous power with driving rain and wind.<br><br>
+                Tornadoes are violent low-pressured storms. These storms occur most often during the summer months and are noticeable by their strong wind and lack of rain. The sky turns black as dust is sucked up into the air. Tornadoes are capable of lifting quite heavy objects from the ground. They can pick up trees and cars right into the air and even uplift heavier objects such as homes and railway cars.<br><br>
+                Both hurricanes and tornadoes cause millions of dollars worth of damage to life and property every year. Today they can be predicted more easily than in the past, but they cannot be stopped or ignored.
+            </div>
+
+            <button class="btn-3d btn-translate" onclick="toggleTranslation('trans1')">🌍 XEM BẢN DỊCH ĐẦY ĐỦ</button>
+            <div id="trans1" class="translation-box">
+                Hai trong số những cơn bão nguy hiểm nhất ảnh hưởng đến nước Mỹ là bão lốc xoáy (hurricanes) và vòi rồng (tornadoes). Chúng là nỗi khiếp sợ đối với bất kỳ ai sống trên đường đi tàn phá của chúng. Hàng năm, nhiều ngôi nhà bị phá hủy bởi sự giận dữ của chúng và thường xuyên có thiệt hại về nhân mạng. Hầu hết những người sống gần bờ biển bị buộc phải sơ tán khỏi nhà và di chuyển đến các khu vực an toàn hơn cho đến khi bão đi qua. Lũ lụt dọc theo bờ biển được gây ra bởi cả mưa lớn và thủy triều dâng cao do bão cao hơn đáng kể so với mực nước bình thường. Gió lớn, ngập lụt ven biển và mưa lớn liên quan đến bão gây ra thiệt hại khổng lồ. Bão (hurricanes) thường phát triển trong khoảng từ tháng Bảy đến tháng Mười. Một khi đổ bộ vào đất liền, chúng mang theo sức mạnh khủng khiếp với mưa lớn và gió giật.<br><br>
+                Vòi rồng là những cơn bão áp thấp bạo lực. Những cơn bão này xảy ra thường xuyên nhất vào các tháng mùa hè và dễ nhận biết bởi gió mạnh và không có mưa. Bầu trời chuyển sang màu đen khi bụi bị hút lên không trung. Vòi rồng có khả năng nhấc bổng những vật thể khá nặng khỏi mặt đất. Chúng có thể cuốn cây cối và ô tô thẳng lên không trung và thậm chí nhấc bổng cả những vật thể nặng hơn như nhà cửa và toa tàu hỏa.<br><br>
+                Cả bão và vòi rồng đều gây ra thiệt hại hàng triệu đô la về tính mạng và tài sản mỗi năm. Ngày nay, chúng có thể được dự báo dễ dàng hơn so với quá khứ, nhưng chúng không thể bị ngăn chặn hoặc phớt lờ.
+            </div>
+
+            <table class="glossary-table">
+                <thead>
+                    <tr><th>Vocabulary (B1-C2)</th><th>Part of Speech</th><th>Vietnamese Meaning</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>1. Hurricane</td><td>Noun (n)</td><td>Bão nhiệt đới, lốc xoáy (trên biển)</td></tr>
+                    <tr><td>2. Tornado</td><td>Noun (n)</td><td>Vòi rồng, lốc xoáy (trên cạn)</td></tr>
+                    <tr><td>3. Destruction</td><td>Noun (n)</td><td>Sự tàn phá, sự phá hủy</td></tr>
+                    <tr><td>4. Evacuate</td><td>Verb (v)</td><td>Sơ tán, tản cư</td></tr>
+                    <tr><td>5. Considerably</td><td>Adverb (adv)</td><td>Đáng kể, lớn lao</td></tr>
+                    <tr><td>6. Enormous</td><td>Adjective (adj)</td><td>To lớn, khổng lồ</td></tr>
+                    <tr><td>7. Tremendous</td><td>Adjective (adj)</td><td>Khủng khiếp, dữ dội, to lớn</td></tr>
+                    <tr><td>8. Violent</td><td>Adjective (adj)</td><td>Mãnh liệt, bạo lực, hung dữ</td></tr>
+                    <tr><td>9. Noticeable</td><td>Adjective (adj)</td><td>Đáng chú ý, dễ nhận biết</td></tr>
+                    <tr><td>10. Predict</td><td>Verb (v)</td><td>Dự đoán, dự báo</td></tr>
+                </tbody>
+            </table>
+
+            <hr style="border: 1px solid #E5E7EB; margin: 40px 0;">
+
+            <h2 class="passage-title">📖 Reading Passage 2: Global Warming</h2>
+            <div class="passage-content">
+                One of the most important reasons for global warming is air (26) __________. More and more factories are being built in different countries. By burning oil, coal, gasoline, even natural gas, they add more carbon dioxide to the (27) __________. Cars also influence the atmosphere badly (28) __________ burning many liters of oil and releasing (29) __________ gases into the air. As a result, the ozone layer of our Earth is being destroyed.<br><br>
+                All these activities unfavourably change the Earth’s heat balance. A lot of rivers and lakes dry up, the forests start burning, the glaciers melt, people and animals start to faint. And these are not all the outcomes of global (30) _________. Nature becomes really angry with us. We need to be more attentive and caring to it if we want to save our planet.
+            </div>
+
+            <button class="btn-3d btn-translate" onclick="toggleTranslation('trans2')">🌍 XEM BẢN DỊCH ĐẦY ĐỦ</button>
+            <div id="trans2" class="translation-box">
+                Một trong những lý do quan trọng nhất gây ra sự nóng lên toàn cầu là sự ô nhiễm không khí (air pollution). Ngày càng có nhiều nhà máy được xây dựng ở các quốc gia khác nhau. Bằng cách đốt dầu, than đá, xăng, thậm chí cả khí tự nhiên, chúng thải thêm khí carbon dioxide vào bầu khí quyển (atmosphere). Ô tô cũng ảnh hưởng xấu đến bầu khí quyển bằng (by) cách đốt hàng lít dầu và thải ra các khí độc hại (harmful) vào không khí. Kết quả là, tầng ozone của Trái Đất chúng ta đang bị phá hủy.<br><br>
+                Tất cả các hoạt động này thay đổi trạng thái cân bằng nhiệt của Trái đất một cách bất lợi. Rất nhiều sông hồ cạn kiệt, rừng bắt đầu bốc cháy, sông băng tan chảy, con người và động vật bắt đầu ngất xỉu. Và đây chưa phải là tất cả những hậu quả của sự nóng lên (warming) toàn cầu. Thiên nhiên thực sự trở nên tức giận với chúng ta. Chúng ta cần phải chú ý và quan tâm đến nó nhiều hơn nếu chúng ta muốn cứu lấy hành tinh của mình.
+            </div>
+
+            <table class="glossary-table">
+                <thead>
+                    <tr><th>Vocabulary (B1-C2)</th><th>Part of Speech</th><th>Vietnamese Meaning</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>1. Global warming</td><td>Noun phrase</td><td>Sự nóng lên toàn cầu</td></tr>
+                    <tr><td>2. Pollution</td><td>Noun (n)</td><td>Sự ô nhiễm</td></tr>
+                    <tr><td>3. Atmosphere</td><td>Noun (n)</td><td>Bầu khí quyển</td></tr>
+                    <tr><td>4. Influence</td><td>Verb/Noun</td><td>Ảnh hưởng, tác động</td></tr>
+                    <tr><td>5. Release</td><td>Verb (v)</td><td>Thải ra, giải phóng</td></tr>
+                    <tr><td>6. Destroy</td><td>Verb (v)</td><td>Phá hủy, tiêu hủy</td></tr>
+                    <tr><td>7. Unfavourably</td><td>Adverb (adv)</td><td>Một cách bất lợi, không thuận lợi</td></tr>
+                    <tr><td>8. Glacier</td><td>Noun (n)</td><td>Sông băng</td></tr>
+                    <tr><td>9. Outcome</td><td>Noun (n)</td><td>Hậu quả, kết quả</td></tr>
+                    <tr><td>10. Attentive</td><td>Adjective (adj)</td><td>Chú ý, lưu tâm, ân cần</td></tr>
+                </tbody>
+            </table>
+
+        </div>
+
+        <div class="right-panel" style="position: relative;">
+            <div id="quiz-overlay">
+                <h3 style="color: var(--primary-color); text-align: center; font-size: 1.5rem;">Vui lòng bấm <br> BẮT ĐẦU TÍNH GIỜ<br>để làm bài nhé! 👇</h3>
+            </div>
+            <div id="quiz-container">
+                </div>
+            <button class="btn-3d btn-submit" id="btn-submit" onclick="submitQuiz()" style="display: none;">🎉 NỘP BÀI CỦA TỚ 🎉</button>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="result-modal">
+        <div class="modal-content">
+            <h2 style="font-size: 2rem; color: var(--primary-color);">KẾT QUẢ BÀI LÀM</h2>
+            <div class="score-display" id="score-text">0/10</div>
+            <h3 id="feedback-text" style="font-size: 1.5rem; margin-bottom: 30px;"></h3>
+            <p style="color: #6B7280; margin-bottom: 20px;">Lưu ý: Đừng quên đọc kỹ phần giải thích chi tiết ở các câu sai để rút kinh nghiệm nhé!</p>
+            <button class="btn-3d" onclick="closeModal()">XEM LẠI BÀI GIẢI ĐÁP</button>
+        </div>
+    </div>
+
+    <script>
+        /* ================= DỮ LIỆU BÀI TẬP VÀ LỜI GIẢI CHI TIẾT ================= */
+        const questionsData = [
+            {
+                id: 21,
+                text: "Question 21. What are two of the most dangerous storms which affect America?",
+                options: [
+                    { text: "Thunderstorms and hurricanes.", correct: false },
+                    { text: "Hurricanes and tornadoes.", correct: true },
+                    { text: "Hurricanes and typhoons.", correct: false },
+                    { text: "Typhoons and thunderstorms.", correct: false }
+                ],
+                explanation: `
+                    <strong>PHẦN GIẢI THÍCH CHI TIẾT:</strong><br>
+                    <strong>1. Dịch nghĩa câu hỏi:</strong> Hai trong số những cơn bão nguy hiểm nhất ảnh hưởng đến nước Mỹ là gì?<br>
+                    <strong>2. Dịch các đáp án:</strong><br>
+                    A. Bão sấm sét và lốc xoáy trên biển (hurricanes).<br>
+                    B. Lốc xoáy trên biển (hurricanes) và vòi rồng (tornadoes).<br>
+                    C. Lốc xoáy trên biển (hurricanes) và bão nhiệt đới (typhoons).<br>
+                    D. Bão nhiệt đới và bão sấm sét.<br>
+                    <strong>3. Tại sao chọn B?</strong><br>
+                    Dựa vào dẫn chứng ngay câu đầu tiên của bài đọc: <em>"Two of the most dangerous storms which affect America are <strong>hurricanes and tornadoes</strong>."</em> (Hai trong số những cơn bão nguy hiểm nhất ảnh hưởng đến nước Mỹ là lốc xoáy (hurricanes) và vòi rồng (tornadoes)). Do đó, đáp án đúng là B.
+                `
+            },
+            {
+                id: 22,
+                text: "Question 22. Which of the following is TRUE about tornadoes and hurricanes?",
+                options: [
+                    { text: "They are easier to control today than in the past.", correct: false },
+                    { text: "They can be predicted more easily today than in the past.", correct: true },
+                    { text: "They cannot be predicted today with greater accuracy.", correct: false },
+                    { text: "They cannot be predicted with accuracy.", correct: false }
+                ],
+                explanation: `
+                    <strong>PHẦN GIẢI THÍCH CHI TIẾT:</strong><br>
+                    <strong>1. Dịch nghĩa câu hỏi:</strong> Điều nào sau đây là ĐÚNG về vòi rồng và bão?<br>
+                    <strong>2. Tại sao chọn B?</strong><br>
+                    Dựa vào câu cuối cùng của đoạn 3: <em>"Today they can be predicted more easily than in the past, but they cannot be stopped or ignored."</em> (Ngày nay chúng có thể được <strong>dự báo dễ dàng hơn so với quá khứ</strong>, nhưng chúng không thể bị ngăn chặn hoặc phớt lờ).<br>
+                    <strong>3. Phân tích các đáp án sai:</strong><br>
+                    - Loại A (Dễ kiểm soát/ngăn chặn hơn): Bài đọc nói "cannot be stopped" (không thể ngăn chặn).<br>
+                    - Loại C, D (Không thể dự báo chính xác): Sai sự thật vì đoạn văn khẳng định "can be predicted more easily" (có thể dự báo dễ hơn).
+                `
+            },
+            {
+                id: 23,
+                text: "Question 23. What does the word “They” refer to?",
+                options: [
+                    { text: "Hurricanes", correct: false },
+                    { text: "Tornadoes", correct: true },
+                    { text: "Storms", correct: false },
+                    { text: "Heavy objects", correct: false }
+                ],
+                explanation: `
+                    <strong>PHẦN GIẢI THÍCH CHI TIẾT:</strong><br>
+                    <strong>1. Dịch nghĩa câu hỏi:</strong> Từ "They" ám chỉ điều gì?<br>
+                    <strong>2. Tại sao chọn B?</strong><br>
+                    Dựa vào đoạn văn thứ 2, ta xét câu ngay trước từ "They": <em>"<strong>Tornadoes</strong> are capable of lifting quite heavy objects from the ground. <strong>They</strong> can pick up trees and cars right into the air..."</em> (<strong>Vòi rồng</strong> có khả năng nhấc bổng những vật thể khá nặng từ mặt đất. <strong>Chúng</strong> có thể cuốn cây cối và ô tô thẳng lên không trung...).<br>
+                    Đại từ "They" thay thế cho chủ ngữ số nhiều ở câu trước đó, chính là "Tornadoes" (vòi rồng).
+                `
+            },
+            {
+                id: 24,
+                text: "Question 24. What is the major similarity between a hurricane and a tornado?",
+                options: [
+                    { text: "They can cause great damage to life and property.", correct: true },
+                    { text: "They have either wind or speed.", correct: false },
+                    { text: "They cover only a small area.", correct: false },
+                    { text: "They are not accompanied by rain.", correct: false }
+                ],
+                explanation: `
+                    <strong>PHẦN GIẢI THÍCH CHI TIẾT:</strong><br>
+                    <strong>1. Dịch nghĩa câu hỏi:</strong> Điểm giống nhau chính giữa hurricane (bão) và tornado (vòi rồng) là gì?<br>
+                    <strong>2. Tại sao chọn A?</strong><br>
+                    Dựa vào câu đầu tiên của đoạn 3: <em>"<strong>Both</strong> hurricanes and tornadoes <strong>cause millions of dollars worth of damage to life and property</strong> every year."</em> (<strong>Cả</strong> bão và vòi rồng <strong>đều gây ra thiệt hại hàng triệu đô la về tính mạng và tài sản</strong> mỗi năm). <br>
+                    Đây chính là sự tàn phá lớn (great damage) mà cả hai đều gây ra -> Đáp án A chính xác.<br>
+                    <strong>3. Phân tích các đáp án sai:</strong><br>
+                    - D: Sai vì "tornadoes lack of rain" (vòi rồng không có mưa), nhưng "hurricanes carry driving rain" (bão thì có mưa lớn). Chúng không giống nhau ở điểm này.
+                `
+            },
+            {
+                id: 25,
+                text: "Question 25. When do hurricanes usually develop?",
+                options: [
+                    { text: "Between July and October.", correct: true },
+                    { text: "July and August only.", correct: false },
+                    { text: "All year round.", correct: false },
+                    { text: "From the seventh to the ninth month.", correct: false }
+                ],
+                explanation: `
+                    <strong>PHẦN GIẢI THÍCH CHI TIẾT:</strong><br>
+                    <strong>1. Dịch nghĩa câu hỏi:</strong> Các cơn bão (hurricanes) thường phát triển khi nào?<br>
+                    <strong>2. Tại sao chọn A?</strong><br>
+                    Dẫn chứng nằm rõ ràng ở đoạn 1, câu áp chót: <em>"Hurricanes usually develop <strong>between July and October</strong>."</em> (Bão thường phát triển trong khoảng từ tháng Bảy đến tháng Mười).<br>
+                    Thông tin được nêu trực tiếp (explicit info), không cần suy luận -> Khoanh ngay A!
+                `
+            },
+            {
+                id: 26,
+                text: "Question 26. One of the most important reasons for global warming is air (26) __________.",
+                options: [
+                    { text: "polluted", correct: false },
+                    { text: "pollute", correct: false },
+                    { text: "pollution", correct: true },
+                    { text: "polluting", correct: false }
+                ],
+                explanation: `
+                    <strong>PHẦN GIẢI THÍCH CHI TIẾT:</strong><br>
+                    <strong>1. Phân tích ngữ pháp / từ vựng:</strong><br>
+                    - Vị trí cần điền đứng sau danh từ "air" để tạo thành một cụm danh từ ghép.<br>
+                    - Ta có cụm từ cố định: <strong>Air pollution</strong> (n): Sự ô nhiễm không khí.<br>
+                    - Các đáp án: <br>
+                      A. polluted (adj/V-ed): bị ô nhiễm<br>
+                      B. pollute (v): làm ô nhiễm<br>
+                      C. pollution (n): sự ô nhiễm -> <strong>ĐÚNG</strong><br>
+                      D. polluting (V-ing)<br>
+                    <strong>2. Dịch nghĩa:</strong> Một trong những lý do quan trọng nhất của sự nóng lên toàn cầu là ô nhiễm không khí.
+                `
+            },
+            {
+                id: 27,
+                text: "Question 27. By burning oil, coal, gasoline, even natural gas, they add more carbon dioxide to the (27) __________.",
+                options: [
+                    { text: "atmosphere", correct: true },
+                    { text: "coal", correct: false },
+                    { text: "gasoline", correct: false },
+                    { text: "oil", correct: false }
+                ],
+                explanation: `
+                    <strong>PHẦN GIẢI THÍCH CHI TIẾT:</strong><br>
+                    <strong>1. Phân tích từ vựng dựa vào ngữ cảnh:</strong><br>
+                    - Câu phía trước đề cập đến việc "burning oil, coal, gasoline" (đốt dầu, than, xăng).<br>
+                    - Việc đốt nhiên liệu hóa thạch sẽ thải khí CO2 (carbon dioxide) vào đâu?<br>
+                    - Đáp án logic duy nhất là <strong>atmosphere</strong> (bầu khí quyển).<br>
+                    <strong>2. Dịch nghĩa câu:</strong> Bằng cách đốt dầu, than, xăng, thậm chí cả khí thiên nhiên, chúng thải thêm khí carbon dioxide vào <strong>bầu khí quyển</strong>.
+                `
+            },
+            {
+                id: 28,
+                text: "Question 28. Cars also influence the atmosphere badly (28) __________ burning many liters of oil...",
+                options: [
+                    { text: "with", correct: false },
+                    { text: "to", correct: false },
+                    { text: "by", correct: true },
+                    { text: "towards", correct: false }
+                ],
+                explanation: `
+                    <strong>PHẦN GIẢI THÍCH CHI TIẾT:</strong><br>
+                    <strong>1. Phân tích ngữ pháp (Giới từ):</strong><br>
+                    - Ta thấy phía sau chỗ trống là V-ing "burning".<br>
+                    - Để chỉ <strong>phương thức / cách thức</strong> làm một việc gì đó, ta dùng cấu trúc: <strong>by + V-ing</strong> (bằng cách làm gì).<br>
+                    - <em>Ví dụ: You can improve your English <strong>by reading</strong> books.</em><br>
+                    <strong>2. Dịch nghĩa câu:</strong> Ô tô cũng ảnh hưởng xấu đến bầu khí quyển <strong>bằng cách</strong> đốt nhiều lít dầu...
+                `
+            },
+            {
+                id: 29,
+                text: "Question 29. ...and releasing (29) __________ gases into the air.",
+                options: [
+                    { text: "harmful", correct: true },
+                    { text: "good", correct: false },
+                    { text: "useful", correct: false },
+                    { text: "delicious", correct: false }
+                ],
+                explanation: `
+                    <strong>PHẦN GIẢI THÍCH CHI TIẾT:</strong><br>
+                    <strong>1. Phân tích ngữ nghĩa:</strong><br>
+                    - Hành động "releasing gases" (thải khí) từ việc đốt dầu (đề cập ở câu trước) mang tính tiêu cực.<br>
+                    - Phân tích 4 tính từ bổ nghĩa cho "gases" (chất khí):<br>
+                      A. harmful (adj): độc hại, có hại -> <strong>ĐÚNG ngữ cảnh</strong>.<br>
+                      B. good (adj): tốt.<br>
+                      C. useful (adj): hữu ích.<br>
+                      D. delicious (adj): ngon miệng (dùng cho đồ ăn).<br>
+                    <strong>2. Dịch nghĩa câu:</strong> ...và thải các loại khí <strong>độc hại</strong> vào không khí.
+                `
+            },
+            {
+                id: 30,
+                text: "Question 30. And these are not all the outcomes of global (30) _________.",
+                options: [
+                    { text: "warming", correct: true },
+                    { text: "raining", correct: false },
+                    { text: "damage", correct: false },
+                    { text: "destroyment", correct: false }
+                ],
+                explanation: `
+                    <strong>PHẦN GIẢI THÍCH CHI TIẾT:</strong><br>
+                    <strong>1. Phân tích từ vựng (Collocation - Cụm từ cố định):</strong><br>
+                    - Chủ đề của đoạn 2 (được nhắc ngay câu đầu tiên) là "Global warming".<br>
+                    - Ta có cụm danh từ cố định: <strong>Global warming</strong> (Sự nóng lên toàn cầu).<br>
+                    - Các từ khác ghép vào không có nghĩa hợp lý: global raining (mưa toàn cầu - không tồn tại), global damage (thiệt hại toàn cầu - không sát nghĩa chủ đề bài viết).<br>
+                    <strong>2. Dịch nghĩa câu:</strong> Và đây chưa phải là tất cả những hậu quả của sự <strong>nóng lên</strong> toàn cầu.
+                `
+            }
+        ];
+
+        /* ================= GAME LOGIC & STATE ================= */
+        let score = 0;
+        let totalQuestions = questionsData.length;
+        let answeredQuestions = 0;
+        let isStarted = false;
+        let timerInterval;
+        let timeLeft = 600; // 10 minutes in seconds
+
+        // Web Audio API context
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        let audioCtx;
+
+        // Xáo trộn mảng (Fisher-Yates Shuffle algorithm)
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        // Tạo âm thanh bằng Web Audio API
+        function initAudio() {
+            if (!audioCtx) audioCtx = new AudioContext();
+        }
+
+        function playSound(type) {
+            if (!audioCtx) return;
+            const osc = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            
+            osc.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            
+            if (type === 'correct') {
+                // Tiếng 'Ding' leng keng vui tai
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(800, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.1);
+                gainNode.gain.setValueAtTime(0.5, audioCtx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.5);
+            } else {
+                // Tiếng 'Téo tèo tèo' rung lắc
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(300, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(150, audioCtx.currentTime + 0.3);
+                gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.3);
+            }
+        }
+
+        function shootConfetti() {
+            const colors = ['#00D26A', '#FCD34D', '#8B5CF6', '#EF4444', '#3B82F6'];
+            for (let i = 0; i < 50; i++) {
+                let conf = document.createElement('div');
+                conf.className = 'confetti';
+                conf.style.left = Math.random() * 100 + 'vw';
+                conf.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                conf.style.animationDuration = (Math.random() * 2 + 1) + 's';
+                document.body.appendChild(conf);
+                setTimeout(() => conf.remove(), 3000);
+            }
+        }
+
+        function toggleTranslation(id) {
+            const el = document.getElementById(id);
+            if (el.style.display === "block") {
+                el.style.display = "none";
+            } else {
+                el.style.display = "block";
+            }
+        }
+
+        function renderQuestions() {
+            const container = document.getElementById('quiz-container');
+            container.innerHTML = ''; // Clear old
+
+            questionsData.forEach((q, index) => {
+                // Tạo Card
+                const card = document.createElement('div');
+                card.className = 'question-card';
+                card.id = `card-${index}`;
+
+                // Tiêu đề câu hỏi
+                const qText = document.createElement('div');
+                qText.className = 'question-text';
+                qText.innerHTML = q.text;
+                card.appendChild(qText);
+
+                // Grid chứa lựa chọn
+                const optionsGrid = document.createElement('div');
+                optionsGrid.className = 'options-grid';
+                
+                // Trộn lựa chọn trước khi hiển thị
+                const shuffledOptions = shuffleArray([...q.options]);
+
+                // Các ký tự A, B, C, D
+                const labels = ['A', 'B', 'C', 'D'];
+
+                shuffledOptions.forEach((opt, optIndex) => {
+                    const btn = document.createElement('button');
+                    btn.className = 'option-btn';
+                    btn.innerHTML = `<strong>${labels[optIndex]}.</strong> ${opt.text}`;
+                    
+                    btn.onclick = () => handleAnswerSelect(btn, opt, q, index, optionsGrid, card);
+                    optionsGrid.appendChild(btn);
+                });
+
+                card.appendChild(optionsGrid);
+
+                // Phần giải thích (ẩn đi)
+                const expBox = document.createElement('div');
+                expBox.className = 'explanation-box';
+                expBox.id = `exp-${index}`;
+                expBox.innerHTML = q.explanation;
+                card.appendChild(expBox);
+
+                container.appendChild(card);
+            });
+        }
+
+        function handleAnswerSelect(clickedBtn, selectedOption, questionObj, qIndex, gridElement, cardElement) {
+            if (!isStarted) return; // Không cho làm nếu chưa bấm bắt đầu
+
+            // Vô hiệu hóa tất cả nút trong câu này
+            const buttons = gridElement.querySelectorAll('button');
+            buttons.forEach(b => b.disabled = true);
+
+            answeredQuestions++;
+
+            // Tìm nút chứa đáp án đúng (để hiển thị dù chọn sai)
+            let correctBtn = null;
+
+            if (selectedOption.correct) {
+                // Trả lời ĐÚNG
+                clickedBtn.classList.add('correct');
+                playSound('correct');
+                shootConfetti();
+                score++;
+            } else {
+                // Trả lời SAI
+                clickedBtn.classList.add('wrong');
+                clickedBtn.classList.add('shake');
+                playSound('wrong');
+
+                // Tìm và highlight đáp án đúng luôn
+                buttons.forEach(b => {
+                    // Kiểm tra xem text của button này có chứa text của option đúng không (bỏ qua A, B, C, D prefix)
+                    const correctOpt = questionObj.options.find(o => o.correct);
+                    if (b.innerHTML.includes(correctOpt.text)) {
+                        b.classList.add('correct');
+                    }
+                });
+            }
+
+            // Hiện giải thích chi tiết
+            const expBox = document.getElementById(`exp-${qIndex}`);
+            expBox.style.display = 'block';
+
+            // Hiện nút Submit nếu làm xong hết
+            if (answeredQuestions === totalQuestions) {
+                document.getElementById('btn-submit').style.display = 'block';
+            }
+        }
+
+        function formatTime(seconds) {
+            const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+            const s = (seconds % 60).toString().padStart(2, '0');
+            return `${m}:${s}`;
+        }
+
+        function startQuiz() {
+            const btn = document.getElementById('btn-start');
+            
+            // Khởi tạo AudioContext (yêu cầu user interaction)
+            initAudio();
+
+            if (!isStarted) {
+                // Bắt đầu
+                isStarted = true;
+                document.getElementById('quiz-overlay').style.display = 'none';
+                btn.innerHTML = "⏸ TẠM DỪNG";
+                btn.style.backgroundColor = "#F59E0B";
+                btn.style.boxShadow = "0 5px 0 #D97706";
+                
+                timerInterval = setInterval(() => {
+                    timeLeft--;
+                    document.getElementById('timer').innerText = formatTime(timeLeft);
+                    
+                    if (timeLeft <= 0) {
+                        clearInterval(timerInterval);
+                        document.getElementById('timer').innerText = "00:00";
+                        alert("⏰ Đã hết giờ làm bài! Bạn vẫn có thể tiếp tục làm nốt phần còn lại, nhưng nhớ là trong phòng thi thật, bạn chỉ nên làm một bài như thế này trong tối đa 10 phút thôi nha.");
+                    }
+                }, 1000);
+            } else {
+                // Tạm dừng
+                isStarted = false;
+                clearInterval(timerInterval);
+                document.getElementById('quiz-overlay').style.display = 'flex';
+                document.getElementById('quiz-overlay').innerHTML = '<h3 style="color: var(--primary-color); text-align: center; font-size: 1.5rem;">Đang tạm dừng... ⏸<br>Bấm TIẾP TỤC để làm bài tiếp nhé!</h3>';
+                btn.innerHTML = "▶ TIẾP TỤC";
+                btn.style.backgroundColor = "var(--secondary-color)";
+                btn.style.boxShadow = "0 5px 0 #047857";
+            }
+        }
+
+        function submitQuiz() {
+            clearInterval(timerInterval);
+            document.getElementById('score-text').innerText = `${score} / ${totalQuestions}`;
+            
+            let feedback = "";
+            if (score === totalQuestions) {
+                feedback = "🌟 THIÊN TÀI! Bạn đã làm đúng hoàn toàn. Quá xuất sắc! 🌟";
+                shootConfetti(); shootConfetti(); shootConfetti();
+            } else if (score >= 7) {
+                feedback = "🔥 LÀM TỐT LẮM! Kỹ năng đọc hiểu của bạn rất chắc chắn! 🔥";
+                shootConfetti();
+            } else if (score >= 4) {
+                feedback = "💪 CỐ LÊN NHÉ! Bạn đã nắm được ý cơ bản, hãy đọc kỹ giải thích để tiến bộ hơn. 💪";
+            } else {
+                feedback = "📚 ĐỪNG NẢN CHÍ! Hãy xem kỹ lại phần từ vựng và lời giải chi tiết bên dưới nhé! 📚";
+            }
+            
+            document.getElementById('feedback-text').innerText = feedback;
+            document.getElementById('result-modal').style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('result-modal').style.display = 'none';
+            // Scroll to top of right panel so user can review
+            document.querySelector('.right-panel').scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Init App
+        window.onload = () => {
+            renderQuestions();
+        };
+
+    </script>
+</body>
+</html>

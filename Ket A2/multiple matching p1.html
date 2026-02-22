@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reading Quiz - Jobs we'd like to do</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        /* --- DYNAMIC THEME & COLOR PALETTE --- */
+        /* Chủ đề: Jobs, Music, Sports, IT. Màu: Pastel Pink, Blue, Yellow */
+        :root {
+            --primary: #8854C0; /* Tím pastel */
+            --secondary: #00C9A7; /* Xanh ngọc */
+            --accent: #FDCB6E; /* Vàng sáng */
+            --correct: #00D26A; /* Xanh lá */
+            --incorrect: #FF4757; /* Đỏ cam */
+            --bg-color: #f7f9fc;
+            --text-dark: #2d3436;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Nunito', sans-serif;
+            color: var(--text-dark);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            /* Auto-generated SVG Background với Emojis: Máy tính, Thể thao, Nhạc cụ */
+            background-color: #fceabb;
+            background-image: 
+                url("data:image/svg+xml,%3Csvg width='120' height='120' viewBox='0 0 120 120' xmlns='http://www.w3.org/2000/svg'%3E%3Ctext x='10' y='30' font-size='20' opacity='0.15'%3E💻%3C/text%3E%3Ctext x='60' y='60' font-size='20' opacity='0.15'%3E🏀%3C/text%3E%3Ctext x='30' y='90' font-size='20' opacity='0.15'%3E🎸%3C/text%3E%3Ctext x='90' y='20' font-size='20' opacity='0.15'%3E✨%3C/text%3E%3Ctext x='80' y='100' font-size='20' opacity='0.15'%3E🚀%3C/text%3E%3C/svg%3E"),
+                linear-gradient(135deg, #f8b500 0%, #fceabb 100%);
+            background-blend-mode: multiply;
+        }
+
+        /* --- HEADER & TIMER --- */
+        .top-bar {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 10px 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 100;
+        }
+
+        .teacher-title {
+            font-size: 14px;
+            font-weight: 800;
+            color: var(--primary);
+            background: #eee6fa;
+            padding: 5px 12px;
+            border-radius: 20px;
+        }
+
+        .timer-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        #timerDisplay {
+            font-size: 24px;
+            font-weight: 900;
+            color: var(--incorrect);
+            background: #ffeaa7;
+            padding: 5px 15px;
+            border-radius: 10px;
+            border: 2px solid #fdcb6e;
+        }
+
+        .btn-timer {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            font-weight: 800;
+            border-radius: 12px;
+            cursor: pointer;
+            box-shadow: 0 5px 0 #5f3a87;
+            transition: transform 0.1s, box-shadow 0.1s;
+        }
+        .btn-timer:active {
+            transform: translateY(5px);
+            box-shadow: 0 0px 0 #5f3a87;
+        }
+
+        /* --- SPLIT SCREEN LAYOUT --- */
+        .main-container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .left-panel, .right-panel {
+            flex: 1;
+            padding: 25px;
+            overflow-y: auto;
+            scroll-behavior: smooth;
+        }
+
+        .left-panel {
+            background: rgba(255, 255, 255, 0.85);
+            border-right: 4px dashed #dcdde1;
+        }
+
+        /* --- READING CONTENT STYLES --- */
+        .passage-title {
+            font-size: 28px;
+            color: var(--primary);
+            text-align: center;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-shadow: 2px 2px 0px #fff;
+        }
+
+        .paragraph-card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 6px 0 #dcdde1;
+            border: 2px solid #f5f6fa;
+        }
+
+        .paragraph-card h3 {
+            margin-top: 0;
+            color: var(--secondary);
+            font-size: 22px;
+            border-bottom: 2px dashed #eee;
+            padding-bottom: 10px;
+        }
+
+        .text-content {
+            font-size: 18px;
+            line-height: 1.6;
+        }
+
+        .btn-translate {
+            background: #74b9ff;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            font-size: 14px;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 15px;
+            box-shadow: 0 4px 0 #0984e3;
+            transition: all 0.2s;
+        }
+        .btn-translate:active {
+            transform: translateY(4px);
+            box-shadow: 0 0px 0 #0984e3;
+        }
+
+        .translation-text {
+            display: none;
+            margin-top: 15px;
+            padding: 15px;
+            background: #eccc68;
+            border-radius: 10px;
+            font-size: 16px;
+            color: #2f3640;
+            border-left: 5px solid #ff7f50;
+            font-style: italic;
+        }
+
+        /* --- GLOSSARY TABLE --- */
+        .glossary-container {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 30px;
+            box-shadow: 0 6px 0 #dcdde1;
+        }
+        .glossary-container h3 {
+            color: var(--incorrect);
+            text-align: center;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        th, td {
+            padding: 12px;
+            border-bottom: 2px solid #f1f2f6;
+            text-align: left;
+            font-size: 16px;
+        }
+        th {
+            background: var(--primary);
+            color: white;
+            font-weight: 800;
+        }
+        tr:hover { background: #fdfaf6; }
+
+        /* --- QUIZ SECTION STYLES --- */
+        .question-card {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 0 #dcdde1;
+            border: 3px solid #fff;
+            transition: all 0.3s;
+        }
+
+        .question-text {
+            font-size: 20px;
+            font-weight: 800;
+            margin-bottom: 20px;
+            color: #2d3436;
+        }
+
+        .options-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .option-btn {
+            background: #f1f2f6;
+            border: 2px solid #dfe4ea;
+            padding: 15px 20px;
+            font-size: 18px;
+            font-weight: 700;
+            border-radius: 15px;
+            cursor: pointer;
+            text-align: left;
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 5px 0 #ced6e0;
+            display: flex;
+            align-items: center;
+        }
+
+        .option-btn:hover:not(:disabled) {
+            transform: scale(1.02) translateY(-2px);
+            background: #eccc68;
+            border-color: #ffa502;
+            box-shadow: 0 7px 0 #ffa502;
+        }
+
+        .option-btn.correct {
+            background: var(--correct) !important;
+            color: white;
+            border-color: #00b894;
+            box-shadow: 0 5px 0 #00b894;
+        }
+
+        .option-btn.wrong {
+            background: var(--incorrect) !important;
+            color: white;
+            border-color: #d63031;
+            box-shadow: 0 5px 0 #d63031;
+        }
+
+        .option-btn:disabled {
+            cursor: not-allowed;
+            opacity: 0.8;
+        }
+
+        /* Detailed Explanation Box */
+        .explanation-box {
+            display: none;
+            margin-top: 20px;
+            padding: 20px;
+            background: #e0f7fa;
+            border-radius: 15px;
+            border-left: 6px solid var(--secondary);
+            font-size: 16px;
+            line-height: 1.6;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        .exp-title {
+            font-weight: 900;
+            color: var(--secondary);
+            margin-bottom: 10px;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .exp-quote {
+            background: white;
+            padding: 10px;
+            border-radius: 8px;
+            font-style: italic;
+            margin: 10px 0;
+            border: 1px dashed #ccc;
+        }
+
+        /* --- ANIMATIONS --- */
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .shake {
+            animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+        }
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-2px, 0, 0); }
+            20%, 80% { transform: translate3d(4px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-6px, 0, 0); }
+            40%, 60% { transform: translate3d(6px, 0, 0); }
+        }
+
+        /* --- CONFETTI CANVAS --- */
+        #confettiCanvas {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 9999;
+        }
+
+        /* --- SUBMIT & MODAL --- */
+        .submit-btn-container {
+            text-align: center;
+            margin: 40px 0;
+        }
+        .btn-submit {
+            background: linear-gradient(45deg, #FF9A9E, #FECFEF);
+            color: #d63031;
+            font-size: 24px;
+            font-weight: 900;
+            padding: 15px 40px;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            box-shadow: 0 8px 0 #ff7675;
+            transition: all 0.2s;
+        }
+        .btn-submit:hover { transform: scale(1.05); }
+        .btn-submit:active { transform: translateY(8px); box-shadow: 0 0px 0 #ff7675; }
+
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6);
+            display: none; justify-content: center; align-items: center;
+            z-index: 10000;
+            backdrop-filter: blur(5px);
+        }
+        .modal-content {
+            background: white;
+            padding: 40px;
+            border-radius: 30px;
+            text-align: center;
+            max-width: 400px;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.3);
+            animation: bounceIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        @keyframes bounceIn {
+            0% { transform: scale(0.1); opacity: 0; }
+            60% { transform: scale(1.1); opacity: 1; }
+            100% { transform: scale(1); }
+        }
+        .score-text { font-size: 48px; font-weight: 900; color: var(--primary); margin: 20px 0; }
+        .feedback-text { font-size: 20px; font-weight: 700; color: #636e72; }
+        .btn-close-modal {
+            margin-top: 25px; background: var(--secondary); color: white;
+            border: none; padding: 12px 30px; font-size: 18px; border-radius: 15px;
+            font-weight: bold; cursor: pointer; box-shadow: 0 5px 0 #00b894;
+        }
+
+        /* --- SCROLLBAR STYLING --- */
+        ::-webkit-scrollbar { width: 10px; }
+        ::-webkit-scrollbar-track { background: #f1f2f6; border-radius: 5px; }
+        ::-webkit-scrollbar-thumb { background: #b2bec3; border-radius: 5px; }
+        ::-webkit-scrollbar-thumb:hover { background: #636e72; }
+    </style>
+</head>
+<body>
+
+    <canvas id="confettiCanvas"></canvas>
+
+    <div class="top-bar">
+        <div class="teacher-title">✨ Giáo viên tạo: Ms Mai An ULIS</div>
+        <div class="timer-container">
+            <div id="timerDisplay">10:00</div>
+            <button class="btn-timer" id="btnTimerToggle" onclick="toggleTimer()">BẮT ĐẦU TÍNH GIỜ</button>
+        </div>
+    </div>
+
+    <div class="main-container">
+        <div class="left-panel">
+            <h1 class="passage-title">Jobs We'd Like To Do</h1>
+            
+            <div class="paragraph-card">
+                <h3>👨‍💻 Artur</h3>
+                <div class="text-content">
+                    I’ve always enjoyed playing computer games and I’d like to make them when I’m older. My cousin works in IT and makes cartoons and games so I asked him if I could go to work with him. I learned so much including how to draw a simple cartoon. But it was really tiring – all I wanted to do was relax at the end of the day, not play computer games!
+                </div>
+                <button class="btn-translate" onclick="toggleTranslate('trans1')">👁️ BẢN DỊCH ĐẦY ĐỦ</button>
+                <div class="translation-text" id="trans1">
+                    Tôi luôn thích chơi trò chơi máy tính và tôi muốn tạo ra chúng khi tôi lớn lên. Anh họ của tôi làm việc trong ngành CNTT và làm phim hoạt hình cùng trò chơi nên tôi đã xin anh ấy cho tôi đi làm cùng. Tôi đã học được rất nhiều điều bao gồm cả cách vẽ một bức hoạt hình đơn giản. Nhưng nó thực sự mệt mỏi – tất cả những gì tôi muốn làm là nghỉ ngơi vào cuối ngày, chứ không phải chơi trò chơi máy tính!
+                </div>
+            </div>
+
+            <div class="paragraph-card">
+                <h3>🏀 Mika</h3>
+                <div class="text-content">
+                    I love sport the most and want to teach it when I’m older. I’m good at basketball, but I need to work harder in rugby lessons so I can teach different sports. After school, I want to go to college and study sports science. After that, I want to help with after-school clubs and lessons. My uncle is a teacher so I plan to ask him if I can give drinks to the players at the American football club next week.
+                </div>
+                <button class="btn-translate" onclick="toggleTranslate('trans2')">👁️ BẢN DỊCH ĐẦY ĐỦ</button>
+                <div class="translation-text" id="trans2">
+                    Tôi yêu thể thao nhất và muốn dạy môn này khi tôi lớn lên. Tôi giỏi bóng rổ, nhưng tôi cần nỗ lực chăm chỉ hơn trong các tiết học bóng bầu dục để có thể dạy nhiều môn thể thao khác nhau. Sau khi tan trường, tôi muốn vào đại học và học khoa học thể thao. Sau đó, tôi muốn hỗ trợ các câu lạc bộ và lớp học ngoại khóa. Chú tôi là một giáo viên nên tôi dự định sẽ xin chú ấy cho tôi đi phát nước cho các cầu thủ tại câu lạc bộ bóng bầu dục Mỹ vào tuần tới.
+                </div>
+            </div>
+
+            <div class="paragraph-card">
+                <h3>🎸 Henri</h3>
+                <div class="text-content">
+                    I play a lot of musical instruments including the piano and guitar and would love to have a career in music. Last year, I received a prize for the best young musician in my town. I want to study music at university. I probably won’t get work as a musician after school so I might have to get a job in a café or restaurant first. My dream is to be paid to play in a group and travel around the world.
+                </div>
+                <button class="btn-translate" onclick="toggleTranslate('trans3')">👁️ BẢN DỊCH ĐẦY ĐỦ</button>
+                <div class="translation-text" id="trans3">
+                    Tôi chơi rất nhiều nhạc cụ bao gồm piano và guitar và rất muốn có một sự nghiệp âm nhạc. Năm ngoái, tôi đã nhận được một giải thưởng dành cho nhạc sĩ trẻ xuất sắc nhất thị trấn. Tôi muốn học âm nhạc ở trường đại học. Tôi có thể sẽ không tìm được việc làm nhạc sĩ ngay sau khi ra trường nên tôi có thể phải tìm một công việc ở quán cà phê hoặc nhà hàng trước. Ước mơ của tôi là được trả tiền để chơi trong một nhóm nhạc và đi lưu diễn khắp thế giới.
+                </div>
+            </div>
+
+            <div class="glossary-container">
+                <h3>📖 Bảng Từ Vựng Học Thuật (Glossary)</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Từ vựng (Word)</th>
+                            <th>Loại từ (POS)</th>
+                            <th>Nghĩa Tiếng Việt (Meaning)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>1. Career</td><td>Noun (n)</td><td>Sự nghiệp, nghề nghiệp</td></tr>
+                        <tr><td>2. Instrument</td><td>Noun (n)</td><td>Nhạc cụ, công cụ</td></tr>
+                        <tr><td>3. Musician</td><td>Noun (n)</td><td>Nhạc sĩ, người chơi nhạc</td></tr>
+                        <tr><td>4. Include</td><td>Verb (v)</td><td>Bao gồm</td></tr>
+                        <tr><td>5. Science</td><td>Noun (n)</td><td>Khoa học</td></tr>
+                        <tr><td>6. Receive</td><td>Verb (v)</td><td>Nhận được</td></tr>
+                        <tr><td>7. Probably</td><td>Adverb (adv)</td><td>Có lẽ, có khả năng cao</td></tr>
+                        <tr><td>8. Tiring</td><td>Adjective (adj)</td><td>Mệt mỏi (Gây ra sự mệt mỏi)</td></tr>
+                        <tr><td>9. Relax</td><td>Verb (v)</td><td>Thư giãn, nghỉ ngơi</td></tr>
+                        <tr><td>10. Plan</td><td>Verb (v) / Noun (n)</td><td>Lên kế hoạch / Kế hoạch</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="right-panel" id="quizContainer">
+            <div class="submit-btn-container">
+                <button class="btn-submit" onclick="submitQuiz()">🎉 NỘP BÀI 🎉</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="resultModal">
+        <div class="modal-content">
+            <h2>Kết Quả Của Bạn</h2>
+            <div class="score-text" id="finalScoreText">0/7</div>
+            <div class="feedback-text" id="feedbackText">Tuyệt vời!</div>
+            <button class="btn-close-modal" onclick="closeModal()">Xem Lại Bài</button>
+        </div>
+    </div>
+
+    <script>
+        /* ================= AUDIO GENERATOR (WEB AUDIO API) ================= */
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        
+        function playCorrectSound() {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(800, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.1);
+            gainNode.gain.setValueAtTime(0.5, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+            osc.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.5);
+        }
+
+        function playWrongSound() {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(300, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(150, audioCtx.currentTime + 0.4);
+            gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+            osc.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.4);
+        }
+
+        /* ================= CONFETTI GENERATOR ================= */
+        const canvas = document.getElementById('confettiCanvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        let particles = [];
+
+        function fireConfetti() {
+            particles = [];
+            for(let i=0; i<100; i++) {
+                particles.push({
+                    x: canvas.width/2,
+                    y: canvas.height/2 + 200,
+                    r: Math.random() * 6 + 2,
+                    dx: Math.random() * 10 - 5,
+                    dy: Math.random() * -15 - 5,
+                    color: `hsl(${Math.random()*360}, 100%, 50%)`
+                });
+            }
+            animateConfetti();
+        }
+
+        function animateConfetti() {
+            requestAnimationFrame(animateConfetti);
+            ctx.clearRect(0,0,canvas.width,canvas.height);
+            particles.forEach((p, index) => {
+                p.x += p.dx;
+                p.y += p.dy;
+                p.dy += 0.5; // gravity
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
+                ctx.fillStyle = p.color;
+                ctx.fill();
+                if(p.y > canvas.height) particles.splice(index, 1);
+            });
+        }
+
+        /* ================= TIMER LOGIC ================= */
+        let timeRemaining = 600; // 10 minutes
+        let timerInterval;
+        let isTimerRunning = false;
+
+        function updateTimerDisplay() {
+            let m = Math.floor(timeRemaining / 60).toString().padStart(2, '0');
+            let s = (timeRemaining % 60).toString().padStart(2, '0');
+            document.getElementById('timerDisplay').innerText = `${m}:${s}`;
+        }
+
+        function toggleTimer() {
+            const btn = document.getElementById('btnTimerToggle');
+            if (isTimerRunning) {
+                clearInterval(timerInterval);
+                btn.innerText = "TIẾP TỤC LÀM BÀI";
+                btn.style.background = "#ffa502";
+                isTimerRunning = false;
+            } else {
+                btn.innerText = "TẠM DỪNG";
+                btn.style.background = "#ff4757";
+                isTimerRunning = true;
+                timerInterval = setInterval(() => {
+                    timeRemaining--;
+                    updateTimerDisplay();
+                    if (timeRemaining <= 0) {
+                        clearInterval(timerInterval);
+                        alert("⏱ Đã hết giờ làm bài! Bạn vẫn có thể tiếp tục làm, nhưng nhớ là trong phòng thi thật, bạn chỉ nên làm một bài như thế này trong 10 phút thôi nha.");
+                        btn.innerText = "HẾT GIỜ";
+                        btn.disabled = true;
+                    }
+                }, 1000);
+            }
+        }
+
+        /* ================= TRANSLATION TOGGLE ================= */
+        function toggleTranslate(id) {
+            const el = document.getElementById(id);
+            if (el.style.display === "block") {
+                el.style.display = "none";
+            } else {
+                el.style.display = "block";
+            }
+        }
+
+        /* ================= QUIZ DATA & LOGIC ================= */
+        const quizData = [
+            {
+                q: "1. Who is going to ask a family member for help with their job plans?",
+                options: [{id:'A', text:'Artur'}, {id:'B', text:'Mika'}, {id:'C', text:'Henri'}],
+                correct: 'B',
+                explanation: `
+                    <div class="exp-title">💡 Giải thích chi tiết (Câu 1)</div>
+                    <b>1. Phân tích câu hỏi:</b> Ai dự định sẽ nhờ một thành viên trong gia đình giúp đỡ về kế hoạch công việc của họ?<br>
+                    <b>2. Dẫn chứng trong bài (Đoạn Mika):</b> 
+                    <div class="exp-quote">"My uncle is a teacher so I <b>plan to ask him</b> if I can give drinks to the players..."</div>
+                    <b>3. Tại sao chọn Mika?</b> Dựa vào cụm từ "plan to ask him" (dự định nhờ chú ấy - thành viên gia đình) để xin việc phát nước ở câu lạc bộ. Do đó Mika là đáp án đúng. Artur ĐÃ XIN (asked - quá khứ) chứ không phải DỰ ĐỊNH (is going to ask).
+                `
+            },
+            {
+                q: "2. Who hopes to work in different countries?",
+                options: [{id:'A', text:'Artur'}, {id:'B', text:'Mika'}, {id:'C', text:'Henri'}],
+                correct: 'C',
+                explanation: `
+                    <div class="exp-title">💡 Giải thích chi tiết (Câu 2)</div>
+                    <b>1. Phân tích câu hỏi:</b> Ai hy vọng được làm việc ở nhiều quốc gia khác nhau? (work in different countries = travel around the world).<br>
+                    <b>2. Dẫn chứng trong bài (Đoạn Henri):</b> 
+                    <div class="exp-quote">"My dream is to be paid to play in a group and <b>travel around the world</b>."</div>
+                    <b>3. Tại sao chọn Henri?</b> Ước mơ của Henri là được đi lưu diễn "khắp thế giới" (around the world), đồng nghĩa với việc làm việc ở nhiều quốc gia khác nhau.
+                `
+            },
+            {
+                q: "3. Who has won a competition in their chosen subject?",
+                options: [{id:'A', text:'Artur'}, {id:'B', text:'Mika'}, {id:'C', text:'Henri'}],
+                correct: 'C',
+                explanation: `
+                    <div class="exp-title">💡 Giải thích chi tiết (Câu 3)</div>
+                    <b>1. Phân tích câu hỏi:</b> Ai đã giành chiến thắng trong một cuộc thi về môn học họ chọn? (won a competition = received a prize).<br>
+                    <b>2. Dẫn chứng trong bài (Đoạn Henri):</b> 
+                    <div class="exp-quote">"Last year, I <b>received a prize</b> for the best young musician in my town."</div>
+                    <b>3. Tại sao chọn Henri?</b> Henri nhận được "giải thưởng cho nhạc sĩ trẻ xuất sắc nhất", chứng tỏ cậu ấy đã chiến thắng một cuộc thi âm nhạc.
+                `
+            },
+            {
+                q: "4. Who needs to get better at the school subject they like best?",
+                options: [{id:'A', text:'Artur'}, {id:'B', text:'Mika'}, {id:'C', text:'Henri'}],
+                correct: 'B',
+                explanation: `
+                    <div class="exp-title">💡 Giải thích chi tiết (Câu 4)</div>
+                    <b>1. Phân tích câu hỏi:</b> Ai cần phải học tốt hơn ở môn học trên trường mà họ thích nhất? (get better = work harder).<br>
+                    <b>2. Dẫn chứng trong bài (Đoạn Mika):</b> 
+                    <div class="exp-quote">"I love sport the most... but I <b>need to work harder</b> in rugby lessons..."</div>
+                    <b>3. Tại sao chọn Mika?</b> Mika thích thể thao nhất, nhưng cậu ấy thừa nhận mình "cần nỗ lực chăm chỉ hơn trong các tiết bóng bầu dục" để tiến bộ.
+                `
+            },
+            {
+                q: "5. Who has had some help from their family with their job plans?",
+                options: [{id:'A', text:'Artur'}, {id:'B', text:'Mika'}, {id:'C', text:'Henri'}],
+                correct: 'A',
+                explanation: `
+                    <div class="exp-title">💡 Giải thích chi tiết (Câu 5)</div>
+                    <b>1. Phân tích câu hỏi:</b> Ai <b>đã được</b> gia đình giúp đỡ một chút về kế hoạch công việc? (Lưu ý thì Hiện tại hoàn thành: đã xảy ra).<br>
+                    <b>2. Dẫn chứng trong bài (Đoạn Artur):</b> 
+                    <div class="exp-quote">"My cousin works in IT... so I asked him if I could go to work with him. <b>I learned so much</b>..."</div>
+                    <b>3. Tại sao chọn Artur?</b> Artur đã xin anh họ cho đi làm cùng và "đã học được rất nhiều" (sự việc đã diễn ra và nhận được sự giúp đỡ). Mika mới chỉ dự định nhờ chú, chưa xảy ra.
+                `
+            },
+            {
+                q: "6. Who was ready for a break after their experience of working?",
+                options: [{id:'A', text:'Artur'}, {id:'B', text:'Mika'}, {id:'C', text:'Henri'}],
+                correct: 'A',
+                explanation: `
+                    <div class="exp-title">💡 Giải thích chi tiết (Câu 6)</div>
+                    <b>1. Phân tích câu hỏi:</b> Ai đã sẵn sàng để nghỉ ngơi sau trải nghiệm làm việc của họ? (ready for a break = wanted to relax).<br>
+                    <b>2. Dẫn chứng trong bài (Đoạn Artur):</b> 
+                    <div class="exp-quote">"But it was really tiring – all I wanted to do was <b>relax</b> at the end of the day..."</div>
+                    <b>3. Tại sao chọn Artur?</b> Artur cảm thấy công việc làm game thực sự mệt mỏi và tất cả những gì cậu ấy muốn là "thư giãn/nghỉ ngơi" (relax) vào cuối ngày.
+                `
+            },
+            {
+                q: "7. Who may have to work as a waiter after school?",
+                options: [{id:'A', text:'Artur'}, {id:'B', text:'Mika'}, {id:'C', text:'Henri'}],
+                correct: 'C',
+                explanation: `
+                    <div class="exp-title">💡 Giải thích chi tiết (Câu 7)</div>
+                    <b>1. Phân tích câu hỏi:</b> Ai có thể phải làm bồi bàn sau khi ra trường? (work as a waiter = get a job in a café or restaurant).<br>
+                    <b>2. Dẫn chứng trong bài (Đoạn Henri):</b> 
+                    <div class="exp-quote">"...so I might have to <b>get a job in a café or restaurant</b> first."</div>
+                    <b>3. Tại sao chọn Henri?</b> Henri lường trước rằng việc làm nhạc sĩ rất khó, nên cậu ấy nghĩ mình có thể phải xin việc ở "quán cà phê hoặc nhà hàng" (tương đương công việc bồi bàn/waiter).
+                `
+            }
+        ];
+
+        let score = 0;
+        let answeredQuestions = new Set(); // Track questions answered on first try
+
+        // Fisher-Yates Shuffle Algorithm để xáo trộn đáp án
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function renderQuiz() {
+            const container = document.getElementById('quizContainer');
+            // Xóa nội dung cũ nhưng giữ lại nút Nộp Bài
+            const submitBtn = document.querySelector('.submit-btn-container');
+            container.innerHTML = '';
+
+            quizData.forEach((qObj, qIndex) => {
+                const card = document.createElement('div');
+                card.className = 'question-card';
+                card.id = `q-card-${qIndex}`;
+
+                const qText = document.createElement('div');
+                qText.className = 'question-text';
+                qText.innerHTML = qObj.q;
+                card.appendChild(qText);
+
+                const optionsGrid = document.createElement('div');
+                optionsGrid.className = 'options-grid';
+
+                // Shuffle options
+                let shuffledOptions = shuffleArray([...qObj.options]);
+
+                shuffledOptions.forEach(opt => {
+                    const btn = document.createElement('button');
+                    btn.className = 'option-btn';
+                    // Label A, B, C thay đổi theo thứ tự mới, nhưng ID thực tế map với đáp án gốc được giữ ngầm
+                    btn.innerHTML = `<span><span style="display:inline-block; width:30px; background:#dfe4ea; border-radius:50%; text-align:center; margin-right:15px; color:#2d3436">${shuffledOptions.indexOf(opt) === 0 ? 'A' : (shuffledOptions.indexOf(opt) === 1 ? 'B' : 'C')}</span> ${opt.text}</span>`;
+                    
+                    btn.onclick = () => handleAnswer(btn, opt.id, qObj.correct, qIndex, card);
+                    optionsGrid.appendChild(btn);
+                });
+
+                card.appendChild(optionsGrid);
+
+                // Explanation Box
+                const expBox = document.createElement('div');
+                expBox.className = 'explanation-box';
+                expBox.id = `exp-${qIndex}`;
+                expBox.innerHTML = qObj.explanation;
+                card.appendChild(expBox);
+
+                container.appendChild(card);
+            });
+            
+            container.appendChild(submitBtn);
+        }
+
+        function handleAnswer(btn, selectedId, correctId, qIndex, card) {
+            const buttons = card.querySelectorAll('.option-btn');
+            const expBox = document.getElementById(`exp-${qIndex}`);
+
+            // Kiểm tra đúng sai
+            if (selectedId === correctId) {
+                btn.classList.add('correct');
+                playCorrectSound();
+                fireConfetti();
+                // Cộng điểm nếu là lần trả lời đầu tiên
+                if (!answeredQuestions.has(qIndex)) {
+                    score++;
+                    answeredQuestions.add(qIndex);
+                }
+            } else {
+                btn.classList.add('wrong');
+                btn.classList.add('shake');
+                playWrongSound();
+                setTimeout(() => btn.classList.remove('shake'), 500);
+                answeredQuestions.add(qIndex); // Đã trả lời sai lần đầu, không được cộng điểm nữa
+                
+                // Tự động bôi xanh đáp án đúng
+                buttons.forEach(b => {
+                    if (b.onclick.toString().includes(`'${correctId}'`)) {
+                        b.classList.add('correct');
+                    }
+                });
+            }
+
+            // Disable all buttons in this card after answer
+            buttons.forEach(b => b.disabled = true);
+
+            // Hiện giải thích chi tiết ngay lập tức
+            expBox.style.display = 'block';
+        }
+
+        function submitQuiz() {
+            const modal = document.getElementById('resultModal');
+            const scoreText = document.getElementById('finalScoreText');
+            const feedbackText = document.getElementById('feedbackText');
+            
+            scoreText.innerText = `${score} / 7`;
+            
+            let percentage = score / 7;
+            if (percentage === 1) {
+                feedbackText.innerText = "🏆 XUẤT SẮC! Em đúng là Thiên Tài Phân Tích Ngôn Ngữ!";
+                feedbackText.style.color = "#00b894";
+                fireConfetti();
+                playCorrectSound();
+            } else if (percentage >= 0.7) {
+                feedbackText.innerText = "🌟 LÀM TỐT LẮM! Kỹ năng đọc hiểu của em rất xịn!";
+                feedbackText.style.color = "#0984e3";
+            } else if (percentage >= 0.4) {
+                feedbackText.innerText = "👍 KHÁ LẮM! Em nhớ đọc kỹ dẫn chứng hơn một chút nha.";
+                feedbackText.style.color = "#e17055";
+            } else {
+                feedbackText.innerText = "💪 CỐ LÊN NHÉ! Hãy đọc phần Giải thích chi tiết để rút kinh nghiệm nào!";
+                feedbackText.style.color = "#d63031";
+            }
+
+            modal.style.display = "flex";
+            clearInterval(timerInterval); // Dừng thời gian
+        }
+
+        function closeModal() {
+            document.getElementById('resultModal').style.display = "none";
+        }
+
+        // Initialize
+        window.onload = () => {
+            updateTimerDisplay();
+            renderQuiz();
+        };
+    </script>
+</body>
+</html>

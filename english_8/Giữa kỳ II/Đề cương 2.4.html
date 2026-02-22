@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bài Kiểm Tra Tiếng Anh - Ms Mai An ULIS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Tự động tạo bảng màu theo chủ đề Lũ lụt (Flood) */
+            --primary-color: #0d47a1; /* Xanh đại dương sẫm */
+            --secondary-color: #00acc1; /* Xanh ngọc / Nước */
+            --correct-color: #00D26A; /* Xanh lá nhạt - Đúng */
+            --wrong-color: #FF4757; /* Đỏ cam - Sai */
+            --bg-light: #f0f8ff;
+            --text-dark: #2d3436;
+            --card-bg: #ffffff;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Quicksand', sans-serif;
+        }
+
+        body {
+            /* Tự động tạo nền SVG Background bằng kỹ thuật data:image/svg+xml kết hợp Gradient */
+            background: radial-gradient(circle at center, rgba(0, 172, 193, 0.8) 0%, rgba(13, 71, 161, 0.9) 100%),
+                        url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" opacity="0.1"><text x="10" y="40" font-size="30">🌧️</text><text x="60" y="80" font-size="30">🌊</text><text x="30" y="90" font-size="20">🏠</text></svg>');
+            color: var(--text-dark);
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Top Control Bar */
+        .top-bar {
+            background-color: var(--card-bg);
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            z-index: 10;
+        }
+
+        .header-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--primary-color);
+            background: #e3f2fd;
+            padding: 5px 15px;
+            border-radius: 20px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .timer-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .timer-display {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--wrong-color);
+            background: #ffeaa7;
+            padding: 5px 15px;
+            border-radius: 10px;
+            border: 2px solid #fdcb6e;
+        }
+
+        .btn-timer {
+            background: var(--secondary-color);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            font-size: 14px;
+            font-weight: 700;
+            border-radius: 12px;
+            cursor: pointer;
+            box-shadow: 0 4px 0 #00838f;
+            transition: all 0.1s;
+        }
+
+        .btn-timer:active {
+            transform: translateY(4px);
+            box-shadow: 0 0 0 #00838f;
+        }
+
+        /* Split Screen Layout */
+        .split-container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .panel {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            scroll-behavior: smooth;
+        }
+
+        .left-panel {
+            background-color: rgba(255, 255, 255, 0.95);
+            border-right: 4px dashed var(--secondary-color);
+        }
+
+        .right-panel {
+            background-color: transparent;
+            padding: 20px 40px;
+        }
+
+        /* Reading Passage Styles */
+        .passage-title {
+            font-size: 26px;
+            color: var(--primary-color);
+            text-align: center;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+        }
+
+        .passage-content p {
+            font-size: 18px;
+            line-height: 1.8;
+            margin-bottom: 15px;
+            text-align: justify;
+        }
+
+        .btn-translate {
+            background: #f1c40f;
+            color: #2c3e50;
+            border: none;
+            padding: 6px 12px;
+            font-size: 12px;
+            font-weight: 700;
+            border-radius: 10px;
+            cursor: pointer;
+            box-shadow: 0 3px 0 #f39c12;
+            margin-bottom: 15px;
+            transition: transform 0.1s;
+        }
+
+        .btn-translate:active {
+            transform: translateY(3px);
+            box-shadow: none;
+        }
+
+        .translation-box {
+            display: none;
+            background: #fff9c4;
+            padding: 15px;
+            border-left: 5px solid #fbc02d;
+            border-radius: 8px;
+            font-size: 16px;
+            margin-bottom: 20px;
+            font-style: italic;
+        }
+
+        /* Glossary Table */
+        .glossary-container {
+            margin-top: 30px;
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .glossary-title {
+            font-size: 20px;
+            color: var(--primary-color);
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 16px;
+        }
+
+        th, td {
+            padding: 12px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+
+        th {
+            background-color: var(--secondary-color);
+            color: white;
+        }
+
+        /* Exercise Cards (Right Panel) */
+        .question-card {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 0 rgba(0,0,0,0.1);
+            position: relative;
+        }
+
+        .question-text {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: var(--primary-color);
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .option-btn {
+            background: #f5f6fa;
+            border: 2px solid #dcdde1;
+            padding: 15px;
+            font-size: 18px;
+            font-weight: 600;
+            border-radius: 15px;
+            cursor: pointer;
+            text-align: left;
+            box-shadow: 0 5px 0 #dcdde1;
+            transition: all 0.2s ease;
+            color: var(--text-dark);
+            position: relative;
+        }
+
+        .option-btn:hover {
+            transform: scale(1.02);
+            border-color: var(--secondary-color);
+        }
+
+        .option-btn:active {
+            transform: translateY(5px) scale(1);
+            box-shadow: 0 0 0 transparent;
+        }
+
+        .option-btn.correct {
+            background: var(--correct-color);
+            border-color: #00b85c;
+            color: white;
+            box-shadow: 0 5px 0 #00b85c;
+        }
+
+        .option-btn.wrong {
+            background: var(--wrong-color);
+            border-color: #ff3040;
+            color: white;
+            box-shadow: 0 5px 0 #ff3040;
+        }
+
+        /* Shake Animation */
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-8px); }
+            50% { transform: translateX(8px); }
+            75% { transform: translateX(-8px); }
+            100% { transform: translateX(0); }
+        }
+
+        .shake {
+            animation: shake 0.4s ease-in-out;
+        }
+
+        /* Explanations */
+        .explanation-box {
+            display: none;
+            margin-top: 20px;
+            padding: 20px;
+            background: #eafaf1;
+            border: 2px solid var(--correct-color);
+            border-radius: 15px;
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        .explanation-box h4 {
+            color: #27ae60;
+            margin-bottom: 10px;
+            font-size: 18px;
+        }
+
+        .explanation-box p, .explanation-box ul {
+            font-size: 16px;
+            line-height: 1.6;
+            margin-bottom: 10px;
+        }
+
+        .explanation-box ul {
+            padding-left: 20px;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Submit Button */
+        .btn-submit {
+            display: block;
+            width: 100%;
+            background: linear-gradient(135deg, #6c5ce7, #a29bfe);
+            color: white;
+            border: none;
+            padding: 20px;
+            font-size: 24px;
+            font-weight: 700;
+            border-radius: 20px;
+            cursor: pointer;
+            box-shadow: 0 8px 0 #4834d4;
+            margin-top: 20px;
+            margin-bottom: 50px;
+            transition: all 0.2s;
+            text-transform: uppercase;
+        }
+
+        .btn-submit:active {
+            transform: translateY(8px);
+            box-shadow: none;
+        }
+
+        /* Modal Overlay */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 40px;
+            border-radius: 30px;
+            text-align: center;
+            max-width: 500px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            animation: scaleUp 0.3s ease-out;
+        }
+
+        @keyframes scaleUp {
+            from { transform: scale(0.5); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .modal-content h2 {
+            font-size: 36px;
+            color: var(--primary-color);
+            margin-bottom: 15px;
+        }
+
+        .score-display {
+            font-size: 60px;
+            font-weight: 800;
+            color: var(--correct-color);
+            margin: 20px 0;
+        }
+
+        .feedback-msg {
+            font-size: 20px;
+            color: #636e72;
+            margin-bottom: 25px;
+        }
+
+        .btn-close-modal {
+            background: var(--secondary-color);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 15px;
+            cursor: pointer;
+            box-shadow: 0 5px 0 #00838f;
+        }
+
+        /* Canvas for Confetti */
+        #confetti-canvas {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 999;
+        }
+        
+        /* Responsive */
+        @media (max-width: 900px) {
+            .split-container { flex-direction: column; overflow-y: auto; }
+            .panel { width: 100%; overflow-y: visible; }
+            .left-panel { border-right: none; border-bottom: 4px dashed var(--secondary-color); }
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="confetti-canvas"></canvas>
+
+    <div class="top-bar">
+        <div class="header-title">Giáo viên tạo: Ms Mai An ULIS</div>
+        <div class="timer-container">
+            <div class="timer-display" id="timer">10:00</div>
+            <button class="btn-timer" id="btn-timer-toggle" onclick="toggleTimer()">BẮT ĐẦU TÍNH GIỜ LÀM BÀI</button>
+        </div>
+    </div>
+
+    <div class="split-container">
+        <div class="panel left-panel">
+            <h1 class="passage-title">What To Do During the Flood</h1>
+            
+            <div class="passage-content">
+                <h3>If you evacuate</h3>
+                <p>Avoid (1) .......... through flood water. Flood water can hide debris, sewage, electrical hazards and other (2) .......... . If your vehicle is trapped in (3) .......... moving water, stay inside. If the vehicle fills with water, seek (4) .......... on the roof. Avoid evacuating over (5) .......... spanning fast-moving water. These can fail without warning, taking you and your loved ones with them.</p>
+                <button class="btn-translate" onclick="toggleTranslate('trans1')">🌍 XEM BẢN DỊCH ĐẦY ĐỦ</button>
+                <div id="trans1" class="translation-box">
+                    <strong>Nếu bạn phải sơ tán:</strong> Tránh di chuyển qua dòng nước lũ. Nước lũ có thể che giấu các mảnh vỡ, nước thải, rủi ro chập điện và các mối nguy hiểm khác. Nếu xe của bạn bị mắc kẹt trong dòng nước chảy xiết, hãy ở lại bên trong. Nếu xe bị ngập đầy nước, hãy tìm nơi trú ẩn trên nóc xe. Tránh sơ tán qua các cây cầu bắc ngang dòng nước chảy xiết. Chúng có thể sập xuống mà không có dấu hiệu báo trước, cướp đi sinh mạng của bạn và những người thân yêu.
+                </div>
+
+                <h3>If you shelter in place</h3>
+                <p>Move to the (6) .......... floors. Flood water against the lower floors can infiltrate the home, break windows (7) .......... cause generally dangerous conditions. Also, consider (8) .......... to a neighbor’s home on higher ground if you can safely do so. Stay aware of changing conditions and alerts by listening to the radio or periodically checking (9) .......... apps. If the (10) .......... continues to rise and make the home unsafe, carefully move to the roof and call 9-1-1 for help.</p>
+                <button class="btn-translate" onclick="toggleTranslate('trans2')">🌍 XEM BẢN DỊCH ĐẦY ĐỦ</button>
+                <div id="trans2" class="translation-box">
+                    <strong>Nếu bạn trú ẩn tại chỗ:</strong> Hãy di chuyển lên các tầng trên. Nước lũ đập vào các tầng dưới có thể xâm nhập vào nhà, làm vỡ cửa sổ và gây ra các điều kiện nguy hiểm nói chung. Ngoài ra, hãy cân nhắc việc di chuyển đến nhà hàng xóm ở vùng đất cao hơn nếu bạn có thể làm điều đó một cách an toàn. Cập nhật thông tin về các điều kiện đang thay đổi và các cảnh báo bằng cách nghe đài hoặc kiểm tra các ứng dụng thời tiết định kỳ. Nếu nước tiếp tục dâng cao và khiến ngôi nhà trở nên không an toàn, hãy cẩn thận di chuyển lên mái nhà và gọi 9-1-1 để được giúp đỡ.
+                </div>
+            </div>
+
+            <div class="glossary-container">
+                <div class="glossary-title">📚 Academic Glossary (Bảng từ vựng B1-C2)</div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Từ vựng</th>
+                            <th>Loại từ</th>
+                            <th>Nghĩa tiếng Việt</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>1. Evacuate</td><td>Verb (Động từ)</td><td>Sơ tán, di tản</td></tr>
+                        <tr><td>2. Debris</td><td>Noun (Danh từ)</td><td>Mảnh vụn, đống đổ nát</td></tr>
+                        <tr><td>3. Sewage</td><td>Noun (Danh từ)</td><td>Nước thải, chất thải</td></tr>
+                        <tr><td>4. Hazard</td><td>Noun (Danh từ)</td><td>Mối nguy hiểm, rủi ro</td></tr>
+                        <tr><td>5. Refuge</td><td>Noun (Danh từ)</td><td>Nơi trú ẩn, tị nạn</td></tr>
+                        <tr><td>6. Span</td><td>Verb (Động từ)</td><td>Bắc ngang qua, vắt qua</td></tr>
+                        <tr><td>7. Infiltrate</td><td>Verb (Động từ)</td><td>Xâm nhập, thấm vào</td></tr>
+                        <tr><td>8. Periodically</td><td>Adverb (Trạng từ)</td><td>Một cách định kỳ, thường xuyên</td></tr>
+                        <tr><td>9. Shelter</td><td>Verb/Noun</td><td>Trú ẩn / Nơi trú ẩn</td></tr>
+                        <tr><td>10. Vehicle</td><td>Noun (Danh từ)</td><td>Phương tiện giao thông</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="panel right-panel" id="quiz-container">
+            <button class="btn-submit" onclick="submitQuiz()">🚀 NỘP BÀI</button>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="result-modal">
+        <div class="modal-content">
+            <h2>🎉 HOÀN THÀNH XUẤT SẮC! 🎉</h2>
+            <div class="score-display" id="final-score">0/16</div>
+            <div class="feedback-msg" id="feedback-msg">Bạn là một thiên tài!</div>
+            <button class="btn-close-modal" onclick="closeModal()">Xem lại đáp án</button>
+        </div>
+    </div>
+
+    <script>
+        // --- DATA & LOGIC TRỘN ĐỀ ---
+        const rawQuestions = [
+            // Cloze Test
+            {
+                id: 1, type: 'cloze', text: "1. Avoid (1) __________ through flood water.",
+                options: [ {text: "move", correct: false}, {text: "moved", correct: false}, {text: "moving", correct: true}, {text: "to move", correct: false} ],
+                explanation: "<h4>Tại sao chọn 'moving'?</h4><ul><li><b>Ngữ pháp:</b> Cấu trúc <b>Avoid + V-ing</b> (Tránh làm việc gì đó).</li><li><b>Loại trừ:</b> 'move' (V-nguyên), 'moved' (V-ed), 'to move' (to-V) đều sai cấu trúc.</li><li><b>Dịch nghĩa:</b> Tránh di chuyển qua dòng nước lũ.</li></ul>"
+            },
+            {
+                id: 2, type: 'cloze', text: "2. Flood water can hide debris, sewage, electrical hazards and other (2) _______ .",
+                options: [ {text: "dangers", correct: true}, {text: "notices", correct: false}, {text: "warnings", correct: false}, {text: "benefits", correct: false} ],
+                explanation: "<h4>Tại sao chọn 'dangers'?</h4><ul><li><b>Từ vựng:</b> dangers (những mối nguy hiểm); notices (thông báo); warnings (cảnh báo); benefits (lợi ích).</li><li><b>Ngữ cảnh:</b> Câu trước liệt kê 'mảnh vỡ, nước thải, rủi ro chập điện' -> Đây đều là các mối nguy hiểm. Cụm từ 'other dangers' (các mối nguy hiểm khác) là hợp lý nhất.</li></ul>"
+            },
+            {
+                id: 3, type: 'cloze', text: "3. If your vehicle is trapped in (3) _______ moving water...",
+                options: [ {text: "frequent", correct: false}, {text: "frequently", correct: false}, {text: "rapid", correct: false}, {text: "rapidly", correct: true} ],
+                explanation: "<h4>Tại sao chọn 'rapidly'?</h4><ul><li><b>Ngữ pháp:</b> 'moving' ở đây đóng vai trò là tính từ/hiện tại phân từ bổ nghĩa cho 'water' (nước đang chảy). Để bổ nghĩa cho 'moving', ta cần một <b>Trạng từ (Adverb)</b>.</li><li><b>Phân tích:</b> rapid (tính từ) -> rapidly (trạng từ). Nghĩa là 'nhanh, xiết'.</li><li><b>Dịch:</b> Nước chảy xiết (rapidly moving water).</li></ul>"
+            },
+            {
+                id: 4, type: 'cloze', text: "4. ...seek (4) __________ on the roof.",
+                options: [ {text: "refuge", correct: true}, {text: "food", correct: false}, {text: "clothes", correct: false}, {text: "money", correct: false} ],
+                explanation: "<h4>Tại sao chọn 'refuge'?</h4><ul><li><b>Collocation (Cụm từ cố định):</b> <b>Seek refuge</b> (Tìm nơi trú ẩn).</li><li><b>Ngữ cảnh:</b> Khi xe ngập nước, người ta phải leo lên nóc xe để tìm chỗ trốn/an toàn, chứ không phải tìm thức ăn (food), quần áo (clothes) hay tiền (money).</li></ul>"
+            },
+            {
+                id: 5, type: 'cloze', text: "5. Avoid evacuating over (5) __________ spanning fast-moving water.",
+                options: [ {text: "flats", correct: false}, {text: "paths", correct: false}, {text: "bridges", correct: true}, {text: "buildings", correct: false} ],
+                explanation: "<h4>Tại sao chọn 'bridges'?</h4><ul><li><b>Dấu hiệu:</b> Động từ 'spanning' (bắc ngang qua, vắt qua) thường đi với sông, suối. Vật kiến trúc bắc ngang qua nước chỉ có thể là <b>Cây cầu (bridges)</b>.</li><li><b>Loại trừ:</b> flats (căn hộ), paths (con đường nhỏ), buildings (tòa nhà) không thể bắc ngang qua dòng nước.</li></ul>"
+            },
+            {
+                id: 6, type: 'cloze', text: "6. Move to the (6) __________ floors.",
+                options: [ {text: "lower", correct: false}, {text: "upper", correct: true}, {text: "under", correct: false}, {text: "behind", correct: false} ],
+                explanation: "<h4>Tại sao chọn 'upper'?</h4><ul><li><b>Ngữ cảnh:</b> Đang có lũ lụt, câu sau nhắc tới 'Flood water against the lower floors' (Nước lũ đập vào các tầng dưới). Vậy để an toàn, ta phải chạy lên các tầng trên (<b>upper floors</b>).</li></ul>"
+            },
+            {
+                id: 7, type: 'cloze', text: "7. ...infiltrate the home, break windows (7) __________ cause generally dangerous conditions.",
+                options: [ {text: "and", correct: true}, {text: "or", correct: false}, {text: "but", correct: false}, {text: "so", correct: false} ],
+                explanation: "<h4>Tại sao chọn 'and'?</h4><ul><li><b>Ngữ pháp:</b> Câu đang liệt kê chuỗi hành động cùng tính chất của nước lũ: xâm nhập (infiltrate), làm vỡ (break) <b>VÀ</b> gây ra (cause). Dùng liên từ 'and' để nối các động từ song song.</li></ul>"
+            },
+            {
+                id: 8, type: 'cloze', text: "8. Also, consider (8) __________ to a neighbor’s home...",
+                options: [ {text: "cycling", correct: false}, {text: "moving", correct: true}, {text: "driving", correct: false}, {text: "walking", correct: false} ],
+                explanation: "<h4>Tại sao chọn 'moving'?</h4><ul><li><b>Ngữ pháp:</b> consider + V-ing (cân nhắc việc gì). Cả 4 đáp án đều V-ing.</li><li><b>Ngữ cảnh:</b> Trong lúc lũ lụt, không thể đạp xe (cycling), lái xe (driving) hay đi bộ bình thường (walking). Dùng từ chung nhất là <b>moving</b> (di chuyển) đến nhà hàng xóm.</li></ul>"
+            },
+            {
+                id: 9, type: 'cloze', text: "9. ...periodically checking (9)__________ apps.",
+                options: [ {text: "game", correct: false}, {text: "shopping", correct: false}, {text: "travel", correct: false}, {text: "weather", correct: true} ],
+                explanation: "<h4>Tại sao chọn 'weather'?</h4><ul><li><b>Ngữ cảnh:</b> Đang tránh bão lũ, việc cần làm là nghe đài và kiểm tra các ứng dụng <b>thời tiết (weather apps)</b> để biết tình hình. Không ai đi chơi game hay shopping lúc này!</li></ul>"
+            },
+            {
+                id: 10, type: 'cloze', text: "10. If the (10) __________ continues to rise...",
+                options: [ {text: "water", correct: true}, {text: "speed", correct: false}, {text: "noise", correct: false}, {text: "temperature", correct: false} ],
+                explanation: "<h4>Tại sao chọn 'water'?</h4><ul><li><b>Ngữ cảnh:</b> Động từ 'rise' (dâng lên). Trong bão lũ, thứ dâng lên đe dọa ngôi nhà chính là <b>nước (water)</b>.</li></ul>"
+            },
+            // Reading Comprehension
+            {
+                id: 11, type: 'reading', text: "11. What can flood water hide?",
+                options: [ 
+                    {text: "Debris, money, electrical hazards and other dangers.", correct: false}, 
+                    {text: "Debris, sewage, electrical hazards and other dangers.", correct: true}, 
+                    {text: "Food, clean water, electrical hazards and other dangers.", correct: false}, 
+                    {text: "Debris, sewage, electrical hazards and other good things.", correct: false} 
+                ],
+                explanation: "<h4>Giải thích chi tiết:</h4><ul><li><b>Dẫn chứng trong bài:</b> Ngay đoạn 1 dòng 2: <i>'Flood water can hide debris, sewage, electrical hazards and other dangers.'</i></li><li><b>Phân tích:</b> Các lựa chọn khác bị sai lệch từ: 'money' (tiền), 'food, clean water' (thức ăn, nước sạch), 'good things' (những điều tốt đẹp) -> Không có trong bài.</li></ul>"
+            },
+            {
+                id: 12, type: 'reading', text: "12. What should you do if your vehicle is trapped in rapidly moving water?",
+                options: [ 
+                    {text: "Climb the tree.", correct: false}, 
+                    {text: "Stay inside the vehicle.", correct: true}, 
+                    {text: "Move through flood water.", correct: false}, 
+                    {text: "Seek your raincoat in the vehicle.", correct: false} 
+                ],
+                explanation: "<h4>Giải thích chi tiết:</h4><ul><li><b>Dẫn chứng trong bài:</b> Đoạn 1 dòng 3 có viết rõ: <i>'If your vehicle is trapped in rapidly moving water, <b>stay inside</b>.'</i> (Nếu xe bị kẹt trong nước chảy xiết, hãy ở lại bên trong).</li></ul>"
+            },
+            {
+                id: 13, type: 'reading', text: "13. Why shouldn’t we evacuate over bridges spanning fast-moving water?",
+                options: [ 
+                    {text: "Because we can move rapidly.", correct: false}, 
+                    {text: "Because we can become stronger.", correct: false}, 
+                    {text: "Because we can be in danger.", correct: true}, 
+                    {text: "Because we will be safe.", correct: false} 
+                ],
+                explanation: "<h4>Giải thích chi tiết:</h4><ul><li><b>Dẫn chứng:</b> Cuối đoạn 1: <i>'These can fail without warning, taking you and your loved ones with them.'</i> (Chúng có thể sập bất ngờ, cướp đi bạn và người thân).</li><li><b>Suy luận:</b> Việc sập cầu cướp đi sinh mạng chính là việc chúng ta gặp nguy hiểm (<b>be in danger</b>).</li></ul>"
+            },
+            {
+                id: 14, type: 'reading', text: "14. Can flood water break windows?",
+                options: [ 
+                    {text: "Yes, it can.", correct: true}, 
+                    {text: "No, it can’t.", correct: false}, 
+                    {text: "Yes, they are.", correct: false}, 
+                    {text: "No, they aren’t.", correct: false} 
+                ],
+                explanation: "<h4>Giải thích chi tiết:</h4><ul><li><b>Dẫn chứng:</b> Đoạn 2 dòng 2: <i>'Flood water... can infiltrate the home, <b>break windows</b>...'</i></li><li><b>Ngữ pháp:</b> Câu hỏi bắt đầu bằng 'Can flood water...' (Ngôi thứ 3 số ít, động từ khuyết thiếu Can). Trả lời phải là 'Yes, it can'. Loại C, D vì dùng to be 'are/aren't'.</li></ul>"
+            },
+            {
+                id: 15, type: 'reading', text: "15. What should we do if the water continues to rise?",
+                options: [ 
+                    {text: "Listen to the radio.", correct: false}, 
+                    {text: "Carefully move to the roof.", correct: false}, 
+                    {text: "Call 9-1-1 for help.", correct: false}, 
+                    {text: "Both B and C.", correct: true} 
+                ],
+                explanation: "<h4>Giải thích chi tiết:</h4><ul><li><b>Dẫn chứng:</b> Câu cuối cùng của bài: <i>'If the water continues to rise... carefully <b>move to the roof</b> AND <b>call 9-1-1</b> for help.'</i></li><li><b>Kết luận:</b> Phải làm cả hai việc B và C. Nên đáp án đúng nhất là D (Cả B và C).</li></ul>"
+            },
+            {
+                id: 16, type: 'reading', text: "16. Which of the following words is closest in meaning to “unsafe”?",
+                options: [ 
+                    {text: "safe", correct: false}, 
+                    {text: "cold", correct: false}, 
+                    {text: "careful", correct: false}, 
+                    {text: "dangerous", correct: true} 
+                ],
+                explanation: "<h4>Giải thích chi tiết:</h4><ul><li><b>Phân tích từ vựng:</b> 'unsafe' = un (không) + safe (an toàn) -> Không an toàn, nguy hiểm.</li><li><b>Đồng nghĩa:</b> Từ đồng nghĩa với 'không an toàn' chính là <b>dangerous</b> (nguy hiểm).</li></ul>"
+            }
+        ];
+
+        let state = {
+            answered: {}, // Lưu trạng thái đã trả lời của từng câu
+            score: 0
+        };
+
+        // Thuật toán xáo trộn mảng (Fisher-Yates Shuffle)
+        function shuffleArray(array) {
+            let curId = array.length;
+            while (0 !== curId) {
+                let randId = Math.floor(Math.random() * curId);
+                curId -= 1;
+                let tmp = array[curId];
+                array[curId] = array[randId];
+                array[randId] = tmp;
+            }
+            return array;
+        }
+
+        // --- RENDER BÀI TẬP ---
+        function renderQuiz() {
+            const container = document.getElementById('quiz-container');
+            let htmlContent = '';
+
+            rawQuestions.forEach((q, index) => {
+                // Xáo trộn options nhưng giữ nguyên logic đúng sai
+                let shuffledOptions = shuffleArray([...q.options]);
+                
+                let optionsHtml = '';
+                const labels = ['A', 'B', 'C', 'D'];
+                
+                shuffledOptions.forEach((opt, i) => {
+                    // Escape ký tự để nhúng vào function an toàn
+                    const isCorrect = opt.correct.toString();
+                    optionsHtml += `
+                        <button class="option-btn" id="btn-${q.id}-${i}" onclick="selectAnswer(${q.id}, ${i}, ${isCorrect})">
+                            <b>${labels[i]}.</b> ${opt.text}
+                        </button>
+                    `;
+                });
+
+                htmlContent += `
+                    <div class="question-card" id="card-${q.id}">
+                        <div class="question-text">${q.text}</div>
+                        <div class="options-grid">
+                            ${optionsHtml}
+                        </div>
+                        <div class="explanation-box" id="expl-${q.id}">
+                            ${q.explanation}
+                        </div>
+                    </div>
+                `;
+            });
+
+            // Giữ lại nút NỘP BÀI
+            htmlContent += `<button class="btn-submit" onclick="submitQuiz()">🚀 NỘP BÀI</button>`;
+            container.innerHTML = htmlContent;
+        }
+
+        // --- HỆ THỐNG ÂM THANH (WEB AUDIO API) ---
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        let audioCtx;
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new AudioContext();
+            }
+        }
+
+        function playSound(type) {
+            initAudio();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            const now = audioCtx.currentTime;
+
+            if (type === 'correct') {
+                // Âm thanh 'Ding' vui tai
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(600, now);
+                osc.frequency.exponentialRampToValueAtTime(1200, now + 0.1);
+                gain.gain.setValueAtTime(0.5, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
+                osc.start(now);
+                osc.stop(now + 0.5);
+            } else if (type === 'wrong') {
+                // Âm thanh 'téo tèo tèo' rớt đài
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(300, now);
+                osc.frequency.setValueAtTime(250, now + 0.15);
+                osc.frequency.setValueAtTime(200, now + 0.3);
+                osc.frequency.setValueAtTime(150, now + 0.45);
+                gain.gain.setValueAtTime(0.3, now);
+                gain.gain.linearRampToValueAtTime(0.01, now + 0.6);
+                osc.start(now);
+                osc.stop(now + 0.6);
+            }
+        }
+
+        // --- HIỆU ỨNG PHÁO GIẤY (CONFETTI VANILLA JS) ---
+        const canvas = document.getElementById('confetti-canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        let particles = [];
+
+        function fireConfetti() {
+            particles = [];
+            for(let i=0; i<100; i++){
+                particles.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height - canvas.height,
+                    size: Math.random() * 10 + 5,
+                    color: `hsl(${Math.random() * 360}, 100%, 50%)`,
+                    speedY: Math.random() * 3 + 2,
+                    speedX: Math.random() * 2 - 1,
+                    rotation: Math.random() * 360,
+                    rotationSpeed: Math.random() * 10 - 5
+                });
+            }
+            animateConfetti();
+        }
+
+        function animateConfetti() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            let active = false;
+            particles.forEach(p => {
+                p.y += p.speedY;
+                p.x += p.speedX;
+                p.rotation += p.rotationSpeed;
+                if (p.y < canvas.height) active = true;
+
+                ctx.save();
+                ctx.translate(p.x, p.y);
+                ctx.rotate(p.rotation * Math.PI / 180);
+                ctx.fillStyle = p.color;
+                ctx.fillRect(-p.size/2, -p.size/2, p.size, p.size);
+                ctx.restore();
+            });
+
+            if(active) requestAnimationFrame(animateConfetti);
+            else ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+
+        // Cập nhật lại kích thước canvas khi resize
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+
+        // --- XỬ LÝ LOGIC LÀM BÀI ---
+        function selectAnswer(qId, btnIndex, isCorrect) {
+            // Nếu đã trả lời câu này rồi thì không cho chọn lại
+            if (state.answered[qId]) return;
+            state.answered[qId] = true;
+
+            const clickedBtn = document.getElementById(`btn-${qId}-${btnIndex}`);
+            const card = document.getElementById(`card-${qId}`);
+            const expl = document.getElementById(`expl-${qId}`);
+
+            // Tìm nút đúng thực sự trong DOM để tô sáng nếu học sinh chọn sai
+            const allBtnsInCard = card.querySelectorAll('.option-btn');
+            
+            if (isCorrect) {
+                clickedBtn.classList.add('correct');
+                playSound('correct');
+                fireConfetti();
+                state.score++;
+            } else {
+                clickedBtn.classList.add('wrong');
+                clickedBtn.classList.add('shake');
+                playSound('wrong');
+                
+                // Tô xanh đáp án đúng ngay lập tức
+                allBtnsInCard.forEach(btn => {
+                    // Dựa vào tham số onclick trong HTML để tìm nút true
+                    if (btn.getAttribute('onclick').includes('true')) {
+                        btn.classList.add('correct');
+                    }
+                });
+            }
+
+            // Hiện giải thích chi tiết
+            expl.style.display = 'block';
+            
+            // Disable tất cả các nút trong câu này
+            allBtnsInCard.forEach(btn => {
+                btn.style.cursor = 'not-allowed';
+                btn.onclick = null;
+            });
+        }
+
+        // --- TÍNH NĂNG DỊCH THUẬT ---
+        function toggleTranslate(id) {
+            const box = document.getElementById(id);
+            if (box.style.display === 'block') {
+                box.style.display = 'none';
+            } else {
+                box.style.display = 'block';
+            }
+        }
+
+        // --- TÍNH NĂNG ĐỒNG HỒ ĐẾM NGƯỢC ---
+        let timerInterval;
+        let timeLeft = 600; // 10 phút = 600 giây
+        let isRunning = false;
+
+        function updateTimerDisplay() {
+            let m = Math.floor(timeLeft / 60);
+            let s = timeLeft % 60;
+            document.getElementById('timer').innerText = `${m < 10 ? '0'+m : m}:${s < 10 ? '0'+s : s}`;
+        }
+
+        function toggleTimer() {
+            const btn = document.getElementById('btn-timer-toggle');
+            if (isRunning) {
+                clearInterval(timerInterval);
+                btn.innerText = "TIẾP TỤC LÀM BÀI";
+                btn.style.background = "#f39c12";
+                isRunning = false;
+            } else {
+                btn.innerText = "TẠM DỪNG";
+                btn.style.background = "#e74c3c";
+                isRunning = true;
+                timerInterval = setInterval(() => {
+                    if (timeLeft > 0) {
+                        timeLeft--;
+                        updateTimerDisplay();
+                    } else {
+                        clearInterval(timerInterval);
+                        isRunning = false;
+                        alert("HẾT GIỜ! Bạn vẫn có thể tiếp tục làm, nhưng nhớ là trong phòng thi thật, bạn chỉ nên làm một bài như thế này trong 10 phút thôi nha.");
+                    }
+                }, 1000);
+            }
+        }
+
+        // --- TÍNH NĂNG NỘP BÀI ---
+        function submitQuiz() {
+            const modal = document.getElementById('result-modal');
+            const scoreDisplay = document.getElementById('final-score');
+            const msgDisplay = document.getElementById('feedback-msg');
+            
+            const total = rawQuestions.length;
+            scoreDisplay.innerText = `${state.score}/${total}`;
+
+            let msg = "";
+            let ratio = state.score / total;
+
+            if (ratio === 1) msg = "Quá đỉnh! Bạn là THIÊN TÀI tiếng Anh! 🏆";
+            else if (ratio >= 0.8) msg = "Làm tốt lắm! Kiến thức của bạn rất vững! 🌟";
+            else if (ratio >= 0.5) msg = "Khá khen nha! Nhưng cố gắng ôn kỹ từ vựng hơn chút nữa nhé! 💪";
+            else msg = "Đừng nản chí! Hãy đọc kỹ phần giải thích chi tiết của cô Mai An bên dưới nhé! ❤️";
+
+            msgDisplay.innerText = msg;
+            modal.style.display = 'flex';
+            
+            if(ratio >= 0.5) fireConfetti();
+        }
+
+        function closeModal() {
+            document.getElementById('result-modal').style.display = 'none';
+        }
+
+        // Khởi tạo chạy lúc tải trang
+        window.onload = () => {
+            renderQuiz();
+            updateTimerDisplay();
+        };
+
+    </script>
+</body>
+</html>

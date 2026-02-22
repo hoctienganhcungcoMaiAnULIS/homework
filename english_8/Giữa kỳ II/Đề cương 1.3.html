@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reading Challenge - Ms Mai An ULIS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #009688; /* Ocean Teal */
+            --secondary-color: #4CAF50; /* Forest Green */
+            --correct-color: #00D26A;
+            --incorrect-color: #FF4757;
+            --bg-light: rgba(255, 255, 255, 0.9);
+            --text-dark: #2d3436;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Nunito', sans-serif;
+        }
+
+        body {
+            /* Dynamic SVG Background (Ocean & Forest Emoji Theme) */
+            background-color: #e0f2f1;
+            background-image: 
+                url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="300" height="300" opacity="0.3"><text x="30" y="50" font-size="40">🌊</text><text x="200" y="100" font-size="40">🌲</text><text x="100" y="200" font-size="40">🌍</text><text x="250" y="280" font-size="40">🍃</text></svg>'),
+                radial-gradient(circle at top left, #b2dfdb 0%, #c8e6c9 100%);
+            background-attachment: fixed;
+            color: var(--text-dark);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Top Control Bar */
+        .top-bar {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            z-index: 10;
+        }
+
+        .header-info h3 {
+            font-size: 14px;
+            font-weight: 700;
+            opacity: 0.9;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .timer-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            background: rgba(0,0,0,0.2);
+            padding: 8px 20px;
+            border-radius: 30px;
+            box-shadow: inset 0 3px 5px rgba(0,0,0,0.2);
+        }
+
+        .timer-display {
+            font-size: 24px;
+            font-weight: 900;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .btn-timer {
+            background: #FFD166;
+            color: #d35400;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 15px;
+            font-weight: 800;
+            cursor: pointer;
+            box-shadow: 0 4px 0 #e67e22;
+            transition: all 0.1s;
+        }
+
+        .btn-timer:active {
+            transform: translateY(4px);
+            box-shadow: 0 0 0 #e67e22;
+        }
+
+        /* Split Screen Layout */
+        .main-container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .panel {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            scroll-behavior: smooth;
+        }
+
+        .left-panel {
+            border-right: 4px dashed rgba(0, 150, 136, 0.3);
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(10px);
+        }
+
+        .right-panel {
+            background: rgba(255, 255, 255, 0.4);
+        }
+
+        /* Scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1; 
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #888; 
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555; 
+        }
+
+        /* Reading Passage Styles */
+        .passage-card {
+            background: white;
+            padding: 25px;
+            border-radius: 20px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+            margin-bottom: 30px;
+            line-height: 1.8;
+            font-size: 17px;
+        }
+
+        .passage-card h2 {
+            color: var(--primary-color);
+            margin-bottom: 15px;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+            font-size: 22px;
+        }
+
+        .blank {
+            display: inline-block;
+            min-width: 60px;
+            border-bottom: 2px dashed var(--text-dark);
+            text-align: center;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        .btn-translate {
+            background: #118AB2;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 15px;
+            font-weight: 800;
+            font-size: 15px;
+            cursor: pointer;
+            box-shadow: 0 4px 0 #0b5e7a;
+            margin-top: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+        .btn-translate:hover { transform: scale(1.05); }
+        .btn-translate:active { transform: translateY(4px); box-shadow: 0 0 0 #0b5e7a; }
+
+        .translation-box {
+            display: none;
+            margin-top: 15px;
+            padding: 15px;
+            background: #e1f5fe;
+            border-left: 5px solid #03a9f4;
+            border-radius: 10px;
+            font-style: italic;
+            color: #0277bd;
+        }
+
+        /* Glossary Table */
+        .glossary-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin-top: 20px;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+        .glossary-table th, .glossary-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        .glossary-table th {
+            background: var(--secondary-color);
+            color: white;
+            font-weight: 800;
+        }
+        .glossary-table tr:nth-child(even) { background-color: #f9f9f9; }
+        .glossary-table tr:last-child td { border-bottom: none; }
+        .glossary-table tr:hover { background-color: #f1f8e9; }
+
+        /* Question Cards */
+        .question-card {
+            background: white;
+            padding: 25px;
+            border-radius: 20px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+            margin-bottom: 25px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .question-text {
+            font-size: 19px;
+            font-weight: 800;
+            margin-bottom: 20px;
+            color: var(--text-dark);
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .option-btn {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            padding: 15px 20px;
+            border-radius: 15px;
+            font-size: 16px;
+            font-weight: 700;
+            color: #495057;
+            cursor: pointer;
+            text-align: left;
+            box-shadow: 0 5px 0 #dee2e6;
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .option-btn:hover:not(.disabled) {
+            transform: scale(1.03);
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+        }
+
+        .option-btn:active:not(.disabled) {
+            transform: translateY(5px) scale(0.98);
+            box-shadow: 0 0 0 #dee2e6;
+        }
+
+        .option-btn.disabled {
+            cursor: not-allowed;
+            opacity: 0.8;
+        }
+
+        .option-btn.correct {
+            background: var(--correct-color);
+            color: white;
+            border-color: var(--correct-color);
+            box-shadow: 0 5px 0 #009e50;
+        }
+
+        .option-btn.wrong {
+            background: var(--incorrect-color);
+            color: white;
+            border-color: var(--incorrect-color);
+            box-shadow: 0 5px 0 #d63031;
+        }
+
+        /* Explanation Box */
+        .explanation-box {
+            display: none;
+            margin-top: 20px;
+            padding: 20px;
+            background: #fff9c4;
+            border: 2px dashed #fbc02d;
+            border-radius: 15px;
+            animation: slideDown 0.4s ease forwards;
+        }
+        
+        .explanation-box h4 {
+            color: #f57f17;
+            margin-bottom: 10px;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .explanation-content {
+            font-size: 15px;
+            line-height: 1.6;
+        }
+        
+        .explanation-content strong { color: #d32f2f; }
+        .vocab-list { margin: 10px 0; padding-left: 20px; }
+
+        /* Animations */
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-8px) rotate(-2deg); }
+            50% { transform: translateX(8px) rotate(2deg); }
+            75% { transform: translateX(-8px) rotate(-2deg); }
+        }
+        .shake { animation: shake 0.4s ease-in-out; }
+
+        /* Custom Confetti Elements */
+        .confetti-piece {
+            position: fixed;
+            width: 10px;
+            height: 20px;
+            background-color: #f00;
+            top: -20px;
+            z-index: 9999;
+            animation: fall linear forwards;
+        }
+        @keyframes fall {
+            to { transform: translateY(110vh) rotate(720deg); }
+        }
+
+        /* Submit Button & Modal */
+        .submit-container {
+            text-align: center;
+            margin: 40px 0;
+        }
+
+        .btn-submit {
+            background: linear-gradient(135deg, #EF476F, #FFD166);
+            color: white;
+            font-size: 24px;
+            font-weight: 900;
+            padding: 15px 50px;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            box-shadow: 0 8px 0 #c23652;
+            transition: all 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        .btn-submit:hover { transform: scale(1.05) translateY(-3px); }
+        .btn-submit:active { transform: translateY(8px); box-shadow: 0 0 0 #c23652; }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(5px);
+        }
+
+        .result-card {
+            background: white;
+            padding: 40px;
+            border-radius: 30px;
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            transform: scale(0.8);
+            opacity: 0;
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .result-card.show {
+            transform: scale(1);
+            opacity: 1;
+        }
+        .result-score {
+            font-size: 60px;
+            font-weight: 900;
+            color: var(--primary-color);
+            margin: 20px 0;
+        }
+        .result-message {
+            font-size: 22px;
+            font-weight: 700;
+            color: #555;
+            margin-bottom: 30px;
+        }
+        .btn-restart {
+            background: var(--primary-color);
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 20px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 5px 0 #00796b;
+        }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            .main-container { flex-direction: column; overflow: auto; }
+            .panel { overflow-y: visible; flex: none; height: auto; }
+            .left-panel { border-right: none; border-bottom: 4px dashed rgba(0, 150, 136, 0.3); }
+            body { overflow: auto; }
+            .options-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="top-bar">
+        <div class="header-info">
+            <h3>👨‍🏫 Giáo viên tạo: Ms Mai An ULIS</h3>
+        </div>
+        <div class="timer-container">
+            <span class="timer-display" id="timerDisplay">10:00</span>
+            <button class="btn-timer" id="timerBtn" onclick="toggleTimer()">▶ BẮT ĐẦU TÍNH GIỜ</button>
+        </div>
+    </div>
+
+    <div class="main-container">
+        
+        <div class="panel left-panel">
+            
+            <div class="passage-card">
+                <h2>🌊 Passage 1: The Giant Waves</h2>
+                <p>The large movement of the earth under the water causes a very large and powerful tsunami. That tsunami was called the Asian Tsunami in most of the world. It was called the Boxing Day Tsunami in England, Australia, South Africa and Canada because it happened on the holiday which they call Boxing Day. The tsunami caused a lot of damage to countries such as the Philippines, Thailand, Indonesia and Sri Lanka.</p>
+                <br>
+                <p>Waves as high as 30 meters killed many people and damaged or destroyed a lot of buildings and other property. Over 225,000 people died or they were not found after the tsunami. The waves traveled as far away as South Africa (8,000 kilometers) where as many as 8 people died because of high water caused by the waves. Because of how much damage was caused and the number of people the earthquake affected, over $7 billion was donated to help the survivors and rebuild the areas damaged.</p>
+                
+                <button class="btn-translate" onclick="toggleTranslation('trans1')">🇻🇳 BẢN DỊCH ĐẦY ĐỦ</button>
+                <div id="trans1" class="translation-box">
+                    Sự chuyển động lớn của trái đất dưới mặt nước gây ra một cơn sóng thần rất lớn và mạnh mẽ. Trận sóng thần đó được gọi là Sóng thần Châu Á ở hầu hết các nơi trên thế giới. Nó được gọi là Sóng thần Ngày tặng quà (Boxing Day) ở Anh, Úc, Nam Phi và Canada vì nó xảy ra vào ngày lễ mà họ gọi là Boxing Day. Sóng thần đã gây ra rất nhiều thiệt hại cho các quốc gia như Philippines, Thái Lan, Indonesia và Sri Lanka.<br><br>
+                    Những con sóng cao tới 30 mét đã giết chết nhiều người và làm hư hỏng hoặc phá hủy rất nhiều tòa nhà và tài sản khác. Hơn 225.000 người đã chết hoặc không được tìm thấy sau trận sóng thần. Những con sóng lan xa đến tận Nam Phi (8.000 km), nơi có tới 8 người chết do mực nước dâng cao bởi những con sóng. Do mức độ thiệt hại và số người bị ảnh hưởng bởi trận động đất, hơn 7 tỷ đô la đã được quyên góp để giúp đỡ những người sống sót và tái thiết những khu vực bị tàn phá.
+                </div>
+
+                <table class="glossary-table">
+                    <tr><th>Vocabulary (Từ vựng)</th><th>PoS (Từ loại)</th><th>Meaning (Nghĩa)</th></tr>
+                    <tr><td>1. Movement</td><td>Noun (Danh từ)</td><td>Sự chuyển động, sự di chuyển</td></tr>
+                    <tr><td>2. Powerful</td><td>Adj (Tính từ)</td><td>Mạnh mẽ, đầy sức mạnh</td></tr>
+                    <tr><td>3. Tsunami</td><td>Noun (Danh từ)</td><td>Sóng thần</td></tr>
+                    <tr><td>4. Damage</td><td>Noun/Verb</td><td>Sự thiệt hại / Làm hư hại</td></tr>
+                    <tr><td>5. Destroy</td><td>Verb (Động từ)</td><td>Phá hủy, tàn phá</td></tr>
+                    <tr><td>6. Property</td><td>Noun (Danh từ)</td><td>Tài sản, của cải</td></tr>
+                    <tr><td>7. Survivor</td><td>Noun (Danh từ)</td><td>Người sống sót</td></tr>
+                    <tr><td>8. Rebuild</td><td>Verb (Động từ)</td><td>Tái thiết, xây dựng lại</td></tr>
+                    <tr><td>9. Donate</td><td>Verb (Động từ)</td><td>Quyên góp, ủng hộ</td></tr>
+                    <tr><td>10. Affect</td><td>Verb (Động từ)</td><td>Tác động, ảnh hưởng đến</td></tr>
+                </table>
+            </div>
+
+            <div class="passage-card">
+                <h2>🌲 Passage 2: The Green Lungs</h2>
+                <p>Tropical forests have <span class="blank">(1)</span> us with many sorts of plants for food, <span class="blank">(2)</span> and industry. They could probably supply man more. They also reduce <span class="blank">(3)</span> and droughts, keep water clean, and slow down the Greenhouse Effect. About 20 million hectares are lost each year - an area more than twice the size of Austria. The World Wildlife Fund is working to <span class="blank">(4)</span> and save the forests that are <span class="blank">(5)</span> danger.</p>
+                
+                <button class="btn-translate" onclick="toggleTranslation('trans2')">🇻🇳 BẢN DỊCH ĐẦY ĐỦ</button>
+                <div id="trans2" class="translation-box">
+                    Các khu rừng nhiệt đới đã cung cấp cho chúng ta nhiều loại thực vật làm thức ăn, thuốc men và công nghiệp. Chúng có thể sẽ còn cung cấp cho con người nhiều hơn thế nữa. Chúng cũng làm giảm lũ lụt và hạn hán, giữ cho nguồn nước trong sạch và làm chậm Hiệu ứng Nhà kính. Khoảng 20 triệu ha rừng bị mất đi mỗi năm - một diện tích lớn hơn gấp đôi kích thước của nước Áo. Quỹ Động vật Hoang dã Thế giới đang nỗ lực để bảo vệ và cứu những khu rừng đang gặp nguy hiểm.
+                </div>
+
+                <table class="glossary-table">
+                    <tr><th>Vocabulary (Từ vựng)</th><th>PoS (Từ loại)</th><th>Meaning (Nghĩa)</th></tr>
+                    <tr><td>1. Tropical forest</td><td>Noun phrase</td><td>Rừng nhiệt đới</td></tr>
+                    <tr><td>2. Supply</td><td>Verb (Động từ)</td><td>Cung cấp, đáp ứng</td></tr>
+                    <tr><td>3. Medicine</td><td>Noun (Danh từ)</td><td>Thuốc men, y học</td></tr>
+                    <tr><td>4. Industry</td><td>Noun (Danh từ)</td><td>Công nghiệp, ngành nghề</td></tr>
+                    <tr><td>5. Reduce</td><td>Verb (Động từ)</td><td>Làm giảm bớt, hạ thấp</td></tr>
+                    <tr><td>6. Flood</td><td>Noun (Danh từ)</td><td>Lũ lụt</td></tr>
+                    <tr><td>7. Drought</td><td>Noun (Danh từ)</td><td>Hạn hán</td></tr>
+                    <tr><td>8. Greenhouse Effect</td><td>Noun phrase</td><td>Hiệu ứng nhà kính</td></tr>
+                    <tr><td>9. Protect</td><td>Verb (Động từ)</td><td>Bảo vệ, che chở</td></tr>
+                    <tr><td>10. Danger</td><td>Noun (Danh từ)</td><td>Sự nguy hiểm, mối đe dọa</td></tr>
+                </table>
+            </div>
+
+        </div>
+
+        <div class="panel right-panel" id="quizContainer">
+            <div class="submit-container">
+                <button class="btn-submit" onclick="submitQuiz()">🚀 NỘP BÀI</button>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="modal-overlay" id="resultModal">
+        <div class="result-card" id="resultCard">
+            <h2 style="font-size:30px">🎉 KẾT QUẢ CỦA BẠN 🎉</h2>
+            <div class="result-score" id="scoreDisplay">0/10</div>
+            <div class="result-message" id="scoreMessage">Tuyệt vời!</div>
+            <button class="btn-restart" onclick="location.reload()">🔄 LÀM LẠI BÀI</button>
+        </div>
+    </div>
+
+    <script>
+        // --- TIMER LOGIC ---
+        let timeLeft = 600; // 10 minutes
+        let timerInterval;
+        let isRunning = false;
+
+        function updateTimerDisplay() {
+            let m = Math.floor(timeLeft / 60).toString().padStart(2, '0');
+            let s = (timeLeft % 60).toString().padStart(2, '0');
+            document.getElementById('timerDisplay').innerText = `${m}:${s}`;
+        }
+
+        function toggleTimer() {
+            let btn = document.getElementById('timerBtn');
+            if (isRunning) {
+                clearInterval(timerInterval);
+                btn.innerText = "▶ TIẾP TỤC";
+                btn.style.background = "#FFD166";
+            } else {
+                btn.innerText = "⏸ TẠM DỪNG";
+                btn.style.background = "#FF9F1C";
+                timerInterval = setInterval(() => {
+                    timeLeft--;
+                    updateTimerDisplay();
+                    if (timeLeft <= 0) {
+                        clearInterval(timerInterval);
+                        alert("⏰ Đã hết giờ làm bài. Bạn vẫn có thể tiếp tục làm, nhưng nhớ là trong phòng thi thật, bạn chỉ nên làm một bài như thế này trong 10 phút thôi nha.");
+                    }
+                }, 1000);
+            }
+            isRunning = !isRunning;
+        }
+
+        // --- TRANSLATION TOGGLE ---
+        function toggleTranslation(id) {
+            let el = document.getElementById(id);
+            if(el.style.display === 'block') {
+                el.style.display = 'none';
+            } else {
+                el.style.display = 'block';
+                el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+        }
+
+        // --- AUDIO SYNTHESIS (No external links) ---
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        
+        function playDing() {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(800, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.1);
+            gain.gain.setValueAtTime(0.5, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.5);
+        }
+
+        function playBuzzer() {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.type = 'sawtooth';
+            // Sound: "téo tèo tèo tèo" (descending pitch)
+            osc.frequency.setValueAtTime(300, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.6);
+            gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.6);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.6);
+        }
+
+        // --- CUSTOM CONFETTI ---
+        function shootConfetti() {
+            const colors = ['#FF4757', '#2ED573', '#1E90FF', '#FFA502', '#FF6348'];
+            for(let i=0; i<40; i++) {
+                let conf = document.createElement('div');
+                conf.className = 'confetti-piece';
+                conf.style.left = (Math.random() * 100) + 'vw';
+                conf.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                conf.style.animationDuration = (Math.random() * 2 + 1.5) + 's';
+                conf.style.transform = `rotate(${Math.random() * 360}deg)`;
+                document.body.appendChild(conf);
+                setTimeout(() => conf.remove(), 3500);
+            }
+        }
+
+        // --- QUIZ DATA & LOGIC ---
+        const quizData = [
+            // PASSAGE 1
+            {
+                qText: "1. Why was the tsunami called the Boxing Day Tsunami in England?",
+                options: [
+                    "Because it happened when people were boxing.",
+                    "Because it happened when people were collecting boxes.",
+                    "Because it happened on Boxing Day.",
+                    "Because it destroyed a lot of boxes."
+                ],
+                correctAnswer: "Because it happened on Boxing Day.",
+                explanation: `
+                    <ul class="vocab-list">
+                        <li><strong>boxing</strong>: đấm bốc</li>
+                        <li><strong>collecting boxes</strong>: thu thập hộp</li>
+                        <li><strong>Boxing Day</strong>: Ngày lễ tặng quà (sau Giáng Sinh)</li>
+                    </ul>
+                    <p><strong>Dịch câu hỏi:</strong> Tại sao sóng thần lại được gọi là Sóng thần Boxing Day ở Anh?</p>
+                    <p><strong>Giải thích:</strong> Hãy nhìn vào đoạn 1, dòng 2-3: <em>"It was called the Boxing Day Tsunami in England... <strong>because it happened on the holiday which they call Boxing Day.</strong>"</em> (Nó xảy ra vào đúng ngày lễ tên là Boxing Day).</p>
+                    <p>=> Do đó, chọn đáp án chứa thông tin này!</p>
+                `
+            },
+            {
+                qText: "2. How high were the waves?",
+                options: ["thirteen meters", "eighteen meters", "thirty meters", "two hundred meters"],
+                correctAnswer: "thirty meters",
+                explanation: `
+                    <p><strong>Dịch câu hỏi:</strong> Những con sóng cao bao nhiêu?</p>
+                    <p><strong>Phân tích từ vựng số đếm:</strong> thirteen (13), eighteen (18), thirty (30), two hundred (200).</p>
+                    <p><strong>Giải thích:</strong> Nhìn ngay câu đầu tiên của đoạn 2: <em>"Waves as high as <strong>30 meters</strong> killed many people..."</em> (Những con sóng cao tới 30 mét...).</p>
+                    <p>=> 30 đọc là "thirty", vậy đáp án đúng là <strong>thirty meters</strong> nhé!</p>
+                `
+            },
+            {
+                qText: "3. What were some people in South Africa killed by?",
+                options: ["earthquake", "high water", "high wind", "volcano"],
+                correctAnswer: "high water",
+                explanation: `
+                    <ul class="vocab-list">
+                        <li><strong>earthquake</strong> (n): động đất</li>
+                        <li><strong>high water</strong> (n): mực nước dâng cao</li>
+                        <li><strong>high wind</strong> (n): gió lớn</li>
+                        <li><strong>volcano</strong> (n): núi lửa</li>
+                    </ul>
+                    <p><strong>Dịch câu hỏi:</strong> Một số người ở Nam Phi bị giết bởi cái gì?</p>
+                    <p><strong>Giải thích:</strong> Tìm từ khóa "South Africa". Ở đoạn 2: <em>"...as far away as South Africa (8,000 kilometers) where as many as 8 people died <strong>because of high water</strong> caused by the waves."</em> (8 người chết vì mực nước dâng cao do sóng).</p>
+                `
+            },
+            {
+                qText: "4. Which of the following sentences is NOT true?",
+                options: [
+                    "Only in Asia the tsunami was called the Asian Tsunami.",
+                    "The tsunami caused a lot of damage to Indonesia.",
+                    "Many people died because of the high waves.",
+                    "A lot of money was raised to help people."
+                ],
+                correctAnswer: "Only in Asia the tsunami was called the Asian Tsunami.",
+                explanation: `
+                    <p><strong>Dịch câu hỏi:</strong> Câu nào dưới đây KHÔNG đúng (NOT true)?</p>
+                    <p><strong>Giải thích chi tiết:</strong> Dạng bài này ta phải kiểm tra từng câu:</p>
+                    <ul class="vocab-list">
+                        <li>Câu sai là "Only in Asia..." (Chỉ ở Châu Á nó mới được gọi là Sóng thần Châu Á). <strong>Tại sao sai?</strong> Vì trong bài viết: <em>"That tsunami was called the Asian Tsunami in <strong>most of the world</strong>."</em> (hầu hết thế giới đều gọi thế, chứ không phải chỉ riêng ở Châu Á).</li>
+                        <li>Các thông tin còn lại đều có trong bài: gây thiệt hại cho Indonesia, nhiều người chết vì sóng cao, và rất nhiều tiền ($7 billion) được quyên góp.</li>
+                    </ul>
+                `
+            },
+            {
+                qText: "5. What does the word “survivors” in the last sentence mean?",
+                options: [
+                    "Houses that aren’t destroyed.",
+                    "Offices are being rebuilt.",
+                    "People who were dead.",
+                    "People who are left alive."
+                ],
+                correctAnswer: "People who are left alive.",
+                explanation: `
+                    <p><strong>Dịch câu hỏi:</strong> Từ "survivors" ở câu cuối nghĩa là gì?</p>
+                    <p><strong>Phân tích:</strong></p>
+                    <ul class="vocab-list">
+                        <li>"survive" (động từ) là sống sót. Thêm đuôi "-or" chỉ người -> "survivors" là những người sống sót.</li>
+                        <li>Ngữ cảnh: <em>"...donated to help the survivors"</em> (quyên góp tiền để giúp đỡ những ____). Chắc chắn là giúp đỡ <strong>những người còn sống</strong> (People who are left alive). Không thể là người đã chết (dead) hay ngôi nhà (houses).</li>
+                    </ul>
+                `
+            },
+            // PASSAGE 2 (Cloze Test)
+            {
+                qText: "Cloze 1. Tropical forests have (1) _______ us with many sorts of plants...",
+                options: ["given", "brought", "supplied", "donated"],
+                correctAnswer: "supplied",
+                explanation: `
+                    <ul class="vocab-list">
+                        <li><strong>give</strong> sb sth / give sth <strong>to</strong> sb: cho ai cái gì</li>
+                        <li><strong>bring</strong> sth <strong>to</strong> sb: mang cái gì cho ai</li>
+                        <li><strong>supply</strong> sb <strong>with</strong> sth: cung cấp cho ai cái gì</li>
+                    </ul>
+                    <p><strong>Giải thích:</strong> Nhìn vào chỗ trống, đằng sau có giới từ <strong>"with"</strong> (<em>_____ us <strong>with</strong> many sorts...</em>). Do đó, chỉ có động từ <strong>supplied</strong> là phù hợp đúng cấu trúc ngữ pháp!</p>
+                `
+            },
+            {
+                qText: "Cloze 2. ...plants for food, (2) _______ and industry.",
+                options: ["medicine", "hospitals", "doctors", "surgeons"],
+                correctAnswer: "medicine",
+                explanation: `
+                    <ul class="vocab-list">
+                        <li><strong>medicine</strong> (n): thuốc men, y học</li>
+                        <li><strong>hospitals</strong> (n): bệnh viện</li>
+                        <li><strong>doctors / surgeons</strong> (n): bác sĩ / bác sĩ phẫu thuật</li>
+                    </ul>
+                    <p><strong>Giải thích:</strong> Thực vật cung cấp cho chúng ta "thức ăn, [___] và công nghiệp". Về mặt logic, thực vật (thảo dược) được dùng để làm <strong>thuốc men (medicine)</strong>, chứ không thể cung cấp ra bác sĩ hay bệnh viện được!</p>
+                `
+            },
+            {
+                qText: "Cloze 3. They also reduce (3) ___________ and droughts...",
+                options: ["deserts", "floods", "heat", "hazards"],
+                correctAnswer: "floods",
+                explanation: `
+                    <ul class="vocab-list">
+                        <li><strong>deserts</strong> (n): sa mạc</li>
+                        <li><strong>floods</strong> (n): lũ lụt</li>
+                        <li><strong>heat</strong> (n): sức nóng</li>
+                        <li><strong>hazards</strong> (n): mối nguy hiểm</li>
+                    </ul>
+                    <p><strong>Giải thích:</strong> Rừng giúp làm giảm ____ và hạn hán (droughts). Trong tiếng Anh, <strong>floods and droughts</strong> (Lũ lụt và hạn hán) là một cặp từ vựng hay đi liền với nhau khi nói về thiên tai liên quan đến nước. Rừng giữ nước làm giảm cả hai hiện tượng này.</p>
+                `
+            },
+            {
+                qText: "Cloze 4. The World Wildlife Fund is working to (4) ______ and save the forests...",
+                options: ["keep", "protect", "maintain", "hold"],
+                correctAnswer: "protect",
+                explanation: `
+                    <p><strong>Dịch:</strong> Quỹ Động vật Hoang dã đang nỗ lực để [___] và cứu những khu rừng...</p>
+                    <ul class="vocab-list">
+                        <li><strong>keep</strong>: giữ</li>
+                        <li><strong>protect</strong>: bảo vệ</li>
+                        <li><strong>maintain</strong>: duy trì</li>
+                        <li><strong>hold</strong>: cầm, nắm</li>
+                    </ul>
+                    <p><strong>Giải thích:</strong> Đi đôi với từ "save" (cứu/bảo tồn) thì <strong>"protect" (bảo vệ)</strong> là từ mang sắc thái nghĩa hoàn hảo và phù hợp nhất trong chủ đề Môi trường.</p>
+                `
+            },
+            {
+                qText: "Cloze 5. ...save the forests that are (5) _____ danger.",
+                options: ["at", "within", "on", "in"],
+                correctAnswer: "in",
+                explanation: `
+                    <p><strong>Phân tích ngữ pháp:</strong></p>
+                    <p>Đây là câu kiểm tra về cụm giới từ cố định (Collocation / Idiom). Để diễn đạt "đang gặp nguy hiểm", chúng ta có cấu trúc cố định là: <strong>be IN danger</strong>.</p>
+                    <p>=> Không dùng at, within hay on danger nhé. Đáp án duy nhất đúng là <strong>IN</strong>.</p>
+                `
+            }
+        ];
+
+        let score = 0;
+        let answeredQuestions = 0;
+
+        // Shuffle utility
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        // Render Quiz
+        const quizContainer = document.getElementById('quizContainer');
+        const submitBtnContainer = document.querySelector('.submit-container');
+
+        quizData.forEach((q, index) => {
+            // Create Card
+            const card = document.createElement('div');
+            card.className = 'question-card';
+            card.id = `qCard_${index}`;
+
+            // Question Text
+            const qTitle = document.createElement('div');
+            qTitle.className = 'question-text';
+            qTitle.innerText = q.qText;
+            card.appendChild(qTitle);
+
+            // Options Grid
+            const grid = document.createElement('div');
+            grid.className = 'options-grid';
+
+            // Shuffle options
+            let shuffledOptions = shuffleArray([...q.options]);
+
+            shuffledOptions.forEach((optText) => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                // Prefix with circle for UI
+                btn.innerHTML = `<span style="margin-right:10px; opacity:0.5;">●</span> ${optText}`;
+                
+                btn.onclick = () => handleAnswer(btn, optText, q.correctAnswer, index, grid, q.explanation);
+                grid.appendChild(btn);
+            });
+
+            card.appendChild(grid);
+
+            // Explanation Box (Hidden initially)
+            const expBox = document.createElement('div');
+            expBox.className = 'explanation-box';
+            expBox.id = `exp_${index}`;
+            expBox.innerHTML = `<h4>💡 Giải thích chi tiết từ Cô Mai An:</h4><div class="explanation-content">${q.explanation}</div>`;
+            card.appendChild(expBox);
+
+            quizContainer.insertBefore(card, submitBtnContainer);
+        });
+
+        // Handle Answer Click
+        function handleAnswer(clickedBtn, selectedText, correctText, qIndex, gridElement, expHtml) {
+            // Disable all buttons in this grid
+            const allBtns = gridElement.querySelectorAll('.option-btn');
+            allBtns.forEach(b => {
+                b.classList.add('disabled');
+                b.onclick = null; // Remove event listener
+            });
+
+            const isCorrect = (selectedText === correctText);
+            
+            if (isCorrect) {
+                clickedBtn.classList.add('correct');
+                playDing();
+                shootConfetti();
+                score++;
+            } else {
+                clickedBtn.classList.add('wrong');
+                // Find and highlight correct answer
+                allBtns.forEach(b => {
+                    if (b.innerText.replace('● ', '').trim() === correctText) {
+                        b.classList.add('correct');
+                    }
+                });
+                playBuzzer();
+                document.getElementById(`qCard_${qIndex}`).classList.add('shake');
+            }
+
+            // Show explanation
+            document.getElementById(`exp_${qIndex}`).style.display = 'block';
+            answeredQuestions++;
+        }
+
+        // Submit Logic
+        function submitQuiz() {
+            if (answeredQuestions < quizData.length) {
+                if(!confirm(`Bạn mới làm ${answeredQuestions}/${quizData.length} câu. Bạn có chắc chắn muốn nộp bài không?`)) {
+                    return;
+                }
+            }
+
+            // Pause timer
+            if(isRunning) toggleTimer();
+
+            // Setup Modal
+            const modal = document.getElementById('resultModal');
+            const card = document.getElementById('resultCard');
+            const scoreDisplay = document.getElementById('scoreDisplay');
+            const scoreMessage = document.getElementById('scoreMessage');
+
+            scoreDisplay.innerText = `${score} / ${quizData.length}`;
+            
+            let msg = "";
+            let percent = score / quizData.length;
+            if (percent === 1) msg = "🏆 THIÊN TÀI XUẤT CHÚNG! Điểm tuyệt đối luôn!";
+            else if (percent >= 0.8) msg = "🌟 Rất Xuất Sắc! Làm tốt lắm nhé!";
+            else if (percent >= 0.5) msg = "👍 Khá lắm! Hãy xem lại phần giải thích để giỏi hơn nha!";
+            else msg = "💪 Đừng buồn! Thất bại là mẹ thành công, xem kỹ giải thích và làm lại nhé!";
+
+            scoreMessage.innerText = msg;
+            
+            modal.style.display = 'flex';
+            setTimeout(() => {
+                card.classList.add('show');
+                if(percent >= 0.5) shootConfetti();
+            }, 100);
+        }
+    </script>
+</body>
+</html>

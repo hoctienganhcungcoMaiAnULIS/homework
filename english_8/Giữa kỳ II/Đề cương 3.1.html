@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bài Kiểm Tra Tiếng Anh - Ms Mai An ULIS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #8854C0;
+            --secondary: #00C9A7;
+            --correct: #00D26A;
+            --wrong: #FF4757;
+            --yellow: #FFC312;
+            --bg-card: #ffffff;
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: #fdf6e3;
+            /* Họa tiết vui nhộn chấm bi bằng CSS thuần */
+            background-image: 
+                radial-gradient(var(--secondary) 2px, transparent 2px),
+                radial-gradient(var(--primary) 2px, transparent 2px);
+            background-size: 40px 40px;
+            background-position: 0 0, 20px 20px;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .header {
+            text-align: center;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 20px 40px;
+            border-radius: 20px;
+            box-shadow: 0 8px 0 rgba(0,0,0,0.15);
+            margin-bottom: 30px;
+            width: 100%;
+            max-width: 800px;
+            box-sizing: border-box;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 900;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .header h3 {
+            margin: 5px 0 0 0;
+            font-size: 16px;
+            font-weight: 700;
+            opacity: 0.9;
+        }
+
+        #quiz-container {
+            width: 100%;
+            max-width: 800px;
+        }
+
+        .question-card {
+            background: var(--bg-card);
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 10px 0 rgba(0,0,0,0.05);
+            border: 2px solid #eaeaea;
+            transition: transform 0.3s;
+        }
+
+        .question-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .instruction {
+            font-style: italic;
+            color: #666;
+            margin-bottom: 15px;
+            font-size: 15px;
+            border-left: 4px solid var(--yellow);
+            padding-left: 10px;
+        }
+
+        .question-text {
+            font-size: 18px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        @media (max-width: 600px) {
+            .options-grid { grid-template-columns: 1fr; }
+        }
+
+        .option-btn {
+            background: white;
+            border: 2px solid #e5e5e5;
+            border-bottom: 6px solid #e5e5e5;
+            border-radius: 15px;
+            padding: 15px;
+            font-size: 16px;
+            font-family: 'Nunito', sans-serif;
+            font-weight: 700;
+            color: #444;
+            cursor: pointer;
+            transition: all 0.1s;
+            text-align: left;
+            position: relative;
+        }
+
+        .option-btn:hover:not(:disabled) {
+            transform: translateY(-2px) scale(1.02);
+            border-bottom-width: 8px;
+            border-color: var(--secondary);
+        }
+
+        .option-btn:active:not(:disabled) {
+            transform: translateY(4px);
+            border-bottom-width: 2px;
+        }
+
+        .option-btn.correct {
+            background: var(--correct);
+            border-color: #00b35a;
+            color: white;
+        }
+
+        .option-btn.wrong {
+            background: var(--wrong);
+            border-color: #e03e4d;
+            color: white;
+        }
+
+        .option-btn:disabled {
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        /* Gap Fill Style */
+        .gap-btn {
+            background: #f1f2f6;
+            border: 2px dashed var(--primary);
+            border-radius: 10px;
+            padding: 5px 15px;
+            font-size: 18px;
+            font-weight: 900;
+            color: var(--primary);
+            cursor: pointer;
+            margin: 0 5px;
+            transition: 0.2s;
+        }
+        .gap-btn:hover {
+            background: #eccc68;
+            color: #333;
+        }
+        .gap-btn.filled-correct { background: var(--correct); color: white; border-style: solid; border-color: #00b35a; }
+        .gap-btn.filled-wrong { background: var(--wrong); color: white; border-style: solid; border-color: #e03e4d; }
+
+        /* Khung Giải Thích */
+        .explanation {
+            display: none;
+            margin-top: 25px;
+            padding: 20px;
+            background: #fffbdf;
+            border: 2px dashed var(--yellow);
+            border-radius: 15px;
+            font-size: 15px;
+            color: #333;
+            animation: slideDown 0.4s ease-out;
+        }
+
+        .explanation-title {
+            font-weight: 900;
+            color: #ff5252;
+            font-size: 18px;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .expl-step {
+            margin-bottom: 10px;
+            line-height: 1.6;
+            background: rgba(255,255,255,0.6);
+            padding: 10px;
+            border-radius: 10px;
+        }
+
+        /* CSS Animation */
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-6px) rotate(-1deg); }
+            40%, 80% { transform: translateX(6px) rotate(1deg); }
+        }
+        .shake { animation: shake 0.4s ease-in-out; }
+
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            top: -10px;
+            z-index: 9999;
+            animation: fall linear forwards;
+        }
+        @keyframes fall {
+            to { transform: translateY(100vh) rotate(720deg); }
+        }
+
+        /* CSS Cho Nút Submit */
+        .submit-btn {
+            background: linear-gradient(135deg, #ff4757, #ff6b81);
+            color: white;
+            font-size: 22px;
+            font-weight: 900;
+            padding: 20px 50px;
+            border: none;
+            border-radius: 20px;
+            box-shadow: 0 10px 0 #c0392b;
+            cursor: pointer;
+            margin: 30px 0 50px 0;
+            transition: all 0.2s;
+            text-transform: uppercase;
+        }
+        .submit-btn:hover { transform: translateY(-3px); box-shadow: 0 13px 0 #c0392b; }
+        .submit-btn:active { transform: translateY(7px); box-shadow: 0 3px 0 #c0392b; }
+
+        /* Modal Kết Quả */
+        #result-modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background: white;
+            padding: 40px;
+            border-radius: 25px;
+            text-align: center;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.3);
+            max-width: 400px;
+            width: 90%;
+            animation: slideDown 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .modal-content h2 { font-size: 30px; color: var(--primary); margin-top: 0; }
+        .modal-content p { font-size: 18px; color: #555; font-weight: bold; }
+        .close-modal {
+            margin-top: 20px;
+            padding: 12px 25px;
+            background: var(--secondary);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-weight: bold;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        /* CSS Vẽ Biển Báo Q29 & Q30 */
+        .css-sign-q29 {
+            border: 5px solid #FF4757; border-radius: 12px; width: max-content; 
+            padding: 15px; text-align: center; margin: 15px auto; background: white;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        .css-sign-q29-icon {
+            position: relative; width: 90px; height: 90px; border: 6px solid #FF4757; 
+            border-radius: 50%; margin: 0 auto; display: flex; align-items: center; 
+            justify-content: center; overflow: hidden; font-size: 40px;
+        }
+        .css-sign-q29-slash {
+            position: absolute; width: 120%; height: 6px; background: #FF4757; 
+            transform: rotate(-45deg);
+        }
+        .css-sign-q30 {
+            border: 4px solid #3b82f6; border-radius: 8px; background-color: #fef08a; 
+            padding: 20px; width: max-content; text-align: center; margin: 15px auto; 
+            box-shadow: 3px 3px 0 rgba(0,0,0,0.1); font-family: 'Times New Roman', serif;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>BÀI KIỂM TRA TIẾNG ANH</h1>
+        <h3>Giáo viên tạo: Ms Mai An ULIS</h3>
+    </div>
+
+    <div id="quiz-container"></div>
+
+    <button class="submit-btn" onclick="showResults()">NỘP BÀI LẤY ĐIỂM 🚀</button>
+
+    <div id="result-modal">
+        <div class="modal-content">
+            <h2>🎉 HOÀN THÀNH! 🎉</h2>
+            <p id="score-text"></p>
+            <p id="feedback-text"></p>
+            <button class="close-modal" onclick="document.getElementById('result-modal').style.display='none'">Đóng</button>
+        </div>
+    </div>
+
+<script>
+    // --- 1. HỆ THỐNG DỮ LIỆU CÂU HỎI (20 CÂU) ---
+    const rawQuizData = [
+        {
+            id: 1, type: "mcq",
+            instruction: "Mark the letter A, B, C or D to indicate the word whose underlined part differs from the other three in pronunciation.",
+            question: "Question 1:",
+            options: [
+                { text: "br<u>a</u>nd", isCorrect: true, expl: "(n): thương hiệu (phát âm là /æ/)" },
+                { text: "r<u>a</u>nge", isCorrect: false, expl: "(n): phạm vi (phát âm là /eɪ/)" },
+                { text: "s<u>a</u>le", isCorrect: false, expl: "(n): việc bán hàng (phát âm là /eɪ/)" },
+                { text: "b<u>a</u>ke", isCorrect: false, expl: "(v): nướng bánh (phát âm là /eɪ/)" }
+            ],
+            translation: "Chọn từ có phần gạch chân phát âm khác với 3 từ còn lại.",
+            correctReason: "Từ này có phần gạch chân phát âm là /æ/, khác biệt so với âm /eɪ/.",
+            wrongReason: "phần gạch chân của chúng đều được phát âm giống nhau là /eɪ/."
+        },
+        {
+            id: 2, type: "mcq",
+            instruction: "Mark the letter A, B, C or D to indicate the word whose underlined part differs from the other three in pronunciation.",
+            question: "Question 2:",
+            options: [
+                { text: "ret<u>u</u>rn", isCorrect: false, expl: "(v): quay lại (phát âm là /ɜː/)" },
+                { text: "f<u>u</u>rther", isCorrect: false, expl: "(adj): xa hơn (phát âm là /ɜː/)" },
+                { text: "sched<u>u</u>le", isCorrect: true, expl: "(n): lịch trình (phát âm là /juː/ hoặc /ə/)" },
+                { text: "p<u>u</u>rchase", isCorrect: false, expl: "(v): mua sắm (phát âm là /ɜː/)" }
+            ],
+            translation: "Chọn từ có phần gạch chân phát âm khác với 3 từ còn lại.",
+            correctReason: "Từ này có âm 'u' phát âm là /juː/ (hoặc âm tiết nhẹ), khác biệt so với âm /ɜː/.",
+            wrongReason: "phần gạch chân đều được phát âm là âm dài /ɜː/."
+        },
+        {
+            id: 3, type: "mcq",
+            instruction: "Mark the letter A, B, C or D to indicate the word that differs from the other three in the position of primary stress.",
+            question: "Question 3:",
+            options: [
+                { text: "develop", isCorrect: true, expl: "(v): phát triển (Trọng âm rơi vào âm tiết thứ 2)" },
+                { text: "funnel", isCorrect: false, expl: "(n): cái phễu (Trọng âm rơi vào âm tiết thứ 1)" },
+                { text: "damage", isCorrect: false, expl: "(n/v): thiệt hại (Trọng âm rơi vào âm tiết thứ 1)" },
+                { text: "funnel (2)", isCorrect: false, expl: "(n): cái phễu (Lặp lại trong đề gốc, trọng âm 1)" }
+            ],
+            translation: "Chọn từ có vị trí trọng âm khác với 3 từ còn lại.",
+            correctReason: "Từ này có trọng âm rơi vào âm tiết thứ 2.",
+            wrongReason: "chúng đều có trọng âm rơi vào âm tiết đầu tiên."
+        },
+        {
+            id: 4, type: "mcq",
+            instruction: "Mark the letter A, B, C or D to indicate the word that differs from the other three in the position of primary stress.",
+            question: "Question 4:",
+            options: [
+                { text: "builder", isCorrect: false, expl: "(n): thợ xây (Trọng âm rơi vào âm tiết thứ 1)" },
+                { text: "teacher", isCorrect: false, expl: "(n): giáo viên (Trọng âm rơi vào âm tiết thứ 1)" },
+                { text: "writer", isCorrect: false, expl: "(n): nhà văn (Trọng âm rơi vào âm tiết thứ 1)" },
+                { text: "career", isCorrect: true, expl: "(n): sự nghiệp (Trọng âm rơi vào âm tiết thứ 2)" }
+            ],
+            translation: "Chọn từ có vị trí trọng âm khác với 3 từ còn lại.",
+            correctReason: "Từ này có trọng âm rơi vào âm tiết thứ 2, thường thấy ở các từ kết thúc bằng hậu tố '-eer'.",
+            wrongReason: "chúng đều là danh từ chỉ người có 2 âm tiết kết thúc bằng '-er', trọng âm rơi vào âm tiết đầu tiên."
+        },
+        {
+            id: 5, type: "gap-fill",
+            instruction: "Mark the letter A, B, C or D to indicate the correct answer.",
+            questionText: "Question 5: People should not throw rubbish into rivers in order to reduce GAP_PLACEHOLDER pollution.",
+            options: [
+                { text: "air", isCorrect: false, expl: "(n): không khí" },
+                { text: "water", isCorrect: true, expl: "(n): nước" },
+                { text: "carbon", isCorrect: false, expl: "(n): các-bon" },
+                { text: "soil", isCorrect: false, expl: "(n): đất" }
+            ],
+            translation: "Mọi người không nên vứt rác xuống sông để giảm thiểu ô nhiễm ________.",
+            correctReason: "Ngữ cảnh nhắc đến 'rivers' (những con sông) nên cần một từ liên quan đến nước. Collocation 'water pollution' nghĩa là ô nhiễm nước.",
+            wrongReason: "không phù hợp với ngữ cảnh 'sông ngòi' (rivers) trong câu."
+        },
+        {
+            id: 6, type: "gap-fill",
+            instruction: "Mark the letter A, B, C or D to indicate the correct answer.",
+            questionText: "Question 6: We can conserve energy by using GAP_PLACEHOLDER appliances and following sustainable practices.",
+            options: [
+                { text: "energy-efficient", isCorrect: true, expl: "(adj): tiết kiệm năng lượng" },
+                { text: "energy-consuming", isCorrect: false, expl: "(adj): tiêu thụ nhiều năng lượng" },
+                { text: "energy-costing", isCorrect: false, expl: "(adj): tốn kém năng lượng (cụm từ không tự nhiên)" },
+                { text: "energy-saved", isCorrect: false, expl: "(adj): sai ngữ pháp, cấu trúc đúng thường dùng V-ing hoặc tính từ ghép chuẩn." }
+            ],
+            translation: "Chúng ta có thể bảo tồn năng lượng bằng cách sử dụng các thiết bị ________ và tuân theo các hoạt động bền vững.",
+            correctReason: "Cụm 'energy-efficient appliances' là collocation cố định chỉ 'các thiết bị tiết kiệm năng lượng', phù hợp hoàn toàn với vế trước 'conserve energy' (bảo tồn năng lượng).",
+            wrongReason: "mang nghĩa tiêu cực (tiêu thụ/tốn) hoặc sai cấu trúc ngữ pháp tính từ ghép."
+        },
+        {
+            id: 7, type: "gap-fill",
+            instruction: "Mark the letter A, B, C or D to indicate the correct answer.",
+            questionText: "Question 7: GAP_PLACEHOLDER Jimmy is often naughty, he studies very well at school.",
+            options: [
+                { text: "Despite", isCorrect: false, expl: "(prep): mặc dù (Cộng với V-ing hoặc Noun phrase)" },
+                { text: "Until", isCorrect: false, expl: "(conj): cho đến khi" },
+                { text: "Because", isCorrect: false, expl: "(conj): bởi vì" },
+                { text: "Although", isCorrect: true, expl: "(conj): mặc dù (Cộng với một Mệnh đề - Clause)" }
+            ],
+            translation: "________ Jimmy thường xuyên nghịch ngợm, cậu ấy học rất giỏi ở trường.",
+            correctReason: "Hai vế câu mang nghĩa đối lập (nghịch ngợm >< học giỏi) -> cần từ chỉ sự nhượng bộ. Phía sau chỗ trống là một mệnh đề hoàn chỉnh (S + V) nên phải dùng 'Although'.",
+            wrongReason: "sai ngữ pháp (Despite cần Noun/V-ing) hoặc sai về mặt logic ngữ nghĩa (Until, Because)."
+        },
+        {
+            id: 8, type: "gap-fill",
+            instruction: "Mark the letter A, B, C or D to indicate the correct answer.",
+            questionText: "Question 8: She couldn’t explain the reason GAP_PLACEHOLDER she decided to leave her hometown.",
+            options: [
+                { text: "what", isCorrect: false, expl: "(pronoun): cái gì" },
+                { text: "where", isCorrect: false, expl: "(adv): nơi mà" },
+                { text: "that", isCorrect: false, expl: "(pronoun): rằng / thay thế chung" },
+                { text: "why", isCorrect: true, expl: "(adv): tại sao / lý do mà" }
+            ],
+            translation: "Cô ấy không thể giải thích lý do ________ cô ấy quyết định rời bỏ quê hương.",
+            correctReason: "Danh từ đứng trước là 'the reason' (lý do). Trạng từ quan hệ đi kèm cố định với 'the reason' là 'why' (the reason why = lý do tại sao).",
+            wrongReason: "không phải là các đại từ/trạng từ quan hệ phù hợp bổ nghĩa cho danh từ chỉ lý do."
+        },
+        {
+            id: 9, type: "gap-fill",
+            instruction: "Mark the letter A, B, C or D to indicate the correct answer.",
+            questionText: "Question 9: Tom: “Do you drink coffee every day?” - Lan: “Not really. I drink it GAP_PLACEHOLDER, only a few times a week.”",
+            options: [
+                { text: "usually", isCorrect: false, expl: "(adv): thường xuyên" },
+                { text: "sometimes", isCorrect: true, expl: "(adv): thỉnh thoảng" },
+                { text: "rarely", isCorrect: false, expl: "(adv): hiếm khi" },
+                { text: "never", isCorrect: false, expl: "(adv): không bao giờ" }
+            ],
+            translation: "Tom: 'Bạn có uống cà phê mỗi ngày không?' - Lan: 'Không hẳn. Tôi ________ uống, chỉ vài lần một tuần thôi.'",
+            correctReason: "Vế sau có cụm 'only a few times a week' (chỉ vài lần một tuần). Tần suất này khớp nhất với 'sometimes' (thỉnh thoảng).",
+            wrongReason: "diễn tả tần suất quá cao (usually) hoặc quá thấp/không có (rarely, never)."
+        },
+        {
+            id: 10, type: "gap-fill",
+            instruction: "Mark the letter A, B, C or D to indicate the correct answer.",
+            questionText: "Question 10: Many people are tempted to buy products just because they are GAP_PLACEHOLDER.",
+            options: [
+                { text: "in sale", isCorrect: false, expl: "(phrase): không có cụm này trong tiếng Anh chuẩn" },
+                { text: "on sale", isCorrect: true, expl: "(phrase): đang được giảm giá" },
+                { text: "off sale", isCorrect: false, expl: "(phrase): ngừng bán" },
+                { text: "up sale", isCorrect: false, expl: "(phrase): bán thêm (upsell - nhưng viết sai dạng)" }
+            ],
+            translation: "Nhiều người bị cám dỗ mua sản phẩm chỉ vì chúng đang ________.",
+            correctReason: "Thành ngữ 'on sale' có nghĩa là 'đang được giảm giá/khuyến mãi', là một cụm từ rất phổ biến trong ngữ cảnh mua sắm.",
+            wrongReason: "là các giới từ đi kèm sai cấu trúc hoặc mang nghĩa không phù hợp ngữ cảnh 'bị cám dỗ mua'."
+        },
+        {
+            id: 11, type: "gap-fill",
+            instruction: "Mark the letter A, B, C or D to indicate the correct answer.",
+            questionText: "Question 11: He is very talented GAP_PLACEHOLDER meteorology.",
+            options: [
+                { text: "on", isCorrect: false, expl: "(prep): trên" },
+                { text: "in", isCorrect: false, expl: "(prep): trong" },
+                { text: "at", isCorrect: true, expl: "(prep): ở / tại (dùng chỉ khả năng)" },
+                { text: "for", isCorrect: false, expl: "(prep): cho" }
+            ],
+            translation: "Anh ấy rất có tài ________ khí tượng học.",
+            correctReason: "Cấu trúc giới từ cố định (Collocation): 'talented at + Noun/V-ing' nghĩa là có tài năng, giỏi về lĩnh vực gì đó (tương tự 'good at').",
+            wrongReason: "là các giới từ không kết hợp đúng với tính từ 'talented'."
+        },
+        {
+            id: 12, type: "gap-fill",
+            instruction: "Mark the letter A, B, C or D to indicate the correct answer.",
+            questionText: "Question 12: The GAP_PLACEHOLDER caused serious damage in the area, destroying buildings and cracking roads.",
+            options: [
+                { text: "earthquake", isCorrect: true, expl: "(n): trận động đất" },
+                { text: "shock", isCorrect: false, expl: "(n): cú sốc / chấn động" },
+                { text: "tornado", isCorrect: false, expl: "(n): lốc xoáy" },
+                { text: "thunderstorm", isCorrect: false, expl: "(n): bão có sấm sét" }
+            ],
+            translation: "Cơn/Trận ________ đã gây ra thiệt hại nghiêm trọng trong khu vực, phá hủy các tòa nhà và làm nứt đường.",
+            correctReason: "Từ khóa quyết định là 'cracking roads' (làm nứt đường). Hiện tượng thiên nhiên duy nhất trong 4 đáp án có khả năng làm nứt mặt đất mạnh mẽ như vậy là động đất (earthquake).",
+            wrongReason: "tuy có gây thiệt hại cho tòa nhà nhưng không có đặc tính tiêu biểu là 'làm nứt mặt đường'."
+        },
+        {
+            id: 17, type: "mcq",
+            instruction: "Choose the correct answer to indicate the correct ordering.",
+            question: "Question 17: Sắp xếp các câu sau thành một bức thư logic:<br><br>a. Moreover, she has shown excellence in her product knowledge and customer service skills.<br>b. Erica has been an absolute joy to work with. She is very pleasant and courteous to our customers.<br>c. Dear Sir/ Madam,<br>d. Besides, Erica demonstrates the characters and qualities that you look for in an employee.<br>e. Sincerely,<br>f. It is with great pleasure that I write this recommendation letter for Erica Rudi. I have been Errica’s supervisor for the last five years.",
+            options: [
+                { text: "c-f-d-a-b-e", isCorrect: false, expl: "Sai logic từ nối (Besides trước Moreover)." },
+                { text: "c-a-f-b-d-e", isCorrect: false, expl: "Sai cấu trúc (Khen ngợi Moreover ngay sau Lời chào)." },
+                { text: "c-f-b-d-a-e", isCorrect: true, expl: "Hợp lý nhất (Chào -> Lý do -> Khen tổng quan -> Khen thêm -> Khen nữa -> Kết thúc)." },
+                { text: "c-b-f-a-d-e", isCorrect: false, expl: "Sai cấu trúc (Khen trước khi nêu lý do viết thư)." }
+            ],
+            translation: "Chọn thứ tự đúng để ghép các câu thành một bức thư hoàn chỉnh.",
+            correctReason: "Cấu trúc chuẩn của thư giới thiệu: Lời chào (c) -> Mục đích viết thư (f) -> Lời khen tổng quan (b) -> Lời khen chi tiết kết nối bằng các từ 'Besides' và 'Moreover'. Trong các phương án, c-f-b-d-a-e là logic nhất.",
+            wrongReason: "chúng vi phạm cấu trúc cơ bản của thư trang trọng (như đưa ra luận điểm trước lý do) hoặc sai trình tự từ nối."
+        },
+        {
+            id: 18, type: "mcq",
+            instruction: "Choose the correct answer to indicate the correct ordering.",
+            question: "Question 18: Sắp xếp các câu sau thành một email logic:<br><br>a. Shall we meet at 10 a.m?<br>b. I am so glad to come and try some recipes from the book with you.<br>c. Hi Gloria ,<br>d. Please tell me if I need to buy something in advance<br>e. Thank you for inviting me to your house this Sunday.",
+            options: [
+                { text: "c-a-e-d-b", isCorrect: false, expl: "Hỏi giờ hẹn ngay sau lời chào là thiếu tự nhiên." },
+                { text: "c-e-a-b-d", isCorrect: false, expl: "Logic lộn xộn giữa việc cảm ơn và xác nhận đến." },
+                { text: "c-e-b-a-d", isCorrect: true, expl: "Hợp lý (Chào -> Cảm ơn mời -> Đồng ý đến -> Hỏi giờ hẹn -> Hỏi có cần mua gì không)." },
+                { text: "c-e-a-d-b", isCorrect: false, expl: "Sai logic (Hỏi mua đồ trước khi nói sẽ đến)." }
+            ],
+            translation: "Chọn thứ tự đúng để ghép các câu thành một email hoàn chỉnh.",
+            correctReason: "Trình tự tự nhiên nhất của một phản hồi lời mời: Chào (c) -> Cảm ơn vì đã mời (e) -> Bày tỏ niềm vui được tham gia (b) -> Chốt thời gian (a) -> Đề nghị mang thêm đồ (d).",
+            wrongReason: "chúng tạo ra mạch giao tiếp thiếu tự nhiên, ví dụ như đề nghị mang đồ trước khi nói rõ là mình có đến hay không."
+        },
+        {
+            id: 25, type: "mcq",
+            instruction: "Indicate the sentence that is closest in meaning to the given sentence.",
+            question: "Question 25: I was studying for my exam. My brother was playing video games in his room.",
+            options: [
+                { text: "I studied for my exam while my brother played video games in his room.", isCorrect: false, expl: "Sử dụng thì Quá khứ đơn không phản ánh tốt sự kéo dài của hành động." },
+                { text: "While I was studying for my exam, my brother was playing video games in his room.", isCorrect: true, expl: "Sử dụng chuẩn cấu trúc While + Past Continuous." },
+                { text: "When I was studying for my exam, my brother was playing video games in his room.", isCorrect: false, expl: "When ít được dùng ưu tiên hơn While khi tả 2 hành động song song." },
+                { text: "While I studied for my exam, my brother was playing video games in his room.", isCorrect: false, expl: "Sai sự nhất quán về thì." }
+            ],
+            translation: "Tôi đang học thi. Anh trai tôi đang chơi điện tử trong phòng.",
+            correctReason: "Cấu trúc 'While + Quá khứ tiếp diễn, Quá khứ tiếp diễn' là chuẩn xác nhất để mô tả hai hành động đang xảy ra song song cùng một lúc trong quá khứ.",
+            wrongReason: "sử dụng sai thì Quá khứ đơn hoặc dùng liên từ 'When' không nhấn mạnh được tính song song kéo dài tốt bằng 'While'."
+        },
+        {
+            id: 26, type: "mcq",
+            instruction: "Indicate the sentence that is closest in meaning to the given sentence.",
+            question: "Question 26: Due to the supermarket’s set prices, I am unable to bargain there.",
+            options: [
+                { text: "Because the fixed prices at supermarkets, I can never haggle there.", isCorrect: false, expl: "Sai cấu trúc. Phải là 'Because of'." },
+                { text: "Since grocery pricing are set, I can never haggle there.", isCorrect: true, expl: "Truyền tải đúng nghĩa 'Vì giá đã được niêm yết...' (Mặc dù 'pricing are' trong đề gốc có lỗi sai ngữ pháp nhỏ về số ít/nhiều nhưng đây là đáp án sát nghĩa nhất)." },
+                { text: "I can never bargain at a supermarket because the prices is fixed.", isCorrect: false, expl: "Sai ngữ pháp (prices số nhiều đi với is)." },
+                { text: "Since grocery pricing are fixed, I never can haggle there.", isCorrect: false, expl: "Vị trí trạng từ 'never can' kém tự nhiên hơn 'can never'." }
+            ],
+            translation: "Do giá cả ở siêu thị đã được thiết lập (niêm yết), tôi không thể mặc cả ở đó.",
+            correctReason: "Đáp án này giữ được ý nghĩa nguyên bản bằng cách dùng cấu trúc 'Since + Mệnh đề' (bởi vì). 'Haggle' là từ đồng nghĩa chính xác của 'bargain' (mặc cả).",
+            wrongReason: "mắc lỗi ngữ pháp cơ bản rõ rệt hơn như thiếu 'of' sau 'Because' hoặc chia sai động từ tobe."
+        },
+        {
+            id: 27, type: "mcq",
+            instruction: "Indicate the sentence that is made from the given cues.",
+            question: "Question 27: She / decide / attend / the party / although / she / not / enjoy / it",
+            options: [
+                { text: "She decided to attend the party although she didn’t enjoy it.", isCorrect: true, expl: "Chia thì Quá khứ đúng, dùng đúng 'decide to V'." },
+                { text: "She decided to attend the party if although she didn’t enjoy.", isCorrect: false, expl: "Thừa chữ 'if', thiếu tân ngữ 'it'." },
+                { text: "She decided attending the party although she didn’t enjoy it.", isCorrect: false, expl: "Sai cấu trúc: Decide + to V (không dùng V-ing)." }
+            ],
+            translation: "Cô ấy / quyết định / tham dự / bữa tiệc / mặc dù / cô ấy / không / thích / nó.",
+            correctReason: "Cấu trúc chuẩn: 'decide + to V' (quyết định làm gì). Ngữ cảnh kể lại sự việc nên dùng thì Quá khứ đơn (decided / didn't enjoy).",
+            wrongReason: "chúng dùng sai cấu trúc động từ (decide + V-ing) hoặc thừa từ/thiếu tân ngữ vô lý."
+        },
+        {
+            id: 28, type: "mcq",
+            instruction: "Indicate the sentence that is made from the given cues.",
+            question: "Question 28: Scientists / can forecast / many / natural disasters / in advance",
+            options: [
+                { text: "Scientists can forecast many of natural disasters in advance.", isCorrect: false, expl: "Sai cấu trúc (many of + the/tính từ sở hữu)." },
+                { text: "Scientists can forecast many the natural disasters in advance.", isCorrect: false, expl: "Sai cấu trúc (many + Noun không có the, hoặc many of the)." },
+                { text: "Scientists can forecast many of the natural disasters in advance time.", isCorrect: false, expl: "Thừa chữ 'time' (chỉ cần 'in advance')." },
+                { text: "Scientists can forecast many natural disasters in advance.", isCorrect: true, expl: "Câu đúng ngữ pháp tự nhiên nhất (Lưu ý đề gốc phương án D có chữ 'of the', nhưng đây là dạng sửa chuẩn)." }
+            ],
+            translation: "Các nhà khoa học / có thể dự báo / nhiều / thảm họa thiên nhiên / trước.",
+            correctReason: "Sử dụng đúng lượng từ 'many + Danh từ số nhiều đếm được' (many natural disasters). Cụm 'in advance' mang nghĩa 'trước' là hoàn toàn chính xác.",
+            wrongReason: "chúng sử dụng sai cấu trúc 'many of' (thiếu mạo từ the) hoặc dùng thừa từ ngữ không cần thiết."
+        },
+        {
+            id: 29, type: "image",
+            instruction: "What does the notice say?",
+            questionHtml: `
+                <div class="css-sign-q29">
+                    <div class="css-sign-q29-icon">
+                        🍔🥤
+                        <div class="css-sign-q29-slash"></div>
+                    </div>
+                    <div style="font-weight: 900; font-family: 'Arial', sans-serif; margin-top: 15px; font-size: 24px; line-height: 1.1; color: black;">
+                        NO FOOD<br>OR<br>DRINK
+                    </div>
+                </div>
+            `,
+            options: [
+                { text: "You are allowed to eat and drink here without any restrictions.", isCorrect: false, expl: "Nghĩa: Bạn được phép ăn uống không giới hạn." },
+                { text: "Eating and drinking are not permitted in this area at all times.", isCorrect: true, expl: "Nghĩa: Việc ăn uống không được phép tại đây." },
+                { text: "You can bring drinks but not food into this area.", isCorrect: false, expl: "Nghĩa: Bạn được mang đồ uống nhưng cấm đồ ăn." },
+                { text: "Food is permitted but drinks are not allowed in this area.", isCorrect: false, expl: "Nghĩa: Đồ ăn được phép nhưng cấm đồ uống." }
+            ],
+            translation: "Biển báo này có ý nghĩa gì? (Hình ảnh: Cấm đồ ăn thức uống).",
+            correctReason: "Hình ảnh biển báo có chữ 'NO FOOD OR DRINK' và biểu tượng thức ăn/nước uống bị gạch chéo đỏ. Điều này mang ý nghĩa cấm hoàn toàn việc ăn uống, tương đương với 'Eating and drinking are not permitted...'",
+            wrongReason: "chúng cho phép ăn, uống, hoặc một trong hai, trái ngược hoàn toàn với thông điệp cấm (NO) của biển báo."
+        },
+        {
+            id: 30, type: "image",
+            instruction: "Question 30. What does the notice say?",
+            questionHtml: `
+                <div class="css-sign-q30">
+                    "The garden is closed for planting.<br>Will be open to visitors next week"
+                </div>
+            `,
+            options: [
+                { text: "You can visit the garden any day, not just next week.", isCorrect: false, expl: "Nghĩa: Bạn có thể tham quan bất kỳ ngày nào." },
+                { text: "The garden is open for planting and visitors are allowed in now.", isCorrect: false, expl: "Nghĩa: Vườn đang mở và du khách được vào ngay bây giờ." },
+                { text: "The garden is always open and is not closed for planting.", isCorrect: false, expl: "Nghĩa: Vườn luôn mở và không đóng cửa." },
+                { text: "The garden will be open after planting is completed.", isCorrect: true, expl: "Nghĩa: Vườn sẽ được mở sau khi trồng cây xong (tuần tới)." }
+            ],
+            translation: "Thông báo nói gì? ('Khu vườn đang đóng cửa để trồng cây. Sẽ mở cửa cho du khách vào tuần tới').",
+            correctReason: "Thông báo cho biết vườn hiện đang đóng cửa (closed for planting) và sẽ mở lại vào tuần tới (open next week). Tức là sau khi công việc trồng cây hoàn tất thì vườn mới mở, phù hợp với ý nghĩa của đáp án đúng.",
+            wrongReason: "chúng đều khẳng định vườn đang mở cửa hoặc luôn luôn mở cửa, đi ngược lại với từ 'closed' trong biển báo."
+        }
+    ];
+
+    let correctCount = 0;
+    const totalQuestions = rawQuizData.length;
+    let audioCtx;
+
+    // --- 2. HỆ THỐNG ÂM THANH & HIỆU ỨNG ---
+    function initAudio() {
+        if (!audioCtx) {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (audioCtx.state === 'suspended') {
+            audioCtx.resume();
+        }
+    }
+    // Kích hoạt audio khi user tương tác lần đầu
+    document.addEventListener('click', initAudio, { once: true });
+
+    function playSound(type) {
+        if (!audioCtx) return;
+        const oscillator = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        oscillator.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+
+        if (type === 'correct') {
+            // Âm 'Ding' vui tai
+            oscillator.type = 'sine';
+            oscillator.frequency.setValueAtTime(600, audioCtx.currentTime);
+            oscillator.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.1);
+            gainNode.gain.setValueAtTime(0.5, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+            oscillator.start();
+            oscillator.stop(audioCtx.currentTime + 0.3);
+        } else {
+            // Âm 'Téo tèo' báo lỗi
+            oscillator.type = 'sawtooth';
+            oscillator.frequency.setValueAtTime(200, audioCtx.currentTime);
+            oscillator.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.2);
+            gainNode.gain.setValueAtTime(0.5, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+            oscillator.start();
+            oscillator.stop(audioCtx.currentTime + 0.3);
+        }
+    }
+
+    function createConfetti() {
+        const colors = ['#00C9A7', '#FF4757', '#8854C0', '#FFC312', '#00D26A'];
+        for (let i = 0; i < 40; i++) {
+            let conf = document.createElement('div');
+            conf.classList.add('confetti');
+            conf.style.left = Math.random() * 100 + 'vw';
+            conf.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+            conf.style.animationDuration = (Math.random() * 2 + 1) + 's';
+            // Tạo kích thước ngẫu nhiên
+            let size = Math.random() * 10 + 5;
+            conf.style.width = size + 'px';
+            conf.style.height = size + 'px';
+            document.body.appendChild(conf);
+            setTimeout(() => conf.remove(), 3000);
+        }
+    }
+
+    // --- 3. RENDER GIAO DIỆN & LOGIC ---
+    function renderQuiz() {
+        const container = document.getElementById('quiz-container');
+        
+        rawQuizData.forEach((q, qIndex) => {
+            // Xáo trộn ngẫu nhiên đáp án cho mỗi người chơi
+            q.shuffledOptions = [...q.options].sort(() => Math.random() - 0.5);
+            
+            let card = document.createElement('div');
+            card.className = 'question-card';
+            card.id = `q-card-${q.id}`;
+
+            let htmlContent = `<div class="instruction">${q.instruction}</div>`;
+
+            // Xử lý loại câu hỏi
+            if (q.type === 'gap-fill') {
+                // Biến đổi câu hỏi Gap Fill
+                let parts = q.questionText.split('GAP_PLACEHOLDER');
+                htmlContent += `
+                    <div class="question-text">
+                        ${parts[0]} <button class="gap-btn" id="gap-${q.id}">[ Bấm Chọn Từ ]</button> ${parts[1] || ''}
+                    </div>
+                `;
+            } else if (q.type === 'image') {
+                htmlContent += `<div class="question-text">${q.questionHtml}</div>`;
+            } else {
+                htmlContent += `<div class="question-text">${q.question}</div>`;
+            }
+
+            // Sinh khung đáp án Grid
+            htmlContent += `<div class="options-grid" id="grid-${q.id}">`;
+            const letters = ['A', 'B', 'C', 'D'];
+            
+            q.shuffledOptions.forEach((opt, optIndex) => {
+                let letter = letters[optIndex];
+                htmlContent += `
+                    <button class="option-btn" onclick="handleSelect(${qIndex}, ${optIndex}, this)">
+                        <b>${letter}.</b> ${opt.text}
+                    </button>
+                `;
+            });
+            htmlContent += `</div>`;
+
+            // Khung giải thích (ẩn ban đầu)
+            htmlContent += `<div class="explanation" id="expl-${q.id}"></div>`;
+
+            card.innerHTML = htmlContent;
+            container.appendChild(card);
+        });
+    }
+
+    // Hàm Xử lý khi người dùng bấm chọn đáp án
+    function handleSelect(qIndex, optIndex, btnElement) {
+        initAudio();
+        const q = rawQuizData[qIndex];
+        const selectedOption = q.shuffledOptions[optIndex];
+        const card = document.getElementById(`q-card-${q.id}`);
+        const grid = document.getElementById(`grid-${q.id}`);
+        const explDiv = document.getElementById(`expl-${q.id}`);
+        const gapBtn = document.getElementById(`gap-${q.id}`);
+
+        // Vô hiệu hóa các nút khác trong câu này
+        const buttons = grid.querySelectorAll('.option-btn');
+        buttons.forEach(btn => btn.disabled = true);
+
+        // Sinh phần giải thích SIÊU CHI TIẾT tự động khớp với thứ tự chữ cái ĐÃ XÁO TRỘN
+        const letters = ['A', 'B', 'C', 'D'];
+        let correctLetter = '';
+        let wrongLetters = [];
+        let optionAnalysis = '';
+
+        q.shuffledOptions.forEach((opt, idx) => {
+            let l = letters[idx];
+            if (opt.isCorrect) correctLetter = l;
+            else wrongLetters.push(l);
+            
+            optionAnalysis += `<b>${l}. ${opt.text}</b> ${opt.expl}<br>`;
+        });
+
+        // 4 Bước giải thích khắt khe
+        explDiv.innerHTML = `
+            <div class="explanation-title">📝 GIẢI THÍCH CHI TIẾT:</div>
+            <div class="expl-step"><b>1. Dịch câu hỏi:</b> ${q.translation}</div>
+            <div class="expl-step"><b>2. Phân tích 4 đáp án:</b><br>${optionAnalysis}</div>
+            <div class="expl-step"><b>3. Tại sao chọn ${correctLetter}?</b><br>${q.correctReason}</div>
+            <div class="expl-step"><b>4. Tại sao 3 đáp án còn lại sai?</b><br>Loại ${wrongLetters.join(', ')} vì ${q.wrongReason}</div>
+        `;
+
+        // Kiểm tra đúng / sai
+        if (selectedOption.isCorrect) {
+            btnElement.classList.add('correct');
+            if(gapBtn) {
+                gapBtn.innerHTML = selectedOption.text;
+                gapBtn.classList.add('filled-correct');
+            }
+            playSound('correct');
+            createConfetti();
+            correctCount++;
+        } else {
+            btnElement.classList.add('wrong');
+            card.classList.add('shake');
+            setTimeout(() => card.classList.remove('shake'), 400); // Xóa class để có thể shake lại nếu cần
+            if(gapBtn) {
+                gapBtn.innerHTML = selectedOption.text;
+                gapBtn.classList.add('filled-wrong');
+            }
+            playSound('wrong');
+            
+            // Hiển thị thêm màu xanh cho nút đúng để học sinh biết
+            q.shuffledOptions.forEach((opt, idx) => {
+                if(opt.isCorrect) {
+                    buttons[idx].style.border = "3px solid var(--correct)";
+                }
+            });
+        }
+
+        // Hiện khung giải thích ngay lập tức
+        explDiv.style.display = 'block';
+    }
+
+    // --- 4. TÍNH ĐIỂM & TỔNG KẾT ---
+    function showResults() {
+        const modal = document.getElementById('result-modal');
+        const scoreText = document.getElementById('score-text');
+        const feedbackText = document.getElementById('feedback-text');
+
+        scoreText.innerHTML = `Bạn đã trả lời đúng <span style="color:var(--correct); font-size:24px;">${correctCount} / ${totalQuestions}</span> câu!`;
+
+        let feedback = "";
+        if (correctCount === totalQuestions) {
+            feedback = "🏆 Xuất sắc! Bạn đúng là THIÊN TÀI Tiếng Anh!";
+            createConfetti(); createConfetti();
+        } else if (correctCount >= totalQuestions * 0.7) {
+            feedback = "🔥 Rất giỏi! Khả năng ngoại ngữ của bạn rất tuyệt vời!";
+            createConfetti();
+        } else if (correctCount >= totalQuestions * 0.5) {
+            feedback = "👍 Khá lắm! Hãy xem kỹ phần giải thích để tiến bộ hơn nhé!";
+        } else {
+            feedback = "💪 Đừng buồn nhé! Cố gắng luyện tập thêm, Ms Mai An tin bạn sẽ làm tốt hơn ở lần sau!";
+        }
+
+        feedbackText.innerHTML = feedback;
+        modal.style.display = 'flex';
+    }
+
+    // Khởi tạo Quiz khi load trang
+    window.onload = renderQuiz;
+
+</script>
+</body>
+</html>

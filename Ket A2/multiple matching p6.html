@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ms Mai An ULIS - Favourite Places Reading</title>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Travel & Exploration Palette */
+            --primary: #FF7F50;      /* Coral / Sunset Orange */
+            --secondary: #00BFFF;    /* Deep Sky Blue */
+            --accent: #FFD700;       /* Gold / Sand */
+            --correct: #2ED573;      /* Vibrant Green */
+            --wrong: #FF4757;        /* Red */
+            --text-dark: #2F3542;
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: 'Quicksand', sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* 1. LỚP NỀN ANIMATED GRADIENT (MƯỢT MÀ, LIÊN TỤC) */
+        body {
+            overflow: hidden;
+            color: var(--text-dark);
+            background: linear-gradient(-45deg, #FF7F50, #FFD700, #00BFFF, #7BED9F);
+            background-size: 400% 400%;
+            animation: smoothGradient 18s ease infinite;
+            height: 100vh;
+            position: relative;
+        }
+
+        @keyframes smoothGradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* 2. LỚP HỌA TIẾT SVG TRÔI NỔI (ĐỘC LẬP) */
+        .pattern-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            /* Emojis: Lâu đài, Tennis, Bảo tàng, Bản đồ */
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='250' height='250'%3E%3Ctext x='20' y='60' font-size='40'%3E🏰%3C/text%3E%3Ctext x='150' y='120' font-size='35'%3E🎾%3C/text%3E%3Ctext x='40' y='200' font-size='40'%3E🏛️%3C/text%3E%3Ctext x='180' y='220' font-size='30'%3E🗺️%3C/text%3E%3C/svg%3E");
+            opacity: 0.35;
+            pointer-events: none;
+            z-index: 1;
+            animation: floatSVG 45s linear infinite;
+        }
+
+        @keyframes floatSVG {
+            from { background-position: 0 0; }
+            to { background-position: 600px 600px; }
+        }
+
+        /* Header / Control Bar */
+        header {
+            position: relative;
+            z-index: 10;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 30px;
+            background: rgba(255, 255, 255, 0.95);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+            border-bottom: 5px solid var(--secondary);
+        }
+
+        .header-title {
+            font-size: 1.5rem;
+            color: var(--primary);
+            font-weight: 900;
+        }
+
+        .timer-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .btn-action {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 20px;
+            font-size: 1.1rem;
+            font-weight: 900;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 6px 0 rgba(0,0,0,0.15);
+        }
+
+        .btn-start { background-color: var(--primary); color: white; }
+        .btn-start:active { transform: translateY(6px); box-shadow: none; }
+
+        #timer-display {
+            font-size: 2rem;
+            font-weight: 900;
+            color: var(--secondary);
+            background: rgba(255,255,255,0.8);
+            padding: 5px 20px;
+            border-radius: 15px;
+            border: 3px dashed var(--secondary);
+            min-width: 120px;
+            text-align: center;
+        }
+
+        /* Split Screen */
+        .main-container {
+            display: flex;
+            height: calc(100vh - 85px);
+            position: relative;
+            z-index: 5;
+        }
+
+        .panel {
+            flex: 1;
+            overflow-y: auto;
+            padding: 30px;
+            scroll-behavior: smooth;
+        }
+
+        .left-panel {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(12px);
+            border-right: 4px dashed var(--primary);
+        }
+
+        /* Reading Content */
+        .passage-title {
+            font-size: 2.8rem;
+            color: var(--secondary);
+            margin-bottom: 25px;
+            text-align: center;
+            font-weight: 900;
+            text-transform: uppercase;
+            text-shadow: 2px 2px 0px white;
+        }
+
+        .person-card {
+            background: white;
+            padding: 25px;
+            border-radius: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 8px 0 rgba(0,191,255,0.1);
+            border: 3px solid #f1f2f6;
+            font-size: 1.25rem;
+            line-height: 1.7;
+        }
+        
+        .person-name {
+            display: inline-block;
+            background: var(--primary);
+            color: white;
+            padding: 5px 20px;
+            border-radius: 15px;
+            font-size: 1.5rem;
+            font-weight: 900;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 0 #d35400;
+        }
+
+        .btn-translate {
+            background: var(--accent);
+            color: #d35400;
+            border: none;
+            padding: 10px 18px;
+            border-radius: 12px;
+            font-weight: 800;
+            font-size: 1rem;
+            margin-top: 15px;
+            cursor: pointer;
+            box-shadow: 0 5px 0 #e1b12c;
+            transition: 0.2s;
+        }
+        .btn-translate:active { transform: translateY(5px); box-shadow: none; }
+
+        .translation-text {
+            display: none;
+            margin-top: 20px;
+            padding: 15px 20px;
+            background: #f0f8ff;
+            border-left: 6px solid var(--secondary);
+            border-radius: 10px;
+            font-size: 1.15rem;
+            color: #2c3e50;
+            font-weight: 700;
+        }
+
+        /* Glossary */
+        .glossary-wrapper {
+            background: white;
+            border-radius: 25px;
+            padding: 25px;
+            margin-top: 40px;
+            border: 4px solid var(--primary);
+            box-shadow: 0 10px 0 rgba(255, 127, 80, 0.3);
+        }
+        .glossary-title {
+            color: var(--primary);
+            text-align: center;
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            font-weight: 900;
+        }
+        table { width: 100%; border-collapse: collapse; font-size: 1.1rem; }
+        th, td { padding: 15px; text-align: left; border-bottom: 2px dashed #f1f2f6; }
+        th { background: var(--primary); color: white; border-radius: 10px; font-size: 1.2rem;}
+        tr:hover td { background: #fff5e6; font-weight: 700; color: var(--primary); cursor: pointer; }
+
+        /* Quiz Cards */
+        .question-card {
+            background: white;
+            border-radius: 25px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 12px 0 rgba(0,0,0,0.08);
+            border: 4px solid #fff;
+            transition: all 0.3s;
+        }
+        .question-card:hover { transform: translateY(-5px); border-color: var(--secondary); }
+
+        .question-text {
+            font-size: 1.4rem;
+            font-weight: 900;
+            color: var(--text-dark);
+            margin-bottom: 25px;
+        }
+
+        .options-grid { display: flex; gap: 15px; flex-wrap: wrap; }
+
+        .option-btn {
+            flex: 1;
+            min-width: 100px;
+            background: #f1f2f6;
+            border: 3px solid #dfe4ea;
+            padding: 15px 20px;
+            border-radius: 18px;
+            font-size: 1.3rem;
+            font-weight: 800;
+            color: #2f3542;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 6px 0 #dfe4ea;
+        }
+        
+        .option-btn:hover:not(:disabled) {
+            transform: scale(1.05);
+            background: white;
+            border-color: var(--secondary);
+            color: var(--secondary);
+            box-shadow: 0 6px 0 var(--secondary);
+        }
+        .option-btn:active:not(:disabled) { transform: translateY(6px); box-shadow: none; }
+
+        .option-btn.correct { background: var(--correct); border-color: #218c53; color: white; box-shadow: 0 6px 0 #218c53; }
+        .option-btn.wrong { background: var(--wrong); border-color: #c0392b; color: white; box-shadow: 0 6px 0 #c0392b; animation: shake 0.4s; }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px) rotate(-2deg); }
+            75% { transform: translateX(10px) rotate(2deg); }
+        }
+
+        /* Detailed Explanation Box */
+        .explanation-box {
+            display: none;
+            margin-top: 25px;
+            padding: 20px;
+            background: #e8f4f8;
+            border: 4px dashed var(--secondary);
+            border-radius: 15px;
+            animation: bounceIn 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+        @keyframes bounceIn {
+            0% { opacity: 0; transform: scale(0.8); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+        .explanation-box h4 { color: #0097e6; margin-bottom: 15px; font-size: 1.3rem; font-weight: 900; }
+        .explanation-box p { margin-bottom: 10px; font-size: 1.15rem; line-height: 1.6; }
+        .explanation-box .highlight { background: var(--accent); color: #2d3436; padding: 2px 8px; border-radius: 5px; font-weight: bold; }
+
+        /* Submit Button */
+        .btn-submit {
+            display: block; width: 100%;
+            background: var(--secondary); color: white;
+            font-size: 1.8rem; font-weight: 900;
+            padding: 25px; border: none; border-radius: 25px;
+            cursor: pointer; box-shadow: 0 10px 0 #0097e6;
+            margin-top: 30px; transition: all 0.2s;
+            text-transform: uppercase; letter-spacing: 2px;
+        }
+        .btn-submit:hover { transform: scale(1.02); }
+        .btn-submit:active { transform: translateY(10px); box-shadow: none; }
+
+        /* Modal */
+        #result-modal {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85); z-index: 100; justify-content: center; align-items: center; backdrop-filter: blur(8px);
+        }
+        .modal-content {
+            background: white; padding: 50px; border-radius: 40px; text-align: center;
+            max-width: 550px; width: 90%; border: 8px solid var(--primary);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            animation: popIn 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+        @keyframes popIn { 0% { transform: scale(0.3) rotate(-10deg); opacity: 0; } 100% { transform: scale(1) rotate(0); opacity: 1; } }
+        
+        .score-circle {
+            width: 180px; height: 180px; background: var(--accent); border-radius: 50%;
+            display: flex; justify-content: center; align-items: center;
+            font-size: 4rem; font-weight: 900; color: #d35400; margin: 0 auto 25px;
+            border: 10px solid var(--primary); box-shadow: inset 0 0 20px rgba(0,0,0,0.1);
+        }
+
+        ::-webkit-scrollbar { width: 14px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--secondary); border-radius: 20px; border: 3px solid white; }
+        ::-webkit-scrollbar-thumb:hover { background: #0097e6; }
+
+        #confetti-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 999; }
+    </style>
+</head>
+<body>
+
+    <div class="pattern-overlay"></div>
+    <canvas id="confetti-canvas"></canvas>
+
+    <header>
+        <div class="header-title">🌍 Ms Mai An ULIS | Favourite Places Reading</div>
+        <div class="timer-container">
+            <div id="timer-display">10:00</div>
+            <button class="btn-action btn-start" id="btn-timer" onclick="toggleTimer()">▶ BẮT ĐẦU LÀM BÀI</button>
+        </div>
+    </header>
+
+    <div class="main-container">
+        <div class="panel left-panel">
+            <h1 class="passage-title">Favourite Places</h1>
+
+            <div class="person-card">
+                <div class="person-name">🏰 Esteban</div>
+                <p>The most beautiful place to visit in my city is the Alhambra castle. There has been a castle there since the 9th century, although it’s only since the 13th century that kings have lived there. The best time to visit is first thing in the morning or in the late evening, as the castle gets very busy with tour groups during the day. My favourite part of the castle is the gardens, as they have water running through all of them.</p>
+                <button class="btn-translate" onclick="toggleTranslation(this)">📖 BẢN DỊCH ĐẦY ĐỦ</button>
+                <div class="translation-text">Nơi đẹp nhất để ghé thăm trong thành phố của tôi là lâu đài Alhambra. Đã có một lâu đài ở đó từ thế kỷ thứ 9, mặc dù chỉ từ thế kỷ 13 các vị vua mới sống ở đó. Thời gian tốt nhất để tham quan là ngay vào sáng sớm hoặc tối muộn, vì lâu đài trở nên rất đông đúc với các nhóm du lịch vào ban ngày. Phần tôi yêu thích nhất của lâu đài là những khu vườn, vì chúng có dòng nước chảy qua khắp nơi.</div>
+            </div>
+
+            <div class="person-card">
+                <div class="person-name">🎾 George</div>
+                <p>My favourite place in my town is the sports center. I go there every weekend to play tennis with my cousin. He’s older than me and a really good player, but sometimes I manage to beat him! The sports centre is really big and it has two swimming pools. In the summer when it’s hot I like to use the outdoor pool, but my cousin prefers the indoor pool as it’s bigger.</p>
+                <button class="btn-translate" onclick="toggleTranslation(this)">📖 BẢN DỊCH ĐẦY ĐỦ</button>
+                <div class="translation-text">Nơi yêu thích của tôi trong thị trấn là trung tâm thể thao. Tôi đến đó mỗi cuối tuần để chơi quần vợt với anh họ của mình. Anh ấy lớn tuổi hơn tôi và là một người chơi rất giỏi, nhưng thỉnh thoảng tôi vẫn có thể đánh bại anh ấy! Trung tâm thể thao thực sự rất lớn và nó có hai hồ bơi. Vào mùa hè khi trời nóng, tôi thích sử dụng hồ bơi ngoài trời, nhưng anh họ tôi lại thích hồ bơi trong nhà hơn vì nó lớn hơn.</div>
+            </div>
+
+            <div class="person-card">
+                <div class="person-name">🏛️ Michele</div>
+                <p>I think that the best place to visit near where I live is the local museum. It has paintings from the 15th century that are very beautiful and sculptures, too. Most tourists want to take photos of the tower because the city is famous for it, and many of them visit the cathedral that is next to it in the square. Not many tourists go to the museum, so it’s always peaceful there.</p>
+                <button class="btn-translate" onclick="toggleTranslation(this)">📖 BẢN DỊCH ĐẦY ĐỦ</button>
+                <div class="translation-text">Tôi nghĩ rằng nơi tốt nhất để tham quan gần nơi tôi sống là bảo tàng địa phương. Nó có những bức tranh từ thế kỷ 15 rất đẹp và cả những tác phẩm điêu khắc nữa. Hầu hết khách du lịch đều muốn chụp ảnh tòa tháp vì thành phố nổi tiếng về nó, và nhiều người trong số họ đến thăm nhà thờ nằm cạnh đó trên quảng trường. Không có nhiều khách du lịch đến bảo tàng, vì vậy nơi đó luôn yên bình.</div>
+            </div>
+
+            <div class="glossary-wrapper">
+                <h3 class="glossary-title">💎 Travel & Places Vocabulary (B1-B2)</h3>
+                <table>
+                    <thead><tr><th>Từ vựng</th><th>Loại từ</th><th>Nghĩa Tiếng Việt</th></tr></thead>
+                    <tbody>
+                        <tr><td>1. Castle</td><td>Noun</td><td>Lâu đài</td></tr>
+                        <tr><td>2. Century</td><td>Noun</td><td>Thế kỷ (100 năm)</td></tr>
+                        <tr><td>3. Tour group</td><td>Noun Phrase</td><td>Nhóm khách du lịch</td></tr>
+                        <tr><td>4. Manage to (do sth)</td><td>Verb Phrase</td><td>Xoay sở, thành công (làm việc khó)</td></tr>
+                        <tr><td>5. Beat</td><td>Verb</td><td>Đánh bại, chiến thắng (ai đó)</td></tr>
+                        <tr><td>6. Outdoor / Indoor</td><td>Adjective</td><td>Ngoài trời / Trong nhà</td></tr>
+                        <tr><td>7. Sculpture</td><td>Noun</td><td>Tác phẩm điêu khắc</td></tr>
+                        <tr><td>8. Famous for</td><td>Adj Phrase</td><td>Nổi tiếng về điều gì</td></tr>
+                        <tr><td>9. Square</td><td>Noun</td><td>Quảng trường</td></tr>
+                        <tr><td>10. Peaceful</td><td>Adjective</td><td>Yên bình, thanh bình</td></tr>
+                        <tr><td>11. Facility (từ câu hỏi)</td><td>Noun</td><td>Cơ sở vật chất, tiện ích</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="panel right-panel">
+            <div id="quiz-container"></div>
+            <button class="btn-submit" onclick="submitQuiz()">🏆 CHỐT ĐÁP ÁN! 🏆</button>
+        </div>
+    </div>
+
+    <div id="result-modal">
+        <div class="modal-content">
+            <h2 style="color: var(--primary); font-size: 2.5rem; margin-bottom: 20px;">TỔNG KẾT</h2>
+            <div class="score-circle" id="final-score">0/7</div>
+            <h3 id="feedback-msg" style="color: #2F3542; margin-bottom: 20px; font-size: 1.6rem;"></h3>
+            <button class="btn-action btn-start" onclick="location.reload()" style="width: 100%; font-size: 1.3rem; padding: 18px;">🔄 LÀM LẠI BÀI</button>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. DATA & EXPLANATIONS ---
+        const quizData = [
+            {
+                id: 1, question: "1. Whose account tells us about who lived in their favourite place?",
+                answer: "Esteban",
+                explanation: `<p><strong>Dịch câu hỏi:</strong> Lời kể của ai cho chúng ta biết về việc ai đã từng sống ở địa điểm yêu thích của họ?</p>
+                <p><strong>Giải thích:</strong> Trong đoạn của Esteban, cậu ấy nhắc đến lâu đài Alhambra: <span class="highlight">"...although it’s only since the 13th century that kings have lived there."</span> (...các vị vua mới sống ở đó). Chữ "kings" (các vị vua) chính là đáp án cho câu hỏi "who lived there".</p>`
+            },
+            {
+                id: 2, question: "2. Who goes to their favourite place with someone else?",
+                answer: "George",
+                explanation: `<p><strong>Dịch câu hỏi:</strong> Ai đi đến địa điểm yêu thích của họ cùng với một người khác?</p>
+                <p><strong>Giải thích:</strong> George kể về trung tâm thể thao: <span class="highlight">"I go there every weekend to play tennis with my cousin."</span> (Tôi đến đó mỗi cuối tuần để chơi quần vợt với anh họ của mình). Cụm "with my cousin" (với anh họ) chính là "with someone else".</p>`
+            },
+            {
+                id: 3, question: "3. Whose city is well known for one building?",
+                answer: "Michele",
+                explanation: `<p><strong>Dịch câu hỏi:</strong> Thành phố của ai nổi tiếng vì một tòa nhà?</p>
+                <p><strong>Giải thích:</strong> Michele viết về thành phố của mình: <span class="highlight">"Most tourists want to take photos of the tower because the city is famous for it..."</span> (Hầu hết du khách muốn chụp ảnh tòa tháp vì thành phố nổi tiếng về nó). "Well known for" là cụm từ đồng nghĩa (paraphrase) của "famous for".</p>`
+            },
+            {
+                id: 4, question: "4. Whose favourite place has a lot of tourists that visit it?",
+                answer: "Esteban",
+                explanation: `<p><strong>Dịch câu hỏi:</strong> Địa điểm yêu thích của ai có rất nhiều khách du lịch ghé thăm?</p>
+                <p><strong>Giải thích:</strong> Esteban miêu tả lâu đài: <span class="highlight">"...as the castle gets very busy with tour groups during the day."</span> (...vì lâu đài trở nên rất đông đúc với các nhóm du lịch vào ban ngày). "Busy with tour groups" mang nghĩa là có nhiều du khách (a lot of tourists).</p>`
+            },
+            {
+                id: 5, question: "5. Whose favourite place has a lot of beautiful things to look at inside it?",
+                answer: "Michele",
+                explanation: `<p><strong>Dịch câu hỏi:</strong> Nơi yêu thích của ai có nhiều thứ đẹp đẽ để ngắm nhìn bên trong?</p>
+                <p><strong>Giải thích:</strong> Michele miêu tả bên trong bảo tàng: <span class="highlight">"It has paintings from the 15th century that are very beautiful and sculptures, too."</span> (Nó có những bức tranh từ thế kỷ 15 rất đẹp và cả những tác phẩm điêu khắc nữa). Tranh và điêu khắc chính là "beautiful things".</p>`
+            },
+            {
+                id: 6, question: "6. Who prefers the outdoor facilities at their favourite place?",
+                answer: "George",
+                explanation: `<p><strong>Dịch câu hỏi:</strong> Ai thích các cơ sở vật chất ngoài trời tại địa điểm yêu thích của họ hơn?</p>
+                <p><strong>Giải thích:</strong> George chia sẻ về hồ bơi: <span class="highlight">"In the summer when it’s hot I like to use the outdoor pool..."</span> (Vào mùa hè khi trời nóng, tôi thích sử dụng hồ bơi ngoài trời). Hồ bơi (pool) chính là một cơ sở vật chất (facility).</p>`
+            },
+            {
+                id: 7, question: "7. Whose favourite place is quiet?",
+                answer: "Michele",
+                explanation: `<p><strong>Dịch câu hỏi:</strong> Nơi yêu thích của ai thì yên tĩnh?</p>
+                <p><strong>Giải thích:</strong> Michele chốt lại đoạn văn của mình: <span class="highlight">"Not many tourists go to the museum, so it’s always peaceful there."</span> (Không có nhiều khách du lịch đến bảo tàng, vì vậy nơi đó luôn yên bình). Từ "peaceful" (yên bình) là từ đồng nghĩa trực tiếp với "quiet" (yên tĩnh).</p>`
+            }
+        ];
+
+        let score = 0;
+        let answeredQs = new Set();
+        const names = ["Esteban", "George", "Michele"];
+
+        function shuffleArr(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function renderQuiz() {
+            const container = document.getElementById('quiz-container');
+            container.innerHTML = '';
+
+            quizData.forEach((q, index) => {
+                const shuffledNames = shuffleArr([...names]);
+
+                const card = document.createElement('div');
+                card.className = 'question-card';
+                card.innerHTML = `<div class="question-text">${q.question}</div>`;
+
+                const optionsGrid = document.createElement('div');
+                optionsGrid.className = 'options-grid';
+
+                shuffledNames.forEach(name => {
+                    const btn = document.createElement('button');
+                    btn.className = 'option-btn';
+                    btn.innerText = name;
+                    btn.onclick = () => handleAnswer(btn, name === q.answer, index, q.explanation, optionsGrid, q.answer);
+                    optionsGrid.appendChild(btn);
+                });
+                card.appendChild(optionsGrid);
+
+                // Explanation Box - Hiện lên khi click
+                const explBox = document.createElement('div');
+                explBox.className = 'explanation-box';
+                explBox.id = `expl-${index}`;
+                explBox.innerHTML = `<h4>💡 Tại sao lại chọn ${q.answer}?</h4>` + q.explanation;
+                card.appendChild(explBox);
+
+                container.appendChild(card);
+            });
+        }
+
+        // --- 2. AUDIO WEB API ---
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        let actx;
+
+        function playSound(type) {
+            if (!actx) actx = new AudioCtx();
+            if (actx.state === 'suspended') actx.resume();
+            
+            const osc = actx.createOscillator();
+            const gainNode = actx.createGain();
+            osc.connect(gainNode);
+            gainNode.connect(actx.destination);
+
+            if (type === 'correct') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(659.25, actx.currentTime); // E5
+                osc.frequency.exponentialRampToValueAtTime(1318.51, actx.currentTime + 0.15); // E6
+                gainNode.gain.setValueAtTime(0.5, actx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, actx.currentTime + 0.4);
+                osc.start(); osc.stop(actx.currentTime + 0.4);
+            } else {
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(250, actx.currentTime);
+                osc.frequency.linearRampToValueAtTime(150, actx.currentTime + 0.3);
+                gainNode.gain.setValueAtTime(0.4, actx.currentTime);
+                gainNode.gain.linearRampToValueAtTime(0.01, actx.currentTime + 0.3);
+                osc.start(); osc.stop(actx.currentTime + 0.3);
+            }
+        }
+
+        function handleAnswer(btn, isCorrect, qIndex, explText, grid, correctAnswer) {
+            if (answeredQs.has(qIndex)) return;
+            answeredQs.add(qIndex);
+
+            const allBtns = grid.querySelectorAll('.option-btn');
+            allBtns.forEach(b => b.disabled = true);
+
+            // Tự động hiện giải thích bất kể đúng sai
+            document.getElementById(`expl-${qIndex}`).style.display = 'block';
+
+            if (isCorrect) {
+                btn.classList.add('correct');
+                playSound('correct');
+                fireConfetti();
+                score++;
+            } else {
+                btn.classList.add('wrong');
+                playSound('wrong');
+                allBtns.forEach(b => {
+                    if (b.innerText === correctAnswer) {
+                        b.classList.add('correct');
+                        b.style.opacity = '0.7';
+                    }
+                });
+            }
+        }
+
+        // --- 3. TIMER ---
+        let timerInterval;
+        let timeLeft = 600;
+        let isRunning = false;
+
+        function toggleTimer() {
+            const btn = document.getElementById('btn-timer');
+            if (isRunning) {
+                clearInterval(timerInterval);
+                btn.innerText = "▶ TIẾP TỤC LÀM BÀI";
+                btn.style.backgroundColor = "#FFD700"; // Gold
+            } else {
+                btn.innerText = "⏸ TẠM DỪNG";
+                btn.style.backgroundColor = "#FF4757"; // Red
+                timerInterval = setInterval(() => {
+                    timeLeft--;
+                    let m = Math.floor(timeLeft / 60);
+                    let s = timeLeft % 60;
+                    document.getElementById('timer-display').innerText = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+                    if (timeLeft <= 0) {
+                        clearInterval(timerInterval);
+                        alert("⏰ Đã hết giờ! Bạn vẫn có thể làm tiếp, nhưng hãy nhớ luyện tập để làm bài nhanh hơn nha!");
+                    }
+                }, 1000);
+            }
+            isRunning = !isRunning;
+        }
+
+        function toggleTranslation(btn) {
+            const div = btn.nextElementSibling;
+            const isHidden = getComputedStyle(div).display === 'none';
+            div.style.display = isHidden ? 'block' : 'none';
+            btn.innerHTML = isHidden ? '🙈 ẨN BẢN DỊCH' : '📖 BẢN DỊCH ĐẦY ĐỦ';
+        }
+
+        function submitQuiz() {
+            if (answeredQs.size < quizData.length) {
+                if(!confirm("Bạn chưa làm hết các câu hỏi. Vẫn quyết định nộp bài chứ?")) return;
+            }
+            clearInterval(timerInterval);
+            
+            const modal = document.getElementById('result-modal');
+            document.getElementById('final-score').innerText = `${score}/7`;
+            
+            const msgObj = document.getElementById('feedback-msg');
+            if (score === 7) {
+                msgObj.innerText = "🌟 XUẤT SẮC! ĐIỂM TUYỆT ĐỐI! 🌟";
+                for(let i=0; i<5; i++) setTimeout(fireConfetti, i*300);
+            } else if (score >= 4) {
+                msgObj.innerText = "✨ LÀM TỐT LẮM! Đọc lại giải thích để đạt 10/10 lần sau nhé!";
+                fireConfetti();
+            } else {
+                msgObj.innerText = "💪 CỐ LÊN BẠN ƠI! Hãy học kỹ các từ khóa đồng nghĩa nha.";
+            }
+            modal.style.display = 'flex';
+        }
+
+        // --- 4. CONFETTI ---
+        const canvas = document.getElementById('confetti-canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        let particles = [];
+        const colors = ['#FF7F50', '#00BFFF', '#FFD700', '#2ED573'];
+
+        function fireConfetti() {
+            for(let i=0; i<80; i++) {
+                particles.push({
+                    x: canvas.width / 2, y: canvas.height / 2 + 100,
+                    r: Math.random() * 8 + 4,
+                    dx: (Math.random() - 0.5) * 20, dy: Math.random() * -20 - 5,
+                    color: colors[Math.floor(Math.random() * colors.length)],
+                    tilt: Math.random() * 10 - 10, tiltAngleInc: (Math.random() * 0.07) + 0.05, tiltAngle: 0
+                });
+            }
+            requestAnimationFrame(animateConfetti);
+        }
+
+        function animateConfetti() {
+            ctx.clearRect(0,0,canvas.width,canvas.height);
+            particles.forEach((p, i) => {
+                p.tiltAngle += p.tiltAngleInc;
+                p.y += (Math.cos(p.tiltAngle) + 1 + p.r / 2) / 2;
+                p.x += Math.sin(p.tiltAngle) * 2;
+                p.dy += 0.3; p.y += p.dy;
+                ctx.beginPath(); ctx.lineWidth = p.r; ctx.strokeStyle = p.color;
+                ctx.moveTo(p.x + p.tilt + p.r, p.y); ctx.lineTo(p.x + p.tilt, p.y + p.tilt + p.r); ctx.stroke();
+                if (p.y > canvas.height) particles.splice(i,1);
+            });
+            if(particles.length > 0) requestAnimationFrame(animateConfetti);
+        }
+
+        window.addEventListener('resize', () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; });
+        window.onload = renderQuiz;
+    </script>
+</body>
+</html>

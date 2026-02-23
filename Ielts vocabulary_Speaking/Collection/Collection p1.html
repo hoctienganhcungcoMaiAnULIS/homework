@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gamified Reading Test - Detective Theme</title>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500;700;900&family=Nunito:wght@600;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #8854C0;
+            --secondary: #FDCB6E;
+            --accent: #00C9A7;
+            --correct: #00D26A;
+            --wrong: #FF4757;
+            --text-dark: #2C3E50;
+            --bg-light: #F8F9FA;
+            --card-bg: rgba(255, 255, 255, 0.95);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Nunito', sans-serif;
+        }
+
+        body {
+            height: 100vh;
+            overflow: hidden;
+            color: var(--text-dark);
+            background: linear-gradient(-45deg, var(--primary), var(--secondary), var(--accent), #FF9A9E);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            position: relative;
+        }
+
+        body::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='150' height='150'%3E%3Ctext x='20' y='40' font-size='30' opacity='0.3'%3E🕵️‍♂️%3C/text%3E%3Ctext x='80' y='100' font-size='30' opacity='0.3'%3E🔍%3C/text%3E%3Ctext x='120' y='30' font-size='30' opacity='0.3'%3E🚓%3C/text%3E%3C/svg%3E");
+            background-repeat: repeat;
+            animation: floatPattern 40s linear infinite;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        @keyframes floatPattern {
+            0% { background-position: 0 0; }
+            100% { background-position: 1000px 1000px; }
+        }
+
+        #top-bar {
+            position: relative;
+            z-index: 10;
+            height: 70px;
+            background: rgba(255, 255, 255, 0.9);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 30px;
+            border-bottom: 4px solid var(--secondary);
+        }
+
+        .author-tag {
+            font-size: 14px;
+            color: var(--primary);
+            font-weight: 900;
+            background: #E8F0FE;
+            padding: 5px 15px;
+            border-radius: 20px;
+            text-transform: uppercase;
+        }
+
+        .timer-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        #timer-display {
+            font-family: 'Quicksand', sans-serif;
+            font-size: 28px;
+            font-weight: 900;
+            color: var(--text-dark);
+            min-width: 100px;
+            text-align: center;
+        }
+
+        .btn-gamify {
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            font-weight: 800;
+            border-radius: 15px;
+            cursor: pointer;
+            box-shadow: 0 6px 0 #00997F;
+            transition: all 0.1s;
+            text-transform: uppercase;
+        }
+
+        .btn-gamify:active {
+            transform: translateY(6px);
+            box-shadow: 0 0px 0 #00997F;
+        }
+
+        #main-container {
+            display: flex;
+            height: calc(100vh - 70px);
+            position: relative;
+            z-index: 5;
+            padding: 15px;
+            gap: 15px;
+        }
+
+        .pane {
+            flex: 1;
+            background: var(--card-bg);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            overflow-y: auto;
+            padding: 30px;
+            border: 3px solid rgba(255,255,255,0.5);
+            backdrop-filter: blur(10px);
+        }
+
+        .pane::-webkit-scrollbar { width: 10px; }
+        .pane::-webkit-scrollbar-thumb { background: var(--secondary); border-radius: 10px; }
+
+        h2 { font-size: 24px; color: var(--primary); margin-bottom: 20px; text-align: center; font-weight: 900;}
+        h3 { font-size: 20px; color: #E67E22; margin-top: 25px; margin-bottom: 15px; font-weight: 800; border-bottom: 2px dashed #E67E22; padding-bottom: 5px;}
+        
+        .passage-segment {
+            background: #fff;
+            padding: 20px;
+            border-radius: 15px;
+            border: 2px dashed #ccc;
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+        }
+        
+        .passage-segment:hover {
+            border-color: var(--primary);
+            box-shadow: 0 4px 10px rgba(136, 84, 192, 0.1);
+        }
+
+        .passage-text {
+            font-family: 'Quicksand', sans-serif;
+            font-size: 18px;
+            line-height: 1.8;
+            margin-bottom: 15px;
+        }
+
+        .blank {
+            display: inline-block;
+            min-width: 60px;
+            border-bottom: 3px solid var(--primary);
+            text-align: center;
+            font-weight: bold;
+            color: var(--primary);
+            margin: 0 5px;
+        }
+
+        .mini-trans-btn {
+            background: transparent;
+            color: var(--primary);
+            border: 2px solid var(--primary);
+            padding: 5px 12px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 800;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .mini-trans-btn:hover { background: var(--primary); color: white; }
+
+        .translation-content {
+            display: none;
+            background: #FFF3CD;
+            padding: 12px 15px;
+            border-radius: 10px;
+            margin-top: 10px;
+            border-left: 4px solid #FFC107;
+            font-style: italic;
+            font-size: 15.5px;
+            color: #555;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .glossary-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+        .glossary-table th { background: var(--primary); color: white; padding: 12px; text-align: left; }
+        .glossary-table td { padding: 12px; border-bottom: 1px solid #eee; }
+        .glossary-table tr:last-child td { border-bottom: none; }
+        .word-tag { font-weight: 800; color: #D35400; }
+
+        .question-card {
+            background: #fff;
+            padding: 25px;
+            border-radius: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            margin-bottom: 25px;
+            border: 2px solid #E0E6ED;
+        }
+
+        .question-text {
+            font-size: 18px;
+            font-weight: 800;
+            margin-bottom: 20px;
+            color: #34495E;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .option-btn {
+            background: #fff;
+            border: 3px solid #E0E6ED;
+            padding: 15px;
+            border-radius: 15px;
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text-dark);
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 6px 0 #E0E6ED;
+        }
+
+        .option-btn:hover:not(:disabled) {
+            transform: scale(1.05);
+            border-color: var(--secondary);
+        }
+
+        .option-btn:active:not(:disabled) {
+            transform: translateY(6px);
+            box-shadow: 0 0px 0 #E0E6ED;
+        }
+
+        .option-btn.correct {
+            background: var(--correct);
+            color: white;
+            border-color: var(--correct);
+            box-shadow: 0 6px 0 #00A653;
+        }
+
+        .option-btn.wrong {
+            background: var(--wrong);
+            color: white;
+            border-color: var(--wrong);
+            box-shadow: 0 6px 0 #CC3945;
+            animation: shake 0.4s;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-5px); }
+            40%, 80% { transform: translateX(5px); }
+        }
+
+        .explanation {
+            display: none;
+            margin-top: 20px;
+            background: #E8F0FE;
+            padding: 15px;
+            border-radius: 12px;
+            border-left: 5px solid var(--primary);
+            font-size: 15px;
+            line-height: 1.6;
+        }
+
+        #submit-btn {
+            width: 100%;
+            padding: 20px;
+            font-size: 22px;
+            background: linear-gradient(45deg, #FF6B6B, #FF8E53);
+            box-shadow: 0 8px 0 #D94A4A;
+            margin-top: 20px;
+            margin-bottom: 40px;
+        }
+
+        #result-modal, #timeout-modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 40px;
+            border-radius: 25px;
+            text-align: center;
+            max-width: 500px;
+            animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0.5); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .score-circle {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            background: var(--secondary);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 40px;
+            font-weight: 900;
+            color: white;
+            margin: 0 auto 20px auto;
+            border: 10px solid #FFF3CD;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="top-bar">
+        <div class="author-tag"><h4>Giáo viên tạo: Ms Mai An ULIS</h4></div>
+        <div class="timer-container">
+            <div id="timer-display">10:00</div>
+            <button class="btn-gamify" id="timer-btn" onclick="toggleTimer()">BẮT ĐẦU TÍNH GIỜ</button>
+        </div>
+    </div>
+
+    <div id="main-container">
+        <div class="pane" id="left-pane">
+            <h2>📖 READING PASSAGE: THE THRILLER & TRUE CRIME</h2>
+            
+            <h3>Part 1: The Undercover Cop</h3>
+            
+            <div class="passage-segment">
+                <div class="passage-text">
+                    "I’d like to describe a gripping thriller I watched recently. It tells the story of an undercover cop investigating a dangerous suspect. The villain was a tall man with a very muscular <span class="blank" id="b-1">(1)</span>, who always put up a <span class="blank" id="b-2">(2)</span> of being a friendly and <span class="blank" id="b-3">(3)</span> neighbor. However, behind closed doors, he was completely cold and <span class="blank" id="b-4">(4)</span>. I really have to <span class="blank" id="b-5">(5)</span> for his incredible acting skills in this role."
+                </div>
+                <button class="mini-trans-btn" onclick="toggleTranslation('t-1')">🌟 Mở dịch đoạn này</button>
+                <div class="translation-content" id="t-1">
+                    "Tôi muốn kể về một bộ phim kinh dị li kỳ mà tôi mới xem gần đây. Nó kể về một cảnh sát chìm điều tra một nghi phạm nguy hiểm. Kẻ phản diện là một người đàn ông cao lớn với vóc dáng cơ bắp, kẻ luôn giả vờ là một người hàng xóm thân thiện và dễ gần. Tuy nhiên, đằng sau cánh cửa đóng kín, hắn ta hoàn toàn lạnh lùng và xa cách. Tôi thực sự phải dành lời khen ngợi cho kỹ năng diễn xuất tuyệt vời của anh ấy trong vai diễn này."
+                </div>
+            </div>
+
+            <div class="passage-segment">
+                <div class="passage-text">
+                    "The climax of the movie happens when the cop decides to hide and <span class="blank" id="b-6">(6)</span> on the suspect's secret meeting. He discovers that the suspect uses his basement to <span class="blank" id="b-7">(7)</span> dangerous fugitives. The basement was completely dark, and the terrible <span class="blank" id="b-8">(8)</span> of rotting garbage down there almost made the cop want to <span class="blank" id="b-9">(9)</span>."
+                </div>
+                <button class="mini-trans-btn" onclick="toggleTranslation('t-2')">🌟 Mở dịch đoạn này</button>
+                <div class="translation-content" id="t-2">
+                    "Đỉnh điểm của bộ phim xảy ra khi viên cảnh sát quyết định trốn và nghe lén cuộc họp bí mật của nghi phạm. Anh phát hiện ra rằng nghi phạm sử dụng tầng hầm của mình để chứa chấp những kẻ đào tẩu nguy hiểm. Tầng hầm tối om, và mùi hôi thối khủng khiếp của rác rưởi mục nát dưới đó gần như khiến viên cảnh sát muốn nôn mửa."
+                </div>
+            </div>
+
+            <div class="passage-segment">
+                <div class="passage-text">
+                    "Suddenly, a fight broke out. One of the gang members was pushed onto an exposed power line and got severely <span class="blank" id="b-10">(10)</span>. He fell to the ground, <span class="blank" id="b-11">(11)</span> and <span class="blank" id="b-12">(12)</span>, which was a truly terrifying scene to watch."
+                </div>
+                <button class="mini-trans-btn" onclick="toggleTranslation('t-3')">🌟 Mở dịch đoạn này</button>
+                <div class="translation-content" id="t-3">
+                    "Đột nhiên, một cuộc chiến nổ ra. Một thành viên trong băng đảng bị đẩy vào đường dây điện hở và bị điện giật nghiêm trọng. Hắn ta ngã xuống đất, co giật và sùi bọt mép, quả là một cảnh tượng thực sự đáng sợ."
+                </div>
+            </div>
+
+            <div class="passage-segment">
+                <div class="passage-text">
+                    "When the villain was finally arrested at the end of the movie, he didn't look embarrassed or <span class="blank" id="b-13">(13)</span> at all. He wasn't <span class="blank" id="b-14">(14)</span> for his crimes either. Instead, he just sat in the interrogation room, giving the cops a <span class="blank" id="b-15">(15)</span> glare."
+                </div>
+                <button class="mini-trans-btn" onclick="toggleTranslation('t-4')">🌟 Mở dịch đoạn này</button>
+                <div class="translation-content" id="t-4">
+                    "Khi kẻ phản diện cuối cùng bị bắt ở cuối phim, hắn không hề tỏ ra bối rối hay xấu hổ chút nào. Hắn cũng không hề hối lỗi về tội ác của mình. Thay vào đó, hắn chỉ ngồi trong phòng thẩm vấn, dành cho cảnh sát một cái nhìn hằn học."
+                </div>
+            </div>
+
+            <h3>Part 2: The Notorious Criminal</h3>
+            
+            <div class="passage-segment">
+                <div class="passage-text">
+                    "Today, I want to talk about a mind-blowing true-crime documentary I watched last week. It was about a notorious <span class="blank" id="b-16">(16)</span> who scammed and harmed multiple people. To his family and neighbors, he would always <span class="blank" id="b-17">(17)</span> and act like a perfect family man. But behind the scenes, he was a deceitful <span class="blank" id="b-18">(18)</span>."
+                </div>
+                <button class="mini-trans-btn" onclick="toggleTranslation('t-5')">🌟 Mở dịch đoạn này</button>
+                <div class="translation-content" id="t-5">
+                    "Hôm nay, tôi muốn nói về một bộ phim tài liệu tội phạm có thật gây sốc mà tôi đã xem tuần trước. Nó nói về một kẻ lừa đảo khét tiếng, kẻ đã lừa gạt và làm hại nhiều người. Với gia đình và hàng xóm, hắn luôn đóng vai một người chồng tốt và hành động như một người đàn ông hoàn hảo của gia đình. Nhưng sau bức màn, hắn là một kẻ cặn bã dối trá."
+                </div>
+            </div>
+
+            <div class="passage-segment">
+                <div class="passage-text">
+                    "The police eventually tracked him down to a secret basement he rented. It was an absolute <span class="blank" id="b-19">(19)</span>, full of trash and rats. The entire room would <span class="blank" id="b-20">(20)</span> of harsh chemicals. We learned that during his time in the army, where they used to <span class="blank" id="b-21">(21)</span> his unit in an old facility, he learned how to completely <span class="blank" id="b-22">(22)</span> his tools to remove fingerprints and <span class="blank" id="b-23">(23)</span> the evidence so badly that it was unrecognizable."
+                </div>
+                <button class="mini-trans-btn" onclick="toggleTranslation('t-6')">🌟 Mở dịch đoạn này</button>
+                <div class="translation-content" id="t-6">
+                    "Cuối cùng, cảnh sát đã theo dõi hắn đến một tầng hầm bí mật mà hắn thuê. Đó hoàn toàn là một địa ngục tồi tàn, đầy rác và chuột. Căn phòng bốc mùi hóa chất nồng nặc. Chúng tôi biết được rằng trong thời gian ở quân ngũ, nơi họ từng đóng quân tại một cơ sở cũ, hắn đã học được cách khử trùng hoàn toàn các công cụ của mình để xóa dấu vân tay và phá hủy bằng chứng đến mức không thể nhận ra."
+                </div>
+            </div>
+
+            <div class="passage-segment">
+                <div class="passage-text">
+                    "However, the forensic team was brilliant. They found a crucial piece of evidence: a victim's torn <span class="blank" id="b-24">(24)</span> that the criminal had strangely tried to <span class="blank" id="b-25">(25)</span> with a needle and thread to cover up his tracks. Using advanced DNA technology, the investigators also discovered hidden traces of <span class="blank" id="b-26">(26)</span> at the crime scene, which directly linked him to the case."
+                </div>
+                <button class="mini-trans-btn" onclick="toggleTranslation('t-7')">🌟 Mở dịch đoạn này</button>
+                <div class="translation-content" id="t-7">
+                    "Tuy nhiên, đội pháp y rất xuất sắc. Họ đã tìm thấy một manh mối quan trọng: quần lót bị rách của nạn nhân mà tên tội phạm đã cố gắng vá lại một cách kỳ lạ bằng kim chỉ để che giấu dấu vết. Sử dụng công nghệ DNA tiên tiến, các nhà điều tra cũng phát hiện ra những dấu vết tinh dịch được giấu kín tại hiện trường, trực tiếp liên kết hắn với vụ án."
+                </div>
+            </div>
+
+            <div class="passage-segment">
+                <div class="passage-text">
+                    "During the court trial, his true colors showed. He was incredibly <span class="blank" id="b-27">(27)</span>, always wearing expensive suits and acting like he was smarter than everyone else. He would constantly <span class="blank" id="b-28">(28)</span> about the police on the internet and even dared to <span class="blank" id="b-29">(29)</span> the judge when being questioned. When the final guilty verdict was read, he stood there staring coldly, completely <span class="blank" id="b-30">(30)</span> for the lives he had ruined."
+                </div>
+                <button class="mini-trans-btn" onclick="toggleTranslation('t-8')">🌟 Mở dịch đoạn này</button>
+                <div class="translation-content" id="t-8">
+                    "Trong phiên tòa xét xử, bản chất thật của hắn đã lộ rõ. Hắn vô cùng kiêu ngạo tự phụ, luôn mặc những bộ vest đắt tiền và tỏ ra mình thông minh hơn tất cả mọi người. Hắn liên tục nói xấu cảnh sát trên mạng và thậm chí dám cãi lại thẩm phán khi bị thẩm vấn. Khi phán quyết có tội cuối cùng được tuyên, hắn đứng đó chằm chằm một cách lạnh lùng, hoàn toàn không hề hối hận vì những cuộc đời mà hắn đã hủy hoại."
+                </div>
+            </div>
+
+            <h3>📚 GLOSSARY (TỪ VỰNG HỌC THUẬT NÂNG CAO B2-C2)</h3>
+            <table class="glossary-table">
+                <tr><th>Từ vựng</th><th>Loại từ</th><th>Nghĩa Tiếng Việt</th></tr>
+                <tr><td class="word-tag">1. physique</td><td>Noun</td><td>Vóc dáng, thể chất (thường nói về cơ bắp).</td></tr>
+                <tr><td class="word-tag">2. congenial</td><td>Adjective</td><td>Dễ gần, thân thiện, hòa đồng.</td></tr>
+                <tr><td class="word-tag">3. aloof</td><td>Adjective</td><td>Xa cách, lạnh lùng, không thân thiện.</td></tr>
+                <tr><td class="word-tag">4. eavesdrop</td><td>Verb</td><td>Nghe lén, nghe trộm.</td></tr>
+                <tr><td class="word-tag">5. harbour</td><td>Verb</td><td>Chứa chấp, bao che (tội phạm/kẻ trốn truy nã).</td></tr>
+                <tr><td class="word-tag">6. stench</td><td>Noun</td><td>Mùi hôi thối nồng nặc.</td></tr>
+                <tr><td class="word-tag">7. spiteful</td><td>Adjective</td><td>Hằn học, mang ý đồ xấu, đầy thù hận.</td></tr>
+                <tr><td class="word-tag">8. con artist</td><td>Noun</td><td>Kẻ lừa đảo (chuyên nghiệp).</td></tr>
+                <tr><td class="word-tag">9. lowlife</td><td>Noun</td><td>Kẻ cặn bã, tồi tệ trong xã hội.</td></tr>
+                <tr><td class="word-tag">10. reek</td><td>Verb</td><td>Bốc mùi hôi thối (thường đi với "of").</td></tr>
+                <tr><td class="word-tag">11. mangle</td><td>Verb</td><td>Làm nhừ tử, cắt xén, phá hủy làm biến dạng.</td></tr>
+                <tr><td class="word-tag">12. darn</td><td>Verb</td><td>Vá (quần áo) bằng kim chỉ.</td></tr>
+                <tr><td class="word-tag">13. pretentious</td><td>Adjective</td><td>Kiêu ngạo, tự phụ, tỏ vẻ ta đây.</td></tr>
+            </table>
+        </div>
+
+        <div class="pane" id="right-pane">
+            <h2>🎮 BÀI TẬP TRẮC NGHIỆM (30 CÂU)</h2>
+            <div id="quiz-container">
+                </div>
+            <button class="btn-gamify" id="submit-btn" onclick="submitQuiz()">🎉 NỘP BÀI VÀ XEM ĐIỂM 🎉</button>
+        </div>
+    </div>
+
+    <div id="result-modal">
+        <div class="modal-content">
+            <h1 style="color: var(--primary); font-weight: 900; margin-bottom: 20px;">KẾT QUẢ CỦA BẠN!</h1>
+            <div class="score-circle" id="final-score">0/30</div>
+            <h2 id="feedback-text" style="color: #34495E; margin-bottom: 20px;">Làm tốt lắm!</h2>
+            <button class="btn-gamify" onclick="location.reload()">Làm Lại Lần Nữa 🔄</button>
+        </div>
+    </div>
+
+    <div id="timeout-modal">
+        <div class="modal-content">
+            <h2 style="color: var(--wrong); margin-bottom: 15px;">⏰ ĐÃ HẾT GIỜ LÀM BÀI!</h2>
+            <p style="font-size: 18px; margin-bottom: 20px;">Bạn vẫn có thể tiếp tục làm, nhưng nhớ là trong phòng thi thật, bạn chỉ nên làm một bài như thế này trong 10 phút thôi nha.</p>
+            <button class="btn-gamify" onclick="document.getElementById('timeout-modal').style.display='none'">Tiếp Tục Làm Bài</button>
+        </div>
+    </div>
+
+    <script>
+        /* === AUDIO API === */
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playCorrectSound() {
+            if(audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(880, audioCtx.currentTime); // A5
+            osc.frequency.exponentialRampToValueAtTime(1760, audioCtx.currentTime + 0.1); // A6
+            gain.gain.setValueAtTime(0.5, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.5);
+        }
+        function playWrongSound() {
+            if(audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(300, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.4);
+            gain.gain.setValueAtTime(0.5, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.4);
+        }
+
+        /* === CONFETTI LOGIC === */
+        function fireConfetti() {
+            for(let i=0; i<30; i++) {
+                let conf = document.createElement('div');
+                conf.style.position = 'fixed';
+                conf.style.width = '10px'; conf.style.height = '10px';
+                conf.style.backgroundColor = ['#FF4757', '#00D26A', '#FDCB6E', '#8854C0', '#00C9A7'][Math.floor(Math.random()*5)];
+                conf.style.left = Math.random() * 100 + 'vw';
+                conf.style.top = '-10px';
+                conf.style.borderRadius = '50%';
+                conf.style.zIndex = '9999';
+                document.body.appendChild(conf);
+                
+                let angle = Math.random() * Math.PI * 2;
+                let velocity = 2 + Math.random() * 3;
+                let x = 0; let y = 0;
+                
+                function fall() {
+                    y += velocity; x += Math.sin(angle) * 2;
+                    conf.style.transform = `translate(${x}px, ${y}px) rotate(${y*2}deg)`;
+                    if(y < window.innerHeight) requestAnimationFrame(fall);
+                    else conf.remove();
+                }
+                requestAnimationFrame(fall);
+            }
+        }
+
+        /* === TIMER LOGIC === */
+        let timerSeconds = 600; // 10 minutes
+        let timerInterval = null;
+        let isTimerRunning = false;
+
+        function updateTimerDisplay() {
+            let m = Math.floor(timerSeconds / 60);
+            let s = timerSeconds % 60;
+            document.getElementById('timer-display').innerText = `${m < 10 ? '0':''}${m}:${s < 10 ? '0':''}${s}`;
+        }
+
+        function toggleTimer() {
+            const btn = document.getElementById('timer-btn');
+            if(isTimerRunning) {
+                clearInterval(timerInterval);
+                btn.innerText = "TIẾP TỤC";
+                btn.style.background = "var(--secondary)";
+            } else {
+                btn.innerText = "TẠM DỪNG";
+                btn.style.background = "var(--wrong)";
+                timerInterval = setInterval(() => {
+                    timerSeconds--;
+                    updateTimerDisplay();
+                    if(timerSeconds <= 0) {
+                        clearInterval(timerInterval);
+                        document.getElementById('timeout-modal').style.display = 'flex';
+                        btn.innerText = "HẾT GIỜ";
+                        btn.disabled = true;
+                    }
+                }, 1000);
+            }
+            isTimerRunning = !isTimerRunning;
+        }
+
+        function toggleTranslation(id) {
+            let el = document.getElementById(id);
+            let btn = el.previousElementSibling;
+            if (el.style.display === 'block') {
+                el.style.display = 'none';
+                btn.innerHTML = "🌟 Mở dịch đoạn này";
+            } else {
+                el.style.display = 'block';
+                btn.innerHTML = "❌ Đóng bản dịch";
+            }
+        }
+
+        /* === QUIZ DATA (30 Questions) === */
+        const quizData = [
+            // PART 1
+            { id: 1, text: "The villain was a tall man with a very muscular (1) _________", correct: "physique", options: ["pretence", "physique", "stench", "congenial"], expl: "<b>physique (n): vóc dáng.</b> Phù hợp với tính từ muscular (cơ bắp).<br>Loại pretence (sự giả vờ), stench (mùi hôi), congenial (hòa đồng)." },
+            { id: 2, text: "...who always put up a (2) _________ of being a friendly...", correct: "pretence", options: ["pretence", "sheepish", "quarter", "aloof"], expl: "<b>put up a pretence (cụm từ): giả vờ, tỏ vẻ.</b><br>Loại sheepish (xấu hổ), quarter (chỗ ở), aloof (xa cách)." },
+            { id: 3, text: "...being a friendly and (3) _________ neighbor.", correct: "congenial", options: ["spiteful", "congenial", "apologetic", "pretentious"], expl: "<b>congenial (adj): hòa đồng, dễ gần.</b> Cấu trúc song song 'friendly and...'.<br>Loại spiteful (hằn học), apologetic (hối lỗi)." },
+            { id: 4, text: "However, behind closed doors, he was completely cold and (4) _________.", correct: "aloof", options: ["aloof", "electrocuted", "congenial", "having convulsions"], expl: "<b>aloof (adj): xa cách, lạnh lùng.</b> Phù hợp với từ 'cold'.<br>Loại electrocuted (bị điện giật), congenial (hòa đồng)." },
+            { id: 5, text: "I really have to (5) _________ for his incredible acting skills...", correct: "give him a credit", options: ["give him a credit", "puke", "eavesdrop", "mangle"], expl: "<b>give someone (a) credit: công nhận, dành lời khen ngợi.</b><br>Loại puke (nôn mửa), eavesdrop (nghe lén), mangle (cắt xén)." },
+            { id: 6, text: "...decides to hide and (6) _________ on the suspect's secret meeting.", correct: "eavesdrop", options: ["harbour", "eavesdrop", "sterilize", "darn"], expl: "<b>eavesdrop on (v): nghe lén.</b> Phù hợp với bối cảnh trốn (hide) và họp bí mật.<br>Loại harbour (chứa chấp)." },
+            { id: 7, text: "He discovers that the suspect uses his basement to (7) _________ dangerous fugitives.", correct: "harbour", options: ["mangle", "harbour", "sterilize", "puke"], expl: "<b>harbour (v): chứa chấp, bao che.</b> (đặc biệt là tội phạm/fugitives).<br>Loại sterilize (khử trùng), puke (nôn)." },
+            { id: 8, text: "...and the terrible (8) _________ of rotting garbage...", correct: "stench", options: ["physique", "hellhole", "stench", "semen"], expl: "<b>stench (n): mùi hôi thối nồng nặc.</b> Phù hợp với rotting garbage (rác mục nát)." },
+            { id: 9, text: "...almost made the cop want to (9) _________.", correct: "puke", options: ["puke", "darn", "talk trash", "eavesdrop"], expl: "<b>puke (v): nôn mửa.</b> Do ngửi thấy mùi hôi thối.<br>Loại darn (vá áo), talk trash (nói xấu)." },
+            { id: 10, text: "...pushed onto an exposed power line and got severely (10) _________.", correct: "electrocuted", options: ["electrocuted", "apologetic", "congenial", "sheepish"], expl: "<b>electrocuted (v-ed): bị điện giật chết/bị thương.</b> Phù hợp với power line (dây điện)." },
+            { id: 11, text: "He fell to the ground, (11) _________ and...", correct: "having convulsions", options: ["having convulsions", "foaming at the mouth", "playing a good husband", "talking back to"], expl: "<b>having convulsions: bị co giật.</b> Biểu hiện khi bị điện giật.<br>(Lưu ý: vị trí 11 và 12 có thể đổi chỗ, nhưng dựa vào thứ tự liệt kê chung thường thấy)." },
+            { id: 12, text: "...and (12) _________, which was a truly terrifying scene.", correct: "foaming at the mouth", options: ["foaming at the mouth", "having convulsions", "giving him a credit", "mangling"], expl: "<b>foaming at the mouth: sùi bọt mép.</b>" },
+            { id: 13, text: "...he didn't look embarrassed or (13) _________ at all.", correct: "sheepish", options: ["sheepish", "congenial", "pretentious", "aloof"], expl: "<b>sheepish (adj): bẽn lẽn, xấu hổ (vì làm sai).</b> Đồng nghĩa với embarrassed.<br>Loại pretentious (tự phụ)." },
+            { id: 14, text: "He wasn't (14) _________ for his crimes either.", correct: "apologetic", options: ["apologetic", "spiteful", "unapologetic", "aloof"], expl: "<b>apologetic (adj): cảm thấy hối lỗi.</b> Phù hợp cấu trúc phủ định 'wasn't apologetic'.<br>Loại spiteful (hằn học)." },
+            { id: 15, text: "...giving the cops a (15) _________ glare.", correct: "spiteful", options: ["spiteful", "sheepish", "congenial", "apologetic"], expl: "<b>spiteful (adj): hằn học, mang ác ý.</b> Phù hợp với 'glare' (cái nhìn trừng trừng)." },
+            
+            // PART 2
+            { id: 16, text: "It was about a notorious (16) _________ who scammed and harmed multiple people.", correct: "con artist", options: ["con artist", "lowlife", "hellhole", "panty"], expl: "<b>con artist (n): kẻ lừa đảo.</b> Phù hợp với từ 'scammed' (lừa tiền).<br>Loại hellhole (địa ngục tồi tàn)." },
+            { id: 17, text: "...he would always (17) _________ and act like a perfect family man.", correct: "play a good husband", options: ["play a good husband", "talk trash", "talk back to", "sterilize"], expl: "<b>play a good husband: đóng vai người chồng tốt.</b> Phù hợp với 'perfect family man'." },
+            { id: 18, text: "But behind the scenes, he was a deceitful (18) _________.", correct: "lowlife", options: ["lowlife", "con artist", "hellhole", "semen"], expl: "<b>lowlife (n): kẻ cặn bã.</b> Phù hợp với 'deceitful' (dối trá)." },
+            { id: 19, text: "It was an absolute (19) _________, full of trash and rats.", correct: "hellhole", options: ["hellhole", "quarter", "stench", "physique"], expl: "<b>hellhole (n): nơi tồi tàn, như địa ngục.</b> Phù hợp với 'trash and rats'." },
+            { id: 20, text: "The entire room would (20) _________ of harsh chemicals.", correct: "reek", options: ["reek", "mangle", "darn", "puke"], expl: "<b>reek (v): bốc mùi nồng nặc (reek of sth).</b> Phù hợp với 'chemicals'." },
+            { id: 21, text: "...where they used to (21) _________ his unit in an old facility...", correct: "quarter", options: ["quarter", "sterilize", "harbour", "mangle"], expl: "<b>quarter (v): đóng quân, cho binh lính ở.</b>" },
+            { id: 22, text: "...he learned how to completely (22) _________ his tools to remove fingerprints...", correct: "sterilize", options: ["sterilize", "mangle", "darn", "reek"], expl: "<b>sterilize (v): tiệt trùng, làm sạch hoàn toàn.</b> Để xóa vân tay." },
+            { id: 23, text: "...and (23) _________ the evidence so badly that it was unrecognizable.", correct: "mangle", options: ["mangle", "sterilize", "harbour", "eavesdrop"], expl: "<b>mangle (v): làm biến dạng, cắt xén.</b> Phù hợp với 'unrecognizable' (không nhận ra được)." },
+            { id: 24, text: "...a victim's torn (24) _________ that the criminal had strangely tried to...", correct: "panty", options: ["panty", "semen", "hellhole", "physique"], expl: "<b>panty (n): quần lót nữ.</b> Phù hợp với 'torn' (bị rách)." },
+            { id: 25, text: "...strangely tried to (25) _________ with a needle and thread...", correct: "darn", options: ["darn", "mangle", "reek", "puke"], expl: "<b>darn (v): vá (quần áo).</b> Đi kèm 'needle and thread' (kim và chỉ)." },
+            { id: 26, text: "...discovered hidden traces of (26) _________ at the crime scene...", correct: "semen", options: ["semen", "stench", "panty", "hellhole"], expl: "<b>semen (n): tinh dịch.</b> Dấu vết sinh học dùng trong DNA technology." },
+            { id: 27, text: "He was incredibly (27) _________, always wearing expensive suits...", correct: "pretentious", options: ["pretentious", "apologetic", "sheepish", "unapologetic"], expl: "<b>pretentious (adj): kiêu ngạo, tự phụ, thích khoe khoang.</b>" },
+            { id: 28, text: "He would constantly (28) _________ about the police on the internet...", correct: "talk trash", options: ["talk trash", "talk back to", "play a good husband", "eavesdrop"], expl: "<b>talk trash: nói xấu, châm biếm.</b>" },
+            { id: 29, text: "...and even dared to (29) _________ the judge when being questioned.", correct: "talk back to", options: ["talk back to", "talk trash", "give him a credit", "darn"], expl: "<b>talk back to: cãi lại (ai đó có thẩm quyền).</b>" },
+            { id: 30, text: "...completely (30) _________ for the lives he had ruined.", correct: "unapologetic", options: ["unapologetic", "apologetic", "congenial", "sheepish"], expl: "<b>unapologetic (adj): không hề hối lỗi.</b> Phù hợp với thái độ 'staring coldly' (nhìn chằm chằm lạnh lùng)." }
+        ];
+
+        let score = 0;
+        let answeredQuestions = new Set();
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function renderQuiz() {
+            const container = document.getElementById('quiz-container');
+            quizData.forEach((q, index) => {
+                let shuffledOptions = shuffleArray([...q.options]);
+                let card = document.createElement('div');
+                card.className = 'question-card';
+                card.id = `q-card-${q.id}`;
+                
+                let html = `<div class="question-text">Question ${index + 1}: ${q.text}</div>`;
+                html += `<div class="options-grid" id="opts-${q.id}">`;
+                
+                shuffledOptions.forEach(opt => {
+                    html += `<button class="option-btn" onclick="checkAnswer(${q.id}, '${opt}', this, '${q.correct}')">${opt}</button>`;
+                });
+                
+                html += `</div>`;
+                html += `<div class="explanation" id="expl-${q.id}">${q.expl}</div>`;
+                
+                card.innerHTML = html;
+                container.appendChild(card);
+            });
+        }
+
+        function checkAnswer(qId, selected, btnElement, correctAns) {
+            if(answeredQuestions.has(qId)) return; 
+            
+            answeredQuestions.add(qId);
+            const explDiv = document.getElementById(`expl-${qId}`);
+            const allBtns = document.getElementById(`opts-${qId}`).getElementsByTagName('button');
+            const blankSpan = document.getElementById(`b-${qId}`);
+
+            for(let btn of allBtns) {
+                btn.disabled = true;
+                if(btn.innerText === correctAns) {
+                    btn.classList.add('correct');
+                }
+            }
+
+            if(selected === correctAns) {
+                btnElement.classList.add('correct');
+                playCorrectSound();
+                fireConfetti();
+                score++;
+            } else {
+                btnElement.classList.add('wrong');
+                playWrongSound();
+            }
+
+            blankSpan.innerText = correctAns;
+            blankSpan.style.color = selected === correctAns ? "var(--correct)" : "var(--wrong)";
+            blankSpan.style.borderBottomColor = selected === correctAns ? "var(--correct)" : "var(--wrong)";
+
+            explDiv.style.display = 'block';
+        }
+
+        function submitQuiz() {
+            clearInterval(timerInterval);
+            document.getElementById('result-modal').style.display = 'flex';
+            document.getElementById('final-score').innerText = `${score}/${quizData.length}`;
+            
+            let feedback = document.getElementById('feedback-text');
+            if(score === 30) {
+                feedback.innerText = "🏆 THIÊN TÀI NGÔN NGỮ! Bạn đã xuất sắc tuyệt đối!";
+                fireConfetti(); fireConfetti();
+            } else if (score >= 20) {
+                feedback.innerText = "🌟 Rất Xuất Sắc! Bạn nắm từ vựng rất tốt!";
+                fireConfetti();
+            } else if (score >= 10) {
+                feedback.innerText = "👍 Làm Tốt Lắm! Cố gắng ôn thêm một chút nhé!";
+            } else {
+                feedback.innerText = "💪 Đừng nản chí! Hãy đọc kỹ phần giải thích và thử lại nha!";
+            }
+        }
+
+        window.onload = () => {
+            renderQuiz();
+            updateTimerDisplay();
+        };
+    </script>
+</body>
+</html>

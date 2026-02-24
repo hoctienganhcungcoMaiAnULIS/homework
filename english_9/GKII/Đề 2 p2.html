@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>World Exploration - Gamification English Test</title>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500;700;900&display=swap" rel="stylesheet">
+    <style>
+        /* CSS VARIABLES & DYNAMIC THEME: EXPLORATION (NATURE, DESERT, WATER) */
+        :root {
+            --primary: #0984e3; /* Water Blue */
+            --secondary: #00b894; /* Nature Green */
+            --accent: #fdcb6e; /* Desert Sand */
+            --correct: #00D26A;
+            --wrong: #FF4757;
+            --text-dark: #2d3436;
+            --bg-card: rgba(255, 255, 255, 0.95);
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: 'Quicksand', sans-serif;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            overflow: hidden;
+            background: linear-gradient(-45deg, #74b9ff, var(--secondary), var(--accent), #ffeaa7);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            color: var(--text-dark);
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* SVG Emoji Background Pattern: 🐪 🏅 🌊 🏛️ */
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background-image: url("data:image/svg+xml,%3Csvg width='160' height='160' xmlns='http://www.w3.org/2000/svg'%3E%3Ctext x='10' y='40' font-size='35'%3E🐪%3C/text%3E%3Ctext x='90' y='90' font-size='30'%3E🏅%3C/text%3E%3Ctext x='30' y='140' font-size='35'%3E🌊%3C/text%3E%3Ctext x='110' y='30' font-size='25'%3E🏛️%3C/text%3E%3C/svg%3E");
+            opacity: 0.15;
+            animation: floatPattern 40s linear infinite;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        @keyframes floatPattern {
+            from { background-position: 0 0; }
+            to { background-position: 300px 300px; }
+        }
+
+        /* HEADER */
+        header {
+            position: relative;
+            z-index: 10;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border-bottom: 3px solid var(--primary);
+        }
+
+        .header-title h1 {
+            margin: 0;
+            font-size: 1.4rem;
+            color: var(--primary);
+            text-transform: uppercase;
+        }
+        .header-title p {
+            margin: 0;
+            font-size: 0.85rem;
+            font-weight: bold;
+            color: #636e72;
+        }
+
+        .timer-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        #timer-display {
+            font-size: 1.8rem;
+            font-weight: 900;
+            color: var(--wrong);
+            background: #ffeaa7;
+            padding: 5px 15px;
+            border-radius: 10px;
+            border: 2px solid var(--accent);
+        }
+
+        .btn-start {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 1rem;
+            font-weight: bold;
+            border-radius: 12px;
+            cursor: pointer;
+            box-shadow: 0 4px 0 #0984e3;
+            transition: all 0.1s;
+        }
+        .btn-start:active {
+            transform: translateY(4px);
+            box-shadow: 0 0 0 #0984e3;
+        }
+
+        /* MAIN LAYOUT: SPLIT SCREEN */
+        main {
+            display: flex;
+            height: calc(100vh - 75px);
+            position: relative;
+            z-index: 10;
+        }
+
+        .pane {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            scroll-behavior: smooth;
+        }
+
+        .pane::-webkit-scrollbar { width: 8px; }
+        .pane::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.2); border-radius: 10px; }
+
+        .left-pane { border-right: 3px dashed rgba(255,255,255,0.6); }
+        
+        /* READING CONTENT */
+        .passage-card {
+            background: var(--bg-card);
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            line-height: 1.7;
+            font-size: 1.1rem;
+        }
+
+        .passage-title {
+            color: var(--primary);
+            font-weight: 900;
+            font-size: 1.4rem;
+            text-align: center;
+            margin-bottom: 15px;
+            border-bottom: 2px solid var(--accent);
+            padding-bottom: 10px;
+        }
+
+        .translate-btn {
+            background: #fff;
+            color: #e17055;
+            border: 2px solid #e17055;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 0.95rem;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 10px 0;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            transition: 0.3s;
+        }
+        .translate-btn:hover { background: #e17055; color: #fff; }
+
+        .translation-content {
+            display: none;
+            background: #fff9e6;
+            padding: 15px;
+            border-left: 5px solid #e17055;
+            margin-top: 5px;
+            font-size: 1rem;
+            color: #2d3436;
+            border-radius: 0 10px 10px 0;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        /* GLOSSARY TABLE */
+        .glossary-wrapper {
+            margin-top: 25px;
+            background: #fff;
+            border-radius: 15px;
+            overflow: hidden;
+            border: 2px solid var(--secondary);
+        }
+        .glossary-wrapper h4 {
+            background: var(--secondary);
+            color: #fff;
+            margin: 0;
+            padding: 10px;
+            text-align: center;
+            font-size: 1.1rem;
+        }
+        table { width: 100%; border-collapse: collapse; font-size: 0.95rem; }
+        th, td { padding: 10px; text-align: left; border-bottom: 1px solid #eee; }
+        th { background: #e8f8f5; color: #16a085; }
+        tr:hover { background-color: #f1f2f6; }
+
+        /* EXERCISES */
+        .question-card {
+            background: var(--bg-card);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 0 rgba(0,0,0,0.05);
+        }
+        
+        .question-text {
+            font-size: 1.15rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #2d3436;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+        }
+
+        .option-btn {
+            background: #fff;
+            border: 2px solid #dfe6e9;
+            border-bottom: 6px solid #dfe6e9;
+            border-radius: 15px;
+            padding: 15px;
+            font-size: 1.05rem;
+            font-weight: bold;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+        }
+
+        .option-btn:hover {
+            transform: translateY(-2px);
+            border-color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+
+        .option-btn:active {
+            transform: translateY(4px);
+            border-bottom-width: 2px;
+        }
+
+        .option-btn.correct {
+            background: #e3fbec;
+            border-color: var(--correct);
+            border-bottom-color: var(--correct);
+            color: #009432;
+        }
+
+        .option-btn.wrong {
+            background: #ffebed;
+            border-color: var(--wrong);
+            border-bottom-color: var(--wrong);
+            color: #c23616;
+            animation: shake 0.4s;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-8px); }
+            50% { transform: translateX(8px); }
+            75% { transform: translateX(-8px); }
+        }
+
+        .explanation-box {
+            display: none;
+            margin-top: 15px;
+            background: #e0f7fa;
+            border-left: 5px solid var(--primary);
+            padding: 15px;
+            border-radius: 0 10px 10px 0;
+            font-size: 1rem;
+            line-height: 1.6;
+            animation: fadeIn 0.5s;
+        }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .submit-btn {
+            display: block;
+            width: 100%;
+            background: linear-gradient(135deg, #fdcb6e, #ffeaa7);
+            color: #d35400;
+            font-size: 1.5rem;
+            font-weight: 900;
+            padding: 15px;
+            border: none;
+            border-radius: 20px;
+            box-shadow: 0 8px 0 #e17055;
+            cursor: pointer;
+            margin-bottom: 40px;
+            transition: 0.2s;
+        }
+        .submit-btn:hover { filter: brightness(1.05); transform: translateY(-2px); box-shadow: 0 10px 0 #e17055; }
+        .submit-btn:active { transform: translateY(8px); box-shadow: 0 0 0 #e17055; }
+
+        /* MODAL RESULT */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background: #fff;
+            padding: 40px;
+            border-radius: 30px;
+            text-align: center;
+            max-width: 500px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            animation: scaleUp 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border: 5px solid var(--primary);
+        }
+        @keyframes scaleUp { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        
+        .score-text { font-size: 4rem; font-weight: 900; color: var(--primary); margin: 10px 0; }
+        .comment-text { font-size: 1.3rem; color: #636e72; font-weight: bold; line-height: 1.5; }
+
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="header-title">
+            <h1>WORLD EXPLORATION 🌍</h1>
+            <p>Giáo viên tạo: Ms Mai An ULIS</p>
+        </div>
+        <div class="timer-container">
+            <div id="timer-display">10:00</div>
+            <button class="btn-start" id="btn-timer" onclick="toggleTimer()">BẮT ĐẦU TÍNH GIỜ</button>
+        </div>
+    </header>
+
+    <main>
+        <div class="pane left-pane" id="reading-pane">
+            
+            <div class="passage-card">
+                <div class="passage-title">PART 1: CAMFORD MUSEUM</div>
+                <p>The exhibition here is based <b>(13)________</b> large models showing how living creatures use their amazing skills in the wild.</p>
+                <button class="translate-btn" onclick="toggleTranslation('trans1_1')">Mở dịch đoạn này 🌟</button>
+                <div class="translation-content" id="trans1_1">
+                    <b>BẢN DỊCH:</b> Triển lãm ở đây xoay quanh các mô hình lớn cho thấy cách các sinh vật sống sử dụng những kỹ năng tuyệt vời của chúng trong môi trường hoang dã.
+                </div>
+
+                <p>Dress up like <b>(14)________</b> jungle creatures to discover how they deal with a <b>(15)________</b> environment. Or build a model of a giraffe – and even get one from the shop to <b>(16)________</b>!</p>
+                <button class="translate-btn" onclick="toggleTranslation('trans1_2')">Mở dịch đoạn này 🌟</button>
+                <div class="translation-content" id="trans1_2">
+                    <b>BẢN DỊCH:</b> Hãy hóa trang thành những sinh vật rừng xanh để khám phá cách chúng đối phó với một môi trường luôn thay đổi. Hoặc xây dựng một mô hình hươu cao cổ – và thậm chí mua một con từ cửa hàng để mang về!
+                </div>
+
+                <div class="glossary-wrapper">
+                    <h4>📚 Bảng từ vựng (Glossary)</h4>
+                    <table>
+                        <tr><th>Word</th><th>Type</th><th>Meaning</th></tr>
+                        <tr><td>Exhibition</td><td>Noun (n)</td><td>Cuộc triển lãm, sự trưng bày</td></tr>
+                        <tr><td>Based around</td><td>Phrasal verb</td><td>Dựa trên, xoay quanh (chủ đề gì)</td></tr>
+                        <tr><td>Creature</td><td>Noun (n)</td><td>Sinh vật, loài vật</td></tr>
+                        <tr><td>Wild</td><td>Noun (n)</td><td>Môi trường hoang dã</td></tr>
+                        <tr><td>Deal with</td><td>Phrasal verb</td><td>Giải quyết, đối phó với</td></tr>
+                        <tr><td>Environment</td><td>Noun (n)</td><td>Môi trường</td></tr>
+                    </table>
+                </div>
+            </div>
+
+            <div class="passage-card">
+                <div class="passage-title">PART 2: HOSTING THE OLYMPICS</div>
+                <p>When hosting an Olympic Games, a country has to take account of several considerations, among which the financial one is by far the most important. The costs of hosting the Olympics can <b>(19)________</b> tens of billions of dollars, and it is commonplace for budgets to double or even triple. In addition to the direct costs of hosting the Games (the opening and closing ceremonies, athletes’ village, security, etc.,), cities often must build expensive new venues <b>(20)________</b> lesser-known sports. Once constructed, sports venues often incur additional maintenance costs long after the Games have ended.</p>
+                <button class="translate-btn" onclick="toggleTranslation('trans2_1')">Mở dịch đoạn này 🌟</button>
+                <div class="translation-content" id="trans2_1">
+                    <b>BẢN DỊCH:</b> Khi đăng cai Thế vận hội Olympic, một quốc gia phải tính đến một vài sự cân nhắc, trong đó vấn đề tài chính cho đến nay là quan trọng nhất. Chi phí tổ chức Olympic có thể vượt quá hàng chục tỷ đô la, và chuyện ngân sách tăng gấp đôi hay thậm chí gấp ba là chuyện thường tình. Ngoài các chi phí trực tiếp cho việc tổ chức Thế vận hội (lễ khai mạc và bế mạc, làng vận động viên, an ninh, v.v.), các thành phố thường phải xây dựng những địa điểm thi đấu mới đắt đỏ cho những môn thể thao ít được biết đến. Khi đã được xây dựng, các địa điểm thể thao này thường phát sinh thêm chi phí bảo trì rất lâu sau khi Thế vận hội kết thúc.
+                </div>
+
+                <p>While costs are the <b>(21)________</b> concern for a host city, there are <b>(22)________</b> factors to consider. For one, an Olympic host city may receive substantial revenue from ticket sales, tourist spending, corporate sponsorship, and television rights. Cities such as Los Angeles (1984) actually made a large profit from the Games they hosted. <b>(23)________</b>, hosting the Olympic Games confers prestige on a host city and country, which can lead to increased trade and tourism. The Olympics are also an opportunity to invest in projects <b>(24)________</b> improve the city’s quality of life, such as new transportation systems.</p>
+                <button class="translate-btn" onclick="toggleTranslation('trans2_2')">Mở dịch đoạn này 🌟</button>
+                <div class="translation-content" id="trans2_2">
+                    <b>BẢN DỊCH:</b> Mặc dù chi phí là mối quan tâm hàng đầu của một thành phố đăng cai, vẫn còn những yếu tố khác cần xem xét. Ví dụ, một thành phố đăng cai Olympic có thể nhận được doanh thu đáng kể từ việc bán vé, chi tiêu của khách du lịch, tài trợ của các tập đoàn và bản quyền truyền hình. Các thành phố như Los Angeles (1984) thực sự đã kiếm được lợi nhuận lớn từ Thế vận hội mà họ tổ chức. Ngoài ra, việc tổ chức Thế vận hội Olympic mang lại uy tín cho thành phố và quốc gia đăng cai, điều này có thể dẫn đến sự gia tăng về thương mại và du lịch. Olympic cũng là cơ hội để đầu tư vào các dự án giúp cải thiện chất lượng cuộc sống của thành phố, chẳng hạn như hệ thống giao thông mới.
+                </div>
+
+                <div class="glossary-wrapper">
+                    <h4>📚 Bảng từ vựng (Glossary)</h4>
+                    <table>
+                        <tr><th>Word</th><th>Type</th><th>Meaning</th></tr>
+                        <tr><td>Consideration</td><td>Noun (n)</td><td>Sự cân nhắc, xem xét</td></tr>
+                        <tr><td>Financial</td><td>Adjective (adj)</td><td>Thuộc về tài chính</td></tr>
+                        <tr><td>Commonplace</td><td>Adjective (adj)</td><td>Phổ biến, chuyện thường tình</td></tr>
+                        <tr><td>Venue</td><td>Noun (n)</td><td>Địa điểm (tổ chức sự kiện, thi đấu)</td></tr>
+                        <tr><td>Incur</td><td>Verb (v)</td><td>Gánh chịu, phát sinh (chi phí)</td></tr>
+                        <tr><td>Maintenance</td><td>Noun (n)</td><td>Sự bảo trì, bảo dưỡng</td></tr>
+                        <tr><td>Substantial</td><td>Adjective (adj)</td><td>Đáng kể, lớn lao</td></tr>
+                        <tr><td>Revenue</td><td>Noun (n)</td><td>Doanh thu, nguồn thu</td></tr>
+                        <tr><td>Corporate</td><td>Adjective (adj)</td><td>Thuộc về đoàn thể, công ty lớn</td></tr>
+                        <tr><td>Prestige</td><td>Noun (n)</td><td>Uy tín, thanh thế</td></tr>
+                    </table>
+                </div>
+            </div>
+
+            <div class="passage-card">
+                <div class="passage-title">PART 3: THE GOBI DESERT</div>
+                <p>The Gobi Desert is located in both Northern China and Southern Mongolia, covering a total area of 1.29 million km2. The name “Gobi” in Mongolia means “a waterless place”. The annual rainfall is about 18 cm. Gobi has rapid temperature changes, both seasonally and daily. Summer months bring temperatures of up to 50 ℃ whilst in the winter months, temperature can drop to below - 40℃. This is also where some of the world’s first fossilised dinosaur eggs were found.</p>
+                <button class="translate-btn" onclick="toggleTranslation('trans3_1')">Mở dịch đoạn này 🌟</button>
+                <div class="translation-content" id="trans3_1">
+                    <b>BẢN DỊCH:</b> Sa mạc Gobi nằm ở cả miền Bắc Trung Quốc và miền Nam Mông Cổ, bao phủ tổng diện tích 1,29 triệu km2. Cái tên "Gobi" trong tiếng Mông Cổ có nghĩa là "nơi không có nước". Lượng mưa hàng năm là khoảng 18 cm. Gobi có sự thay đổi nhiệt độ nhanh chóng, cả theo mùa và theo ngày. Những tháng mùa hè mang đến nhiệt độ lên tới 50℃ trong khi vào những tháng mùa đông, nhiệt độ có thể giảm xuống dưới -40℃. Đây cũng là nơi người ta tìm thấy một số quả trứng khủng long hóa thạch đầu tiên trên thế giới.
+                </div>
+
+                <p>Tourists who want to explore the Gobi Desert should travel in Jeep cars with local drivers or by camel. They can admire a dramatic rocky landscape, high sand dunes, and see some of the unique Gobi Desert animals such as the Jerboa, Snow Leopard, and Siberian Ibex. They should also visit ancient ruins and oasis communities, as well as meet the nomadic people whose ways of life remain untouched by Western influence.</p>
+                <button class="translate-btn" onclick="toggleTranslation('trans3_2')">Mở dịch đoạn này 🌟</button>
+                <div class="translation-content" id="trans3_2">
+                    <b>BẢN DỊCH:</b> Khách du lịch muốn khám phá sa mạc Gobi nên đi bằng xe Jeep với tài xế địa phương hoặc cưỡi lạc đà. Họ có thể chiêm ngưỡng phong cảnh núi đá ngoạn mục, những cồn cát cao và nhìn thấy một số loài động vật độc đáo của sa mạc Gobi như chuột nhảy Jerboa, Báo tuyết và Dê rừng Siberia. Họ cũng nên đến thăm các tàn tích cổ đại và các cộng đồng ốc đảo, cũng như gặp gỡ những người du mục có lối sống vẫn chưa bị ảnh hưởng bởi phương Tây.
+                </div>
+
+                <p>However, the Gobi Desert is not without the threat. It is still growing at an alarming rate, causing the loss of valuable grassland. The Chinese government is currently planting the Green Wall of China, which is a line of forest, with the hope to slow down the expansion of the desert.</p>
+                <button class="translate-btn" onclick="toggleTranslation('trans3_3')">Mở dịch đoạn này 🌟</button>
+                <div class="translation-content" id="trans3_3">
+                    <b>BẢN DỊCH:</b> Tuy nhiên, sa mạc Gobi không phải là không có mối đe dọa. Nó vẫn đang ngày càng mở rộng với tốc độ đáng báo động, gây mất đi những đồng cỏ có giá trị. Chính phủ Trung Quốc hiện đang trồng Vạn Lý Trường Thành Xanh, là một dải rừng, với hy vọng làm chậm lại sự bành trướng của sa mạc.
+                </div>
+
+                <div class="glossary-wrapper">
+                    <h4>📚 Bảng từ vựng (Glossary)</h4>
+                    <table>
+                        <tr><th>Word</th><th>Type</th><th>Meaning</th></tr>
+                        <tr><td>Annual</td><td>Adjective (adj)</td><td>Hàng năm</td></tr>
+                        <tr><td>Fossilised</td><td>Adjective (adj)</td><td>Hóa thạch</td></tr>
+                        <tr><td>Dramatic</td><td>Adjective (adj)</td><td>Ngoạn mục, ấn tượng</td></tr>
+                        <tr><td>Dune</td><td>Noun (n)</td><td>Cồn cát</td></tr>
+                        <tr><td>Ancient</td><td>Adjective (adj)</td><td>Cổ đại, xưa cũ</td></tr>
+                        <tr><td>Oasis</td><td>Noun (n)</td><td>Ốc đảo</td></tr>
+                        <tr><td>Nomadic</td><td>Adjective (adj)</td><td>Du mục</td></tr>
+                        <tr><td>Untouched</td><td>Adjective (adj)</td><td>Không bị ảnh hưởng, nguyên vẹn</td></tr>
+                        <tr><td>Alarming rate</td><td>Noun phrase</td><td>Tốc độ đáng báo động</td></tr>
+                        <tr><td>Expansion</td><td>Noun (n)</td><td>Sự mở rộng, sự bành trướng</td></tr>
+                    </table>
+                </div>
+            </div>
+
+             <div class="passage-card">
+                <div class="passage-title">PART 4: THE MISSOURI RIVER</div>
+                <p>At 2,315 miles (3,726 kilometres), the Missouri River is nearly as long as the Mississippi River, into which it flows. Together the Missouri and the Mississippi form one of the world’s longest river systems.</p>
+                <p>There are seven major dams and dozens of smaller dams on the Missouri. <b>(37)________</b>. They also create reservoirs, or artificial lakes, behind them. The reservoirs store water that is needed for cities and for irrigation of crops. Irrigation is important because most of the regions around the river have a fairly dry climate.</p>
+                <button class="translate-btn" onclick="toggleTranslation('trans4_1')">Mở dịch đoạn này 🌟</button>
+                <div class="translation-content" id="trans4_1">
+                    <b>BẢN DỊCH:</b> Với chiều dài 2.315 dặm (3.726 km), sông Missouri gần dài bằng sông Mississippi, nơi mà nó chảy vào. Cùng nhau, Missouri và Mississippi tạo thành một trong những hệ thống sông dài nhất thế giới.<br>Có bảy con đập lớn và hàng chục con đập nhỏ hơn trên sông Missouri. <b>(37) Các con đập sử dụng nước từ sông để sản xuất điện.</b> Chúng cũng tạo ra các hồ chứa, hoặc hồ nhân tạo, ở phía sau chúng. Các hồ chứa này lưu trữ nước cần thiết cho các thành phố và cho việc tưới tiêu cây trồng. Việc tưới tiêu rất quan trọng vì hầu hết các khu vực xung quanh sông đều có khí hậu khá khô hạn.
+                </div>
+
+                <p>In addition to producing electricity, the dams on the Missouri are also used to control the water level of the river. <b>(38)________</b>. At other times, water is released to keep the water level high enough for barges to float downstream. By changing the natural flow of water in the Missouri, <b>(39)________</b>. They have affected the depth and temperature of the water in different parts of the river. Such changes have made it difficult for some species, or types, of plants, animals, and fish to survive. A few wildlife species in the region are now endangered, <b>(40)________</b>.</p>
+                <button class="translate-btn" onclick="toggleTranslation('trans4_2')">Mở dịch đoạn này 🌟</button>
+                <div class="translation-content" id="trans4_2">
+                    <b>BẢN DỊCH:</b> Ngoài việc sản xuất điện, các con đập trên sông Missouri còn được sử dụng để kiểm soát mực nước sông. <b>(38) Đôi khi, nước được giữ lại để ngăn lũ lụt.</b> Vào những lúc khác, nước được xả ra để giữ cho mực nước đủ cao cho các sà lan trôi xuống hạ lưu. Bằng cách thay đổi dòng chảy tự nhiên của nước ở Missouri, <b>(39) các con đập và hồ chứa đã làm thay đổi hệ sinh thái của sông.</b> Chúng đã ảnh hưởng đến độ sâu và nhiệt độ của nước ở các khu vực khác nhau của sông. Những thay đổi như vậy đã khiến một số loài thực vật, động vật và cá khó sống sót. Một số loài động vật hoang dã trong khu vực hiện đang có nguy cơ tuyệt chủng, <b>(40) điều này đòi hỏi chính phủ phải nỗ lực rất nhiều để cứu chúng khỏi bờ vực tuyệt chủng.</b>
+                </div>
+
+                <div class="glossary-wrapper">
+                    <h4>📚 Bảng từ vựng (Glossary)</h4>
+                    <table>
+                        <tr><th>Word</th><th>Type</th><th>Meaning</th></tr>
+                        <tr><td>Dam</td><td>Noun (n)</td><td>Con đập (thủy điện)</td></tr>
+                        <tr><td>Reservoir</td><td>Noun (n)</td><td>Hồ chứa nước</td></tr>
+                        <tr><td>Artificial</td><td>Adjective (adj)</td><td>Nhân tạo</td></tr>
+                        <tr><td>Irrigation</td><td>Noun (n)</td><td>Sự tưới tiêu</td></tr>
+                        <tr><td>Release</td><td>Verb (v)</td><td>Giải phóng, xả (nước)</td></tr>
+                        <tr><td>Downstream</td><td>Adverb/Adj</td><td>Hạ lưu, xuôi dòng</td></tr>
+                        <tr><td>Altered</td><td>Verb (v-ed)</td><td>Đã bị thay đổi</td></tr>
+                        <tr><td>Ecosystem</td><td>Noun (n)</td><td>Hệ sinh thái</td></tr>
+                        <tr><td>Endangered</td><td>Adjective (adj)</td><td>Có nguy cơ tuyệt chủng</td></tr>
+                        <tr><td>Extinction</td><td>Noun (n)</td><td>Sự tuyệt chủng</td></tr>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="pane right-pane" id="exercise-pane">
+            <h2 style="color: #0984e3; text-shadow: 2px 2px 0 rgba(255,255,255,0.8); text-align: center; font-size: 2rem; background: #fff; border-radius: 15px; padding: 10px; border: 3px solid #fdcb6e;">VƯỢT CHƯỚNG NGẠI VẬT 🏆</h2>
+            <div id="questions-container"></div>
+            <button class="submit-btn" onclick="submitTest()">NỘP BÀI & XEM ĐIỂM 🚀</button>
+        </div>
+    </main>
+
+    <div class="modal" id="result-modal">
+        <div class="modal-content">
+            <h2>🎉 HOÀN THÀNH BÀI THI 🎉</h2>
+            <div class="score-text" id="final-score">0/0</div>
+            <div class="comment-text" id="final-comment">Đang tính điểm...</div>
+            <br>
+            <button class="btn-start" onclick="location.reload()" style="font-size: 1.2rem; padding: 15px 30px; border-radius: 30px;">LÀM LẠI TỪ ĐẦU 🔄</button>
+        </div>
+    </div>
+
+    <script>
+        // --- WEB AUDIO API CHO HIỆU ỨNG ÂM THANH (Không dùng link ngoài) ---
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        
+        function playCorrectSound() {
+            if(audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            osc.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(800, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.1);
+            gainNode.gain.setValueAtTime(0.5, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.5);
+        }
+
+        function playWrongSound() {
+            if(audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            osc.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(300, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(150, audioCtx.currentTime + 0.3);
+            gainNode.gain.setValueAtTime(0.5, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.4);
+        }
+
+        // --- HIỆU ỨNG CONFETTI ĐƠN GIẢN TRỰC TIẾP BẰNG DOM ---
+        function shootConfetti() {
+            for(let i=0; i<40; i++) {
+                let conf = document.createElement('div');
+                conf.style.position = 'fixed';
+                conf.style.width = '12px';
+                conf.style.height = '12px';
+                conf.style.backgroundColor = ['#0984e3', '#00b894', '#fdcb6e', '#ff7675', '#a29bfe'][Math.floor(Math.random()*5)];
+                conf.style.left = Math.random() * 100 + 'vw';
+                conf.style.top = '-10px';
+                conf.style.zIndex = '9999';
+                conf.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+                document.body.appendChild(conf);
+
+                let duration = Math.random() * 2 + 1.5;
+                conf.animate([
+                    { transform: 'translate3d(0,0,0) rotate(0deg)', opacity: 1 },
+                    { transform: `translate3d(${Math.random()*300-150}px, 100vh, 0) rotate(${Math.random()*720}deg)`, opacity: 0 }
+                ], { duration: duration * 1000, easing: 'cubic-bezier(.37,0,.63,1)' });
+
+                setTimeout(() => conf.remove(), duration * 1000);
+            }
+        }
+
+        // --- DATA BÀI TẬP & GIẢI THÍCH CHI TIẾT ---
+        const questionsData = [
+            // PART 1
+            {
+                id: 13, text: "Question 13: The exhibition here is based ________ large models showing how living creatures use their amazing skills in the wild.",
+                options: [ {ans: "A. in", isCorrect: false}, {ans: "B. around", isCorrect: true}, {ans: "C. at", isCorrect: false}, {ans: "D. behind", isCorrect: false} ],
+                explanation: "<b>Giải thích chi tiết:</b><br>- Cụm từ <b>'to be based around something'</b> mang nghĩa là xoay quanh, lấy cái gì làm trọng tâm. Triển lãm này lấy các mô hình lớn làm trọng tâm để trưng bày.<br>- 'based on' cũng đúng nhưng không có trong các đáp án đưa ra, do đó 'based around' là lựa chọn chính xác nhất ở đây."
+            },
+            {
+                id: 14, text: "Question 14: Dress up like ________ jungle creatures to discover how they deal with a changing environment.",
+                options: [ {ans: "A. a", isCorrect: false}, {ans: "B. an", isCorrect: false}, {ans: "C. the", isCorrect: false}, {ans: "D. X (no article)", isCorrect: true} ],
+                explanation: "<b>Giải thích chi tiết:</b><br>- Danh từ 'creatures' (những sinh vật) đang ở dạng <b>số nhiều đếm được</b>, nên không thể dùng 'a' hay 'an'.<br>- Đây là lời mời chung chung về 'những sinh vật rừng xanh' chưa được xác định cụ thể từ trước, nên không dùng 'the'.<br>=> <b>Chọn D: Không dùng mạo từ (X)</b>."
+            },
+            {
+                id: 15, text: "Question 15: Dress up like jungle creatures to discover how they deal with a ________ environment.",
+                options: [ {ans: "A. changer", isCorrect: false}, {ans: "B. changing", isCorrect: true}, {ans: "C. changed", isCorrect: false}, {ans: "D. change", isCorrect: false} ],
+                explanation: "<b>Giải thích chi tiết:</b><br>- Chỗ trống cần một Tính từ đứng trước danh từ 'environment' để bổ nghĩa cho nó.<br>- <b>changing (adj)</b>: luôn thay đổi, mang tính chủ động (môi trường tự nó luôn biến đổi).<br>- 'changed' mang nghĩa bị động (đã bị thay đổi) không hợp ngữ cảnh tự nhiên của câu này."
+            },
+            {
+                id: 16, text: "Question 16: Or build a model of a giraffe – and even get one from the shop to ________!",
+                options: [ {ans: "A. take in", isCorrect: false}, {ans: "B. take away", isCorrect: true}, {ans: "C. take off", isCorrect: false}, {ans: "D. take after", isCorrect: false} ],
+                explanation: "<b>Giải thích chi tiết (Phrasal Verbs với Take):</b><br>- take in: lừa gạt, hiểu (bài), thu hẹp quần áo.<br>- <b>take away: mang đi, đem về</b> (mua một thứ gì đó ở cửa hàng để mang về nhà). Đây là nghĩa hợp lý nhất.<br>- take off: cất cánh (máy bay), cởi đồ.<br>- take after: giống ai đó (về ngoại hình hoặc tính cách)."
+            },
+            // PART 2
+            {
+                id: 19, text: "Question 19: The costs of hosting the Olympics can ________ tens of billions of dollars, and it is commonplace for budgets to double or even triple.",
+                options: [ {ans: "A. surmount", isCorrect: false}, {ans: "B. overcharge", isCorrect: false}, {ans: "C. exceed", isCorrect: true}, {ans: "D. outnumber", isCorrect: false} ],
+                explanation: "<b>Giải thích chi tiết:</b><br>- <b>exceed (v)</b>: vượt quá (một con số, số lượng, hoặc giới hạn nào đó). 'exceed tens of billions' nghĩa là vượt quá hàng chục tỷ.<br>- surmount: vượt qua (khó khăn).<br>- overcharge: tính giá quá đắt.<br>- outnumber: áp đảo về số lượng (thường dùng cho người hoặc vật)."
+            },
+            {
+                id: 20, text: "Question 20: In addition to the direct costs of hosting the Games, cities often must build expensive new venues ________ lesser-known sports.",
+                options: [ {ans: "A. on", isCorrect: false}, {ans: "B. for", isCorrect: true}, {ans: "C. in", isCorrect: false}, {ans: "D. at", isCorrect: false} ],
+                explanation: "<b>Giải thích chi tiết:</b><br>- Dùng giới từ <b>'for'</b> (dành cho).<br>- Các thành phố phải xây dựng những địa điểm thi đấu mới <b>dành cho</b> (for) các môn thể thao ít được biết đến hơn."
+            },
+            {
+                id: 21, text: "Question 21: While costs are the ________ concern for a host city, there are other factors to consider.",
+                options: [ {ans: "A. supplementary", isCorrect: false}, {ans: "B. influential", isCorrect: false}, {ans: "C. instrumental", isCorrect: false}, {ans: "D. primary", isCorrect: true} ],
+                explanation: "<b>Giải thích chi tiết:</b><br>- <b>primary concern (collocation)</b>: mối quan tâm hàng đầu, mối bận tâm chính.<br>- supplementary: phụ, bổ sung.<br>- influential: có sức ảnh hưởng.<br>- Đoạn trước vừa đề cập 'tài chính là quan trọng nhất', nên 'costs' (chi phí) chính là bận tâm hàng đầu (primary)."
+            },
+            {
+                id: 22, text: "Question 22: While costs are the primary concern for a host city, there are ________ factors to consider.",
+                options: [ {ans: "A. other", isCorrect: true}, {ans: "B. another", isCorrect: false}, {ans: "C. others", isCorrect: false}, {ans: "D. the other", isCorrect: false} ],
+                explanation: "<b>Giải thích chi tiết:</b><br>- 'factors' là danh từ số nhiều đếm được.<br>- <b>other + Danh từ số nhiều</b>: những cái khác (chưa xác định cụ thể). Ở đây là 'những yếu tố khác'.<br>- another đi với Danh từ số ít.<br>- others đứng một mình (không có danh từ theo sau).<br>- the other dùng cho cái còn lại trong một bộ đã xác định trước, ở đây liệt kê chung chung nên không dùng 'the'."
+            },
+            {
+                id: 23, text: "Question 23: ________, hosting the Olympic Games confers prestige on a host city and country, which can lead to increased trade and tourism.",
+                options: [ {ans: "A. In addition", isCorrect: true}, {ans: "B. However", isCorrect: false}, {ans: "C. For example", isCorrect: false}, {ans: "D. Otherwise", isCorrect: false} ],
+                explanation: "<b>Giải thích chi tiết:</b><br>- Câu trước nói về lợi ích tài chính (thu lợi nhuận). Câu sau nói về lợi ích danh tiếng (mang lại uy tín). Hai ý này bổ sung, tăng tiến cho nhau.<br>- Do đó, cụm từ nối phù hợp nhất là <b>In addition (Hơn thế nữa / Ngoài ra)</b>."
+            },
+            {
+                id: 24, text: "Question 24: The Olympics are also an opportunity to invest in projects ________ improve the city’s quality of life, such as new transportation systems.",
+                options: [ {ans: "A. who", isCorrect: false}, {ans: "B. which", isCorrect: true}, {ans: "C. what", isCorrect: false}, {ans: "D. whom", isCorrect: false} ],
+                explanation: "<b>Giải thích chi tiết:</b><br>- Đây là cấu trúc mệnh đề quan hệ. Đại từ quan hệ cần thay thế cho danh từ chỉ vật 'projects' (các dự án) đứng ngay trước nó.<br>- <b>'which'</b> là đại từ thay cho vật và làm chủ ngữ cho động từ 'improve' (cải thiện). Không dùng who hoặc whom vì đó là các đại từ chỉ người."
+            },
+            // PART 3
+            {
+                id: 31, text: "Question 31: What is the total area of The Gobi Desert?",
+                options: [ 
+                    {ans: "A. Over 1.29 million km2", isCorrect: false}, 
+                    {ans: "B. Nearly 1.29 million km2", isCorrect: false}, 
+                    {ans: "C. 1.29 million km2", isCorrect: true}, 
+                    {ans: "D. 1.39 million km2", isCorrect: false} 
+                ],
+                explanation: "<b>Giải thích chi tiết:</b><br>- Dẫn chứng trong Đoạn 1: 'The Gobi Desert is located in both Northern China and Southern Mongolia, covering a total area of 1.29 million km2.' (Sa mạc Gobi bao phủ tổng diện tích 1,29 triệu km2). Đoạn văn đưa ra con số chính xác, không dùng từ 'over' (hơn) hay 'nearly' (gần). Do đó chọn chính xác con số này."
+            },
+            {
+                id: 32, text: "Question 32: According to the passage, who should visitors meet when they visit the Gobi Desert?",
+                options: [ 
+                    {ans: "A. Nomadic people", isCorrect: true}, 
+                    {ans: "B. Ancient families", isCorrect: false}, 
+                    {ans: "C. Western businessmen", isCorrect: false}, 
+                    {ans: "D. Other visitors", isCorrect: false} 
+                ],
+                explanation: "<b>Giải thích chi tiết:</b><br>- Dẫn chứng trong Đoạn 2: 'They should also visit ancient ruins and oasis communities, as well as meet the <b>nomadic people</b> whose ways of life remain untouched by Western influence.' (Họ cũng nên gặp gỡ những <b>người du mục</b>...). Đáp án A là hoàn toàn chính xác."
+            },
+            {
+                id: 33, text: "Question 33: A problem with the Gobi Desert is ________.",
+                options: [ 
+                    {ans: "A. The untouched local lifestyle", isCorrect: false}, 
+                    {ans: "B. Its alarming expansion", isCorrect: true}, 
+                    {ans: "C. The growing loss of animals", isCorrect: false}, 
+                    {ans: "D. The slow growth of new forests", isCorrect: false} 
+                ],
+                explanation: "<b>Giải thích chi tiết:</b><br>- Dẫn chứng trong Đoạn 3: 'However, the Gobi Desert is not without the threat. It is still <b>growing at an alarming rate</b>, causing the loss of valuable grassland.' (Tuy nhiên, sa mạc Gobi không phải là không có mối đe dọa. Nó vẫn đang mở rộng với tốc độ đáng báo động). Sự mở rộng này (expansion) chính là vấn đề (problem) được tác giả nhắc đến."
+            },
+            {
+                id: 34, text: "Question 34: The word annual in paragraph 1 is CLOSEST in meaning to ________.",
+                options: [ {ans: "A. Everyday", isCorrect: false}, {ans: "B. every year", isCorrect: true}, {ans: "C. every month", isCorrect: false}, {ans: "D. every week", isCorrect: false} ],
+                explanation: "<b>Giải thích chi tiết:</b><br>- Tính từ <b>'annual'</b> có nghĩa là thường niên, hàng năm.<br>- Do đó từ này đồng nghĩa hoàn toàn với cụm từ 'every year'."
+            },
+            {
+                id: 35, text: "Question 35: Which of the following is NOT TRUE about the Gobi Desert?",
+                options: [ 
+                    {ans: "A. People discovered fossils of dinosaur eggs there.", isCorrect: false}, 
+                    {ans: "B. Tourists should drive their Jeep cars across the Desert.", isCorrect: true}, 
+                    {ans: "C. The landscape is rocky, with high sand dunes.", isCorrect: false}, 
+                    {ans: "D. Camels are a good means of transportation there.", isCorrect: false} 
+                ],
+                explanation: "<b>Giải thích chi tiết:</b><br>- Trong bài đọc Đoạn 2 ghi rõ là: 'Tourists who want to explore the Gobi Desert should travel in Jeep cars <b>with local drivers</b> or by camel.' (đi xe Jeep với tài xế địa phương).<br>- Đáp án B nói rằng 'Du khách nên tự lái chiếc xe Jeep của họ băng qua sa mạc' (drive their Jeep cars) là thông tin SAI so với bài đọc. Vì đề bài yêu cầu chọn câu NOT TRUE, đáp án B được chọn."
+            },
+            {
+                id: 36, text: "Question 36: The word ancient in paragraph 2 is OPPOSITE in meaning to ________.",
+                options: [ {ans: "A. Traditional", isCorrect: false}, {ans: "B. old-fashioned", isCorrect: false}, {ans: "C. modern", isCorrect: true}, {ans: "D. in the past", isCorrect: false} ],
+                explanation: "<b>Giải thích chi tiết:</b><br>- Tính từ <b>'ancient'</b> có nghĩa là cổ kính, cổ đại, xa xưa.<br>- Đề bài yêu cầu tìm từ TRÁI NGHĨA (Opposite in meaning).<br>- Trái nghĩa với cổ kính, xa xưa chính là <b>modern (hiện đại)</b>."
+            },
+             // PART 4
+             {
+                id: 37, text: "Question 37: There are seven major dams and dozens of smaller dams on the Missouri. ________. They also create reservoirs, or artificial lakes, behind them.",
+                options: [ 
+                    {ans: "A. Sometimes water is held back to prevent floods", isCorrect: false}, 
+                    {ans: "B. The dams use water from the river to produce electricity.", isCorrect: true}, 
+                    {ans: "C. which needs much effort from the government to save them from extinction", isCorrect: false}, 
+                    {ans: "D. dams and reservoirs have altered the river’s ecosystem.", isCorrect: false} 
+                ],
+                explanation: "<b>Giải thích chi tiết:</b><br>- Đoạn này đang giới thiệu về tác dụng của các con đập (dams). Ngay ở câu mở đầu đoạn tiếp theo tác giả viết: 'In addition to producing electricity...' (Ngoài việc sản xuất điện...). Điều này chứng tỏ tác dụng sản xuất điện đã phải được nhắc tới một cách rõ ràng ở trước đó.<br>-> <b>B. Các con đập sử dụng nước từ dòng sông để sản xuất điện</b> là câu hoàn toàn phù hợp để điền vào vị trí số 37."
+            },
+            {
+                id: 38, text: "Question 38: In addition to producing electricity, the dams on the Missouri are also used to control the water level of the river. ________. At other times, water is released to keep the water level high enough for barges to float downstream.",
+                options: [ 
+                    {ans: "A. Sometimes water is held back to prevent floods", isCorrect: true}, 
+                    {ans: "B. The dams use water from the river to produce electricity.", isCorrect: false}, 
+                    {ans: "C. which needs much effort from the government to save them from extinction", isCorrect: false}, 
+                    {ans: "D. dams and reservoirs have altered the river’s ecosystem.", isCorrect: false} 
+                ],
+                explanation: "<b>Giải thích chi tiết:</b><br>- Câu đứng ngay sau ô trống (38) là: 'At other times, water is released...' (Vào <b>những lúc khác</b>, nước được xả ra để giữ cho mực nước đủ cao).<br>- Rất logic khi câu đứng trước đó (38) bắt đầu bằng 'Sometimes' (<b>Đôi khi</b>, nước được giữ lại để ngăn lũ lụt). Đây là sự tương phản song song về cách kiểm soát mực nước."
+            },
+            {
+                id: 39, text: "Question 39: By changing the natural flow of water in the Missouri, ________. They have affected the depth and temperature of the water in different parts of the river.",
+                options: [ 
+                    {ans: "A. Sometimes water is held back to prevent floods", isCorrect: false}, 
+                    {ans: "B. The dams use water from the river to produce electricity.", isCorrect: false}, 
+                    {ans: "C. which needs much effort from the government to save them from extinction", isCorrect: false}, 
+                    {ans: "D. dams and reservoirs have altered the river’s ecosystem.", isCorrect: true} 
+                ],
+                explanation: "<b>Giải thích chi tiết:</b><br>- Phía trước ô trống là cụm từ chỉ nguyên nhân: 'Bằng cách thay đổi dòng chảy tự nhiên của nước ở Missouri' -> Chỗ trống cần một mệnh đề chỉ ra Hệ quả chính của việc này.<br>- Những câu sau đó liệt kê chi tiết việc ảnh hưởng tới nhiệt độ, độ sâu, thực vật, động vật và cá. Tất cả những yếu tố này gộp chung lại chính là 'hệ sinh thái' (ecosystem).<br>-> Điền đáp án <b>D. các con đập và hồ chứa đã làm thay đổi hệ sinh thái của dòng sông</b>."
+            },
+            {
+                id: 40, text: "Question 40: A few wildlife species in the region are now endangered, ________.",
+                options: [ 
+                    {ans: "A. Sometimes water is held back to prevent floods", isCorrect: false}, 
+                    {ans: "B. The dams use water from the river to produce electricity.", isCorrect: false}, 
+                    {ans: "C. which needs much effort from the government to save them from extinction", isCorrect: true}, 
+                    {ans: "D. dams and reservoirs have altered the river’s ecosystem.", isCorrect: false} 
+                ],
+                explanation: "<b>Giải thích chi tiết:</b><br>- Câu trước nhắc đến sự việc 'một số loài động vật hoang dã trong khu vực hiện đang gặp nguy hiểm (endangered)'.<br>- Dấu phẩy kết hợp với đại từ quan hệ 'which' tạo thành mệnh đề quan hệ bổ nghĩa cho toàn bộ sự việc ở phía trước. Việc các loài động vật bị đe dọa này đòi hỏi (which needs) chính phủ phải nỗ lực để cứu chúng khỏi sự tuyệt chủng (extinction)."
+            }
+        ];
+
+        // --- THUẬT TOÁN SHUFFLE (Trộn ngẫu nhiên đáp án) ---
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        let userScore = 0;
+        let answeredQuestions = 0;
+        const totalQuestions = questionsData.length;
+        let isTimerRunning = false;
+        let timeLeft = 600; // 10 phút = 600s
+        let timerInterval;
+
+        // --- RENDER BÀI TẬP ---
+        const container = document.getElementById('questions-container');
+        
+        questionsData.forEach((q, index) => {
+            let shuffledOptions = shuffleArray([...q.options]);
+
+            let card = document.createElement('div');
+            card.className = 'question-card';
+            
+            let qText = document.createElement('div');
+            qText.className = 'question-text';
+            qText.innerHTML = q.text;
+            card.appendChild(qText);
+
+            let grid = document.createElement('div');
+            grid.className = 'options-grid';
+
+            let expBox = document.createElement('div');
+            expBox.className = 'explanation-box';
+            expBox.innerHTML = q.explanation;
+
+            shuffledOptions.forEach(opt => {
+                let btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.innerHTML = `<span style="margin-right: 10px; font-size:1.2rem;">🎯</span> ${opt.ans}`;
+                
+                btn.onclick = function() {
+                    // Nếu đã trả lời câu này thì bỏ qua
+                    if(card.classList.contains('answered')) return;
+                    card.classList.add('answered');
+                    answeredQuestions++;
+
+                    if(opt.isCorrect) {
+                        btn.classList.add('correct');
+                        btn.innerHTML = `✅ ${opt.ans}`;
+                        playCorrectSound();
+                        shootConfetti();
+                        userScore++;
+                    } else {
+                        btn.classList.add('wrong');
+                        btn.innerHTML = `❌ ${opt.ans}`;
+                        playWrongSound();
+                        
+                        // Tự động bôi xanh đáp án đúng
+                        let allBtns = grid.querySelectorAll('.option-btn');
+                        allBtns.forEach(b => {
+                            if(b.dataset.correct === "true") {
+                                b.classList.add('correct');
+                                b.innerHTML = `✅ (Đáp án đúng) ${b.innerText.replace('🎯 ', '')}`;
+                            }
+                        });
+                    }
+                    
+                    // Hiện giải thích
+                    expBox.style.display = 'block';
+                };
+
+                btn.dataset.correct = opt.isCorrect;
+                grid.appendChild(btn);
+            });
+
+            card.appendChild(grid);
+            card.appendChild(expBox);
+            container.appendChild(card);
+        });
+
+        // --- LOGIC HẸN GIỜ ---
+        function toggleTimer() {
+            const btn = document.getElementById('btn-timer');
+            if(!isTimerRunning) {
+                isTimerRunning = true;
+                btn.innerText = "TẠM DỪNG";
+                btn.style.background = "#e17055";
+                btn.style.boxShadow = "0 4px 0 #d63031";
+                
+                timerInterval = setInterval(() => {
+                    timeLeft--;
+                    let m = Math.floor(timeLeft / 60);
+                    let s = timeLeft % 60;
+                    document.getElementById('timer-display').innerText = `${m < 10 ? '0':''}${m}:${s < 10 ? '0':''}${s}`;
+                    
+                    if(timeLeft <= 0) {
+                        clearInterval(timerInterval);
+                        alert("⏰ Đã hết giờ làm bài! Bạn vẫn có thể tiếp tục làm nốt, nhưng nhớ là trong phòng thi thật, bạn chỉ nên làm bài như thế này trong 10 phút thôi nha.");
+                    }
+                }, 1000);
+            } else {
+                isTimerRunning = false;
+                clearInterval(timerInterval);
+                btn.innerText = "TIẾP TỤC BẤM GIỜ";
+                btn.style.background = "#0984e3";
+                btn.style.boxShadow = "0 4px 0 #0984e3";
+            }
+        }
+
+        // --- TOGGLE BẢN DỊCH ---
+        function toggleTranslation(id) {
+            const el = document.getElementById(id);
+            if(el.style.display === 'block') {
+                el.style.display = 'none';
+            } else {
+                el.style.display = 'block';
+            }
+        }
+
+        // --- NỘP BÀI & NHẬN XÉT ---
+        function submitTest() {
+            if(answeredQuestions < totalQuestions) {
+                let cf = confirm("Bạn vẫn chưa làm hết bài. Bạn có chắc chắn muốn nộp bài lúc này không?");
+                if(!cf) return;
+            }
+
+            clearInterval(timerInterval); // Dừng thời gian
+
+            const modal = document.getElementById('result-modal');
+            const scoreEl = document.getElementById('final-score');
+            const cmtEl = document.getElementById('final-comment');
+
+            scoreEl.innerText = `${userScore}/${totalQuestions}`;
+
+            // Sinh lời nhận xét dựa trên điểm
+            let percent = userScore / totalQuestions;
+            if(percent === 1) {
+                cmtEl.innerText = "🌟 XUẤT SẮC! BẠN LÀ MỘT NHÀ KHÁM PHÁ THỰC THỤ! 🌟";
+                cmtEl.style.color = "#00D26A";
+            } else if (percent >= 0.7) {
+                cmtEl.innerText = "🔥 RẤT TỐT! KIẾN THỨC CỦA BẠN RẤT VỮNG VÀNG! 🔥";
+                cmtEl.style.color = "#0984e3";
+            } else if (percent >= 0.5) {
+                cmtEl.innerText = "👍 KHÁ LẮM! HÃY ÔN LẠI TỪ VỰNG MỘT CHÚT NỮA NHÉ! 👍";
+                cmtEl.style.color = "#fdcb6e";
+            } else {
+                cmtEl.innerText = "💪 ĐỪNG NẢN LÒNG! HÃY ĐỌC KỸ BẢN DỊCH VÀ THỬ LẠI NÀO! 💪";
+                cmtEl.style.color = "#d63031";
+            }
+
+            modal.style.display = 'flex';
+            shootConfetti();
+            setTimeout(shootConfetti, 500); // Bắn thêm đợt pháo giấy nữa cho vui
+        }
+    </script>
+</body>
+</html>
+
+

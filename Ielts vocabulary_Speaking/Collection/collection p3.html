@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>English Gamified Quiz - Ms Mai An ULIS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800&family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #8854C0;
+            --secondary: #FDCB6E;
+            --accent: #00C9A7;
+            --correct: #00D26A;
+            --wrong: #FF4757;
+            --text-dark: #2d3436;
+            --bg-light: #f9f9f9;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            color: var(--text-dark);
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            background: linear-gradient(-45deg, #8854C0, #FDCB6E, #00C9A7, #FF9A9E);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Auto-generated Dynamic Pattern */
+        .bg-pattern {
+            position: fixed; top: 0; left: 0; width: 100%; height: 200%;
+            background-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='150' height='150'%3E%3Ctext x='20' y='50' font-size='30'%3E%F0%9F%8F%A0%3C/text%3E%3Ctext x='80' y='100' font-size='30'%3E%F0%9F%A4%AF%3C/text%3E%3Ctext x='30' y='140' font-size='30'%3E%F0%9F%92%B8%3C/text%3E%3C/svg%3E");
+            opacity: 0.15; z-index: -1; pointer-events: none;
+            animation: floatUp 40s linear infinite;
+        }
+
+        @keyframes floatUp {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(-50%); }
+        }
+
+        /* Top Bar */
+        .top-bar {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 10px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            z-index: 10;
+        }
+
+        .teacher-title {
+            font-family: 'Quicksand', sans-serif;
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--primary);
+            background: rgba(136, 84, 192, 0.1);
+            padding: 5px 15px;
+            border-radius: 20px;
+        }
+
+        .timer-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        #timer { font-size: 24px; font-weight: 800; color: var(--wrong); width: 80px; text-align: center; }
+        .btn-control {
+            background: var(--primary); color: white; border: none; padding: 10px 20px;
+            font-family: 'Quicksand', sans-serif; font-weight: 700; font-size: 14px;
+            border-radius: 12px; cursor: pointer;
+            box-shadow: 0 4px 0 #5f3a8c; transition: all 0.1s;
+        }
+        .btn-control:active { transform: translateY(4px); box-shadow: 0 0 0 #5f3a8c; }
+
+        /* Split Screen Content */
+        .main-container {
+            display: flex; flex: 1; padding: 20px; gap: 20px; overflow: hidden;
+        }
+
+        .pane {
+            flex: 1; background: rgba(255, 255, 255, 0.95);
+            border-radius: 25px; padding: 30px; overflow-y: auto;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            position: relative;
+        }
+        
+        .pane::-webkit-scrollbar { width: 8px; }
+        .pane::-webkit-scrollbar-thumb { background: #ccc; border-radius: 10px; }
+
+        /* Left Pane - Reading */
+        .reading-text { font-size: 18px; line-height: 1.8; margin-bottom: 20px; }
+        .reading-title { color: var(--primary); font-size: 22px; font-weight: 800; margin-top: 20px; margin-bottom: 10px; }
+        .word-bank { background: #eee; padding: 15px; border-radius: 15px; font-weight: bold; color: #555; margin-bottom: 15px; font-size: 14px; }
+        .blank-space { font-weight: bold; color: var(--primary); }
+        
+        .btn-translate {
+            background: #ffeaa7; color: #d63031; border: none; padding: 8px 15px;
+            border-radius: 12px; font-weight: 700; cursor: pointer; font-size: 14px;
+            box-shadow: 0 4px 0 #fdcb6e; margin-bottom: 20px; display: inline-flex; align-items: center; gap: 5px;
+        }
+        .btn-translate:active { transform: translateY(4px); box-shadow: none; }
+        .translation-box {
+            display: none; background: #fff3cd; border-left: 4px solid #ffc107;
+            padding: 15px; border-radius: 8px; margin-bottom: 20px; font-size: 16px; color: #555;
+        }
+
+        .glossary-table { width: 100%; border-collapse: collapse; margin-top: 30px; }
+        .glossary-table th { background: var(--primary); color: white; padding: 10px; text-align: left; border-radius: 8px 8px 0 0; }
+        .glossary-table td { padding: 10px; border-bottom: 1px solid #ddd; }
+        .glossary-table tr:last-child td { border-bottom: none; }
+
+        /* Right Pane - Quiz */
+        .question-card {
+            background: white; border: 2px solid #e5e5e5; border-radius: 20px;
+            padding: 25px; margin-bottom: 25px; box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+        .question-text { font-size: 18px; font-weight: 700; margin-bottom: 20px; color: #2d3436; }
+        
+        .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .option-btn {
+            background: white; border: 2px solid #e5e5e5; border-radius: 16px;
+            padding: 15px; font-size: 16px; font-family: 'Nunito', sans-serif; font-weight: 700;
+            color: #2d3436; cursor: pointer; text-align: left;
+            box-shadow: 0 6px 0 #e5e5e5; transition: all 0.1s ease;
+            display: flex; align-items: center; gap: 10px;
+        }
+        .option-btn:hover { transform: scale(1.02); }
+        .option-btn:active { transform: translateY(6px); box-shadow: 0 0 0 #e5e5e5; }
+        
+        .option-btn.correct { background: var(--correct); border-color: #00b359; box-shadow: 0 6px 0 #00b359; color: white; }
+        .option-btn.wrong { background: var(--wrong); border-color: #d63031; box-shadow: 0 6px 0 #d63031; color: white; animation: shake 0.4s; }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            50% { transform: translateX(5px); }
+            75% { transform: translateX(-5px); }
+        }
+
+        .explanation-box {
+            display: none; margin-top: 20px; padding: 20px;
+            background: #f1f8ff; border-left: 5px solid #0984e3; border-radius: 10px; font-size: 15px; line-height: 1.6;
+        }
+        .explanation-box h4 { color: #0984e3; margin-bottom: 10px; }
+        .exp-vocab { white-space: pre-line; margin-bottom: 10px; font-family: 'Quicksand', sans-serif;}
+        .exp-trans { font-style: italic; color: #555; margin-bottom: 10px; }
+
+        .submit-btn {
+            display: block; width: 100%; background: var(--accent); color: white;
+            font-size: 20px; font-weight: 800; padding: 20px; border: none; border-radius: 20px;
+            cursor: pointer; box-shadow: 0 8px 0 #00a88a; margin-top: 30px; transition: 0.1s;
+        }
+        .submit-btn:active { transform: translateY(8px); box-shadow: 0 0 0 #00a88a; }
+
+        /* Modal Result */
+        .modal-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6); z-index: 100; justify-content: center; align-items: center;
+        }
+        .modal-content {
+            background: white; padding: 40px; border-radius: 30px; text-align: center;
+            width: 400px; box-shadow: 0 20px 50px rgba(0,0,0,0.2); animation: popUp 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        @keyframes popUp { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+        .score-text { font-size: 48px; font-weight: 800; color: var(--primary); margin: 20px 0; }
+        .msg-text { font-size: 20px; color: #555; margin-bottom: 30px; }
+        .close-btn {
+            background: var(--wrong); color: white; border: none; padding: 12px 30px; border-radius: 15px;
+            font-size: 18px; font-weight: 700; cursor: pointer; box-shadow: 0 5px 0 #d63031;
+        }
+
+        /* Confetti piece */
+        .confetti { position: fixed; top: -10px; width: 12px; height: 12px; z-index: 999; animation: fall 2s linear forwards; }
+        @keyframes fall { to { transform: translateY(110vh) rotate(720deg); } }
+
+    </style>
+</head>
+<body>
+
+    <div class="bg-pattern"></div>
+
+    <div class="top-bar">
+        <div class="teacher-title">👩‍🏫 Ms Mai An ULIS</div>
+        <div class="timer-container">
+            <div id="timer">10:00</div>
+            <button class="btn-control" id="start-btn" onclick="startTimer()">BẮT ĐẦU TÍNH GIỜ</button>
+        </div>
+    </div>
+
+    <div class="main-container">
+        <div class="pane left-pane">
+            <h2>🧩 ĐỀ BÀI: ĐIỀN TỪ VÀO CHỖ TRỐNG (FILL-IN-THE-BLANKS)</h2>
+            <p>Hãy chọn từ thích hợp trong hộp từ vựng (Word Bank) để điền vào chỗ trống.</p>
+
+            <div class="reading-title">Phần 1: Tính cách và Lối sống hỗn loạn</div>
+            <div class="word-bank">Word Bank 1: wild child | extroversion | dingy | slobby | firecracker | predispositions | sociopath</div>
+            <div class="reading-text">
+                "I’d like to talk about my former roommate, Alex. I met him during my second year of university. At first, I was drawn to his extreme <span class="blank-space">(1) .........</span>. He was the ultimate <span class="blank-space">(2) .........</span>, always the life of the party and a real <span class="blank-space">(3) .........</span> who kept everyone entertained. However, living with him was a nightmare. Our apartment was already a bit <span class="blank-space">(4) .........</span>, but his <span class="blank-space">(5) .........</span> habits made it worse. Honestly, looking back, I think he had some dangerous psychological <span class="blank-space">(6) .........</span>. He lacked empathy and acted almost like a <span class="blank-space">(7) .........</span>."
+            </div>
+            <button class="btn-translate" onclick="toggleTranslation('trans1')">Mở dịch đoạn này 🌟</button>
+            <div class="translation-box" id="trans1">
+                "Tôi muốn kể về người bạn cùng phòng cũ của mình, Alex. Tôi gặp anh ấy vào năm thứ hai đại học. Ban đầu, tôi bị thu hút bởi sự hướng ngoại tột độ của anh ấy. Anh ấy là một đứa trẻ hoang dã đúng nghĩa, luôn là linh hồn của bữa tiệc và là một ngòi nổ thực sự giữ cho mọi người luôn vui vẻ. Tuy nhiên, sống với anh ta là một cơn ác mộng. Căn hộ của chúng tôi vốn đã hơi xỉn màu/tồi tàn, nhưng thói quen lôi thôi của anh ta làm mọi thứ tệ hơn. Thành thật mà nói, nhìn lại, tôi nghĩ anh ta có một số khuynh hướng tâm lý nguy hiểm. Anh ta thiếu sự đồng cảm và hành động gần như một kẻ rối loạn nhân cách."
+            </div>
+
+            <div class="reading-title">Phần 2: Đời sống cá nhân và Thói quen ăn uống</div>
+            <div class="word-bank">Word Bank 2: promiscuous | sexually transmitted disease | infatuation | undying passion | go through | food alternatives | food desert</div>
+            <div class="reading-text">
+                "His personal life was a mess. He was incredibly <span class="blank-space">(8) .........</span>, bringing different people home every week. He would develop a sudden <span class="blank-space">(9) .........</span> with someone, claiming it was his <span class="blank-space">(10) .........</span>, but then dump them days later. I literally had to warn him about the risks of catching a <span class="blank-space">(11) .........</span>, but he ignored me. On top of that, his diet was awful. Our neighborhood was basically a <span class="blank-space">(12) .........</span> with no fresh groceries. Instead of looking for healthy <span class="blank-space">(13) .........</span>, he would just <span class="blank-space">(14) .........</span> mountains of junk food every single day."
+            </div>
+            <button class="btn-translate" onclick="toggleTranslation('trans2')">Mở dịch đoạn này 🌟</button>
+            <div class="translation-box" id="trans2">
+                "Đời sống cá nhân của anh ta là một mớ hỗn độn. Anh ta vô cùng lăng nhăng, đưa những người khác nhau về nhà mỗi tuần. Anh ta sẽ nảy sinh sự say nắng đột ngột với ai đó, cho rằng đó là niềm đam mê bất diệt của mình, nhưng rồi lại đá họ vài ngày sau đó. Tôi thực sự đã phải cảnh báo anh ta về nguy cơ mắc bệnh lây truyền qua đường tình dục, nhưng anh ta phớt lờ. Thêm vào đó, chế độ ăn uống của anh ta rất tồi tệ. Khu phố của chúng tôi cơ bản là một 'sa mạc thực phẩm' không có thực phẩm tươi sống. Thay vì tìm kiếm các lựa chọn thực phẩm thay thế lành mạnh, anh ta chỉ ngốn hàng núi đồ ăn vặt mỗi ngày."
+            </div>
+
+            <div class="reading-title">Phần 3: Tiền bạc và Cảm xúc của tôi</div>
+            <div class="word-bank">Word Bank 3: short of | freeloader | freeloading | off and on | scammer | loaded | rolling in the dough | go on a shopping spree | upfront payment | pay upfront | money makes the world round | cover my daily spending</div>
+            <div class="reading-text">
+                "His financial situation was the craziest part. Most days, he was completely broke and <span class="blank-space">(15) .........</span> cash. He was such a <span class="blank-space">(16) .........</span>. Because of his constant <span class="blank-space">(17) .........</span> on me for rent and groceries, I barely had enough money left to <span class="blank-space">(18) .........</span>. But then, <span class="blank-space">(19) .........</span>, he would suddenly be absolutely <span class="blank-space">(20) .........</span>. He’d be <span class="blank-space">(21) .........</span> and would immediately <span class="blank-space">(22) .........</span> to buy designer clothes. His motto was literally '<span class="blank-space">(23) .........</span>'. I later discovered he was actually a <span class="blank-space">(24) .........</span> online. He would trick people into making an <span class="blank-space">(25) .........</span> for fake products, forcing them to <span class="blank-space">(26) .........</span>, and then disappear."
+            </div>
+            <button class="btn-translate" onclick="toggleTranslation('trans3')">Mở dịch đoạn này 🌟</button>
+            <div class="translation-box" id="trans3">
+                "Tình hình tài chính của anh ta là phần điên rồ nhất. Hầu hết các ngày, anh ta hoàn toàn nhẵn túi và thiếu tiền mặt. Anh ta đúng là một kẻ ăn bám. Vì sự ăn bám liên tục của anh ta đối với tôi về tiền thuê nhà và tạp hóa, tôi hầu như không còn đủ tiền để trang trải chi tiêu hàng ngày. Nhưng sau đó, thỉnh thoảng, anh ta đột nhiên trở nên cực kỳ giàu có. Anh ta rủng rỉnh tiền bạc và sẽ ngay lập tức đi mua sắm điên cuồng quần áo hàng hiệu. Phương châm của anh ta thực sự là 'có tiền mua tiên cũng được'. Sau này tôi phát hiện ra anh ta thực chất là một kẻ lừa đảo trên mạng. Anh ta sẽ lừa người ta trả tiền trước cho các sản phẩm giả, ép họ phải thanh toán trước rồi biến mất."
+            </div>
+
+            <div class="reading-title">Phần 4: Kết cục</div>
+            <div class="word-bank">Word Bank 4: bang my head on the wall | petrified of | toss and turn | as of late | feel bad | pure conscience | repent</div>
+            <div class="reading-text">
+                "Dealing with his chaos made me want to <span class="blank-space">(27) .........</span>. I was often <span class="blank-space">(28) .........</span> the legal trouble he might bring to our door, which made me <span class="blank-space">(29) .........</span> in bed every night. <span class="blank-space">(30) .........</span>, I’ve moved out and cut all ties with him. Sometimes I <span class="blank-space">(31) .........</span> for abandoning him, but I know I have a <span class="blank-space">(32) .........</span>. I tried my best to help him realize his mistakes and <span class="blank-space">(33) .........</span>, but some people just refuse to change."
+            </div>
+            <button class="btn-translate" onclick="toggleTranslation('trans4')">Mở dịch đoạn này 🌟</button>
+            <div class="translation-box" id="trans4">
+                "Giải quyết sự hỗn loạn của anh ta làm tôi muốn đập đầu vào tường. Tôi thường xuyên khiếp sợ trước những rắc rối pháp lý mà anh ta có thể mang đến nhà chúng tôi, điều đó làm tôi trằn trọc trên giường mỗi đêm. Gần đây, tôi đã dọn ra ngoài và cắt đứt mọi quan hệ với anh ta. Đôi khi tôi cảm thấy tồi tệ vì đã bỏ rơi anh ta, nhưng tôi biết mình có một lương tâm trong sạch. Tôi đã cố hết sức để giúp anh ta nhận ra sai lầm và ăn năn, nhưng một số người chỉ đơn giản là từ chối thay đổi."
+            </div>
+
+            <h3 style="margin-top: 30px; color: var(--primary);">📚 Glossary (Từ vựng học thuật B1-C2)</h3>
+            <table class="glossary-table">
+                <tr><th>Vocabulary</th><th>POS</th><th>Meaning (Vietnamese)</th></tr>
+                <tr><td>Extroversion</td><td>Noun (n)</td><td>Sự hướng ngoại, tính cởi mở</td></tr>
+                <tr><td>Predisposition</td><td>Noun (n)</td><td>Khuynh hướng, tố chất bẩm sinh</td></tr>
+                <tr><td>Sociopath</td><td>Noun (n)</td><td>Kẻ rối loạn nhân cách, chống đối xã hội</td></tr>
+                <tr><td>Promiscuous</td><td>Adj</td><td>Lăng nhăng, bừa bãi (tình dục)</td></tr>
+                <tr><td>Infatuation</td><td>Noun (n)</td><td>Sự say mê, cuồng dại nhất thời</td></tr>
+                <tr><td>Freeloader</td><td>Noun (n)</td><td>Kẻ ăn bám, kẻ chực chờ hưởng lợi</td></tr>
+                <tr><td>Petrified</td><td>Adj</td><td>Cực kỳ khiếp sợ, sững sờ</td></tr>
+                <tr><td>Repent</td><td>Verb (v)</td><td>Ăn năn, hối lỗi</td></tr>
+                <tr><td>Conscience</td><td>Noun (n)</td><td>Lương tâm</td></tr>
+                <tr><td>Scammer</td><td>Noun (n)</td><td>Kẻ lừa đảo (đặc biệt trên mạng)</td></tr>
+            </table>
+        </div>
+
+        <div class="pane right-pane">
+            <h2 style="color: var(--primary); margin-bottom: 20px;">🎮 TRẮC NGHIỆM TƯƠNG TÁC</h2>
+            <div id="quiz-container"></div>
+            <button class="submit-btn" onclick="submitQuiz()">NỘP BÀI TỔNG KẾT 🏆</button>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="resultModal">
+        <div class="modal-content">
+            <h2>🎉 HOÀN THÀNH BÀI TEST 🎉</h2>
+            <div class="score-text" id="finalScore">0/33</div>
+            <div class="msg-text" id="feedbackMsg">Làm tốt lắm!</div>
+            <button class="close-btn" onclick="closeModal()">Xem lại đáp án</button>
+        </div>
+    </div>
+
+<script>
+    // --- AUDIO SYSTEM (Web Audio API) ---
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    const audioCtx = new AudioContext();
+
+    function playCorrect() {
+        if(audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        osc.connect(gainNode); gainNode.connect(audioCtx.destination);
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(523.25, audioCtx.currentTime); // C5
+        osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.1); // E5
+        gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
+        gainNode.gain.linearRampToValueAtTime(0.5, audioCtx.currentTime + 0.05);
+        gainNode.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.3);
+        osc.start(); osc.stop(audioCtx.currentTime + 0.3);
+    }
+
+    function playWrong() {
+        if(audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        osc.connect(gainNode); gainNode.connect(audioCtx.destination);
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(300, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.4);
+        gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
+        gainNode.gain.linearRampToValueAtTime(0.5, audioCtx.currentTime + 0.1);
+        gainNode.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.4);
+        osc.start(); osc.stop(audioCtx.currentTime + 0.4);
+    }
+
+    // --- EFFECTS ---
+    function triggerConfetti() {
+        const colors = ['#FF4757', '#00D26A', '#FDCB6E', '#00C9A7', '#8854C0'];
+        for(let i=0; i<40; i++) {
+            let conf = document.createElement('div');
+            conf.className = 'confetti';
+            conf.style.left = Math.random() * 100 + 'vw';
+            conf.style.backgroundColor = colors[Math.floor(Math.random()*colors.length)];
+            conf.style.animationDuration = (Math.random() * 1 + 1.5) + 's';
+            document.body.appendChild(conf);
+            setTimeout(() => conf.remove(), 3000);
+        }
+    }
+
+    // --- TIMER SYSTEM ---
+    let time = 600; // 10 minutes
+    let timerInterval;
+    let isRunning = false;
+
+    function startTimer() {
+        const btn = document.getElementById('start-btn');
+        if(!isRunning) {
+            isRunning = true;
+            btn.innerText = "TẠM DỪNG";
+            btn.style.background = "#FF4757";
+            btn.style.boxShadow = "0 4px 0 #d63031";
+            timerInterval = setInterval(() => {
+                time--;
+                let m = Math.floor(time / 60);
+                let s = time % 60;
+                document.getElementById('timer').innerText = `${m}:${s<10?'0':''}${s}`;
+                if(time <= 0) {
+                    clearInterval(timerInterval);
+                    alert("⏰ Đã hết giờ làm bài! Bạn vẫn có thể tiếp tục làm, nhưng nhớ là trong phòng thi thật, bạn chỉ nên làm một bài như thế này trong 10 phút thôi nha.");
+                }
+            }, 1000);
+        } else {
+            isRunning = false;
+            clearInterval(timerInterval);
+            btn.innerText = "TIẾP TỤC";
+            btn.style.background = "var(--primary)";
+            btn.style.boxShadow = "0 4px 0 #5f3a8c";
+        }
+    }
+
+    function toggleTranslation(id) {
+        let el = document.getElementById(id);
+        el.style.display = (el.style.display === 'block') ? 'none' : 'block';
+    }
+
+    // --- QUIZ DATA & LOGIC ---
+    // Để tối ưu mã code, tôi tạo hàm sinh 33 câu hỏi dựa vào đáp án chuẩn, kết hợp tự động xáo trộn.
+    const rawData = [
+        { q: "At first, I was drawn to his extreme (1) _________.", a: "extroversion", f: ["wild child", "dingy", "sociopath"], 
+          trans: "Ban đầu, tôi bị thu hút bởi sự hướng ngoại tột độ của anh ấy.", r: "Dựa vào 'drawn to' và ngữ cảnh sau đó 'always the life of the party', 'extroversion' (sự hướng ngoại) là phù hợp nhất." },
+        { q: "He was the ultimate (2) _________...", a: "wild child", f: ["slobby", "predispositions", "extroversion"], trans: "Anh ấy là một đứa trẻ hoang dã đúng nghĩa...", r: "Cụm từ 'ultimate wild child' chỉ một người vô cùng nổi loạn và phóng khoáng." },
+        { q: "...always the life of the party and a real (3) _________ who kept everyone entertained.", a: "firecracker", f: ["sociopath", "dingy", "freeloader"], trans: "...luôn là linh hồn của bữa tiệc và là một ngòi nổ thực sự giữ cho mọi người vui vẻ.", r: "'firecracker' (ngòi nổ/người sôi nổi) hợp với 'kept everyone entertained'." },
+        { q: "Our apartment was already a bit (4) _________,", a: "dingy", f: ["loaded", "promiscuous", "slobby"], trans: "Căn hộ của chúng tôi vốn đã hơi xỉn màu/tồi tàn,", r: "'dingy' (xỉn màu, bẩn thỉu) là tính từ mô tả căn hộ." },
+        { q: "but his (5) _________ habits made it worse.", a: "slobby", f: ["wild child", "dingy", "freeloading"], trans: "nhưng thói quen lôi thôi của anh ta làm mọi thứ tệ hơn.", r: "Trước danh từ 'habits', cần một tính từ miêu tả thói quen xấu: 'slobby' (lôi thôi)." },
+        { q: "Honestly, looking back, I think he had some dangerous psychological (6) _________.", a: "predispositions", f: ["infatuation", "extroversion", "scammer"], trans: "Thành thật mà nói, nhìn lại, tôi nghĩ anh ta có một số khuynh hướng tâm lý nguy hiểm.", r: "'psychological predispositions' (khuynh hướng tâm lý) đi liền với nhau thành một cụm." },
+        { q: "He lacked empathy and acted almost like a (7) _________.", a: "sociopath", f: ["firecracker", "scammer", "freeloader"], trans: "Anh ta thiếu sự đồng cảm và hành động gần như một kẻ rối loạn nhân cách.", r: "Việc 'lacked empathy' (thiếu đồng cảm) là biểu hiện của 'sociopath'." },
+        { q: "He was incredibly (8) _________, bringing different people home every week.", a: "promiscuous", f: ["loaded", "petrified of", "short of"], trans: "Anh ta vô cùng lăng nhăng, đưa những người khác nhau về nhà mỗi tuần.", r: "Hành động dẫn nhiều người lạ về nhà chỉ tính 'promiscuous' (lăng nhăng, bừa bãi)." },
+        { q: "He would develop a sudden (9) _________ with someone,", a: "infatuation", f: ["undying passion", "food desert", "freeloading"], trans: "Anh ta sẽ nảy sinh sự say nắng/cuồng dại đột ngột với ai đó,", r: "'develop an infatuation' (phát triển sự si mê) đi liền với giới từ 'with'." },
+        { q: "claiming it was his (10) _________, but then dump them days later.", a: "undying passion", f: ["extroversion", "food alternatives", "upfront payment"], trans: "cho rằng đó là niềm đam mê bất diệt của mình, nhưng rồi lại đá họ...", r: "Sự đối lập giữa việc gọi đó là 'undying passion' (đam mê bất diệt) và việc đá họ ngay sau đó." },
+        { q: "I literally had to warn him about the risks of catching a (11) _________,", a: "sexually transmitted disease", f: ["food desert", "wild child", "scammer"], trans: "Tôi thực sự đã cảnh báo anh ta về nguy cơ mắc bệnh lây truyền qua đường tình dục,", r: "Hậu quả của việc lăng nhăng là nguy cơ mắc STD." },
+        { q: "Our neighborhood was basically a (12) _________ with no fresh groceries.", a: "food desert", f: ["shopping spree", "dingy", "wild child"], trans: "Khu phố của chúng tôi cơ bản là một 'sa mạc thực phẩm' không có thực phẩm tươi sống.", r: "'Food desert' là thuật ngữ chỉ khu vực không có đồ ăn tươi sống/tốt lành." },
+        { q: "Instead of looking for healthy (13) _________,", a: "food alternatives", f: ["predispositions", "freeloaders", "scammers"], trans: "Thay vì tìm kiếm các lựa chọn thực phẩm thay thế lành mạnh,", r: "'Healthy food alternatives' là sự lựa chọn thức ăn thay thế tốt cho sức khỏe." },
+        { q: "he would just (14) _________ mountains of junk food every single day.", a: "go through", f: ["toss and turn", "feel bad", "repent"], trans: "anh ta chỉ ngốn/tiêu thụ hàng núi đồ ăn vặt mỗi ngày.", r: "Phrasal verb 'go through' ở đây mang nghĩa tiêu thụ một lượng lớn." },
+        { q: "Most days, he was completely broke and (15) _________ cash.", a: "short of", f: ["petrified of", "loaded", "freeloading"], trans: "Hầu hết các ngày, anh ta hoàn toàn nhẵn túi và thiếu tiền mặt.", r: "Cụm 'short of cash' (thiếu thốn tiền mặt) song hành với 'broke'." },
+        { q: "He was such a (16) _________.", a: "freeloader", f: ["scammer", "wild child", "sociopath"], trans: "Anh ta đúng là một kẻ ăn bám.", r: "Dựa vào câu sau (dựa dẫm trả tiền nhà), anh ta là 'freeloader'." },
+        { q: "Because of his constant (17) _________ on me for rent and groceries,", a: "freeloading", f: ["infatuation", "extroversion", "predispositions"], trans: "Vì sự ăn bám liên tục của anh ta đối với tôi...", r: "Cần một danh từ (V-ing) sau 'constant' -> 'freeloading'." },
+        { q: "I barely had enough money left to (18) _________.", a: "cover my daily spending", f: ["go on a shopping spree", "bang my head on the wall", "pay upfront"], trans: "Tôi hầu như không còn đủ tiền để trang trải chi tiêu hàng ngày.", r: "'cover spending' (trang trải chi tiêu) hợp lý nhất." },
+        { q: "But then, (19) _________, he would suddenly be absolutely...", a: "off and on", f: ["as of late", "short of", "loaded"], trans: "Nhưng sau đó, thỉnh thoảng, anh ta đột nhiên...", r: "'off and on' mang nghĩa thỉnh thoảng, không thường xuyên." },
+        { q: "...he would suddenly be absolutely (20) _________.", a: "loaded", f: ["dingy", "promiscuous", "petrified of"], trans: "...anh ta đột nhiên trở nên cực kỳ giàu có.", r: "'loaded' là lóng (slang) nghĩa là rất nhiều tiền." },
+        { q: "He’d be (21) _________", a: "rolling in the dough", f: ["tossing and turning", "freeloading", "feeling bad"], trans: "Anh ta rủng rỉnh tiền bạc", r: "Idiom 'rolling in the dough' (lăn trong bột) nghĩa là rất giàu/nhiều tiền." },
+        { q: "and would immediately (22) _________ to buy designer clothes.", a: "go on a shopping spree", f: ["cover my daily spending", "pay upfront", "bang my head on the wall"], trans: "và sẽ ngay lập tức đi mua sắm điên cuồng quần áo hàng hiệu.", r: "Cụm 'go on a shopping spree' (mua sắm thả ga)." },
+        { q: "His motto was literally '(23) _________'.", a: "money makes the world round", f: ["pure conscience", "undying passion", "food alternatives"], trans: "Phương châm của anh ta thực sự là 'có tiền mua tiên cũng được' (tiền làm thế giới quay).", r: "Một câu tục ngữ về quyền lực của đồng tiền." },
+        { q: "I later discovered he was actually a (24) _________ online.", a: "scammer", f: ["freeloader", "sociopath", "wild child"], trans: "Sau này tôi phát hiện ra anh ta thực chất là một kẻ lừa đảo trên mạng.", r: "Lừa bán hàng giả (fake products) thì phải là 'scammer'." },
+        { q: "He would trick people into making an (25) _________ for fake products,", a: "upfront payment", f: ["infatuation", "undying passion", "extroversion"], trans: "Anh ta sẽ lừa người ta thanh toán một khoản tiền trước cho các sản phẩm giả,", r: "'upfront payment' là danh từ chỉ khoản thanh toán trước." },
+        { q: "forcing them to (26) _________, and then disappear.", a: "pay upfront", f: ["repent", "toss and turn", "feel bad"], trans: "ép họ phải thanh toán trước rồi biến mất.", r: "Cấu trúc force sb to V -> cần động từ 'pay upfront'." },
+        { q: "Dealing with his chaos made me want to (27) _________.", a: "bang my head on the wall", f: ["go on a shopping spree", "cover my daily spending", "pay upfront"], trans: "Giải quyết sự hỗn loạn của anh ta làm tôi muốn đập đầu vào tường.", r: "Idiom thể hiện sự thất vọng, bất lực tột độ." },
+        { q: "I was often (28) _________ the legal trouble he might bring...", a: "petrified of", f: ["short of", "loaded", "promiscuous"], trans: "Tôi thường xuyên khiếp sợ trước những rắc rối pháp lý...", r: "'petrified of' (sợ chết khiếp) đi với giới từ of." },
+        { q: "which made me (29) _________ in bed every night.", a: "toss and turn", f: ["repent", "go through", "feel bad"], trans: "điều đó làm tôi trằn trọc trên giường mỗi đêm.", r: "Idiom 'toss and turn' nghĩa là trằn trọc không ngủ được." },
+        { q: "(30) _________, I’ve moved out and cut all ties with him.", a: "As of late", f: ["Off and on", "Short of", "Loaded"], trans: "Dạo gần đây, tôi đã dọn ra ngoài và cắt đứt mọi quan hệ với anh ta.", r: "'As of late' (gần đây) đóng vai trò trạng ngữ thời gian." },
+        { q: "Sometimes I (31) _________ for abandoning him,", a: "feel bad", f: ["toss and turn", "repent", "bang my head on the wall"], trans: "Đôi khi tôi cảm thấy tồi tệ vì đã bỏ rơi anh ta,", r: "Cảm xúc hối hận nhẹ: 'feel bad'." },
+        { q: "but I know I have a (32) _________.", a: "pure conscience", f: ["undying passion", "food desert", "infatuation"], trans: "nhưng tôi biết mình có một lương tâm trong sạch.", r: "Cụm 'pure/clear conscience' (lương tâm trong sạch)." },
+        { q: "I tried my best to help him realize his mistakes and (33) _________...", a: "repent", f: ["freeload", "pay upfront", "go through"], trans: "Tôi đã cố hết sức để giúp anh ta nhận ra sai lầm và ăn năn...", r: "'repent' là động từ nghĩa là ăn năn, hối lỗi." }
+    ];
+
+    function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+    }
+
+    let userAnswers = {}; // track score
+
+    function renderQuiz() {
+        const container = document.getElementById('quiz-container');
+        rawData.forEach((item, index) => {
+            let qNum = index + 1;
+            let options = [item.a, ...item.f];
+            options = shuffleArray(options); // Tự động trộn đáp án
+
+            let card = document.createElement('div');
+            card.className = 'question-card';
+            card.id = `qcard-${qNum}`;
+            
+            let html = `<div class="question-text">Câu ${qNum}: ${item.q.replace(`(${qNum}) _________`, `<span style="color:var(--primary)">(${qNum}) .........</span>`)}</div>
+                        <div class="options-grid">`;
+            
+            let labels = ['A', 'B', 'C', 'D'];
+            options.forEach((opt, i) => {
+                html += `<button class="option-btn" onclick="checkAnswer(${qNum}, this, '${opt}', '${item.a}')">
+                            <b>${labels[i]}.</b> ${opt}
+                         </button>`;
+            });
+
+            html += `</div>
+                     <div class="explanation-box" id="exp-${qNum}">
+                        <h4>📘 GIẢI THÍCH CHI TIẾT:</h4>
+                        <div class="exp-trans"><b>Dịch câu:</b> "${item.trans}"</div>
+                        <div class="exp-vocab"><b>Tại sao chọn đáp án này?</b><br>${item.r}</div>
+                     </div>`;
+            card.innerHTML = html;
+            container.appendChild(card);
+        });
+    }
+
+    function checkAnswer(qNum, btn, selected, correct) {
+        // Nếu đã trả lời rồi thì bỏ qua
+        if(userAnswers[qNum] !== undefined) return; 
+
+        let buttons = btn.parentElement.querySelectorAll('.option-btn');
+        
+        if(selected === correct) {
+            btn.classList.add('correct');
+            playCorrect();
+            triggerConfetti();
+            userAnswers[qNum] = 1;
+        } else {
+            btn.classList.add('wrong');
+            playWrong();
+            userAnswers[qNum] = 0;
+            // Hiển thị ngay đáp án đúng
+            buttons.forEach(b => {
+                if(b.innerText.includes(correct)) {
+                    b.classList.add('correct');
+                }
+            });
+        }
+        
+        // Disable buttons after click
+        buttons.forEach(b => b.style.pointerEvents = 'none');
+
+        // Show explanation
+        document.getElementById(`exp-${qNum}`).style.display = 'block';
+        
+        // Update reading pane instantly
+        let blanks = document.querySelectorAll('.blank-space');
+        if(blanks[qNum-1]) {
+            blanks[qNum-1].innerText = `(${qNum}) ${correct}`;
+            blanks[qNum-1].style.color = (selected === correct) ? 'var(--correct)' : 'var(--wrong)';
+        }
+    }
+
+    function submitQuiz() {
+        let totalAnswered = Object.keys(userAnswers).length;
+        if(totalAnswered < rawData.length) {
+            let c = confirm(`Bạn mới làm ${totalAnswered}/${rawData.length} câu. Bạn có chắc chắn muốn nộp bài?`);
+            if(!c) return;
+        }
+
+        clearInterval(timerInterval); // Stop timer
+
+        let score = 0;
+        for(let key in userAnswers) { score += userAnswers[key]; }
+        
+        document.getElementById('finalScore').innerText = `${score}/${rawData.length}`;
+        let msg = "";
+        let pct = score / rawData.length;
+        if(pct === 1) msg = "Tuyệt đỉnh! Cấp độ Thiên tài (Genius Level) 🌟";
+        else if(pct >= 0.8) msg = "Làm tốt lắm! Kiến thức của bạn rất vững! 🔥";
+        else if(pct >= 0.5) msg = "Cố lên nhé! Hãy đọc kỹ giải thích để tiến bộ hơn! 💪";
+        else msg = "Đừng nản chí! Học từ vựng là một quá trình dài! 🐢";
+
+        document.getElementById('feedbackMsg').innerText = msg;
+        document.getElementById('resultModal').style.display = 'flex';
+        triggerConfetti();
+    }
+
+    function closeModal() {
+        document.getElementById('resultModal').style.display = 'none';
+    }
+
+    // Initialize
+    window.onload = renderQuiz;
+</script>
+
+</body>
+</html>

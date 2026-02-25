@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>English Gamified Quiz - Ms Mai An ULIS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800&family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #1e3799;
+            --secondary: #f6b93b;
+            --accent: #00C9A7;
+            --correct: #00D26A;
+            --wrong: #FF4757;
+            --text-dark: #2d3436;
+            --bg-light: #f9f9f9;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            color: var(--text-dark);
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            background: linear-gradient(-45deg, #1e3799, #f6b93b, #e55039, #4a69bd);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Auto-generated Dynamic Pattern: Movie & Office Drama */
+        .bg-pattern {
+            position: fixed; top: 0; left: 0; width: 100%; height: 200%;
+            background-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Ctext x='20' y='50' font-size='35'%3E%F0%9F%8E%AC%3C/text%3E%3Ctext x='90' y='100' font-size='35'%3E%F0%9F%8F%A2%3C/text%3E%3Ctext x='40' y='150' font-size='35'%3E%F0%9F%92%A5%3C/text%3E%3C/svg%3E");
+            opacity: 0.18; z-index: -1; pointer-events: none;
+            animation: floatUp 35s linear infinite;
+        }
+
+        @keyframes floatUp {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(-50%); }
+        }
+
+        /* Top Bar */
+        .top-bar {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 10px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            z-index: 10;
+        }
+
+        .teacher-title {
+            font-family: 'Quicksand', sans-serif;
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--primary);
+            background: rgba(30, 55, 153, 0.1);
+            padding: 5px 15px;
+            border-radius: 20px;
+        }
+
+        .timer-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        #timer { font-size: 24px; font-weight: 800; color: var(--wrong); width: 80px; text-align: center; }
+        .btn-control {
+            background: var(--primary); color: white; border: none; padding: 10px 20px;
+            font-family: 'Quicksand', sans-serif; font-weight: 700; font-size: 14px;
+            border-radius: 12px; cursor: pointer;
+            box-shadow: 0 4px 0 #0c2461; transition: all 0.1s;
+        }
+        .btn-control:active { transform: translateY(4px); box-shadow: 0 0 0 #0c2461; }
+
+        /* Split Screen Content */
+        .main-container {
+            display: flex; flex: 1; padding: 20px; gap: 20px; overflow: hidden;
+        }
+
+        .pane {
+            flex: 1; background: rgba(255, 255, 255, 0.95);
+            border-radius: 25px; padding: 30px; overflow-y: auto;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            position: relative;
+        }
+        
+        .pane::-webkit-scrollbar { width: 8px; }
+        .pane::-webkit-scrollbar-thumb { background: #ccc; border-radius: 10px; }
+
+        /* Left Pane - Reading */
+        .reading-text { font-size: 18px; line-height: 1.8; margin-bottom: 20px; }
+        .reading-title { color: var(--primary); font-size: 22px; font-weight: 800; margin-top: 20px; margin-bottom: 10px; }
+        .word-bank { background: #eee; padding: 15px; border-radius: 15px; font-weight: bold; color: #555; margin-bottom: 15px; font-size: 14px; }
+        .blank-space { font-weight: bold; color: var(--primary); }
+        
+        .btn-translate {
+            background: #ffeaa7; color: #d63031; border: none; padding: 8px 15px;
+            border-radius: 12px; font-weight: 700; cursor: pointer; font-size: 14px;
+            box-shadow: 0 4px 0 #fdcb6e; margin-bottom: 20px; display: inline-flex; align-items: center; gap: 5px;
+        }
+        .btn-translate:active { transform: translateY(4px); box-shadow: none; }
+        .translation-box {
+            display: none; background: #fff3cd; border-left: 4px solid #ffc107;
+            padding: 15px; border-radius: 8px; margin-bottom: 20px; font-size: 16px; color: #555;
+        }
+
+        .glossary-table { width: 100%; border-collapse: collapse; margin-top: 30px; }
+        .glossary-table th { background: var(--primary); color: white; padding: 10px; text-align: left; border-radius: 8px 8px 0 0; }
+        .glossary-table td { padding: 10px; border-bottom: 1px solid #ddd; }
+        .glossary-table tr:last-child td { border-bottom: none; }
+
+        /* Right Pane - Quiz */
+        .question-card {
+            background: white; border: 2px solid #e5e5e5; border-radius: 20px;
+            padding: 25px; margin-bottom: 25px; box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+        .question-text { font-size: 18px; font-weight: 700; margin-bottom: 20px; color: #2d3436; }
+        
+        .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .option-btn {
+            background: white; border: 2px solid #e5e5e5; border-radius: 16px;
+            padding: 15px; font-size: 16px; font-family: 'Nunito', sans-serif; font-weight: 700;
+            color: #2d3436; cursor: pointer; text-align: left;
+            box-shadow: 0 6px 0 #e5e5e5; transition: all 0.1s ease;
+            display: flex; align-items: center; gap: 10px;
+        }
+        .option-btn:hover { transform: scale(1.02); }
+        .option-btn:active { transform: translateY(6px); box-shadow: 0 0 0 #e5e5e5; }
+        
+        .option-btn.correct { background: var(--correct); border-color: #00b359; box-shadow: 0 6px 0 #00b359; color: white; }
+        .option-btn.wrong { background: var(--wrong); border-color: #d63031; box-shadow: 0 6px 0 #d63031; color: white; animation: shake 0.4s; }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            50% { transform: translateX(5px); }
+            75% { transform: translateX(-5px); }
+        }
+
+        .explanation-box {
+            display: none; margin-top: 20px; padding: 20px;
+            background: #f1f8ff; border-left: 5px solid #0984e3; border-radius: 10px; font-size: 15px; line-height: 1.6;
+        }
+        .explanation-box h4 { color: #0984e3; margin-bottom: 10px; }
+        .exp-vocab { white-space: pre-line; margin-bottom: 10px; font-family: 'Quicksand', sans-serif;}
+        .exp-trans { font-style: italic; color: #555; margin-bottom: 10px; }
+
+        .submit-btn {
+            display: block; width: 100%; background: var(--secondary); color: var(--primary);
+            font-size: 20px; font-weight: 800; padding: 20px; border: none; border-radius: 20px;
+            cursor: pointer; box-shadow: 0 8px 0 #e1b12c; margin-top: 30px; transition: 0.1s;
+        }
+        .submit-btn:active { transform: translateY(8px); box-shadow: 0 0 0 #e1b12c; }
+
+        /* Modal Result */
+        .modal-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6); z-index: 100; justify-content: center; align-items: center;
+        }
+        .modal-content {
+            background: white; padding: 40px; border-radius: 30px; text-align: center;
+            width: 400px; box-shadow: 0 20px 50px rgba(0,0,0,0.2); animation: popUp 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        @keyframes popUp { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+        .score-text { font-size: 48px; font-weight: 800; color: var(--primary); margin: 20px 0; }
+        .msg-text { font-size: 20px; color: #555; margin-bottom: 30px; }
+        .close-btn {
+            background: var(--wrong); color: white; border: none; padding: 12px 30px; border-radius: 15px;
+            font-size: 18px; font-weight: 700; cursor: pointer; box-shadow: 0 5px 0 #d63031;
+        }
+
+        .confetti { position: fixed; top: -10px; width: 12px; height: 12px; z-index: 999; animation: fall 2s linear forwards; }
+        @keyframes fall { to { transform: translateY(110vh) rotate(720deg); } }
+
+    </style>
+</head>
+<body>
+
+    <div class="bg-pattern"></div>
+
+    <div class="top-bar">
+        <div class="teacher-title">👩‍🏫 Ms Mai An ULIS</div>
+        <div class="timer-container">
+            <div id="timer">10:00</div>
+            <button class="btn-control" id="start-btn" onclick="startTimer()">BẮT ĐẦU TÍNH GIỜ</button>
+        </div>
+    </div>
+
+    <div class="main-container">
+        <div class="pane left-pane">
+            <h2>🧩 ĐỀ BÀI: ĐIỀN TỪ VÀO CHỖ TRỐNG</h2>
+            <p>IELTS SPEAKING PART 2: THE TOXIC WORKPLACE</p>
+
+            <div class="reading-title">Phần 1: Khởi đầu ngây thơ và Thực tế phũ phàng</div>
+            <div class="word-bank">Word Bank 1: make trade-offs | get traction | veteran | do a movie extra work | facebooking | college grad | undertake an entry-level job | bury yourself in something</div>
+            <div class="reading-text">
+                "As a fresh and naive <span class="blank-space">(1) .........</span>, I was desperate to build my resume, so I decided to <span class="blank-space">(2) .........</span> at an independent film studio. Initially, I thought I would just fetch coffee or <span class="blank-space">(3) .........</span> in the background. However, a kindly industry <span class="blank-space">(4) .........</span> warned me early on. He said if I wanted my career to <span class="blank-space">(5) .........</span>, I had to stop <span class="blank-space">(6) .........</span> during office hours and truly <span class="blank-space">(7) .........</span> (bury myself in my tasks). I realized I had to <span class="blank-space">(8) .........</span> regarding my free time if I wanted to survive there."
+            </div>
+            <button class="btn-translate" onclick="toggleTranslation('trans1')">Mở dịch đoạn này 🌟</button>
+            <div class="translation-box" id="trans1">
+                "Là một sinh viên mới tốt nghiệp tươi trẻ và ngây thơ, tôi rất khao khát xây dựng bản lý lịch của mình, vì vậy tôi quyết định đảm nhận một công việc cấp thấp tại một xưởng phim độc lập. Ban đầu, tôi nghĩ mình sẽ chỉ đi lấy cà phê hoặc làm diễn viên quần chúng ở hậu cảnh. Tuy nhiên, một người kỳ cựu tốt bụng trong ngành đã cảnh báo tôi từ sớm. Anh ấy nói nếu tôi muốn sự nghiệp của mình có bước đà phát triển, tôi phải ngừng lướt Facebook trong giờ làm việc và thực sự vùi mình vào công việc. Tôi nhận ra mình phải đánh đổi thời gian rảnh rỗi nếu muốn tồn tại ở đó."
+            </div>
+
+            <div class="reading-title">Phần 2: "Gia môn bất hạnh" và Sếp tồi</div>
+            <div class="word-bank">Word Bank 2: subjugate | estranged from | estranged wife | agenda | con | dysfunctional family | the epitome of something | coerce</div>
+            <div class="reading-text">
+                "The problem was the company itself. It was run by an incredibly <span class="blank-space">(9) .........</span>. The director was going through a bitter divorce and was completely <span class="blank-space">(10) .........</span> his <span class="blank-space">(11) .........</span>, which made him take his anger out on us. He always had a hidden <span class="blank-space">(12) .........</span> behind every decision. Honestly, he was <span class="blank-space">(13) .........</span> (the epitome of a toxic boss). He would constantly try to <span class="blank-space">(14) .........</span> the junior staff to assert dominance. He wouldn't hesitate to <span class="blank-space">(15) .........</span> employees into working unpaid overtime, and he would even <span class="blank-space">(16) .........</span> clients into paying for services we couldn't deliver."
+            </div>
+            <button class="btn-translate" onclick="toggleTranslation('trans2')">Mở dịch đoạn này 🌟</button>
+            <div class="translation-box" id="trans2">
+                "Vấn đề nằm ở chính công ty. Nó được điều hành bởi một gia đình cực kỳ phức tạp và rối loạn. Vị đạo diễn đang trải qua một cuộc ly hôn cay đắng và hoàn toàn xa cách với người vợ ly thân của mình, điều đó khiến ông ta trút giận lên chúng tôi. Ông ta luôn có một động cơ/mục đích nấp sau mọi quyết định. Thành thật mà nói, ông ta là hiện thân của một người sếp độc hại. Ông ta sẽ liên tục cố gắng khuất phục các nhân viên cấp dưới để khẳng định sự thống trị. Ông ta không ngần ngại ép buộc nhân viên làm thêm giờ không lương, và thậm chí còn lừa gạt khách hàng trả tiền cho những dịch vụ mà chúng tôi không thể cung cấp."
+            </div>
+
+            <div class="reading-title">Phần 3: Những lời lươn lẹo và Trò chơi khăm</div>
+            <div class="word-bank">Word Bank 3: convoluted | badger | a load of crap | sabotage | preach to sb | bring something up | escort | appease</div>
+            <div class="reading-text">
+                "Communication was impossible. Whenever I dared to <span class="blank-space">(17) .........</span> regarding my unpaid hours, he would give these ridiculously <span class="blank-space">(18) .........</span> explanations that were frankly just <span class="blank-space">(19) .........</span>. Instead of solving the issue, he would just <span class="blank-space">(20) .........</span> (preach to us) about 'passion and dedication' to <span class="blank-space">(21) .........</span> the angry crew. If you disagreed, he would <span class="blank-space">(22) .........</span> you with passive-aggressive emails or actively <span class="blank-space">(23) .........</span> your work. Once, I was assigned to <span class="blank-space">(24) .........</span> a VIP guest to the set, but he purposely gave me the wrong address to make me look incompetent."
+            </div>
+            <button class="btn-translate" onclick="toggleTranslation('trans3')">Mở dịch đoạn này 🌟</button>
+            <div class="translation-box" id="trans3">
+                "Giao tiếp là điều không thể. Bất cứ khi nào tôi dám đề cập đến số giờ làm việc không công của mình, ông ta sẽ đưa ra những lời giải thích phức tạp nực cười mà thẳng thắn mà nói thì toàn là rác rưởi vô lý. Thay vì giải quyết vấn đề, ông ta sẽ chỉ thuyết giáo chúng tôi về 'đam mê và cống hiến' để xoa dịu đoàn làm phim đang tức giận. Nếu bạn không đồng ý, ông ta sẽ quấy rầy bạn bằng những email gây hấn thụ động hoặc chủ động phá hoại công việc của bạn. Có lần, tôi được giao nhiệm vụ hộ tống một vị khách VIP đến trường quay, nhưng ông ta cố tình đưa sai địa chỉ để khiến tôi trông có vẻ bất tài."
+            </div>
+
+            <div class="reading-title">Phần 4: Phản kháng và Thành quả</div>
+            <div class="word-bank">Word Bank 4: take heed of | rock | by extension | accomplishment | all-time high | let it slide | take the consequences | barricade | boot</div>
+            <div class="reading-text">
+                "Eventually, I couldn't just <span class="blank-space">(25) .........</span> anymore. I decided to <span class="blank-space">(26) .........</span> my mentor's advice. When the boss threatened to <span class="blank-space">(27) .........</span> me off the project, I had to mentally <span class="blank-space">(28) .........</span> myself against his verbal abuse. I stood my ground, fully prepared to <span class="blank-space">(29) .........</span>. Surprisingly, standing up to a bully became my proudest personal <span class="blank-space">(30) .........</span> that year. Despite the drama, the final movie actually turned out to <span class="blank-space">(31) .........</span>! My confidence reached an <span class="blank-space">(32) .........</span>, and <span class="blank-space">(33) .........</span>, the experience made me much tougher and ready for any future career challenges."
+            </div>
+            <button class="btn-translate" onclick="toggleTranslation('trans4')">Mở dịch đoạn này 🌟</button>
+            <div class="translation-box" id="trans4">
+                "Cuối cùng, tôi không thể cứ nhắm mắt cho qua thêm nữa. Tôi quyết định chú ý/nghe theo lời khuyên của người cố vấn của mình. Khi sếp đe dọa đuổi tôi khỏi dự án, tôi đã phải chuẩn bị tinh thần dựng lên rào chắn chống lại sự lạm dụng bằng lời nói của ông ta. Tôi giữ vững lập trường, hoàn toàn chuẩn bị sẵn sàng để gánh chịu hậu quả. Đáng ngạc nhiên là việc đứng lên chống lại kẻ bắt nạt đã trở thành thành tựu cá nhân đáng tự hào nhất của tôi năm đó. Mặc dù có nhiều drama, nhưng bộ phim cuối cùng hóa ra lại cực kỳ thành công/tuyệt vời! Sự tự tin của tôi đạt mức cao nhất mọi thời đại, và suy rộng ra, trải nghiệm này đã làm tôi trở nên cứng cỏi hơn rất nhiều và sẵn sàng cho bất kỳ thử thách nghề nghiệp nào trong tương lai."
+            </div>
+
+            <h3 style="margin-top: 30px; color: var(--primary);">📚 Glossary (Từ vựng học thuật B2-C2)</h3>
+            <table class="glossary-table">
+                <tr><th>Vocabulary</th><th>POS</th><th>Meaning (Vietnamese)</th></tr>
+                <tr><td>Subjugate</td><td>Verb (v)</td><td>Khuất phục, nô dịch hóa</td></tr>
+                <tr><td>Coerce</td><td>Verb (v)</td><td>Ép buộc (bằng đe dọa/áp lực)</td></tr>
+                <tr><td>Sabotage</td><td>Verb (v)</td><td>Phá hoại ngầm, cố tình làm hỏng</td></tr>
+                <tr><td>Convoluted</td><td>Adj</td><td>Rất phức tạp, rắc rối, khó hiểu</td></tr>
+                <tr><td>Epitome</td><td>Noun (n)</td><td>Tấm gương hoàn hảo, hình ảnh thu nhỏ</td></tr>
+                <tr><td>Estranged</td><td>Adj</td><td>Xa cách, ly thân (vợ/chồng)</td></tr>
+                <tr><td>Dysfunctional</td><td>Adj</td><td>Rối loạn, không bình thường (chỉ gia đình)</td></tr>
+                <tr><td>Appease</td><td>Verb (v)</td><td>Xoa dịu, dỗ dành, nhượng bộ</td></tr>
+                <tr><td>Badger</td><td>Verb (v)</td><td>Quấy rầy, làm phiền liên tục</td></tr>
+                <tr><td>Barricade</td><td>Verb (v)</td><td>Lập rào chắn, ngăn chặn (nghĩa bóng: tự bảo vệ)</td></tr>
+                <tr><td>Con</td><td>Verb (v)</td><td>Lừa đảo, lừa gạt lấy tiền</td></tr>
+            </table>
+        </div>
+
+        <div class="pane right-pane">
+            <h2 style="color: var(--primary); margin-bottom: 20px;">🎮 TRẮC NGHIỆM TƯƠNG TÁC</h2>
+            <div id="quiz-container"></div>
+            <button class="submit-btn" onclick="submitQuiz()">NỘP BÀI TỔNG KẾT 🏆</button>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="resultModal">
+        <div class="modal-content">
+            <h2>🎉 HOÀN THÀNH BÀI TEST 🎉</h2>
+            <div class="score-text" id="finalScore">0/33</div>
+            <div class="msg-text" id="feedbackMsg">Làm tốt lắm!</div>
+            <button class="close-btn" onclick="closeModal()">Xem lại đáp án</button>
+        </div>
+    </div>
+
+<script>
+    // --- AUDIO SYSTEM ---
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    const audioCtx = new AudioContext();
+
+    function playCorrect() {
+        if(audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        osc.connect(gainNode); gainNode.connect(audioCtx.destination);
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(523.25, audioCtx.currentTime); // C5
+        osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.1); // E5
+        gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
+        gainNode.gain.linearRampToValueAtTime(0.5, audioCtx.currentTime + 0.05);
+        gainNode.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.3);
+        osc.start(); osc.stop(audioCtx.currentTime + 0.3);
+    }
+
+    function playWrong() {
+        if(audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        osc.connect(gainNode); gainNode.connect(audioCtx.destination);
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(300, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.4);
+        gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
+        gainNode.gain.linearRampToValueAtTime(0.5, audioCtx.currentTime + 0.1);
+        gainNode.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.4);
+        osc.start(); osc.stop(audioCtx.currentTime + 0.4);
+    }
+
+    // --- EFFECTS ---
+    function triggerConfetti() {
+        const colors = ['#f6b93b', '#00D26A', '#e55039', '#1e3799', '#4a69bd'];
+        for(let i=0; i<40; i++) {
+            let conf = document.createElement('div');
+            conf.className = 'confetti';
+            conf.style.left = Math.random() * 100 + 'vw';
+            conf.style.backgroundColor = colors[Math.floor(Math.random()*colors.length)];
+            conf.style.animationDuration = (Math.random() * 1 + 1.5) + 's';
+            document.body.appendChild(conf);
+            setTimeout(() => conf.remove(), 3000);
+        }
+    }
+
+    // --- TIMER SYSTEM ---
+    let time = 600; 
+    let timerInterval;
+    let isRunning = false;
+
+    function startTimer() {
+        const btn = document.getElementById('start-btn');
+        if(!isRunning) {
+            isRunning = true;
+            btn.innerText = "TẠM DỪNG";
+            btn.style.background = "#FF4757";
+            btn.style.boxShadow = "0 4px 0 #d63031";
+            timerInterval = setInterval(() => {
+                time--;
+                let m = Math.floor(time / 60);
+                let s = time % 60;
+                document.getElementById('timer').innerText = `${m}:${s<10?'0':''}${s}`;
+                if(time <= 0) {
+                    clearInterval(timerInterval);
+                    alert("⏰ Đã hết giờ làm bài! Bạn vẫn có thể tiếp tục làm, nhưng nhớ là trong phòng thi thật, bạn chỉ nên làm một bài như thế này trong 10 phút thôi nha.");
+                }
+            }, 1000);
+        } else {
+            isRunning = false;
+            clearInterval(timerInterval);
+            btn.innerText = "TIẾP TỤC";
+            btn.style.background = "var(--primary)";
+            btn.style.boxShadow = "0 4px 0 #0c2461";
+        }
+    }
+
+    function toggleTranslation(id) {
+        let el = document.getElementById(id);
+        el.style.display = (el.style.display === 'block') ? 'none' : 'block';
+    }
+
+    // --- QUIZ DATA & LOGIC ---
+    const rawData = [
+        { q: "As a fresh and naive (1) _________,", a: "college grad", f: ["veteran", "estranged wife", "con"], trans: "Là một sinh viên mới tốt nghiệp tươi trẻ và ngây thơ,", r: "Cụm 'fresh and naive' (tươi trẻ/mới mẻ và ngây thơ) thường đi cùng với sinh viên mới ra trường (college grad)." },
+        { q: "I was desperate to build my resume, so I decided to (2) _________ at an independent film studio.", a: "undertake an entry-level job", f: ["get traction", "make trade-offs", "do a movie extra work"], trans: "tôi rất khao khát xây dựng lý lịch, vì vậy tôi quyết định đảm nhận một công việc cấp thấp tại một xưởng phim.", r: "Để xây dựng CV (build resume) khi mới ra trường, người ta thường đảm nhận công việc cấp thấp nhất (entry-level job)." },
+        { q: "Initially, I thought I would just fetch coffee or (3) _________ in the background.", a: "do a movie extra work", f: ["bring something up", "bury yourself in something", "let it slide"], trans: "Ban đầu, tôi nghĩ mình sẽ chỉ đi lấy cà phê hoặc làm diễn viên quần chúng ở hậu cảnh.", r: "Làm việc tại xưởng phim, việc đi lại ở 'hậu cảnh' (background) ám chỉ làm diễn viên quần chúng (movie extra work)." },
+        { q: "However, a kindly industry (4) _________ warned me early on.", a: "veteran", f: ["college grad", "dysfunctional family", "agenda"], trans: "Tuy nhiên, một người kỳ cựu tốt bụng trong ngành đã cảnh báo tôi từ sớm.", r: "Trái ngược với lính mới (college grad) là người kỳ cựu có kinh nghiệm trong ngành (industry veteran)." },
+        { q: "He said if I wanted my career to (5) _________,", a: "get traction", f: ["rock", "sabotage", "badger"], trans: "Anh ấy nói nếu tôi muốn sự nghiệp của mình có bước đà phát triển,", r: "Idiom 'get traction' (đạt được lực kéo) nghĩa bóng là bắt đầu có sự chú ý, có đà phát triển." },
+        { q: "I had to stop (6) _________ during office hours", a: "facebooking", f: ["freeloading", "sabotaging", "coercing"], trans: "tôi phải ngừng lướt Facebook trong giờ làm việc", r: "Hành động lướt mạng xã hội làm mất tập trung: 'facebooking'." },
+        { q: "and truly (7) _________ (bury myself in my tasks).", a: "bury yourself in something", f: ["make trade-offs", "let it slide", "take heed of"], trans: "và thực sự vùi mình vào công việc.", r: "Thành ngữ 'bury yourself in something' nghĩa là cắm đầu/vùi mình tập trung cao độ vào việc gì." },
+        { q: "I realized I had to (8) _________ regarding my free time if I wanted to survive there.", a: "make trade-offs", f: ["take the consequences", "get traction", "appease"], trans: "Tôi nhận ra mình phải đánh đổi thời gian rảnh rỗi nếu muốn tồn tại ở đó.", r: "'Make trade-offs' nghĩa là thực hiện sự đánh đổi (chấp nhận mất cái này để được cái kia)." },
+        { q: "The problem was the company itself. It was run by an incredibly (9) _________.", a: "dysfunctional family", f: ["veteran", "college grad", "the epitome of something"], trans: "Nó được điều hành bởi một gia đình cực kỳ phức tạp và rối loạn.", r: "Môi trường độc hại do điều hành bởi gia đình có nhiều vấn đề: 'dysfunctional family'." },
+        { q: "The director was going through a bitter divorce and was completely (10) _________ his...", a: "estranged from", f: ["petrified of", "short of", "badgering"], trans: "Vị đạo diễn đang trải qua ly hôn và hoàn toàn xa cách/ly thân với...", r: "Giới từ 'from' đi kèm 'estranged from' nghĩa là ly thân, cắt đứt quan hệ." },
+        { q: "...his (11) _________, which made him take his anger out on us.", a: "estranged wife", f: ["dysfunctional family", "veteran", "college grad"], trans: "...người vợ ly thân của mình, điều đó khiến ông ta trút giận lên chúng tôi.", r: "Tiếp nối câu trước, 'estranged wife' là người vợ ly thân." },
+        { q: "He always had a hidden (12) _________ behind every decision.", a: "agenda", f: ["accomplishment", "trade-off", "barricade"], trans: "Ông ta luôn có một động cơ/mục đích nấp sau mọi quyết định.", r: "Cụm 'hidden agenda' là một cụm cố định chỉ mục đích mờ ám, ý đồ ẩn giấu." },
+        { q: "Honestly, he was (13) _________ (the epitome of a toxic boss).", a: "the epitome of something", f: ["a load of crap", "dysfunctional family", "all-time high"], trans: "Thành thật mà nói, ông ta là hiện thân của một người sếp độc hại.", r: "'The epitome of' nghĩa là ví dụ hoàn hảo, hiện thân của điều gì đó." },
+        { q: "He would constantly try to (14) _________ the junior staff to assert dominance.", a: "subjugate", f: ["escort", "appease", "coerce"], trans: "Ông ta sẽ liên tục cố gắng khuất phục các nhân viên cấp dưới để khẳng định sự thống trị.", r: "'Subjugate' (khuất phục/bắt phục tùng) đi chung với ý nghĩa assert dominance (khẳng định thống trị)." },
+        { q: "He wouldn't hesitate to (15) _________ employees into working unpaid overtime,", a: "coerce", f: ["con", "badger", "sabotage"], trans: "Ông ta không ngần ngại ép buộc nhân viên làm thêm giờ không lương,", r: "Cấu trúc 'coerce sb into doing sth' (ép buộc ai làm gì bằng áp lực/đe dọa)." },
+        { q: "and he would even (16) _________ clients into paying for services we couldn't deliver.", a: "con", f: ["boot", "rock", "appease"], trans: "và thậm chí còn lừa gạt khách hàng trả tiền cho những dịch vụ không thể cung cấp.", r: "'Con sb into doing sth' (lừa gạt ai đó làm gì lấy tiền)." },
+        { q: "Whenever I dared to (17) _________ regarding my unpaid hours,", a: "bring something up", f: ["let it slide", "take heed of", "take the consequences"], trans: "Bất cứ khi nào tôi dám đề cập đến số giờ làm việc không công của mình,", r: "Phrasal verb 'bring up' mang nghĩa đề cập/nêu ra một vấn đề để thảo luận." },
+        { q: "he would give these ridiculously (18) _________ explanations", a: "convoluted", f: ["estranged", "dysfunctional", "dingy"], trans: "ông ta sẽ đưa ra những lời giải thích phức tạp nực cười", r: "Tính từ 'convoluted' chỉ sự rườm rà, vặn vẹo, phức tạp khó hiểu (của lời nói/lời giải thích)." },
+        { q: "that were frankly just (19) _________.", a: "a load of crap", f: ["all-time high", "the epitome of something", "pure conscience"], trans: "mà thẳng thắn mà nói thì toàn là rác rưởi vô lý.", r: "Idiom 'a load of crap' (slang) mang nghĩa là lời dối trá, vô nghĩa, rác rưởi." },
+        { q: "Instead of solving the issue, he would just (20) _________ (preach to us) about 'passion'", a: "preach to sb", f: ["badger", "subjugate", "con"], trans: "Thay vì giải quyết vấn đề, ông ta sẽ chỉ thuyết giáo chúng tôi về 'đam mê'", r: "'Preach to sb' là giảng đạo, thuyết giáo (thường mang ý tiêu cực châm biếm)." },
+        { q: "to (21) _________ the angry crew.", a: "appease", f: ["sabotage", "escort", "coerce"], trans: "để xoa dịu đoàn làm phim đang tức giận.", r: "'Appease' mang nghĩa xoa dịu (sự tức giận) bằng cách nhượng bộ hoặc hứa hẹn." },
+        { q: "If you disagreed, he would (22) _________ you with passive-aggressive emails", a: "badger", f: ["escort", "con", "appease"], trans: "Nếu bạn không đồng ý, ông ta sẽ quấy rầy bạn bằng những email gây hấn thụ động", r: "'Badger' là động từ mang nghĩa quấy rầy, làm phiền ai đó liên tục." },
+        { q: "or actively (23) _________ your work.", a: "sabotage", f: ["barricade", "rock", "boot"], trans: "hoặc chủ động phá hoại công việc của bạn.", r: "'Sabotage' nghĩa là cố ý phá hoại, làm hỏng." },
+        { q: "Once, I was assigned to (24) _________ a VIP guest to the set,", a: "escort", f: ["con", "subjugate", "coerce"], trans: "Có lần, tôi được giao nhiệm vụ hộ tống một vị khách VIP đến trường quay,", r: "'Escort' (hộ tống/dẫn đường) phù hợp với bối cảnh đưa đón khách VIP." },
+        { q: "Eventually, I couldn't just (25) _________ anymore.", a: "let it slide", f: ["make trade-offs", "take the consequences", "get traction"], trans: "Cuối cùng, tôi không thể cứ nhắm mắt cho qua thêm nữa.", r: "Idiom 'let it slide' nghĩa là làm ngơ, bỏ qua không xử lý vấn đề." },
+        { q: "I decided to (26) _________ my mentor's advice.", a: "take heed of", f: ["bring something up", "let it slide", "preach to sb"], trans: "Tôi quyết định chú ý/nghe theo lời khuyên của người cố vấn.", r: "Thành ngữ 'take heed of' = pay attention to (chú ý đến/làm theo lời khuyên)." },
+        { q: "When the boss threatened to (27) _________ me off the project,", a: "boot", f: ["escort", "sabotage", "badger"], trans: "Khi sếp đe dọa đá/đuổi tôi khỏi dự án,", r: "'Boot sb off/out' là từ lóng mang nghĩa đuổi cổ, sa thải." },
+        { q: "I had to mentally (28) _________ myself against his verbal abuse.", a: "barricade", f: ["subjugate", "appease", "coerce"], trans: "tôi đã phải chuẩn bị tinh thần dựng lên rào chắn chống lại sự lạm dụng bằng lời nói.", r: "'Barricade' (dựng rào chắn) ở đây dùng theo nghĩa bóng là tự bảo vệ tâm lý bản thân." },
+        { q: "I stood my ground, fully prepared to (29) _________.", a: "take the consequences", f: ["make trade-offs", "get traction", "let it slide"], trans: "Tôi giữ vững lập trường, hoàn toàn chuẩn bị sẵn sàng để gánh chịu hậu quả.", r: "Cụm 'take the consequences' (chịu hậu quả) đi với ý thức trách nhiệm." },
+        { q: "Surprisingly, standing up to a bully became my proudest personal (30) _________ that year.", a: "accomplishment", f: ["agenda", "trade-off", "load of crap"], trans: "Đáng ngạc nhiên là việc đứng lên... đã trở thành thành tựu cá nhân đáng tự hào nhất.", r: "'Accomplishment' (thành tựu) phù hợp sau tính từ 'proudest personal'." },
+        { q: "Despite the drama, the final movie actually turned out to (31) _________!", a: "rock", f: ["get traction", "boot", "let it slide"], trans: "Mặc dù có nhiều drama, nhưng bộ phim cuối cùng hóa ra lại cực kỳ tuyệt vời!", r: "Động từ 'rock' trong văn phong thân mật nghĩa là rất tuyệt, rất thành công (The movie rocks!)." },
+        { q: "My confidence reached an (32) _________,", a: "all-time high", f: ["accomplishment", "epitome", "agenda"], trans: "Sự tự tin của tôi đạt mức cao nhất mọi thời đại,", r: "Cụm 'reach an all-time high' chỉ mức độ cao kỷ lục chưa từng có." },
+        { q: "and (33) _________, the experience made me much tougher...", a: "by extension", f: ["as of late", "off and on", "purely"], trans: "và suy rộng ra, trải nghiệm này đã làm tôi trở nên cứng cỏi hơn rất nhiều...", r: "Cụm 'by extension' mang ý nghĩa suy rộng ra, kéo theo đó." }
+    ];
+
+    function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+    }
+
+    let userAnswers = {}; 
+
+    function renderQuiz() {
+        const container = document.getElementById('quiz-container');
+        rawData.forEach((item, index) => {
+            let qNum = index + 1;
+            let options = [item.a, ...item.f];
+            options = shuffleArray(options); 
+
+            let card = document.createElement('div');
+            card.className = 'question-card';
+            card.id = `qcard-${qNum}`;
+            
+            let html = `<div class="question-text">Câu ${qNum}: ${item.q.replace(`(${qNum}) _________`, `<span style="color:var(--primary)">(${qNum}) .........</span>`)}</div>
+                        <div class="options-grid">`;
+            
+            let labels = ['A', 'B', 'C', 'D'];
+            options.forEach((opt, i) => {
+                html += `<button class="option-btn" onclick="checkAnswer(${qNum}, this, '${opt}', '${item.a}')">
+                            <b>${labels[i]}.</b> ${opt}
+                         </button>`;
+            });
+
+            html += `</div>
+                     <div class="explanation-box" id="exp-${qNum}">
+                        <h4>📘 GIẢI THÍCH CHI TIẾT:</h4>
+                        <div class="exp-trans"><b>Dịch câu:</b> "${item.trans}"</div>
+                        <div class="exp-vocab"><b>Tại sao chọn đáp án này?</b><br>${item.r}</div>
+                     </div>`;
+            card.innerHTML = html;
+            container.appendChild(card);
+        });
+    }
+
+    function checkAnswer(qNum, btn, selected, correct) {
+        if(userAnswers[qNum] !== undefined) return; 
+
+        let buttons = btn.parentElement.querySelectorAll('.option-btn');
+        
+        if(selected === correct) {
+            btn.classList.add('correct');
+            playCorrect();
+            triggerConfetti();
+            userAnswers[qNum] = 1;
+        } else {
+            btn.classList.add('wrong');
+            playWrong();
+            userAnswers[qNum] = 0;
+            buttons.forEach(b => {
+                if(b.innerText.includes(correct)) {
+                    b.classList.add('correct');
+                }
+            });
+        }
+        
+        buttons.forEach(b => b.style.pointerEvents = 'none');
+        document.getElementById(`exp-${qNum}`).style.display = 'block';
+        
+        let blanks = document.querySelectorAll('.blank-space');
+        if(blanks[qNum-1]) {
+            blanks[qNum-1].innerText = `(${qNum}) ${correct}`;
+            blanks[qNum-1].style.color = (selected === correct) ? 'var(--correct)' : 'var(--wrong)';
+        }
+    }
+
+    function submitQuiz() {
+        let totalAnswered = Object.keys(userAnswers).length;
+        if(totalAnswered < rawData.length) {
+            let c = confirm(`Bạn mới làm ${totalAnswered}/${rawData.length} câu. Bạn có chắc chắn muốn nộp bài?`);
+            if(!c) return;
+        }
+
+        clearInterval(timerInterval);
+
+        let score = 0;
+        for(let key in userAnswers) { score += userAnswers[key]; }
+        
+        document.getElementById('finalScore').innerText = `${score}/${rawData.length}`;
+        let msg = "";
+        let pct = score / rawData.length;
+        if(pct === 1) msg = "Quá đỉnh! Cấp độ Bậc thầy (Master Level) 🌟";
+        else if(pct >= 0.8) msg = "Làm tốt lắm! Kiến thức của bạn rất vững! 🔥";
+        else if(pct >= 0.5) msg = "Cố lên nhé! Hãy đọc kỹ giải thích để tiến bộ hơn! 💪";
+        else msg = "Đừng nản chí! Học từ vựng là một quá trình dài! 🐢";
+
+        document.getElementById('feedbackMsg').innerText = msg;
+        document.getElementById('resultModal').style.display = 'flex';
+        triggerConfetti();
+    }
+
+    function closeModal() {
+        document.getElementById('resultModal').style.display = 'none';
+    }
+
+    window.onload = renderQuiz;
+</script>
+
+</body>
+</html>

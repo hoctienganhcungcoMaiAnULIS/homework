@@ -1,0 +1,944 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gamified English Test</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        /* CSS VARIABLES & DYNAMIC THEME (Sports & Entertainment) */
+        :root {
+            --primary: #00C9A7; /* Xanh ngọc */
+            --secondary: #FDCB6E; /* Vàng sáng */
+            --accent: #FF8A65; /* Cam Coral */
+            --bg-gradient: linear-gradient(135deg, #FF9A9E 0%, #FECFEF 50%, #00C9A7 100%);
+            --correct: #00D26A;
+            --wrong: #FF4757;
+            --text-dark: #2D3436;
+            --white: #FFFFFF;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Nunito', sans-serif;
+        }
+
+        /* ANIMATED BACKGROUND */
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        @keyframes floatPattern {
+            0% { background-position: 0px 0px; }
+            100% { background-position: 100px 100px; }
+        }
+
+        body {
+            background: var(--bg-gradient);
+            background-size: 300% 300%;
+            animation: gradientShift 15s ease infinite;
+            color: var(--text-dark);
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        /* DYNAMIC SVG BACKGROUND PATTERN */
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="150" height="150" viewBox="0 0 100 100"><text y="40" x="20" font-size="20" opacity="0.3">⚽</text><text y="80" x="70" font-size="20" opacity="0.3">📺</text><text y="30" x="80" font-size="20" opacity="0.3">🏆</text><text y="90" x="10" font-size="20" opacity="0.3">🌍</text></svg>');
+            animation: floatPattern 20s linear infinite;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* TOP CONTROL BAR */
+        .top-bar {
+            position: relative;
+            z-index: 10;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 30px;
+            background: rgba(255, 255, 255, 0.9);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border-bottom: 3px solid var(--secondary);
+        }
+
+        .header-titles h1 {
+            font-size: 20px;
+            color: var(--primary);
+            text-transform: uppercase;
+            font-weight: 900;
+        }
+        .header-titles h2 {
+            font-size: 14px;
+            color: #636e72;
+            font-weight: 700;
+        }
+
+        .timer-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            background: var(--white);
+            padding: 8px 20px;
+            border-radius: 30px;
+            box-shadow: 0 4px 0 #dfe6e9;
+            border: 2px solid #dfe6e9;
+        }
+
+        #time-display {
+            font-size: 24px;
+            font-weight: 900;
+            color: var(--wrong);
+        }
+
+        .btn {
+            padding: 10px 20px;
+            font-size: 16px;
+            font-weight: bold;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 5px 0 rgba(0,0,0,0.2);
+            color: white;
+            text-transform: uppercase;
+        }
+
+        .btn:active {
+            transform: translateY(5px);
+            box-shadow: 0 0 0 rgba(0,0,0,0.2);
+        }
+
+        .btn-start { background-color: var(--primary); }
+        .btn-submit { background-color: var(--accent); }
+
+        /* SPLIT SCREEN */
+        .main-container {
+            display: flex;
+            flex: 1;
+            gap: 20px;
+            padding: 20px;
+            position: relative;
+            z-index: 1;
+            height: calc(100vh - 80px);
+        }
+
+        .pane {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            overflow-y: auto;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            border: 3px solid white;
+        }
+
+        /* SCROLLBAR STYLING */
+        ::-webkit-scrollbar { width: 10px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb { background: var(--secondary); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--primary); }
+
+        /* LEFT PANE - READING */
+        .passage-block { margin-bottom: 40px; }
+        .passage-text {
+            font-size: 18px;
+            line-height: 1.8;
+            margin-bottom: 15px;
+            color: #2d3436;
+            text-align: justify;
+        }
+        
+        .btn-translate {
+            background: var(--secondary);
+            color: #2d3436;
+            box-shadow: 0 4px 0 #e1b12c;
+            margin-bottom: 15px;
+        }
+
+        .translation-box {
+            display: none;
+            background: #fff3cd;
+            padding: 15px;
+            border-left: 5px solid var(--secondary);
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-size: 16px;
+            line-height: 1.6;
+        }
+
+        .glossary-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+        }
+        .glossary-table th { background: var(--primary); color: white; padding: 12px; }
+        .glossary-table td { padding: 10px; border-bottom: 1px solid #eee; text-align: left; }
+        .glossary-table tr:hover { background-color: #f8f9fa; }
+
+        /* RIGHT PANE - EXERCISES */
+        .question-card {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 6px 0 #dfe6e9;
+            border: 2px solid #dfe6e9;
+        }
+        .question-text {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+
+        .options-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .option-btn {
+            background: white;
+            border: 3px solid #dfe6e9;
+            border-radius: 15px;
+            padding: 15px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 5px 0 #dfe6e9;
+            color: #2d3436;
+            text-align: left;
+            position: relative;
+        }
+
+        .option-btn:hover {
+            transform: scale(1.02);
+            border-color: var(--secondary);
+        }
+
+        .option-btn.correct {
+            background: var(--correct);
+            border-color: var(--correct);
+            color: white;
+            box-shadow: 0 5px 0 #00b85c;
+        }
+
+        .option-btn.wrong {
+            background: var(--wrong);
+            border-color: var(--wrong);
+            color: white;
+            box-shadow: 0 5px 0 #e04050;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px) rotate(-2deg); }
+            75% { transform: translateX(10px) rotate(2deg); }
+        }
+        .shake { animation: shake 0.4s; }
+
+        .explanation-box {
+            display: none;
+            margin-top: 20px;
+            background: #e8f4fd;
+            border-left: 5px solid #3498db;
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 15px;
+            line-height: 1.6;
+        }
+
+        .explanation-box.show { display: block; animation: fadeIn 0.5s; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        /* RESULT MODAL */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 999;
+            justify-content: center;
+            align-items: center;
+        }
+        .result-card {
+            background: white;
+            padding: 40px;
+            border-radius: 30px;
+            text-align: center;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            max-width: 500px;
+            width: 90%;
+            animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        @keyframes popIn {
+            from { transform: scale(0.5); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        .result-score { font-size: 60px; font-weight: 900; color: var(--primary); margin: 20px 0; }
+        .result-message { font-size: 24px; font-weight: 700; color: #2d3436; }
+
+        /* CONFETTI */
+        .confetti {
+            position: fixed;
+            width: 10px; height: 10px;
+            background-color: #f00;
+            animation: fall linear forwards;
+            z-index: 100;
+            pointer-events: none;
+        }
+        @keyframes fall {
+            to { transform: translateY(100vh) rotate(720deg); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="top-bar">
+        <div class="header-titles">
+            <h1>GAMIFIED ENGLISH TEST</h1>
+            <h2>Giáo viên tạo: Ms Mai An ULIS</h2>
+        </div>
+        <div class="timer-container">
+            <span id="time-display">10:00</span>
+            <button class="btn btn-start" id="btn-timer" onclick="toggleTimer()">BẮT ĐẦU TÍNH GIỜ</button>
+        </div>
+        <button class="btn btn-submit" onclick="submitTest()">NỘP BÀI 🏆</button>
+    </div>
+
+    <div class="main-container">
+        
+        <div class="pane left-pane" id="left-pane">
+            
+            <div class="passage-block">
+                <h3 style="color: var(--primary); margin-bottom: 10px;">Exercise 7A: Television</h3>
+                <div class="passage-text">
+                    Television first came some sixty years ago in the 1950s. Nowadays, it is one of the most (1) _____ sources of entertainment for both the old and the young. Television brings (2) _____ for children, world news, music and many other (3) _____. If someone likes sports, he can just choose the right sports (4) _____. It is not difficult for us to see why (5) _____ is a TV set in almost every home today.
+                </div>
+                <button class="btn btn-translate" onclick="toggleTranslation('trans-7a')">Mở dịch đoạn này 🌟</button>
+                <div class="translation-box" id="trans-7a">
+                    Truyền hình lần đầu tiên xuất hiện khoảng sáu mươi năm trước vào những năm 1950. Ngày nay, nó là một trong những nguồn giải trí phổ biến nhất cho cả người già và người trẻ. Truyền hình mang đến phim hoạt hình cho trẻ em, tin tức thế giới, âm nhạc và nhiều chương trình khác. Nếu ai đó thích thể thao, họ có thể chỉ cần chọn đúng kênh thể thao. Thật không khó để chúng ta hiểu tại sao lại có một chiếc tivi ở gần như mọi nhà ngày nay.
+                </div>
+                <h4>Glossary (Từ vựng học thuật)</h4>
+                <table class="glossary-table">
+                    <tr><th>Từ vựng</th><th>Loại từ</th><th>Nghĩa Tiếng Việt</th></tr>
+                    <tr><td>Entertainment</td><td>Noun</td><td>Sự giải trí</td></tr>
+                    <tr><td>Source</td><td>Noun</td><td>Nguồn</td></tr>
+                    <tr><td>Popular</td><td>Adjective</td><td>Phổ biến, được ưa chuộng</td></tr>
+                    <tr><td>Cartoon</td><td>Noun</td><td>Phim hoạt hình</td></tr>
+                    <tr><td>Programme</td><td>Noun</td><td>Chương trình</td></tr>
+                    <tr><td>Channel</td><td>Noun</td><td>Kênh (truyền hình)</td></tr>
+                </table>
+            </div>
+
+            <hr style="border: 2px dashed #dfe6e9; margin: 30px 0;">
+
+            <div class="passage-block">
+                <h3 style="color: var(--primary); margin-bottom: 10px;">Exercise 7B: Football</h3>
+                <div class="passage-text">
+                    Football is perhaps (1) _____ popular game in the world. A football match often (2) _____ about ninety minutes. There are two teams play against each other. Each team has eleven members. The players kick the ball (3) _____ goals. There is a goalkeeper to keep the goal safe. The goal-keeper is allowed to touch the ball (4) _____ hand, while others are not. The team, which scores more goals, is declared the winner. The referee is there to make sure that the game is fair. It’s (5) _____ to watch a football match.
+                </div>
+                <button class="btn btn-translate" onclick="toggleTranslation('trans-7b')">Mở dịch đoạn này 🌟</button>
+                <div class="translation-box" id="trans-7b">
+                    Bóng đá có lẽ là môn thể thao phổ biến nhất trên thế giới. Một trận bóng đá thường kéo dài khoảng 90 phút. Có hai đội chơi đối đầu với nhau. Mỗi đội có 11 thành viên. Các cầu thủ đá bóng để ghi bàn. Có một thủ môn để giữ an toàn cho khung thành. Thủ môn được phép chạm bóng bằng tay, trong khi những người khác thì không. Đội ghi được nhiều bàn thắng hơn sẽ được tuyên bố là người chiến thắng. Trọng tài có mặt ở đó để đảm bảo rằng trận đấu diễn ra công bằng. Xem một trận bóng đá thật là thú vị.
+                </div>
+                <h4>Glossary (Từ vựng học thuật)</h4>
+                <table class="glossary-table">
+                    <tr><th>Từ vựng</th><th>Loại từ</th><th>Nghĩa Tiếng Việt</th></tr>
+                    <tr><td>Against</td><td>Preposition</td><td>Chống lại, đối đầu</td></tr>
+                    <tr><td>Goalkeeper</td><td>Noun</td><td>Thủ môn</td></tr>
+                    <tr><td>Declare</td><td>Verb</td><td>Tuyên bố</td></tr>
+                    <tr><td>Referee</td><td>Noun</td><td>Trọng tài</td></tr>
+                    <tr><td>Exhausted</td><td>Adjective</td><td>Kiệt sức</td></tr>
+                    <tr><td>Clumsy</td><td>Adjective</td><td>Vụng về, hậu đậu</td></tr>
+                </table>
+            </div>
+
+            <hr style="border: 2px dashed #dfe6e9; margin: 30px 0;">
+
+            <div class="passage-block">
+                <h3 style="color: var(--primary); margin-bottom: 10px;">Exercise 8A: FIFA World Cup</h3>
+                <div class="passage-text">
+                    Every four years, in a different country around the world, there is a big sports competition. It is like the Olympics but only for one sport. The most popular sport in the world! What do you know about the FIFA World Cup?<br><br>
+                    The first World Cup was in 1930, in Uruguay. In the final game Uruguay beat Argentina and became the first World Cup winners. 13 countries played in the first World Cup. Now there are 32 countries in the competition.<br><br>
+                    Until 2002 the World Cup was always in a European or an American country. South Korea and Japan held the first Asian World Cup. The first African World Cup was in 2010, in South Africa.<br>
+                    Brazil is the most successful World Cup team. They are the only team that has played in every tournament. So far they have won it five times. Germany and Italy have won it four times. Uruguay, Argentina, and France have won it two times. England and Spain have won it once.
+                </div>
+                <button class="btn btn-translate" onclick="toggleTranslation('trans-8a')">Mở dịch đoạn này 🌟</button>
+                <div class="translation-box" id="trans-8a">
+                    Cứ bốn năm một lần, tại một quốc gia khác nhau trên thế giới, lại có một cuộc thi thể thao lớn. Nó giống như Thế vận hội Olympic nhưng chỉ dành cho một môn thể thao. Môn thể thao phổ biến nhất trên thế giới! Bạn biết gì về Giải vô địch bóng đá thế giới FIFA?<br><br>
+                    Kỳ World Cup đầu tiên diễn ra vào năm 1930, tại Uruguay. Trong trận chung kết, Uruguay đã đánh bại Argentina và trở thành nhà vô địch World Cup đầu tiên. Có 13 quốc gia đã tham gia kỳ World Cup đầu tiên. Bây giờ có 32 quốc gia tham gia giải đấu này.<br><br>
+                    Cho đến năm 2002, World Cup luôn được tổ chức ở một quốc gia Châu Âu hoặc Châu Mỹ. Hàn Quốc và Nhật Bản đã tổ chức kỳ World Cup đầu tiên tại Châu Á. Kỳ World Cup đầu tiên ở Châu Phi là vào năm 2010, tại Nam Phi.<br>
+                    Brazil là đội bóng thành công nhất tại World Cup. Họ là đội duy nhất đã góp mặt ở mọi giải đấu. Cho đến nay họ đã giành chiến thắng 5 lần. Đức và Ý đã vô địch 4 lần. Uruguay, Argentina và Pháp đã vô địch 2 lần. Anh và Tây Ban Nha vô địch 1 lần.
+                </div>
+                <h4>Glossary (Từ vựng học thuật)</h4>
+                <table class="glossary-table">
+                    <tr><th>Từ vựng</th><th>Loại từ</th><th>Nghĩa Tiếng Việt</th></tr>
+                    <tr><td>Competition</td><td>Noun</td><td>Cuộc thi, giải đấu</td></tr>
+                    <tr><td>Tournament</td><td>Noun</td><td>Giải đấu</td></tr>
+                    <tr><td>Successful</td><td>Adjective</td><td>Thành công</td></tr>
+                    <tr><td>Hold (Held)</td><td>Verb</td><td>Tổ chức</td></tr>
+                    <tr><td>Beat</td><td>Verb</td><td>Đánh bại</td></tr>
+                </table>
+            </div>
+
+            <hr style="border: 2px dashed #dfe6e9; margin: 30px 0;">
+
+            <div class="passage-block">
+                <h3 style="color: var(--primary); margin-bottom: 10px;">Exercise 8B: The World’s Strictest Parents</h3>
+                <div class="passage-text">
+                    The World’s Strictest Parents is a television reality series developed by Twenty Twenty Television, originally broadcasting in Britain by BBC. The concept is that two teenagers are sent to live abroad with a strict host family for a week in an attempt to change their attitudes and behaviours. During the week they receive an impact letter from their birth parents with a list of issues they should try to resolve. British teenagers are sent abroad to live with strict families in an experiment to find out the right way to bring up a child. Generally, they spend a week with their adopted parents trying to live within their rules.
+                </div>
+                <button class="btn btn-translate" onclick="toggleTranslation('trans-8b')">Mở dịch đoạn này 🌟</button>
+                <div class="translation-box" id="trans-8b">
+                    The World's Strictest Parents (Những ông bố bà mẹ nghiêm khắc nhất thế giới) là một loạt chương trình truyền hình thực tế do Twenty Twenty Television phát triển, ban đầu được phát sóng tại Anh bởi đài BBC. Khái niệm của chương trình là hai thanh thiếu niên được gửi ra nước ngoài sống với một gia đình bản xứ nghiêm khắc trong một tuần nhằm nỗ lực thay đổi thái độ và hành vi của họ. Trong tuần đó, họ nhận được một lá thư tác động từ cha mẹ ruột kèm theo danh sách các vấn đề họ nên cố gắng giải quyết. Thanh thiếu niên Anh được gửi ra nước ngoài sống với những gia đình nghiêm khắc trong một thử nghiệm nhằm tìm ra cách đúng đắn để nuôi dạy một đứa trẻ. Nhìn chung, họ dành một tuần với cha mẹ nuôi để cố gắng sống theo các quy tắc của họ.
+                </div>
+                <h4>Glossary (Từ vựng học thuật)</h4>
+                <table class="glossary-table">
+                    <tr><th>Từ vựng</th><th>Loại từ</th><th>Nghĩa Tiếng Việt</th></tr>
+                    <tr><td>Reality series</td><td>Noun phrase</td><td>Chương trình truyền hình thực tế</td></tr>
+                    <tr><td>Concept</td><td>Noun</td><td>Khái niệm, ý tưởng</td></tr>
+                    <tr><td>Attitude</td><td>Noun</td><td>Thái độ</td></tr>
+                    <tr><td>Behaviour</td><td>Noun</td><td>Hành vi, cách cư xử</td></tr>
+                    <tr><td>Resolve</td><td>Verb</td><td>Giải quyết</td></tr>
+                    <tr><td>Experiment</td><td>Noun</td><td>Cuộc thử nghiệm</td></tr>
+                    <tr><td>Adopted</td><td>Adjective</td><td>Được nhận nuôi</td></tr>
+                </table>
+            </div>
+
+        </div>
+
+        <div class="pane right-pane" id="right-pane">
+            <h2 style="text-align: center; color: var(--accent); margin-bottom: 20px;">EXERCISES 🎮</h2>
+            
+            <div id="quiz-container">
+                <div class="question-card" data-q="1">
+                    <div class="question-text">7A - Q1: Nowadays, it is one of the most (1) _____ sources of entertainment for both the old and the young.</div>
+                    <div class="options-container">
+                        <button class="option-btn" data-correct="true" onclick="checkAnswer(this)">A. popular</button>
+                        <button class="option-btn" onclick="checkAnswer(this)">B. expressive</button>
+                        <button class="option-btn" onclick="checkAnswer(this)">C. cheap</button>
+                        <button class="option-btn" onclick="checkAnswer(this)">D. exciting</button>
+                    </div>
+                    <div class="explanation-box">
+                        <strong>PHẦN GIẢI THÍCH CHI TIẾT:</strong><br>
+                        1. Phân tích từ vựng:<br>
+                        A. popular (adj): phổ biến, được nhiều người ưa chuộng.<br>
+                        B. expressive (adj): có sức biểu cảm.<br>
+                        C. cheap (adj): rẻ.<br>
+                        D. exciting (adj): thú vị, hào hứng.<br>
+                        2. Dịch nghĩa: "Ngày nay, nó là một trong những nguồn giải trí <b>phổ biến</b> nhất cho cả người già và người trẻ."<br>
+                        3. Tại sao chọn A? Dựa vào cụm "for both the old and the young", TV tiếp cận được mọi lứa tuổi, thể hiện sự phổ biến rộng rãi. Các đáp án khác không phù hợp ngữ cảnh.
+                    </div>
+                </div>
+
+                <div class="question-card" data-q="2">
+                    <div class="question-text">7A - Q2: Television brings (2) _____ for children...</div>
+                    <div class="options-container">
+                        <button class="option-btn" onclick="checkAnswer(this)">A. news</button>
+                        <button class="option-btn" onclick="checkAnswer(this)">B. plays</button>
+                        <button class="option-btn" onclick="checkAnswer(this)">C. sports</button>
+                        <button class="option-btn" data-correct="true" onclick="checkAnswer(this)">D. cartoons</button>
+                    </div>
+                    <div class="explanation-box">
+                        <strong>PHẦN GIẢI THÍCH CHI TIẾT:</strong><br>
+                        1. Phân tích từ vựng: A. news (tin tức), B. plays (vở kịch), C. sports (thể thao), D. cartoons (phim hoạt hình).<br>
+                        2. Dịch nghĩa: "Truyền hình mang đến phim hoạt hình cho trẻ em..."<br>
+                        3. Tại sao chọn D? Đối tượng được nhắc đến là "children" (trẻ em), nên "cartoons" là chương trình phù hợp và logic nhất.
+                    </div>
+                </div>
+
+                <div class="question-card" data-q="3">
+                    <div class="question-text">7A - Q3: ...world news, music and many other (3) _____.</div>
+                    <div class="options-container">
+                        <button class="option-btn" onclick="checkAnswer(this)">A. sets</button>
+                        <button class="option-btn" onclick="checkAnswer(this)">B. reports</button>
+                        <button class="option-btn" onclick="checkAnswer(this)">C. channels</button>
+                        <button class="option-btn" data-correct="true" onclick="checkAnswer(this)">D. programmes</button>
+                    </div>
+                    <div class="explanation-box">
+                        <strong>PHẦN GIẢI THÍCH CHI TIẾT:</strong><br>
+                        1. Phân tích từ vựng: A. sets (máy thu hình), B. reports (báo cáo), C. channels (kênh), D. programmes (chương trình).<br>
+                        2. Dịch nghĩa: "...tin tức thế giới, âm nhạc và nhiều <b>chương trình</b> khác."<br>
+                        3. Tại sao chọn D? Tin tức, âm nhạc đều là các thể loại "chương trình" (programmes) được phát trên TV.
+                    </div>
+                </div>
+
+                <div class="question-card" data-q="4">
+                    <div class="question-text">7A - Q4: If someone likes sports, he can just choose the right sports (4) _____.</div>
+                    <div class="options-container">
+                        <button class="option-btn" data-correct="true" onclick="checkAnswer(this)">A. channel</button>
+                        <button class="option-btn" onclick="checkAnswer(this)">B. athletes</button>
+                        <button class="option-btn" onclick="checkAnswer(this)">C. time</button>
+                        <button class="option-btn" onclick="checkAnswer(this)">D. studio</button>
+                    </div>
+                    <div class="explanation-box">
+                        <strong>PHẦN GIẢI THÍCH CHI TIẾT:</strong><br>
+                        1. Phân tích từ vựng: A. channel (kênh), B. athletes (vận động viên), C. time (thời gian), D. studio (phòng thu).<br>
+                        2. Dịch nghĩa: "Nếu ai đó thích thể thao, họ có thể chỉ cần chọn đúng <b>kênh</b> thể thao."<br>
+                        3. Tại sao chọn A? Cụm "sports channel" (kênh thể thao) là thuật ngữ quen thuộc. Muốn xem thể thao trên TV thì phải chọn đúng "kênh".
+                    </div>
+                </div>
+
+                <div class="question-card" data-q="5">
+                    <div class="question-text">7A - Q5: It is not difficult for us to see why (5) _____ is a TV set in almost every home today.</div>
+                    <div class="options-container">
+                        <button class="option-btn" onclick="checkAnswer(this)">A. it</button>
+                        <button class="option-btn" onclick="checkAnswer(this)">B. this</button>
+                        <button class="option-btn" data-correct="true" onclick="checkAnswer(this)">C. there</button>
+                        <button class="option-btn" onclick="checkAnswer(this)">D. that</button>
+                    </div>
+                    <div class="explanation-box">
+                        <strong>PHẦN GIẢI THÍCH CHI TIẾT:</strong><br>
+                        1. Ngữ pháp: Cấu trúc "There is/are + Noun + [Place]" mang nghĩa "Có cái gì ở đâu".<br>
+                        2. Dịch nghĩa: "Thật không khó để hiểu tại sao <b>có</b> một chiếc tivi ở gần như mọi nhà."<br>
+                        3. Tại sao chọn C? Đi với động từ "is a TV set" để chỉ sự tồn tại, ta bắt buộc dùng "there is".
+                    </div>
+                </div>
+
+                <div class="question-card" data-q="6">
+                    <div class="question-text">7B - Q1: Football is perhaps (1) _____ popular game in the world.</div>
+                    <div class="options-container">
+                        <button class="option-btn" onclick="checkAnswer(this)">A. more</button>
+                        <button class="option-btn" onclick="checkAnswer(this)">B. most</button>
+                        <button class="option-btn" data-correct="true" onclick="checkAnswer(this)">C. the most</button>
+                        <button class="option-btn" onclick="checkAnswer(this)">D. the more</button>
+                    </div>
+                    <div class="explanation-box">
+                        <strong>PHẦN GIẢI THÍCH CHI TIẾT:</strong><br>
+                        1. Ngữ pháp: So sánh nhất của tính từ dài (popular) là "the most + Adj".<br>
+                        2. Dịch nghĩa: "Bóng đá có lẽ là môn thể thao phổ biến <b>nhất</b> trên thế giới."<br>
+                        3. Tại sao chọn C? Dấu hiệu "in the world" (trên thế giới) yêu cầu dùng so sánh nhất. Do đó "the most" là chính xác.
+                    </div>
+                </div>
+
+                 <div class="question-card" data-q="7">
+                    <div class="question-text">7B - Q2: A football match often (2) _____ about ninety minutes.</div>
+                    <div class="options-container">
+                        <button class="option-btn" onclick="checkAnswer(this)">A. last</button>
+                        <button class="option-btn" onclick="checkAnswer(this)">B. will last</button>
+                        <button class="option-btn" onclick="checkAnswer(this)">C. lasted</button>
+                        <button class="option-btn" data-correct="true" onclick="checkAnswer(this)">D. lasts</button>
+                    </div>
+                    <div class="explanation-box">
+                        <strong>PHẦN GIẢI THÍCH CHI TIẾT:</strong><br>
+                        1. Phân tích ngữ pháp: Động từ "last" (kéo dài). Câu có trạng từ "often" chỉ sự thật hiển nhiên/thói quen -> Dùng thì Hiện tại đơn.<br>
+                        2. Dịch nghĩa: "Một trận bóng đá thường <b>kéo dài</b> khoảng 90 phút."<br>
+                        3. Tại sao chọn D? Chủ ngữ "A football match" là số ít, nên động từ phải thêm "s" -> lasts.
+                    </div>
+                </div>
+
+                <div class="question-card" data-q="8">
+                    <div class="question-text">7B - Q3: The players kick the ball (3) _____ goals.</div>
+                    <div class="options-container">
+                        <button class="option-btn" onclick="checkAnswer(this)">A. scoring</button>
+                        <button class="option-btn" data-correct="true" onclick="checkAnswer(this)">B. to score</button>
+                        <button class="option-btn" onclick="checkAnswer(this)">C. scored</button>
+                        <button class="option-btn" onclick="checkAnswer(this)">D. score</button>
+                    </div>
+                    <div class="explanation-box">
+                        <strong>PHẦN GIẢI THÍCH CHI TIẾT:</strong><br>
+                        1. Ngữ pháp: Động từ chỉ mục đích "để làm gì đó" dùng cấu trúc "to + V(nguyên thể)".<br>
+                        2. Dịch nghĩa: "Các cầu thủ đá bóng <b>để ghi</b> bàn."<br>
+                        3. Tại sao chọn B? "To score" diễn tả mục đích của hành động "kick the ball".
+                    </div>
+                </div>
+
+                <div class="question-card" data-q="9">
+                    <div class="question-text">7B - Q4: The goal-keeper is allowed to touch the ball (4) _____ hand...</div>
+                    <div class="options-container">
+                        <button class="option-btn" onclick="checkAnswer(this)">A. for</button>
+                        <button class="option-btn" onclick="checkAnswer(this)">B. in</button>
+                        <button class="option-btn" onclick="checkAnswer(this)">C. to</button>
+                        <button class="option-btn" data-correct="true" onclick="checkAnswer(this)">D. by</button>
+                    </div>
+                    <div class="explanation-box">
+                        <strong>PHẦN GIẢI THÍCH CHI TIẾT:</strong><br>
+                        1. Ngữ pháp: Giới từ "by" dùng để chỉ phương tiện, cách thức (bằng cách nào). Cụm cố định: "by hand" (bằng tay).<br>
+                        2. Dịch nghĩa: "Thủ môn được phép chạm bóng <b>bằng</b> tay."<br>
+                        3. Tại sao chọn D? Giới từ duy nhất phù hợp tạo thành cụm từ chỉ phương thức là "by".
+                    </div>
+                </div>
+
+                <div class="question-card" data-q="10">
+                    <div class="question-text">7B - Q5: It’s (5) _____ to watch a football match.</div>
+                    <div class="options-container">
+                        <button class="option-btn" onclick="checkAnswer(this)">A. clumsy</button>
+                        <button class="option-btn" onclick="checkAnswer(this)">B. musical</button>
+                        <button class="option-btn" data-correct="true" onclick="checkAnswer(this)">C. interesting</button>
+                        <button class="option-btn" onclick="checkAnswer(this)">D. exhausted</button>
+                    </div>
+                    <div class="explanation-box">
+                        <strong>PHẦN GIẢI THÍCH CHI TIẾT:</strong><br>
+                        1. Phân tích từ vựng: A. clumsy (vụng về), B. musical (thuộc về âm nhạc), C. interesting (thú vị), D. exhausted (kiệt sức).<br>
+                        2. Dịch nghĩa: "Thật là <b>thú vị</b> khi xem một trận bóng đá."<br>
+                        3. Tại sao chọn C? Dựa vào ý nghĩa tích cực của môn thể thao vua được phân tích ở trên, "interesting" là tính từ phù hợp nhất.
+                    </div>
+                </div>
+
+                <div class="question-card" data-q="11">
+                    <div class="question-text">8A - Q1: There is a World Cup every _______.</div>
+                    <div class="options-container">
+                        <button class="option-btn" data-correct="true" onclick="checkAnswer(this)">A. four years</button>
+                        <button class="option-btn" onclick="checkAnswer(this)">B. two years</button>
+                        <button class="option-btn" onclick="checkAnswer(this)">C. one year</button>
+                        <button class="option-btn" onclick="checkAnswer(this)">D. eight years</button>
+                    </div>
+                    <div class="explanation-box">
+                        <strong>PHẦN GIẢI THÍCH CHI TIẾT:</strong><br>
+                        1. Tìm thông tin: Ngay câu đầu tiên của đoạn: "Every four years... there is a big sports competition."<br>
+                        2. Dịch câu hỏi: "World Cup được tổ chức mỗi ___."<br>
+                        3. Tại sao chọn A? Dẫn chứng rõ ràng trong bài là "Every four years" (Mỗi bốn năm).
+                    </div>
+                </div>
+
+                <div class="question-card" data-q="12">
+                    <div class="question-text">8A - Q2: In the first World Cup, _______.</div>
+                    <div class="options-container">
+                        <button class="option-btn" onclick="checkAnswer(this)">A. Argentina and Uruguay are the winners</button>
+                        <button class="option-btn" onclick="checkAnswer(this)">B. Argentina beat Uruguay in the final match</button>
+                        <button class="option-btn" onclick="checkAnswer(this)">C. there were 32 teams</button>
+                        <button class="option-btn" data-correct="true" onclick="checkAnswer(this)">D. there were 13 teams</button>
+                    </div>
+                    <div class="explanation-box">
+                        <strong>PHẦN GIẢI THÍCH CHI TIẾT:</strong><br>
+                        1. Phân tích đáp án:<br>
+                        - A sai vì chỉ có Uruguay thắng.<br>
+                        - B sai vì bài nói Uruguay đánh bại Argentina, chứ không phải ngược lại.<br>
+                        - C sai vì 32 đội là số lượng hiện tại (Now there are 32...).<br>
+                        2. Dịch câu đúng: "Có 13 đội tham gia."<br>
+                        3. Tại sao chọn D? Dẫn chứng đoạn 2: "13 countries played in the first World Cup."
+                    </div>
+                </div>
+
+                 <div class="question-card" data-q="13">
+                    <div class="question-text">8A - Q3: In 2002, the World Cup was in _______.</div>
+                    <div class="options-container">
+                        <button class="option-btn" onclick="checkAnswer(this)">A. an American country</button>
+                        <button class="option-btn" onclick="checkAnswer(this)">B. a European country</button>
+                        <button class="option-btn" data-correct="true" onclick="checkAnswer(this)">C. an Asian country</button>
+                        <button class="option-btn" onclick="checkAnswer(this)">D. South Korea and Japan</button>
+                    </div>
+                    <div class="explanation-box">
+                        <strong>PHẦN GIẢI THÍCH CHI TIẾT:</strong><br>
+                        *Lưu ý: Đề gốc C và D bị lộn thứ tự chữ A B D C. Mình đã sắp xếp lại.*<br>
+                        1. Tìm thông tin: "Until 2002 the World Cup was always in a European or an American country. South Korea and Japan held the first Asian World Cup."<br>
+                        2. Dịch nghĩa: Cho đến năm 2002 thì chỉ tổ chức ở Âu Mỹ. Sau đó Hàn-Nhật tổ chức giải đầu tiên ở Châu Á.<br>
+                        3. Tại sao chọn C? Câu hỏi ám chỉ việc tổ chức ở Hàn-Nhật, và đây là "Asian country" (quốc gia Châu Á). Cụm "South Korea and Japan" ở đáp án D cũng đúng về mặt địa lý nhưng nếu hỏi "was in" thì C bao quát chính xác vùng lãnh thổ theo cấu trúc bài (Châu lục). Thực tế nếu học sinh chọn D vẫn có cơ sở, nhưng theo Logic trắc nghiệm C "Asian country" phản chiếu lại cụm "Asian World Cup" trong bài. Để đảm bảo độ chính xác tuyệt đối theo đề, C là đáp án chuẩn nhất.
+                    </div>
+                </div>
+
+                <div class="question-card" data-q="14">
+                    <div class="question-text">8A - Q4: Why is Brazil the most successful World Cup team?</div>
+                    <div class="options-container">
+                        <button class="option-btn" onclick="checkAnswer(this)">A. Because Germany and Italy have only won World Cup four times.</button>
+                        <button class="option-btn" onclick="checkAnswer(this)">B. Because they haven’t played in every tournament so far.</button>
+                        <button class="option-btn" data-correct="true" onclick="checkAnswer(this)">C. Because they have played in all tournaments and won World Cup five times.</button>
+                        <button class="option-btn" onclick="checkAnswer(this)">D. Because no one could beat them in every competition.</button>
+                    </div>
+                    <div class="explanation-box">
+                        <strong>PHẦN GIẢI THÍCH CHI TIẾT:</strong><br>
+                        1. Tìm thông tin đoạn cuối: "Brazil is the most successful... They are the only team that has played in every tournament. So far they have won it five times."<br>
+                        2. Dịch nghĩa: "Vì sao Brazil là đội thành công nhất? - Bởi vì họ đã tham gia tất cả các giải đấu và giành chiến thắng 5 lần."<br>
+                        3. Tại sao chọn C? Đáp án C thâu tóm chính xác và đầy đủ nhất hai dẫn chứng về độ thành công của Brazil được nêu trong đoạn văn.
+                    </div>
+                </div>
+
+                <div class="question-card" data-q="15">
+                    <div class="question-text">8A - Q5: Which of the following is NOT true?</div>
+                    <div class="options-container">
+                        <button class="option-btn" onclick="checkAnswer(this)">A. The first World Cup was in 1930.</button>
+                        <button class="option-btn" data-correct="true" onclick="checkAnswer(this)">B. France have won World Cup once.</button>
+                        <button class="option-btn" onclick="checkAnswer(this)">C. Uruguay won the first World Cup.</button>
+                        <button class="option-btn" onclick="checkAnswer(this)">D. South Africa held the first African World Cup.</button>
+                    </div>
+                    <div class="explanation-box">
+                        <strong>PHẦN GIẢI THÍCH CHI TIẾT:</strong><br>
+                        1. Dạng bài TÌM CÂU SAI.<br>
+                        2. Đối chiếu bài đọc: Đoạn cuối viết "Uruguay, Argentina, and France have won it two times." (Pháp đã vô địch 2 lần).<br>
+                        3. Tại sao chọn B? Đáp án B nói Pháp vô địch 1 lần (once) là sai sự thật so với bài đọc. Các câu A, C, D đều xuất hiện y hệt trong bài.
+                    </div>
+                </div>
+
+                 <div class="question-card" data-q="16">
+                    <div class="question-text">8B - Q1: What is The World’s Strictest Parents?</div>
+                    <div class="options-container">
+                        <button class="option-btn" onclick="checkAnswer(this)">A. a film</button>
+                        <button class="option-btn" onclick="checkAnswer(this)">B. a cartoon</button>
+                        <button class="option-btn" onclick="checkAnswer(this)">C. a channel</button>
+                        <button class="option-btn" data-correct="true" onclick="checkAnswer(this)">D. a TV series</button>
+                    </div>
+                    <div class="explanation-box">
+                        <strong>PHẦN GIẢI THÍCH CHI TIẾT:</strong><br>
+                        1. Tìm thông tin: Ngay câu đầu, "The World’s Strictest Parents is a television reality series..."<br>
+                        2. Dịch nghĩa: "Đó là một chương trình truyền hình dài tập (truyền hình thực tế)."<br>
+                        3. Tại sao chọn D? "TV series" tương đương với "television reality series". Loại phim, hoạt hình, hay kênh truyền hình.
+                    </div>
+                </div>
+
+                <div class="question-card" data-q="17">
+                    <div class="question-text">8B - Q2: In which country was The World’s Strictest Parents first broadcast?</div>
+                    <div class="options-container">
+                        <button class="option-btn" data-correct="true" onclick="checkAnswer(this)">A. Britain</button>
+                        <button class="option-btn" onclick="checkAnswer(this)">B. English</button>
+                        <button class="option-btn" onclick="checkAnswer(this)">C. BBC</button>
+                        <button class="option-btn" onclick="checkAnswer(this)">D. England</button>
+                    </div>
+                    <div class="explanation-box">
+                        <strong>PHẦN GIẢI THÍCH CHI TIẾT:</strong><br>
+                        1. Tìm thông tin: "...originally broadcasting in Britain by BBC."<br>
+                        2. Dịch nghĩa: "Phát sóng ban đầu ở <b>Anh (Britain)</b> bởi đài BBC."<br>
+                        3. Tại sao chọn A? Câu hỏi hỏi về "country" (quốc gia), nên Britain là đáp án chính xác. BBC là tên đài, không phải quốc gia.
+                    </div>
+                </div>
+
+                <div class="question-card" data-q="18">
+                    <div class="question-text">8B - Q3: What is the concept of The World’s Strictest Parents?</div>
+                    <div class="options-container">
+                        <button class="option-btn" data-correct="true" onclick="checkAnswer(this)">A. Two teenagers are sent to live abroad with a strict host family.</button>
+                        <button class="option-btn" onclick="checkAnswer(this)">B. Two teenagers try to behave well.</button>
+                        <button class="option-btn" onclick="checkAnswer(this)">C. Two teenagers are living with a strict family.</button>
+                        <button class="option-btn" onclick="checkAnswer(this)">D. The host family wants the children to change the teenagers’ behaviours.</button>
+                    </div>
+                    <div class="explanation-box">
+                        <strong>PHẦN GIẢI THÍCH CHI TIẾT:</strong><br>
+                        1. Tìm thông tin: "The concept is that two teenagers are sent to live abroad with a strict host family for a week..."<br>
+                        2. Dịch nghĩa: Khái niệm là hai thanh thiếu niên được gửi đi sống ở nước ngoài cùng một gia đình chủ nhà nghiêm khắc.<br>
+                        3. Tại sao chọn A? Đáp án A lặp lại y hệt định nghĩa "concept" được nêu rõ ràng trong văn bản gốc.
+                    </div>
+                </div>
+
+                <div class="question-card" data-q="19">
+                    <div class="question-text">8B - Q4: What should the teenagers change during the time with their host family?</div>
+                    <div class="options-container">
+                        <button class="option-btn" onclick="checkAnswer(this)">A. An experiment</button>
+                        <button class="option-btn" onclick="checkAnswer(this)">B. An impact letter</button>
+                        <button class="option-btn" onclick="checkAnswer(this)">C. A list of issues</button>
+                        <button class="option-btn" data-correct="true" onclick="checkAnswer(this)">D. Their attitudes and behaviours</button>
+                    </div>
+                    <div class="explanation-box">
+                        <strong>PHẦN GIẢI THÍCH CHI TIẾT:</strong><br>
+                        1. Tìm thông tin: "...in an attempt to change their attitudes and behaviours."<br>
+                        2. Dịch nghĩa: "Thanh thiếu niên cần thay đổi điều gì? - <b>Thái độ và hành vi của họ</b>."<br>
+                        3. Tại sao chọn D? Dẫn chứng chỉ đích danh mục đích của việc gửi đi là để thay đổi "attitudes and behaviours".
+                    </div>
+                </div>
+
+                <div class="question-card" data-q="20">
+                    <div class="question-text">8B - Q5: How long do they stay with their adopted parents?</div>
+                    <div class="options-container">
+                        <button class="option-btn" onclick="checkAnswer(this)">A. 9 days</button>
+                        <button class="option-btn" onclick="checkAnswer(this)">B. 10 days</button>
+                        <button class="option-btn" data-correct="true" onclick="checkAnswer(this)">C. 1 week</button>
+                        <button class="option-btn" onclick="checkAnswer(this)">D. 8 days</button>
+                    </div>
+                    <div class="explanation-box">
+                        <strong>PHẦN GIẢI THÍCH CHI TIẾT:</strong><br>
+                        1. Tìm thông tin: Câu cuối cùng chốt lại: "Generally, they spend a week with their adopted parents..."<br>
+                        2. Dịch nghĩa: "Họ dành <b>một tuần (1 week)</b> sống cùng cha mẹ nuôi."<br>
+                        3. Tại sao chọn C? Thông tin "a week" xuất hiện rõ ràng 2 lần trong đoạn.
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="result-modal">
+        <div class="result-card">
+            <h2 style="font-size: 30px; color: var(--accent);">KẾT QUẢ CỦA BẠN</h2>
+            <div class="result-score" id="score-text">0/20</div>
+            <div class="result-message" id="message-text">Hãy làm bài nhé!</div>
+            <button class="btn btn-start" style="margin-top: 20px; width: 100%;" onclick="location.reload()">LÀM LẠI TỪ ĐẦU 🔄</button>
+        </div>
+    </div>
+
+    <script>
+        // WEB AUDIO API SYNTHESIZER
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        
+        function playDing() {
+            if(audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            osc.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(880, audioCtx.currentTime); // Note A5
+            osc.frequency.exponentialRampToValueAtTime(1760, audioCtx.currentTime + 0.1); // Slide to A6
+            gainNode.gain.setValueAtTime(0.5, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.5);
+        }
+
+        function playWrong() {
+            if(audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            osc.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+            osc.frequency.linearRampToValueAtTime(80, audioCtx.currentTime + 0.4);
+            gainNode.gain.setValueAtTime(0.5, audioCtx.currentTime);
+            gainNode.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.4);
+        }
+
+        // CONFETTI EFFECT
+        function createConfetti() {
+            const colors = ['#00C9A7', '#FDCB6E', '#FF8A65', '#3498db', '#9b59b6'];
+            for (let i = 0; i < 30; i++) {
+                let conf = document.createElement('div');
+                conf.classList.add('confetti');
+                conf.style.left = Math.random() * 100 + 'vw';
+                conf.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                conf.style.animationDuration = (Math.random() * 2 + 1) + 's';
+                document.body.appendChild(conf);
+                setTimeout(() => conf.remove(), 3000);
+            }
+        }
+
+        // TIMER LOGIC
+        let timeInSeconds = 600; // 10 minutes
+        let timerInterval = null;
+        let isTimerRunning = false;
+
+        function updateTimerDisplay() {
+            const m = Math.floor(timeInSeconds / 60).toString().padStart(2, '0');
+            const s = (timeInSeconds % 60).toString().padStart(2, '0');
+            document.getElementById('time-display').innerText = `${m}:${s}`;
+        }
+
+        function toggleTimer() {
+            const btn = document.getElementById('btn-timer');
+            if (isTimerRunning) {
+                clearInterval(timerInterval);
+                btn.innerText = "TIẾP TỤC TÍNH GIỜ ▶️";
+                isTimerRunning = false;
+            } else {
+                btn.innerText = "TẠM DỪNG ⏸️";
+                isTimerRunning = true;
+                timerInterval = setInterval(() => {
+                    timeInSeconds--;
+                    updateTimerDisplay();
+                    if (timeInSeconds <= 0) {
+                        clearInterval(timerInterval);
+                        alert("⏰ Đã hết giờ làm bài. Bạn vẫn có thể tiếp tục làm, nhưng nhớ là trong phòng thi thật, bạn chỉ nên làm một bài như thế này trong 10 phút thôi nha.");
+                        btn.innerText = "HẾT GIỜ";
+                        btn.disabled = true;
+                    }
+                }, 1000);
+            }
+        }
+
+        // TOGGLE TRANSLATION
+        function toggleTranslation(id) {
+            const box = document.getElementById(id);
+            if (box.style.display === "block") {
+                box.style.display = "none";
+            } else {
+                box.style.display = "block";
+                box.style.animation = "fadeIn 0.5s";
+            }
+        }
+
+        // SHUFFLE OPTIONS
+        window.onload = () => {
+            const containers = document.querySelectorAll('.options-container');
+            containers.forEach(container => {
+                const buttons = Array.from(container.children);
+                const shuffled = buttons.sort(() => Math.random() - 0.5);
+                container.innerHTML = '';
+                shuffled.forEach(btn => container.appendChild(btn));
+            });
+            updateTimerDisplay();
+        };
+
+        // QUIZ LOGIC
+        let score = 0;
+        let answeredQuestions = new Set();
+        const totalQuestions = 20;
+
+        function checkAnswer(btn) {
+            const questionCard = btn.closest('.question-card');
+            const qId = questionCard.getAttribute('data-q');
+            
+            // Nếu đã trả lời đúng rồi thì không tính điểm lại, nhưng cho phép xem
+            if (answeredQuestions.has(qId)) return; 
+
+            const isCorrect = btn.getAttribute('data-correct') === 'true';
+            
+            if (isCorrect) {
+                btn.classList.add('correct');
+                playDing();
+                createConfetti();
+                score++;
+                answeredQuestions.add(qId);
+                // Vô hiệu hóa các nút khác
+                const siblings = questionCard.querySelectorAll('.option-btn');
+                siblings.forEach(s => s.style.pointerEvents = 'none');
+                
+                // Hiện giải thích
+                questionCard.querySelector('.explanation-box').classList.add('show');
+            } else {
+                btn.classList.add('wrong', 'shake');
+                playWrong();
+                setTimeout(() => btn.classList.remove('shake'), 400);
+                
+                // Tự động tìm và bôi xanh đáp án đúng
+                const correctBtn = questionCard.querySelector('.option-btn[data-correct="true"]');
+                correctBtn.classList.add('correct');
+                answeredQuestions.add(qId); // Đánh dấu đã trả lời (sai không có điểm)
+                
+                // Hiện giải thích
+                questionCard.querySelector('.explanation-box').classList.add('show');
+                
+                // Vô hiệu hóa
+                const siblings = questionCard.querySelectorAll('.option-btn');
+                siblings.forEach(s => s.style.pointerEvents = 'none');
+            }
+        }
+
+        // SUBMIT TEST
+        function submitTest() {
+            const modal = document.getElementById('result-modal');
+            const scoreText = document.getElementById('score-text');
+            const msgText = document.getElementById('message-text');
+
+            scoreText.innerText = `${score}/${totalQuestions}`;
+            
+            let msg = "";
+            if (score === 20) msg = "Tuyệt đỉnh! Bạn là THIÊN TÀI ngôn ngữ! 🌟";
+            else if (score >= 15) msg = "Làm tốt lắm! Kỹ năng đọc hiểu của bạn rất xịn xò! 🔥";
+            else if (score >= 10) msg = "Khá ổn đó! Chịu khó đọc thêm tí nữa là Master ngay! 💪";
+            else msg = "Cố lên nhé! Đừng quên xem lại giải thích chi tiết phía dưới! 📚";
+
+            msgText.innerText = msg;
+            modal.style.display = "flex";
+            createConfetti();
+            createConfetti();
+        }
+    </script>
+</body>
+</html>
+
+

@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Difficult Student - Ms Mai An ULIS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    
+    <style>
+        :root {
+            /* Theme: School Conflict & Resolution (Purple/Yellow/White) */
+            --primary-color: #6C5CE7; /* Teacher Purple */
+            --secondary-color: #00B894; /* Green Board */
+            --accent-color: #FDCB6E; /* Highlight Yellow */
+            --text-dark: #2D3436;
+            --text-gray: #636e72;
+            --correct-color: #00D26A;
+            --wrong-color: #FF4757;
+            --bg-tint: #F0F3F4;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+            color: var(--text-dark);
+            background-color: var(--bg-tint);
+            /* Auto-generated SVG Background */
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100%25' height='100%25'%3E%3Cdefs%3E%3CradialGradient id='g' cx='50%25' cy='50%25' r='50%25'%3E%3Cstop offset='0%25' stop-color='%23A29BFE' stop-opacity='0.2'/%3E%3Cstop offset='100%25' stop-color='%23DFE6E9' stop-opacity='0'/%3E%3C/radialGradient%3E%3C/defs%3E%3Crect width='100%25' height='100%25' fill='url(%23g)'/%3E%3Ctext x='15%25' y='15%25' font-size='60' opacity='0.1'%3E🏫%3C/text%3E%3Ctext x='85%25' y='20%25' font-size='60' opacity='0.1'%3E😤%3C/text%3E%3Ctext x='20%25' y='80%25' font-size='60' opacity='0.1'%3E👩‍🏫%3C/text%3E%3Ctext x='80%25' y='80%25' font-size='60' opacity='0.1'%3E🤝%3C/text%3E%3C/svg%3E");
+            background-size: cover;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* --- Header --- */
+        header {
+            background: white;
+            padding: 10px 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            z-index: 100;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 60px;
+            flex-shrink: 0;
+            border-bottom: 3px solid var(--primary-color);
+        }
+
+        .teacher-brand {
+            font-family: 'Quicksand', sans-serif;
+            font-weight: 700;
+            color: var(--primary-color);
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .teacher-brand span {
+            background: var(--accent-color);
+            color: var(--text-dark);
+            padding: 2px 8px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+        }
+
+        .timer-container {
+            font-size: 1.3rem;
+            font-weight: 800;
+            color: var(--primary-color);
+            background: #F0EFFF;
+            padding: 5px 20px;
+            border-radius: 20px;
+            border: 2px solid var(--primary-color);
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .timer-container:hover { transform: scale(1.05); }
+
+        /* --- Main Layout --- */
+        .main-container {
+            display: flex;
+            flex: 1;
+            height: calc(100vh - 60px);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .panel {
+            flex: 1;
+            height: 100%;
+            overflow-y: auto;
+            padding: 20px;
+            scroll-behavior: smooth;
+        }
+        
+        /* Custom Scrollbar */
+        .panel::-webkit-scrollbar { width: 8px; }
+        .panel::-webkit-scrollbar-track { background: #f1f1f1; }
+        .panel::-webkit-scrollbar-thumb { background: var(--primary-color); border-radius: 10px; }
+
+        /* --- Left Panel: Reading --- */
+        #reading-panel {
+            background: rgba(255, 255, 255, 0.9);
+            border-right: 2px solid #ddd;
+            padding-bottom: 60px;
+        }
+
+        .story-title {
+            color: var(--text-dark);
+            font-family: 'Quicksand', sans-serif;
+            font-size: 1.8rem;
+            text-align: center;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-bottom: 3px solid var(--accent-color);
+            display: inline-block;
+            width: 100%;
+        }
+
+        .passage-part {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+            line-height: 1.9;
+            font-size: 1.05rem;
+            position: relative;
+            border-left: 5px solid var(--primary-color);
+        }
+        
+        .passage-part h3 {
+            color: var(--primary-color);
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+            text-transform: uppercase;
+            font-weight: 800;
+        }
+
+        .blank-placeholder {
+            display: inline-block;
+            min-width: 30px;
+            border-bottom: 2px dashed var(--text-gray);
+            color: var(--primary-color);
+            font-weight: bold;
+            padding: 0 5px;
+        }
+
+        .trans-btn {
+            background: #dfe6e9;
+            color: var(--text-dark);
+            border: none;
+            padding: 5px 12px;
+            border-radius: 15px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            margin-top: 10px;
+            font-weight: 700;
+            transition: 0.2s;
+        }
+        .trans-btn:hover { background: var(--text-dark); color: white; }
+
+        .trans-content {
+            display: none;
+            margin-top: 15px;
+            padding: 15px;
+            background: #FFF8E1; /* Light yellow paper */
+            border-radius: 10px;
+            font-style: italic;
+            color: #555;
+            animation: fadeIn 0.4s;
+        }
+
+        /* --- Glossary --- */
+        .glossary-section {
+            margin-top: 30px;
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        .glossary-header {
+            background: var(--primary-color);
+            color: white;
+            padding: 15px;
+            font-weight: bold;
+            text-align: center;
+        }
+        .glossary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1px;
+            background: #eee;
+        }
+        .glossary-item {
+            background: white;
+            padding: 10px 15px;
+            font-size: 0.9rem;
+        }
+        .g-word { font-weight: 800; color: var(--primary-color); }
+        .g-mean { color: #555; display: block; margin-top: 2px; }
+
+        /* --- Right Panel: Exercises --- */
+        #exercise-panel {
+            background: rgba(240, 239, 255, 0.5);
+            padding-bottom: 120px; /* Space for submit button */
+        }
+
+        .quiz-title {
+            text-align: center;
+            color: var(--primary-color);
+            margin-bottom: 25px;
+            font-family: 'Quicksand', sans-serif;
+            font-weight: 800;
+        }
+
+        .question-card {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(108, 92, 231, 0.1);
+            transition: transform 0.2s;
+        }
+        .question-card:hover { transform: translateY(-3px); }
+
+        .q-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            font-weight: 700;
+            color: var(--text-gray);
+        }
+
+        .q-text {
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+
+        .options-container {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+        }
+
+        .opt-btn {
+            background: white;
+            border: 2px solid #dfe6e9;
+            padding: 12px 15px;
+            border-radius: 12px;
+            text-align: left;
+            cursor: pointer;
+            font-family: 'Nunito', sans-serif;
+            font-weight: 600;
+            transition: 0.2s;
+            position: relative;
+        }
+        .opt-btn:hover:not(.disabled) {
+            border-color: var(--primary-color);
+            background: #F0EFFF;
+        }
+        
+        /* States */
+        .opt-btn.correct { background: var(--correct-color); color: white; border-color: var(--correct-color); }
+        .opt-btn.wrong { background: var(--wrong-color); color: white; border-color: var(--wrong-color); animation: shake 0.4s; }
+        .opt-btn.disabled { pointer-events: none; opacity: 0.7; }
+
+        .explanation {
+            margin-top: 15px;
+            background: #EDFDF4;
+            border: 1px solid var(--correct-color);
+            padding: 15px;
+            border-radius: 10px;
+            display: none;
+            font-size: 0.95rem;
+            animation: slideDown 0.3s;
+        }
+        .explanation.show { display: block; }
+
+        .teacher-note {
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+        }
+        .teacher-avatar {
+            min-width: 35px;
+            height: 35px;
+            background: var(--primary-color);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-weight: bold;
+            font-size: 0.8rem;
+        }
+
+        .submit-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: calc(50% - 40px); /* Half screen width minus padding */
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 18px;
+            border-radius: 15px;
+            font-size: 1.2rem;
+            font-weight: 800;
+            cursor: pointer;
+            box-shadow: 0 5px 20px rgba(108, 92, 231, 0.4);
+            transition: 0.3s;
+            z-index: 99;
+        }
+        .submit-btn:hover { transform: scale(1.02); filter: brightness(1.1); }
+
+        /* Modal */
+        .modal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7);
+            display: none;
+            justify-content: center; align-items: center;
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+        }
+        .modal-box {
+            background: white;
+            padding: 40px;
+            border-radius: 25px;
+            text-align: center;
+            max-width: 450px;
+            width: 90%;
+            animation: zoomIn 0.4s;
+            border: 5px solid var(--accent-color);
+        }
+
+        /* Animations */
+        @keyframes shake { 0%, 100% {transform: translateX(0);} 25% {transform: translateX(-5px);} 75% {transform: translateX(5px);} }
+        @keyframes slideDown { from {opacity: 0; transform: translateY(-10px);} to {opacity: 1; transform: translateY(0);} }
+        @keyframes fadeIn { from {opacity: 0;} to {opacity: 1;} }
+        @keyframes zoomIn { from {transform: scale(0.5); opacity: 0;} to {transform: scale(1); opacity: 1;} }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .main-container { flex-direction: column; height: auto; }
+            .panel { height: auto; overflow: visible; padding-bottom: 20px; }
+            #reading-panel { border-right: none; border-bottom: 2px solid #ddd; }
+            .submit-btn { position: static; width: 100%; margin-top: 20px; }
+            body { overflow-y: auto; height: auto; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="teacher-brand">
+            Ms Mai An ULIS <span>Master Teacher</span>
+        </div>
+        <div class="timer-container" onclick="toggleTimer()">
+            <span>⏱</span> <span id="timer">15:00</span>
+        </div>
+    </header>
+
+    <div class="main-container">
+        <div id="reading-panel" class="panel">
+            <h1 class="story-title">The Difficult Student</h1>
+            
+            <div class="passage-part">
+                <h3>Part 1: The Problem</h3>
+                <p>"As a teacher, (1)__________ to see a student failing, not because of ability, but because of behavior. I have a student, Tom, who would frequently (2)__________ in class whenever he didn't get his way, screaming and shouting. His behavior was completely (3)__________; it disrupted the whole class. At first, I made (4)__________ that he was just seeking attention, or perhaps he was dealing with (5)__________ at home who didn't care. However, I didn't want to judge too quickly. But truthfully, (6)__________ in the classroom was getting worse every day."</p>
+                <button class="trans-btn" onclick="toggleTrans('trans1')">📖 Dịch nghĩa</button>
+                <div id="trans1" class="trans-content">
+                    "Là một giáo viên, <b>tôi rất đau lòng (it pains me)</b> khi thấy một học sinh trượt dài, không phải vì năng lực, mà vì hành vi. Tôi có một học sinh, Tom, người thường xuyên <b>nổi cơn tam bành (throw a tantrum)</b> trong lớp bất cứ khi nào em không vừa ý, la hét và quát tháo. Hành vi của em hoàn toàn <b>không thể bào chữa được (unjustifiable)</b>; nó làm gián đoạn cả lớp. Lúc đầu, tôi đã <b>đoán mò (a wild guess)</b> rằng em chỉ đang tìm kiếm sự chú ý, hoặc có lẽ em đang phải đối mặt với <b>cha mẹ bỏ bê (negligent parents)</b> ở nhà... Nhưng thành thật mà nói, <b>tình hình (the state of affairs)</b> trong lớp học ngày càng tồi tệ hơn."
+                </div>
+            </div>
+
+            <div class="passage-part">
+                <h3>Part 2: The Confrontation</h3>
+                <p>"I decided to call a (7)__________. When his parents arrived, they were defensive. They seemed to think I was (8)__________ teaching and blamed me for Tom's grades. It felt like they came to (9)__________ rather than solve the problem. They argued that their son was perfect and that I was the problem. To (10)__________ without getting angry, I had to stay very calm. I needed to (11)__________ their false belief that I was picking on their son. I told them: 'Children often (12)__________ the behavior they see at home. If we want to (13)__________ discipline in Tom, we must model it first.'"</p>
+                <button class="trans-btn" onclick="toggleTrans('trans2')">📖 Dịch nghĩa</button>
+                <div id="trans2" class="trans-content">
+                    "Tôi quyết định gọi một <b>cuộc họp phụ huynh (parent-teacher conference)</b>... Họ dường như nghĩ rằng tôi <b>kém năng lực (incompetent)</b> trong giảng dạy... Cảm giác như họ đến để <b>trả đũa/thanh toán nợ nần (settle the score)</b> hơn là giải quyết vấn đề. Để <b>dàn xếp cuộc tranh luận (settle an argument)</b> mà không nổi nóng, tôi phải rất bình tĩnh. Tôi cần <b>xua tan (dispel)</b> niềm tin sai lệch của họ... Tôi nói: 'Trẻ em thường <b>phản chiếu (mirror)</b> hành vi mà chúng thấy ở nhà. Nếu chúng ta muốn <b>thấm nhuần (instill)</b> kỷ luật cho Tom, chúng ta phải làm gương trước.'"
+                </div>
+            </div>
+
+            <div class="passage-part">
+                <h3>Part 3: Finding a Solution</h3>
+                <p>"I realized that arguing wouldn't help. Instead of fighting, I was (14)__________ and looking for a solution. I suggested we take (15)__________ immediately. We sat down and (16)__________ for Tom's behavior moving forward. I told them, 'The relationship between us is still (17)__________. If you want to (18)__________ my (19)__________, you need to work with me, not against me.' I admitted that teaching is a (20)__________: you lose personal time, but you gain the joy of helping kids. However, parents must also (21)__________ raising their children."</p>
+                <button class="trans-btn" onclick="toggleTrans('trans3')">📖 Dịch nghĩa</button>
+                <div id="trans3" class="trans-content">
+                    "...Thay vì chiến đấu, tôi đã <b>chấp nhận khủng hoảng (embracing the crisis)</b> và tìm giải pháp. Tôi đề nghị chúng ta thực hiện <b>các hành động chủ động (proactive actions)</b> ngay lập tức. Chúng tôi ngồi xuống và <b>đặt ra một số quy tắc cơ bản (set out some ground rules)</b>... 'Mối quan hệ giữa chúng ta vẫn <b>có thể cứu vãn được (salvageable)</b>. Nếu ông bà muốn <b>giành lấy (earn)</b> <b>lòng tin (trust)</b> của tôi, ông bà cần hợp tác với tôi...'. Tôi thừa nhận dạy học là một <b>sự đánh đổi (trade-off)</b>... Tuy nhiên, cha mẹ cũng phải <b>có năng lực/thành thạo (be competent in)</b> việc nuôi dạy con cái."
+                </div>
+            </div>
+
+            <div class="passage-part">
+                <h3>Part 4: Resolution</h3>
+                <p>"Tom eventually realized he was wrong and tried to (22)__________ for his bad behavior by studying harder. (23)__________, the conflict brought us closer. It showed me that even when people come from different backgrounds—people come to this international school from (24)__________—respect is the universal language. Now, I can confidently say I (25)__________ handling difficult parents!"</p>
+                <button class="trans-btn" onclick="toggleTrans('trans4')">📖 Dịch nghĩa</button>
+                <div id="trans4" class="trans-content">
+                    "Tom cuối cùng cũng nhận ra mình sai và cố gắng <b>chuộc lỗi (atone)</b>... <b>Về mặt tích cực (On the bright side)</b>, xung đột đã đưa chúng tôi lại gần nhau hơn. Nó cho tôi thấy rằng ngay cả khi mọi người đến từ những nền tảng khác nhau—mọi người đến ngôi trường quốc tế này từ <b>khắp bốn phương trời (all four corners of the world)</b>... Giờ đây, tôi có thể tự tin nói rằng tôi <b>thành thạo (be competent in - am competent in)</b> việc xử lý các phụ huynh khó tính!"
+                </div>
+            </div>
+
+            <div class="glossary-section">
+                <div class="glossary-header">📚 GLOSSARY (Từ Vựng Cần Nhớ)</div>
+                <div class="glossary-grid" id="glossary-container">
+                    </div>
+            </div>
+        </div>
+
+        <div id="exercise-panel" class="panel">
+            <h2 class="quiz-title">📝 BÀI TẬP ĐIỀN TỪ</h2>
+            <div id="quiz-container">
+                </div>
+        </div>
+        
+        <button class="submit-btn" onclick="finishQuiz()">🏆 NỘP BÀI & XEM ĐIỂM</button>
+    </div>
+
+    <div id="result-modal" class="modal">
+        <div class="modal-box">
+            <h2 style="color:var(--primary-color)">KẾT QUẢ CỦA BẠN</h2>
+            <div style="font-size: 3.5rem; font-weight: 800; margin: 20px 0; color: var(--secondary-color);" id="score-text">0/25</div>
+            <p id="feedback-msg" style="margin-bottom: 20px;">Hãy cố gắng hơn nhé!</p>
+            <button onclick="document.getElementById('result-modal').style.display='none'" style="padding:10px 20px; background:var(--text-dark); color:white; border:none; border-radius:10px; cursor:pointer;">Xem lại bài làm</button>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. DỮ LIỆU ---
+        const vocabList = [
+            "unjustifiable", "salvageable", "settle the score", "mirror", "all four corners of the world", 
+            "incompetent", "dispel", "proactive actions", "embracing the crisis", "a wild guess", 
+            "throw a tantrum", "negligent parents", "earn trust", "On the bright side", "settle an argument", 
+            "instill", "the state of affairs", "atone", "a trade-off", "parent-teacher conference", 
+            "set out some ground rules", "It pains me", "be competent in"
+        ];
+
+        // Đáp án và giải thích chi tiết
+        const questions = [
+            { id: 1, text: "It pains me", explain: "Cụm 'It pains me' (Tôi rất đau lòng) dùng để diễn tả cảm xúc buồn phiền của giáo viên khi thấy học sinh thất bại." },
+            { id: 2, text: "throw a tantrum", explain: "'Throw a tantrum' là cụm từ cố định chỉ việc ăn vạ, nổi cơn tam bành (la hét, gào khóc) thường thấy ở trẻ em." },
+            { id: 3, text: "unjustifiable", explain: "Hành vi la hét trong lớp là 'unjustifiable' (không thể bào chữa/chấp nhận được)." },
+            { id: 4, text: "a wild guess", explain: "'Make a wild guess' là đoán mò, đoán đại mà không có nhiều bằng chứng." },
+            { id: 5, text: "negligent parents", explain: "Giáo viên nghi ngờ học sinh bị 'negligent parents' (cha mẹ bỏ bê/tắc trách) nên mới cư xử tệ để tìm sự chú ý." },
+            { id: 6, text: "the state of affairs", explain: "'The state of affairs' chỉ tình hình/tình trạng chung của sự việc (ở đây là tình trạng lớp học)." },
+            { id: 7, text: "parent-teacher conference", explain: "Để giải quyết vấn đề học sinh, giáo viên gọi 'parent-teacher conference' (cuộc họp phụ huynh)." },
+            { id: 8, text: "incompetent", explain: "Phụ huynh nghĩ giáo viên 'incompetent' (kém năng lực, bất tài) nên con họ mới điểm thấp." },
+            { id: 9, text: "settle the score", explain: "'Settle the score' nghĩa là trả đũa hoặc thanh toán nợ nần (nghĩa bóng). Phụ huynh đến với thái độ thù địch." },
+            { id: 10, text: "settle an argument", explain: "Khác với câu trên, ở đây 'settle an argument' là dàn xếp, giải quyết cuộc tranh cãi một cách êm đẹp." },
+            { id: 11, text: "dispel", explain: "'Dispel' (xua tan) thường đi với belief/rumor/myth. Giáo viên muốn xua tan niềm tin sai lệch của phụ huynh." },
+            { id: 12, text: "mirror", explain: "Động từ 'mirror' nghĩa là phản chiếu/bắt chước y hệt. Trẻ em thường bắt chước hành vi của cha mẹ." },
+            { id: 13, text: "instill", explain: "'Instill discipline' là thấm nhuần/rèn giũa kỷ luật vào đầu ai đó một cách từ từ." },
+            { id: 14, text: "embracing the crisis", explain: "Thay vì trốn tránh, giáo viên 'embracing the crisis' (chấp nhận và đối mặt với khủng hoảng) để tìm giải pháp." },
+            { id: 15, text: "proactive actions", explain: "'Take proactive actions' là thực hiện các hành động chủ động, đi trước một bước để giải quyết vấn đề." },
+            { id: 16, text: "set out some ground rules", explain: "'Set out ground rules' là thiết lập các quy tắc cơ bản/nền tảng ngay từ đầu." },
+            { id: 17, text: "salvageable", explain: "Mối quan hệ chưa hỏng hẳn, nó vẫn 'salvageable' (có thể cứu vãn được)." },
+            { id: 18, text: "earn", explain: "Đây là phần đầu của cụm 'earn trust' (giành lấy lòng tin). Tách ra theo yêu cầu đề bài." },
+            { id: 19, text: "trust", explain: "Phần sau của cụm 'earn trust'. 'Earn my trust' = Giành lấy lòng tin của tôi." },
+            { id: 20, text: "a trade-off", explain: "'A trade-off' là sự đánh đổi. Mất thời gian cá nhân nhưng được niềm vui giúp đỡ trẻ." },
+            { id: 21, text: "be competent in", explain: "Cha mẹ cũng cần 'be competent in' (có năng lực/thành thạo) trong việc nuôi dạy con. Lưu ý: Đề bài cho phép dùng từ này 2 lần." },
+            { id: 22, text: "atone", explain: "'Atone for' là chuộc lỗi. Tom cố gắng học chăm để chuộc lỗi cho hành vi xấu." },
+            { id: 23, text: "On the bright side", explain: "'On the bright side' (Về mặt tích cực/nhìn theo hướng tốt), dùng để chuyển sang ý tốt sau chuỗi sự kiện xấu." },
+            { id: 24, text: "all four corners of the world", explain: "Trường quốc tế có học sinh đến từ 'all four corners of the world' (bốn phương trời/khắp thế giới)." },
+            { id: 25, text: "be competent in", explain: "Giáo viên tự tin mình 'am competent in' (thành thạo) việc xử lý phụ huynh khó tính. (Dùng dạng gốc theo list)." }
+        ];
+
+        // --- 2. LOGIC GAME ---
+        
+        // Tạo Glossary tự động
+        const glossaryContainer = document.getElementById('glossary-container');
+        vocabList.sort().forEach(word => {
+            const div = document.createElement('div');
+            div.className = 'glossary-item';
+            div.innerHTML = `<span class="g-word">${word}</span>`;
+            glossaryContainer.appendChild(div);
+        });
+
+        // Tạo Câu hỏi
+        const quizContainer = document.getElementById('quiz-container');
+        
+        questions.forEach((q, index) => {
+            // Tạo danh sách lựa chọn (1 đúng + 3 sai ngẫu nhiên)
+            let options = [];
+            // Với câu 18, 19 (tách từ), ta phải xử lý đặc biệt một chút để tạo nhiễu hợp lý
+            let distractors = vocabList.filter(v => v !== q.text && v !== "earn trust"); // Loại bỏ đáp án đúng
+            distractors = distractors.sort(() => 0.5 - Math.random()).slice(0, 3);
+            
+            // Nếu là câu 18 (earn) hoặc 19 (trust), thêm từ nhiễu thủ công cho khó hơn nếu muốn, 
+            // nhưng ở đây ta lấy từ list gốc để đúng format.
+            // Lưu ý: List gốc chỉ có "earn trust". 
+            // Nếu đáp án là "earn", ta hiển thị "earn". Nếu "trust", hiển thị "trust".
+            // Các lựa chọn sai sẽ lấy nguyên cụm từ list.
+            
+            options = [q.text, ...distractors];
+            options.sort(() => 0.5 - Math.random());
+
+            // HTML
+            const card = document.createElement('div');
+            card.className = 'question-card';
+            card.id = `q-card-${index}`;
+            card.innerHTML = `
+                <div class="q-header">
+                    <span>Câu hỏi ${q.id}</span>
+                    <div class="teacher-avatar">Ms</div>
+                </div>
+                <div class="q-text">Điền vào chỗ trống (${q.id}): "..."</div>
+                <div class="options-container">
+                    ${options.map(opt => `
+                        <button class="opt-btn" onclick="checkAnswer(this, '${escapeHtml(opt)}', '${escapeHtml(q.text)}', ${index})">
+                            ${opt}
+                        </button>
+                    `).join('')}
+                </div>
+                <div class="explanation" id="explain-${index}">
+                    <div class="teacher-note">
+                        <div class="teacher-avatar">Ms</div>
+                        <div>
+                            <strong>Ms Mai An giải thích:</strong><br>
+                            Đáp án: <span style="color:var(--correct-color); font-weight:bold">${q.text}</span>
+                            <br>${q.explain}
+                        </div>
+                    </div>
+                </div>
+            `;
+            quizContainer.appendChild(card);
+        });
+
+        // --- 3. CHỨC NĂNG ---
+        let score = 0;
+        let answered = 0;
+
+        // Âm thanh (Web Audio API)
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playSound(isCorrect) {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            
+            if (isCorrect) {
+                osc.type = 'sine'; // Ding
+                osc.frequency.setValueAtTime(600, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(1000, audioCtx.currentTime + 0.1);
+                gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.5);
+                osc.start(); osc.stop(audioCtx.currentTime + 0.5);
+                
+                // Pháo giấy
+                confetti({
+                    particleCount: 80, spread: 60, origin: { y: 0.6 },
+                    colors: ['#00D26A', '#FDCB6E', '#6C5CE7']
+                });
+            } else {
+                osc.type = 'sawtooth'; // Buzz
+                osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+                osc.frequency.linearRampToValueAtTime(100, audioCtx.currentTime + 0.2);
+                gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 0.3);
+                osc.start(); osc.stop(audioCtx.currentTime + 0.3);
+            }
+        }
+
+        function checkAnswer(btn, selected, correct, idx) {
+            const card = document.getElementById(`q-card-${idx}`);
+            if (card.classList.contains('answered')) return; // Chặn click lại
+            
+            card.classList.add('answered');
+            answered++;
+            document.getElementById(`explain-${idx}`).classList.add('show');
+            
+            const btns = card.querySelectorAll('.opt-btn');
+            
+            if (selected === correct) {
+                btn.classList.add('correct');
+                score++;
+                playSound(true);
+            } else {
+                btn.classList.add('wrong');
+                playSound(false);
+                // Hiện đáp án đúng
+                btns.forEach(b => {
+                    if (b.innerText.trim() === correct) b.classList.add('correct');
+                });
+            }
+            
+            // Disable tất cả nút trong câu này
+            btns.forEach(b => b.classList.add('disabled'));
+        }
+
+        function finishQuiz() {
+            const modal = document.getElementById('result-modal');
+            const scoreText = document.getElementById('score-text');
+            const feedback = document.getElementById('feedback-msg');
+            
+            scoreText.innerText = `${score}/${questions.length}`;
+            
+            if (score === questions.length) feedback.innerText = "🌟 XUẤT SẮC! Bạn là thiên tài giải quyết xung đột!";
+            else if (score >= 20) feedback.innerText = "👏 Rất tốt! Bạn hiểu rất sâu sắc bài đọc.";
+            else if (score >= 12) feedback.innerText = "💪 Khá ổn! Hãy xem lại phần giải thích để hiểu rõ hơn.";
+            else feedback.innerText = "😅 Cần cố gắng hơn! Đừng quên đọc kỹ Glossary nhé.";
+            
+            modal.style.display = 'flex';
+            playSound(true);
+        }
+
+        function toggleTrans(id) {
+            const el = document.getElementById(id);
+            el.style.display = el.style.display === 'block' ? 'none' : 'block';
+        }
+        
+        // Timer
+        let timeLeft = 900; // 15 mins
+        let timerRunning = false;
+        let timerInterval;
+
+        function toggleTimer() {
+            if (timerRunning) {
+                clearInterval(timerInterval);
+                timerRunning = false;
+                document.getElementById('timer').style.color = 'var(--primary-color)';
+            } else {
+                timerRunning = true;
+                document.getElementById('timer').style.color = '#e74c3c';
+                timerInterval = setInterval(() => {
+                    timeLeft--;
+                    let m = Math.floor(timeLeft / 60);
+                    let s = timeLeft % 60;
+                    document.getElementById('timer').innerText = `${m}:${s<10?'0':''}${s}`;
+                    if (timeLeft <= 0) {
+                        clearInterval(timerInterval);
+                        alert("Hết giờ làm bài!");
+                    }
+                }, 1000);
+            }
+        }
+
+        function escapeHtml(text) {
+            return text
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        // Auto start
+        // window.onload = toggleTimer; // Optional
+    </script>
+</body>
+</html>

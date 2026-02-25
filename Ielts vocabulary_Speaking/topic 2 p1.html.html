@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bài Tập Tiếng Anh - Ms Mai An ULIS (Fixed Scroll)</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    
+    <style>
+        :root {
+            /* Dynamic Theme Colors: Family/Sister Theme -> Warm Pink & Soft Teal */
+            --primary-color: #FF6B6B; /* Warm Salmon/Pink */
+            --secondary-color: #4ECDC4; /* Soft Teal */
+            --accent-color: #FFE66D; /* Pop Yellow */
+            --text-dark: #2D3436;
+            --text-light: #F7F1E3;
+            --correct-color: #00D26A;
+            --wrong-color: #FF4757;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            height: 100vh; /* Full viewport height */
+            width: 100vw;
+            overflow: hidden; /* Prevent scroll on body level */
+            color: var(--text-dark);
+            /* Auto-generated SVG Background with Emojis */
+            background-color: #FFE5E5;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100%25' height='100%25'%3E%3Cdefs%3E%3CradialGradient id='g' cx='50%25' cy='50%25' r='50%25'%3E%3Cstop offset='0%25' stop-color='%23FF9A9E' stop-opacity='0.5'/%3E%3Cstop offset='100%25' stop-color='%23FECFEF' stop-opacity='0'/%3E%3C/radialGradient%3E%3C/defs%3E%3Crect width='100%25' height='100%25' fill='url(%23g)'/%3E%3Ctext x='10%25' y='20%25' font-size='80' opacity='0.2'%3E👭%3C/text%3E%3Ctext x='80%25' y='10%25' font-size='80' opacity='0.2'%3E🏠%3C/text%3E%3Ctext x='20%25' y='80%25' font-size='80' opacity='0.2'%3E💖%3C/text%3E%3Ctext x='70%25' y='70%25' font-size='80' opacity='0.2'%3E🍀%3C/text%3E%3C/svg%3E");
+            background-size: cover;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Top Bar */
+        header {
+            background: white;
+            padding: 10px 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            z-index: 100;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 60px;
+            flex-shrink: 0; /* Header does not shrink */
+        }
+
+        .teacher-brand {
+            font-family: 'Quicksand', sans-serif;
+            font-weight: 700;
+            color: var(--primary-color);
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .teacher-brand span {
+            background: var(--secondary-color);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.8rem;
+        }
+
+        .timer-container {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--primary-color);
+            background: #FFF0F0;
+            padding: 5px 20px;
+            border-radius: 20px;
+            border: 2px solid var(--primary-color);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .timer-container:hover { transform: scale(1.05); }
+
+        /* Main Layout - FIXED SCROLLING LOGIC */
+        .main-container {
+            display: flex;
+            flex: 1; /* Takes remaining height */
+            height: calc(100vh - 60px); /* Explicit height calculation */
+            overflow: hidden; /* Contains the scrollable children */
+            position: relative;
+        }
+
+        /* Panel Styling */
+        .panel {
+            flex: 1;
+            height: 100%; /* Fill the container height */
+            overflow-y: auto; /* Enable vertical scroll */
+            padding: 20px;
+            scroll-behavior: smooth;
+            /* Scrollbar styling for Webkit */
+            scrollbar-width: thin;
+            scrollbar-color: var(--secondary-color) #f1f1f1;
+        }
+
+        /* Scrollbar aesthetics */
+        .panel::-webkit-scrollbar { width: 10px; }
+        .panel::-webkit-scrollbar-track { background: #f1f1f1; }
+        .panel::-webkit-scrollbar-thumb { background: var(--secondary-color); border-radius: 10px; border: 2px solid #f1f1f1; }
+
+        /* Left Panel: Reading */
+        #reading-panel {
+            background: rgba(255, 255, 255, 0.85);
+            border-right: 2px solid #eee;
+            backdrop-filter: blur(5px);
+            padding-bottom: 50px; /* Extra space at bottom */
+        }
+
+        .passage-title {
+            color: var(--text-dark);
+            font-family: 'Quicksand', sans-serif;
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-bottom: 3px solid var(--primary-color);
+            display: inline-block;
+            padding-bottom: 5px;
+        }
+
+        .passage-part {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            line-height: 1.8;
+            font-size: 1.05rem;
+        }
+        
+        .passage-part h3 {
+            color: var(--secondary-color);
+            margin-bottom: 10px;
+            font-size: 1.2rem;
+        }
+
+        .translation-btn {
+            background: var(--text-dark);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            margin-top: 10px;
+            display: inline-block;
+            transition: 0.2s;
+        }
+        .translation-btn:hover { background: #555; }
+
+        .translation-content {
+            display: none;
+            margin-top: 10px;
+            padding: 15px;
+            background: #f9f9f9;
+            border-left: 4px solid var(--secondary-color);
+            font-style: italic;
+            color: #555;
+            border-radius: 0 10px 10px 0;
+            animation: fadeIn 0.5s;
+        }
+
+        /* Glossary Table */
+        .glossary-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 30px;
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        .glossary-table th {
+            background: var(--secondary-color);
+            color: white;
+            padding: 12px;
+            text-align: left;
+        }
+        .glossary-table td {
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+        }
+        .tag-pos {
+            font-size: 0.8rem;
+            background: #eee;
+            padding: 2px 6px;
+            border-radius: 4px;
+            color: #666;
+            margin-left: 5px;
+        }
+
+        /* Right Panel: Exercises */
+        #exercise-panel {
+            background: rgba(255, 240, 240, 0.6);
+            padding-bottom: 100px; /* Crucial for scrolling past the last element */
+        }
+
+        .question-card {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+            position: relative;
+            transition: transform 0.3s;
+        }
+
+        .q-header {
+            font-weight: 800;
+            color: var(--primary-color);
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .q-text {
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+        }
+
+        .option-btn {
+            background: white;
+            border: 2px solid #E0E0E0;
+            padding: 15px;
+            border-radius: 15px;
+            text-align: left;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: 'Nunito', sans-serif;
+            font-weight: 600;
+            box-shadow: 0 4px 0 #E0E0E0; /* 3D effect */
+            position: relative;
+        }
+
+        .option-btn:active {
+            transform: translateY(4px);
+            box-shadow: none;
+        }
+
+        .option-btn:hover:not(.disabled) {
+            border-color: var(--secondary-color);
+            transform: scale(1.02);
+        }
+
+        .option-btn.correct {
+            background-color: var(--correct-color);
+            color: white;
+            border-color: #00A653;
+            box-shadow: 0 4px 0 #008f47;
+        }
+
+        .option-btn.wrong {
+            background-color: var(--wrong-color);
+            color: white;
+            border-color: #D63031;
+            box-shadow: 0 4px 0 #b32424;
+            animation: shake 0.5s;
+        }
+
+        .explanation-box {
+            margin-top: 20px;
+            padding: 15px;
+            background: #EDFDF4;
+            border: 2px solid var(--correct-color);
+            border-radius: 12px;
+            display: none;
+            animation: slideDown 0.4s ease-out;
+        }
+        .explanation-box.show { display: block; }
+
+        .teacher-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--primary-color);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            float: left;
+            margin-right: 10px;
+            border: 2px solid white;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        .submit-all-btn {
+            display: block;
+            width: 100%;
+            padding: 20px;
+            background: var(--primary-color);
+            color: white;
+            font-size: 1.5rem;
+            font-weight: bold;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            margin-top: 30px;
+            margin-bottom: 50px; /* Extra bottom margin */
+            box-shadow: 0 6px 0 #D63031;
+            transition: 0.2s;
+        }
+        
+        .submit-all-btn:hover {
+            filter: brightness(1.1);
+            transform: translateY(-2px);
+        }
+
+        /* Animations */
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            50% { transform: translateX(10px); }
+            75% { transform: translateX(-10px); }
+            100% { transform: translateX(0); }
+        }
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(5px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .modal-content {
+            background: white;
+            padding: 40px;
+            border-radius: 30px;
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+            border: 5px solid var(--secondary-color);
+            animation: zoomIn 0.4s;
+        }
+        @keyframes zoomIn {
+            from { transform: scale(0.5); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        .score-display {
+            font-size: 4rem;
+            font-weight: 800;
+            color: var(--primary-color);
+            margin: 20px 0;
+        }
+        .modal-btn {
+            background: var(--secondary-color);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 15px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .main-container { flex-direction: column; overflow-y: auto; height: auto; }
+            .panel { height: auto; overflow: visible; padding-bottom: 20px; }
+            #reading-panel { border-right: none; border-bottom: 2px solid #eee; }
+            body { height: auto; overflow-y: auto; }
+        }
+
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="teacher-brand">
+            Ms Mai An ULIS <span>Teacher</span>
+        </div>
+        <div class="timer-container" onclick="toggleTimer()">
+            <span>⏱</span> <span id="timer">10:00</span>
+        </div>
+    </header>
+
+    <div class="main-container">
+        
+        <div id="reading-panel" class="panel">
+            <h1 class="passage-title">My Sister</h1>
+            
+            <div class="passage-part">
+                <h3>Part 1: Childhood Memories</h3>
+                <p>"When I think of someone close to me, my older sister immediately (1)__________. We grew up in a busy neighborhood, so I was never (2)__________. Even though she was older, I used to always (3)__________ with her and her friends wherever they went. Of course, she liked to (4)__________ and tell me what to do, which led us to (5)__________ quite often. But that was just (6)__________; we would fight and then (7)__________ five minutes later. If we (8)__________ to those days, I realize she was truly my (9)__________ whenever we got into trouble."</p>
+                <button class="translation-btn" onclick="toggleTrans('trans1')">📖 Xem Bản Dịch</button>
+                <div id="trans1" class="translation-content">
+                    "Khi tôi nghĩ về một người thân thiết, chị gái tôi ngay lập tức <b>hiện lên trong tâm trí</b>. Chúng tôi lớn lên trong một khu phố sầm uất, vì vậy tôi không bao giờ <b>thiếu bạn chơi</b>. Mặc dù chị ấy lớn hơn, tôi thường luôn <b>bám đuôi</b> chị và bạn bè bất cứ nơi nào họ đến. Tất nhiên, chị ấy thích <b>chỉ đạo/ra lệnh</b> cho tôi và bảo tôi phải làm gì, điều này khiến chúng tôi <b>cãi cọ/xung đột</b> khá thường xuyên. Nhưng đó chỉ là <b>chuyện thường tình của anh chị em</b>; chúng tôi cãi nhau rồi lại <b>làm lành</b> năm phút sau đó. Nếu chúng tôi <b>nhớ lại</b> những ngày đó, tôi nhận ra chị ấy thực sự là <b>đồng phạm (người cùng hội cùng thuyền)</b> của tôi mỗi khi chúng tôi gặp rắc rối."
+                </div>
+            </div>
+
+            <div class="passage-part">
+                <h3>Part 2: Growing Up & Personality</h3>
+                <p>"As we got older, she was the one (10)__________, teaching me how to navigate high school and university. Living away from home and (11)__________ can be scary, but she taught me that being independent (12)__________. She is a very strong woman; she has (13)__________ being (14)__________ and standing up for yourself. Whenever life creates a situation that is (15)__________, or whatever challenge life (16)__________, she always manages to (17)__________. In terms of being the most resilient person I know, she definitely (18)__________."</p>
+                <button class="translation-btn" onclick="toggleTrans('trans2')">📖 Xem Bản Dịch</button>
+                <div id="trans2" class="translation-content">
+                    "Khi chúng tôi lớn lên, chị ấy là người <b>hướng dẫn tôi</b>, dạy tôi cách xoay sở ở trường trung học và đại học. Sống xa nhà và <b>tự lập</b> có thể đáng sợ, nhưng chị ấy dạy tôi rằng độc lập <b>có những lợi ích riêng</b>. Chị ấy là một người phụ nữ rất mạnh mẽ; chị ấy đã <b>cho tôi một bài học bậc thầy về</b> việc trở nên <b>quyết đoán</b> và tự bảo vệ mình. Bất cứ khi nào cuộc sống tạo ra một tình huống <b>khó nhằn</b>, hay bất cứ thử thách nào cuộc đời <b>ném vào bạn</b>, chị ấy luôn xoay sở để <b>vượt qua/chiến thắng</b>. Xét về việc là người kiên cường nhất mà tôi biết, chị ấy chắc chắn <b>giành vương miện (là số 1)</b>."
+                </div>
+            </div>
+
+            <div class="passage-part">
+                <h3>Part 3: Current Relationship</h3>
+                <p>"Nowadays, we are both busy, but we (19)__________ see each other at least (20)__________ a month. We try to (21)__________ some family time to just (22)__________ and relax. We usually (23)__________ good food or movies. Even when work stresses threaten to (24)__________, her positivity is like (25)__________. I tend to worry a lot, so I often (26)__________ negative thinking, but knowing I (27)__________ gives me confidence."</p>
+                <button class="translation-btn" onclick="toggleTrans('trans3')">📖 Xem Bản Dịch</button>
+                <div id="trans3" class="translation-content">
+                    "Ngày nay, cả hai chúng tôi đều bận rộn, nhưng chúng tôi <b>cố gắng/chú trọng</b> gặp nhau ít nhất <b>một vài lần</b> một tháng. Chúng tôi cố gắng <b>dành ra</b> một chút thời gian gia đình để chỉ <b>thư giãn/xả hơi</b>. Chúng tôi thường <b>gắn kết qua</b> đồ ăn ngon hoặc phim ảnh. Ngay cả khi áp lực công việc đe dọa <b>nhấn chìm/làm chị ấy nản lòng</b>, sự tích cực của chị ấy giống như <b>một luồng gió mới</b>. Tôi có xu hướng lo lắng nhiều, nên tôi thường <b>nghiêng về</b> suy nghĩ tiêu cực, nhưng biết rằng tôi <b>có chị ấy ủng hộ</b> mang lại cho tôi sự tự tin."
+                </div>
+            </div>
+
+            <div class="passage-part">
+                <h3>Part 4: Future & Roles</h3>
+                <p>"Looking ahead, (28)__________, but I know we will always remain close. Sometimes she has to (29)__________ a second mother, even (30)__________ my kids when I’m busy. Trust and loyalty are (31)__________ our relationship."</p>
+                <button class="translation-btn" onclick="toggleTrans('trans4')">📖 Xem Bản Dịch</button>
+                <div id="trans4" class="translation-content">
+                    "Nhìn về phía trước, <b>tôi không có quả cầu pha lê (không đoán trước được tương lai)</b>, nhưng tôi biết chúng tôi sẽ luôn thân thiết. Đôi khi chị ấy phải <b>đóng vai</b> một người mẹ thứ hai, thậm chí <b>tham gia/nhảy vào</b> trông con cho tôi khi tôi bận. Tin tưởng và lòng trung thành là <b>những nền tảng của</b> mối quan hệ của chúng tôi."
+                </div>
+            </div>
+
+            <h3 style="margin-top: 30px; color: var(--primary-color);">📚 Glossary (Từ vựng Academic)</h3>
+            <table class="glossary-table">
+                <thead>
+                    <tr><th>Word/Phrase</th><th>Meaning (VN)</th></tr>
+                </thead>
+                <tbody id="glossary-body"></tbody>
+            </table>
+            <br><br>
+        </div>
+
+        <div id="exercise-panel" class="panel">
+            <h2 style="text-align: center; color: var(--primary-color); margin-bottom: 20px;">📝 BÀI TẬP THỰC HÀNH</h2>
+            <div id="quiz-container">
+                </div>
+            
+            <button class="submit-all-btn" onclick="finishQuiz()">🏆 NỘP BÀI & XEM ĐIỂM</button>
+        </div>
+    </div>
+
+    <div id="result-modal" class="modal-overlay">
+        <div class="modal-content">
+            <h2>KẾT QUẢ BÀI LÀM</h2>
+            <div class="score-display" id="final-score">0/31</div>
+            <p id="feedback-msg" style="font-size: 1.2rem; color: #666;">Bạn chưa làm bài!</p>
+            <button class="modal-btn" onclick="closeModal()">Xem lại bài làm</button>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. DATA & CONTENT ---
+        
+        const vocabList = [
+            "boss me around", "tag along", "typical sibling stuff", "carve out", "kick back", 
+            "a breath of fresh air", "has its perks", "striking out on your own", "lean towards", 
+            "butt heads with", "patch things up", "assertive", "given me a masterclass in", 
+            "throws at you", "pops up in my mind", "bond over", "showing me the ropes", 
+            "make it a point to", "a handful of times", "bog her down", "come out on top", 
+            "takes the crown", "partner in crime", "have her in my corner", "cast our minds back", 
+            "I don’t have a crystal ball or anything", "the cornerstones of", "stepping in to babysit", 
+            "wear the hat of", "that’s a tough cookie to crack", "short of playmates"
+        ];
+
+        // Glossary Data
+        const glossaryData = [
+            { word: "Assertive", type: "adj", mean: "Quả quyết, quyết đoán" },
+            { word: "Navigate", type: "v", mean: "Định hướng, xoay sở" },
+            { word: "Resilient", type: "adj", mean: "Kiên cường, mau phục hồi" },
+            { word: "Cornerstones", type: "n", mean: "Nền tảng, cơ sở" },
+            { word: "Bond over", type: "phr.v", mean: "Gắn kết qua việc gì đó" },
+            { word: "Kick back", type: "phr.v", mean: "Thư giãn, xả hơi" },
+            { word: "Perks", type: "n", mean: "Lợi ích, đặc quyền" },
+            { word: "Tag along", type: "phr.v", mean: "Đi theo, bám đuôi" },
+            { word: "Boss around", type: "phr.v", mean: "Hạch sách, chỉ đạo" },
+            { word: "Patch things up", type: "idiom", mean: "Làm lành, giảng hòa" }
+        ];
+
+        // Answer Key with Detailed Explanations - 31 QUESTIONS
+        const answers = [
+            { id: 1, text: "pops up in my mind", explain: "Cụm 'pops up in my mind' nghĩa là nảy ra/xuất hiện ngay trong đầu. Hợp ngữ cảnh nghĩ về ai đó thân thiết." },
+            { id: 2, text: "short of playmates", explain: "Cụm 'short of' là thiếu thốn. 'Playmates' là bạn chơi. Vì sống ở khu đông đúc nên không bao giờ thiếu bạn chơi." },
+            { id: 3, text: "tag along", explain: "'Tag along' nghĩa là đi theo ai đó (thường là không được mời hoặc đi ké). Em hay đi theo chị." },
+            { id: 4, text: "boss me around", explain: "'Boss someone around' là chỉ đạo, ra lệnh hách dịch. Phù hợp với vế sau 'tell me what to do'." },
+            { id: 5, text: "butt heads with", explain: "'Butt heads' (húc đầu vào nhau) là ẩn dụ cho việc xung đột, cãi cọ." },
+            { id: 6, text: "typical sibling stuff", explain: "Cả cụm này nghĩa là 'chuyện bình thường giữa anh chị em'. Dùng để giải thích cho việc cãi nhau rồi làm lành." },
+            { id: 7, text: "patch things up", explain: "'Patch things up' là hàn gắn, làm lành sau khi cãi vã." },
+            { id: 8, text: "cast our minds back", explain: "'Cast one's mind back' là hồi tưởng lại quá khứ." },
+            { id: 9, text: "partner in crime", explain: "'Partner in crime' là bạn đồng hành, đồng phạm (nghĩa vui: người cùng gây rắc rối hoặc cùng làm mọi việc)." },
+            { id: 10, text: "showing me the ropes", explain: "'Show someone the ropes' là dạy ai đó cách làm việc gì, hướng dẫn người mới." },
+            { id: 11, text: "striking out on your own", explain: "'Strike out on one's own' là bắt đầu sống tự lập." },
+            { id: 12, text: "has its perks", explain: "'Has its perks' nghĩa là có những lợi ích/ưu điểm riêng." },
+            { id: 13, text: "given me a masterclass in", explain: "'Give a masterclass in' là dạy một bài học đẳng cấp cao/bậc thầy về cái gì đó." },
+            { id: 14, text: "assertive", explain: "'Assertive' là tính từ chỉ sự quyết đoán, mạnh mẽ bảo vệ ý kiến của mình." },
+            { id: 15, text: "that’s a tough cookie to crack", explain: "'A tough cookie to crack' là vấn đề nan giải hoặc người khó đối phó." },
+            { id: 16, text: "throws at you", explain: "Idiom 'Life throws something at you' nghĩa là cuộc đời ném vào bạn những thử thách bất ngờ." },
+            { id: 17, text: "come out on top", explain: "'Come out on top' là chiến thắng, vượt qua khó khăn để thành công." },
+            { id: 18, text: "takes the crown", explain: "'Takes the crown' là giành vương miện, ý nói là người giỏi nhất/số 1 về mặt nào đó." },
+            { id: 19, text: "make it a point to", explain: "'Make it a point to do something' là coi trọng việc gì và cố gắng thực hiện nó." },
+            { id: 20, text: "a handful of times", explain: "'A handful of' là một nắm, ý chỉ số lượng nhỏ (một vài lần)." },
+            { id: 21, text: "carve out", explain: "'Carve out time' là 'đục/khoét' thời gian, ý là cố gắng sắp xếp thời gian trong lịch trình bận rộn." },
+            { id: 22, text: "kick back", explain: "'Kick back' là thư giãn, nghỉ ngơi (thường đi với relax)." },
+            { id: 23, text: "bond over", explain: "'Bond over' là gắn kết tình cảm thông qua việc cùng làm gì đó." },
+            { id: 24, text: "bog her down", explain: "'Bog down' là bị sa lầy, bị nhấn chìm bởi áp lực/công việc." },
+            { id: 25, text: "a breath of fresh air", explain: "'A breath of fresh air' là luồng gió mới, chỉ sự thay đổi tích cực, dễ chịu." },
+            { id: 26, text: "lean towards", explain: "'Lean towards' là nghiêng về phía (nghĩa đen hoặc bóng)." },
+            { id: 27, text: "have her in my corner", explain: "'Have someone in your corner' (từ quyền anh) là có người ở góc đài hỗ trợ, nghĩa là có người ủng hộ/bênh vực mình." },
+            { id: 28, text: "I don’t have a crystal ball or anything", explain: "Thành ngữ chỉ việc không thể dự đoán tương lai (như thầy bói nhìn quả cầu pha lê)." },
+            { id: 29, text: "wear the hat of", explain: "'Wear the hat of' là đóng vai trò là ai đó." },
+            { id: 30, text: "stepping in to babysit", explain: "'Step in' là can thiệp, nhảy vào giúp đỡ." },
+            { id: 31, text: "the cornerstones of", explain: "'Cornerstone' là đá tảng góc tường, nghĩa bóng là nền tảng quan trọng nhất." }
+        ];
+
+        // --- 2. LOGIC & FUNCTIONS ---
+
+        // Sound Effects (Base64 Web Audio)
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        
+        function playSound(type) {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            if (type === 'correct') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(600, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.1);
+                gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.3);
+                confetti({
+                    particleCount: 100,
+                    spread: 70,
+                    origin: { y: 0.6 },
+                    colors: ['#00D26A', '#FFE66D', '#FF6B6B']
+                });
+            } else {
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+                osc.frequency.linearRampToValueAtTime(100, audioCtx.currentTime + 0.2);
+                gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.3);
+            }
+        }
+
+        // Toggle Translation
+        function toggleTrans(id) {
+            const el = document.getElementById(id);
+            if (el.style.display === 'block') {
+                el.style.display = 'none';
+            } else {
+                el.style.display = 'block';
+            }
+        }
+
+        // Timer Logic
+        let timeLeft = 600; // 10 minutes
+        let timerId = null;
+        let isPaused = true;
+
+        function formatTime(seconds) {
+            const m = Math.floor(seconds / 60);
+            const s = seconds % 60;
+            return `${m}:${s < 10 ? '0' : ''}${s}`;
+        }
+
+        function toggleTimer() {
+            const timerDisplay = document.getElementById('timer');
+            if (isPaused) {
+                isPaused = false;
+                timerDisplay.style.color = "#00D26A";
+                timerId = setInterval(() => {
+                    if (timeLeft > 0) {
+                        timeLeft--;
+                        timerDisplay.innerText = formatTime(timeLeft);
+                        if(timeLeft === 0) {
+                            alert("⏰ Đã hết giờ làm bài! Bạn vẫn có thể tiếp tục.");
+                            clearInterval(timerId);
+                        }
+                    }
+                }, 1000);
+            } else {
+                isPaused = true;
+                timerDisplay.style.color = "#FF6B6B";
+                clearInterval(timerId);
+            }
+        }
+
+        // Generate Glossary
+        function renderGlossary() {
+            const tbody = document.getElementById('glossary-body');
+            let html = '';
+            glossaryData.forEach(item => {
+                html += `<tr>
+                    <td><strong>${item.word}</strong> <span class="tag-pos">${item.type}</span></td>
+                    <td>${item.mean}</td>
+                </tr>`;
+            });
+            tbody.innerHTML = html;
+        }
+
+        // Generate Quiz
+        function generateQuiz() {
+            const container = document.getElementById('quiz-container');
+            let html = '';
+
+            answers.forEach((ans, index) => {
+                let distractors = vocabList.filter(w => w !== ans.text);
+                distractors = distractors.sort(() => 0.5 - Math.random()).slice(0, 3);
+                let options = [ans.text, ...distractors];
+                options.sort(() => 0.5 - Math.random());
+
+                // Escape helper for HTML attributes
+                const escapeStr = (str) => str.replace(/'/g, "\\'"); 
+
+                html += `
+                <div class="question-card" id="q-card-${index}">
+                    <div class="q-header">
+                        <span>Question ${index + 1}</span>
+                        <div class="teacher-avatar">M</div>
+                    </div>
+                    <div class="q-text">Fill in blank (${index + 1}): "..."</div>
+                    <div class="options-grid">
+                        ${options.map(opt => `
+                            <button class="option-btn" onclick="checkAnswer(this, '${escapeStr(opt)}', '${escapeStr(ans.text)}', ${index})">
+                                ${opt}
+                            </button>
+                        `).join('')}
+                    </div>
+                    <div class="explanation-box" id="explain-${index}">
+                        <strong>👩‍🏫 Ms Mai An giải thích:</strong><br>
+                        Đáp án đúng: <span style="color:var(--correct-color); font-weight:bold;">${ans.text}</span><br>
+                        <hr style="margin: 10px 0; border: 0; border-top: 1px dashed #ccc;">
+                        ${ans.explain}
+                    </div>
+                </div>`;
+            });
+
+            container.innerHTML = html;
+        }
+
+        let score = 0;
+        let answeredCount = 0;
+
+        function checkAnswer(btn, selected, correct, qIndex) {
+            const card = document.getElementById(`q-card-${qIndex}`);
+            const buttons = card.querySelectorAll('.option-btn');
+            if (card.classList.contains('answered')) return;
+
+            card.classList.add('answered');
+            answeredCount++;
+
+            const explainBox = document.getElementById(`explain-${qIndex}`);
+            explainBox.classList.add('show');
+
+            if (selected === correct) {
+                btn.classList.add('correct');
+                playSound('correct');
+                score++;
+            } else {
+                btn.classList.add('wrong');
+                playSound('wrong');
+                buttons.forEach(b => {
+                    if (b.innerText.trim() === correct) b.classList.add('correct');
+                });
+            }
+            buttons.forEach(b => b.classList.add('disabled'));
+        }
+
+        function finishQuiz() {
+            const modal = document.getElementById('result-modal');
+            const scoreDisplay = document.getElementById('final-score');
+            const feedback = document.getElementById('feedback-msg');
+
+            scoreDisplay.innerText = `${score} / ${answers.length}`;
+            
+            const percentage = (score / answers.length) * 100;
+            if (percentage === 100) feedback.innerText = "🌟 Xuất sắc! Bạn là thiên tài ngôn ngữ!";
+            else if (percentage >= 80) feedback.innerText = "👏 Làm tốt lắm! Vốn từ của bạn rất rộng.";
+            else if (percentage >= 50) feedback.innerText = "💪 Cố lên nhé! Hãy xem lại phần giải thích.";
+            else feedback.innerText = "😅 Đừng nản lòng! Hãy làm lại để nhớ từ vựng nhé.";
+
+            modal.style.display = 'flex';
+            playSound('correct'); 
+        }
+
+        function closeModal() {
+            document.getElementById('result-modal').style.display = 'none';
+        }
+
+        // Initialization
+        window.onload = function() {
+            renderGlossary();
+            generateQuiz();
+        };
+
+    </script>
+</body>
+</html>

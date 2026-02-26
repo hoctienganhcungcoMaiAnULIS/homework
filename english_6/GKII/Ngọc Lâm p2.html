@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gamified English Quiz</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #8854C0;
+            --secondary: #00C9A7;
+            --accent: #FDCB6E;
+            --correct: #00D26A;
+            --wrong: #FF4757;
+            --white: #ffffff;
+            --text-dark: #2d3436;
+            --bg-gray: #f4f6f8;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Nunito', sans-serif;
+        }
+
+        body {
+            overflow: hidden; /* Prevent body scroll, use split panes */
+            background: linear-gradient(-45deg, #8854C0, #FDCB6E, #00C9A7, #ff9a9e);
+            background-size: 400% 400%;
+            animation: gradientShift 15s ease infinite;
+            color: var(--text-dark);
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* SVG Pattern Overlay floating */
+        .bg-pattern {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.3;
+            background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='250' height='250' viewBox='0 0 200 200'><text x='20' y='50' font-size='35'>🏀</text><text x='130' y='90' font-size='35'>🌉</text><text x='50' y='160' font-size='35'>✈️</text><text x='160' y='180' font-size='35'>⛹️</text></svg>");
+            animation: floatPattern 40s linear infinite;
+        }
+
+        @keyframes floatPattern {
+            0% { background-position: 0 0; }
+            100% { background-position: 500px 500px; }
+        }
+
+        /* Top Control Bar */
+        .top-bar {
+            position: relative;
+            z-index: 10;
+            height: 70px;
+            background: rgba(255, 255, 255, 0.95);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 30px;
+            border-bottom: 3px solid var(--accent);
+        }
+
+        .header-info h2 {
+            font-size: 14px;
+            color: var(--primary);
+            text-transform: uppercase;
+            font-weight: 900;
+            letter-spacing: 1px;
+        }
+
+        .timer-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .timer-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 12px;
+            font-weight: 800;
+            font-size: 16px;
+            cursor: pointer;
+            box-shadow: 0 5px 0 #5f3a8c;
+            transition: all 0.1s;
+        }
+        .timer-btn:active {
+            transform: translateY(5px);
+            box-shadow: 0 0px 0 #5f3a8c;
+        }
+
+        .timer-display {
+            font-size: 24px;
+            font-weight: 900;
+            color: var(--wrong);
+            background: #ffeaa7;
+            padding: 5px 15px;
+            border-radius: 10px;
+            border: 2px solid var(--accent);
+        }
+
+        /* Split Screen Layout */
+        .main-container {
+            display: flex;
+            height: calc(100vh - 70px);
+            position: relative;
+            z-index: 1;
+        }
+
+        .pane {
+            flex: 1;
+            padding: 30px;
+            overflow-y: auto;
+            scroll-behavior: smooth;
+        }
+
+        .pane::-webkit-scrollbar { width: 10px; }
+        .pane::-webkit-scrollbar-track { background: rgba(255,255,255,0.2); border-radius: 10px; }
+        .pane::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.6); border-radius: 10px; }
+
+        .left-pane { border-right: 4px dashed rgba(255,255,255,0.4); }
+
+        /* Card Styles */
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1), inset 0 -4px 0 rgba(0,0,0,0.05);
+            line-height: 1.8;
+            font-size: 18px;
+        }
+
+        .reading-text { font-weight: 700; color: #2d3436; }
+        
+        .translate-btn {
+            background: var(--accent);
+            color: #d35400;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 10px;
+            font-weight: 800;
+            cursor: pointer;
+            margin-top: 15px;
+            box-shadow: 0 4px 0 #e1b12c;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            transition: 0.2s;
+        }
+        .translate-btn:active { transform: translateY(4px); box-shadow: 0 0 0; }
+        .translate-box {
+            display: none;
+            background: #fff3cd;
+            padding: 15px;
+            border-radius: 12px;
+            margin-top: 10px;
+            font-size: 16px;
+            color: #856404;
+            border-left: 5px solid var(--accent);
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Glossary Table */
+        .glossary-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            border-radius: 12px;
+            overflow: hidden;
+            margin-top: 15px;
+        }
+        .glossary-table th { background: var(--primary); color: white; padding: 12px; }
+        .glossary-table td { padding: 10px; background: white; border-bottom: 1px solid #eee; text-align: center;}
+        .glossary-table tr:last-child td { border-bottom: none; }
+
+        /* Question Styles */
+        .question-block {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 0 rgba(0,0,0,0.1);
+        }
+        .question-text {
+            font-size: 20px;
+            font-weight: 800;
+            margin-bottom: 20px;
+            color: var(--primary);
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .option-btn {
+            background: var(--bg-gray);
+            border: 2px solid #dfe6e9;
+            padding: 15px;
+            border-radius: 15px;
+            font-size: 18px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 6px 0 #dfe6e9;
+            display: flex;
+            align-items: center;
+        }
+        .option-btn:hover {
+            transform: scale(1.02) translateY(-2px);
+            border-color: var(--secondary);
+            background: #e6fff7;
+        }
+        .option-btn:active { transform: translateY(4px); box-shadow: 0 2px 0 #dfe6e9; }
+        
+        .option-btn.correct { background: var(--correct); color: white; border-color: #00b85c; box-shadow: 0 6px 0 #00b85c; }
+        .option-btn.wrong { background: var(--wrong); color: white; border-color: #e84118; box-shadow: 0 6px 0 #e84118; }
+        .option-btn:disabled { cursor: not-allowed; pointer-events: none; opacity: 0.7;}
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-8px) rotate(-2deg); }
+            75% { transform: translateX(8px) rotate(2deg); }
+        }
+        .shake { animation: shake 0.4s ease; }
+
+        /* Explanation Box */
+        .explanation-box {
+            display: none;
+            background: #f8f9fa;
+            border: 2px solid var(--secondary);
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 20px;
+            animation: slideDown 0.4s ease;
+        }
+        .explanation-box h4 { color: var(--correct); margin-bottom: 10px; font-size: 18px; display: flex; align-items: center; gap: 8px;}
+        .expl-step { margin-bottom: 12px; font-size: 16px; }
+        .expl-step span { font-weight: 800; color: var(--primary); }
+
+        /* Submit Button */
+        .submit-btn {
+            display: block;
+            width: 100%;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            font-size: 22px;
+            font-weight: 900;
+            padding: 20px;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            box-shadow: 0 8px 0 #4a2377;
+            margin-bottom: 50px;
+            transition: 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        .submit-btn:active { transform: translateY(6px); box-shadow: 0 2px 0 #4a2377; }
+
+        /* Modal Overlay */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            justify-content: center; align-items: center; z-index: 100;
+        }
+        .modal-content {
+            background: white; width: 500px; padding: 40px; border-radius: 30px;
+            text-align: center; position: relative;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        @keyframes popIn { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        
+        .score-display { font-size: 60px; font-weight: 900; color: var(--primary); margin: 20px 0; }
+        .feedback-text { font-size: 22px; font-weight: 800; margin-bottom: 20px; color: #d35400; }
+        .close-modal-btn {
+            background: var(--correct); color: white; border: none; padding: 15px 30px;
+            font-size: 18px; font-weight: 800; border-radius: 15px; cursor: pointer;
+            box-shadow: 0 6px 0 #00b85c;
+        }
+
+        #confetti-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 99; }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            .main-container { flex-direction: column; overflow-y: auto; height: auto; }
+            body { overflow: auto; }
+            .pane { overflow-y: visible; }
+            .left-pane { border-right: none; border-bottom: 4px dashed rgba(255,255,255,0.4); }
+            .options-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="bg-pattern"></div>
+    <canvas id="confetti-canvas"></canvas>
+
+    <div class="top-bar">
+        <div class="header-info">
+            <h2>Giáo viên tạo: Ms Mai An ULIS</h2>
+        </div>
+        <div class="timer-container">
+            <button class="timer-btn" id="start-timer-btn" onclick="toggleTimer()">BẮT ĐẦU TÍNH GIỜ</button>
+            <div class="timer-display" id="timer-display">10:00</div>
+        </div>
+    </div>
+
+    <div class="main-container">
+        
+        <div class="pane left-pane">
+            
+            <div class="card">
+                <h3 style="color: var(--primary); margin-bottom: 15px;">📖 PASSAGE 1: Fill in the blanks</h3>
+                <p class="reading-text">
+                    According to a study, only 6 out of 10 children between 5 and 14 years old join in sport outside of school. Children often spend too much time watching TV or <b>(31) _______</b> video games. 
+                </p>
+                <button class="translate-btn" onclick="toggleTranslate('trans1')">🌟 Mở dịch đoạn này</button>
+                <div class="translate-box" id="trans1">
+                    Theo một nghiên cứu, chỉ có 6 trên 10 trẻ em từ 5 đến 14 tuổi tham gia thể thao ngoài giờ học. Trẻ em thường dành quá nhiều thời gian xem TV hoặc chơi trò chơi điện tử.
+                </div>
+
+                <p class="reading-text" style="margin-top: 20px;">
+                    However, there <b>(32) _______</b> many benefits of children’s sport participation. Firstly, sport helps them become fitter and sleep better. Secondly, children can burn calories when playing sport, <b>(33) _______</b> sport reduces the risk of overweight. 
+                </p>
+                <button class="translate-btn" onclick="toggleTranslate('trans2')">🌟 Mở dịch đoạn này</button>
+                <div class="translate-box" id="trans2">
+                    Tuy nhiên, có rất nhiều lợi ích từ việc trẻ em tham gia thể thao. Đầu tiên, thể thao giúp các em trở nên khỏe mạnh hơn và ngủ ngon hơn. Thứ hai, trẻ em có thể đốt cháy calo khi chơi thể thao, vì vậy thể thao làm giảm nguy cơ thừa cân.
+                </div>
+
+                <p class="reading-text" style="margin-top: 20px;">
+                    Finally, when children play team sport, they can improve their social skills. They work <b>(34) _______</b> their teammates to play well and win the game. Kids learn leadership skills, team-building skills and communication skills that will help them in school, their future <b>(35) _______</b> and personal relationships.
+                </p>
+                <button class="translate-btn" onclick="toggleTranslate('trans3')">🌟 Mở dịch đoạn này</button>
+                <div class="translate-box" id="trans3">
+                    Cuối cùng, khi trẻ em chơi thể thao đồng đội, các em có thể cải thiện kỹ năng xã hội. Các em làm việc cùng với đồng đội của mình để chơi tốt và giành chiến thắng. Trẻ em học được kỹ năng lãnh đạo, kỹ năng xây dựng đội nhóm và kỹ năng giao tiếp, những điều sẽ giúp ích cho các em ở trường học, sự nghiệp tương lai và các mối quan hệ cá nhân.
+                </div>
+            </div>
+
+            <div class="card">
+                <h3 style="color: var(--primary); margin-bottom: 15px;">📖 PASSAGE 2: Reading Comprehension</h3>
+                <p class="reading-text">
+                    San Francisco - a very hilly city - is in the San Francisco Bay, the USA. San Francisco is well-known for its steep rolling hills, cool summers and landmarks, including the Golden Gate Bridge, Alcatraz, Chinatown and Mission district.
+                </p>
+                <button class="translate-btn" onclick="toggleTranslate('trans4')">🌟 Mở dịch đoạn này</button>
+                <div class="translate-box" id="trans4">
+                    San Francisco - một thành phố rất nhiều đồi núi - nằm ở Vịnh San Francisco, Hoa Kỳ. San Francisco nổi tiếng với những ngọn đồi dốc thoai thoải, mùa hè mát mẻ và các địa danh nổi bật, bao gồm Cầu Cổng Vàng, đảo Alcatraz, Khu phố Tàu (Chinatown) và quận Mission.
+                </div>
+
+                <p class="reading-text" style="margin-top: 20px;">
+                    The celebration of the Chinese New Year in Chinatown is one thing that you should not miss. You should also visit Mission Dolores, an old church built by the Spanish in the 18th century.
+                </p>
+                <button class="translate-btn" onclick="toggleTranslate('trans5')">🌟 Mở dịch đoạn này</button>
+                <div class="translate-box" id="trans5">
+                    Lễ kỷ niệm Tết Nguyên Đán ở Khu phố Tàu là một điều mà bạn không nên bỏ lỡ. Bạn cũng nên đến thăm Mission Dolores, một nhà thờ cổ do người Tây Ban Nha xây dựng vào thế kỷ 18.
+                </div>
+
+                <p class="reading-text" style="margin-top: 20px;">
+                    You can find the best food from around the world here: Brazilian, Indian, Japanese, Korean, Mexican, Russian, Thai, Chinese and much more. Don't forget to visit a jazz club or an outdoor coffee shop to enjoy good coffee and fresh air.
+                </p>
+                <button class="translate-btn" onclick="toggleTranslate('trans6')">🌟 Mở dịch đoạn này</button>
+                <div class="translate-box" id="trans6">
+                    Bạn có thể tìm thấy những món ăn ngon nhất từ khắp nơi trên thế giới tại đây: món ăn Brazil, Ấn Độ, Nhật Bản, Hàn Quốc, Mexico, Nga, Thái Lan, Trung Quốc và nhiều hơn nữa. Đừng quên ghé thăm một câu lạc bộ nhạc jazz hoặc một quán cà phê ngoài trời để thưởng thức cà phê ngon và không khí trong lành.
+                </div>
+            </div>
+
+            <div class="card">
+                <h3 style="color: var(--secondary); text-align: center; font-weight: 900;">📚 BẢNG TỪ VỰNG (GLOSSARY)</h3>
+                <table class="glossary-table">
+                    <tr><th>Từ vựng</th><th>Loại từ</th><th>Nghĩa Tiếng Việt</th></tr>
+                    <tr><td><b>Participation</b></td><td>Noun (Danh từ)</td><td>Sự tham gia</td></tr>
+                    <tr><td><b>Benefit</b></td><td>Noun (Danh từ)</td><td>Lợi ích</td></tr>
+                    <tr><td><b>Reduce</b></td><td>Verb (Động từ)</td><td>Làm giảm bớt</td></tr>
+                    <tr><td><b>Overweight</b></td><td>Adjective (Tính từ)</td><td>Thừa cân, béo phì</td></tr>
+                    <tr><td><b>Leadership</b></td><td>Noun (Danh từ)</td><td>Khả năng lãnh đạo</td></tr>
+                    <tr><td><b>Career</b></td><td>Noun (Danh từ)</td><td>Sự nghiệp</td></tr>
+                    <tr><td><b>Hilly</b></td><td>Adjective (Tính từ)</td><td>Nhiều đồi núi</td></tr>
+                    <tr><td><b>Steep</b></td><td>Adjective (Tính từ)</td><td>Dốc</td></tr>
+                    <tr><td><b>Landmark</b></td><td>Noun (Danh từ)</td><td>Địa danh, cột mốc</td></tr>
+                    <tr><td><b>Celebration</b></td><td>Noun (Danh từ)</td><td>Lễ kỷ niệm, sự ăn mừng</td></tr>
+                </table>
+            </div>
+
+        </div>
+
+        <div class="pane right-pane" id="exercises-container">
+            <button class="submit-btn" onclick="submitQuiz()">NỘP BÀI THI CỦA BẠN 🚀</button>
+        </div>
+
+    </div>
+
+    <div class="modal-overlay" id="result-modal">
+        <div class="modal-content">
+            <h1 style="font-size: 40px;">🎉 KẾT QUẢ 🎉</h1>
+            <div class="score-display" id="final-score">0 / 10</div>
+            <div class="feedback-text" id="feedback-text">Tuyệt vời!</div>
+            <button class="close-modal-btn" onclick="closeModal()">Xem Lại Bài Làm</button>
+        </div>
+    </div>
+
+    <script>
+        // --- DATA STRUCTURE FOR QUESTIONS ---
+        const questionsData = [
+            {
+                id: 31,
+                text: "Question 31: Children often spend too much time watching TV or _______ video games.",
+                options: [
+                    { text: "doing", isCorrect: false },
+                    { text: "playing", isCorrect: true },
+                    { text: "paying", isCorrect: false },
+                    { text: "going", isCorrect: false }
+                ],
+                explanation: `
+                    <div class="expl-step"><span>1. Phân tích từ vựng:</span><br>
+                    - <b>doing</b> (v): làm<br>
+                    - <b>playing</b> (v): chơi<br>
+                    - <b>paying</b> (v): trả tiền<br>
+                    - <b>going</b> (v): đi
+                    </div>
+                    <div class="expl-step"><span>2. Dịch câu:</span> "Trẻ em thường dành quá nhiều thời gian xem TV hoặc <b>chơi</b> trò chơi điện tử."</div>
+                    <div class="expl-step"><span>3. Giải thích:</span> Trong tiếng Anh, ta có cụm từ cố định (collocation) <b>"play video games"</b> mang nghĩa là chơi trò chơi điện tử. Các từ còn lại không đi với "video games". Vì vậy ta chọn "playing".</div>
+                `
+            },
+            {
+                id: 32,
+                text: "Question 32: However, there _______ many benefits of children’s sport participation.",
+                options: [
+                    { text: "is", isCorrect: false },
+                    { text: "were", isCorrect: false },
+                    { text: "are", isCorrect: true },
+                    { text: "was", isCorrect: false }
+                ],
+                explanation: `
+                    <div class="expl-step"><span>1. Phân tích ngữ pháp:</span> Cấu trúc "There is/are" (Có...). Động từ to be phụ thuộc vào danh từ đứng ngay sau nó.</div>
+                    <div class="expl-step"><span>2. Dịch câu:</span> "Tuy nhiên, <b>có</b> rất nhiều lợi ích từ việc tham gia thể thao của trẻ em."</div>
+                    <div class="expl-step"><span>3. Giải thích:</span> Danh từ ngay sau chỗ trống là "many benefits" (nhiều lợi ích) - đây là danh từ đếm được số nhiều. Hơn nữa, toàn bộ đoạn văn đang kể những sự thật ở hiện tại. Do đó ta dùng to-be ở hiện tại số nhiều là <b>"are"</b>. Loại 'is/was' (số ít), loại 'were' (quá khứ).</div>
+                `
+            },
+            {
+                id: 33,
+                text: "Question 33: children can burn calories when playing sport, _______ sport reduces the risk of overweight.",
+                options: [
+                    { text: "because", isCorrect: false },
+                    { text: "and", isCorrect: false },
+                    { text: "but", isCorrect: false },
+                    { text: "so", isCorrect: true }
+                ],
+                explanation: `
+                    <div class="expl-step"><span>1. Phân tích liên từ:</span><br>
+                    - <b>because</b>: bởi vì (chỉ nguyên nhân)<br>
+                    - <b>and</b>: và (bổ sung thông tin)<br>
+                    - <b>but</b>: nhưng (trái ngược)<br>
+                    - <b>so</b>: vì vậy, cho nên (chỉ kết quả)
+                    </div>
+                    <div class="expl-step"><span>2. Dịch câu:</span> "Trẻ em có thể đốt cháy calo khi chơi thể thao, <b>vì vậy</b> thể thao làm giảm nguy cơ thừa cân."</div>
+                    <div class="expl-step"><span>3. Giải thích:</span> Vế trước (đốt calo) là nguyên nhân dẫn đến vế sau (giảm nguy cơ thừa cân) là kết quả. Từ nối chỉ kết quả chính xác nhất là <b>"so"</b>.</div>
+                `
+            },
+            {
+                id: 34,
+                text: "Question 34: They work _______ their teammates to play well and win the game.",
+                options: [
+                    { text: "with", isCorrect: true },
+                    { text: "for", isCorrect: false },
+                    { text: "out", isCorrect: false },
+                    { text: "at", isCorrect: false }
+                ],
+                explanation: `
+                    <div class="expl-step"><span>1. Phân tích giới từ:</span> Chúng ta cần tìm giới từ đi sau động từ "work" để mang nghĩa "làm việc CÙNG AI đó".</div>
+                    <div class="expl-step"><span>2. Dịch câu:</span> "Các em làm việc <b>cùng với</b> đồng đội của mình để chơi tốt và giành chiến thắng."</div>
+                    <div class="expl-step"><span>3. Giải thích:</span> Ta có cấu trúc <b>work with somebody</b> (làm việc cùng ai). 'work for' là làm việc cho ai (như ông chủ), 'work out' là tập thể dục/tìm ra giải pháp. Ở đây phối hợp với đồng đội nên dùng <b>"with"</b>.</div>
+                `
+            },
+            {
+                id: 35,
+                text: "Question 35: that will help them in school, their future _______ and personal relationships.",
+                options: [
+                    { text: "world", isCorrect: false },
+                    { text: "career", isCorrect: true },
+                    { text: "game", isCorrect: false },
+                    { text: "shape", isCorrect: false }
+                ],
+                explanation: `
+                    <div class="expl-step"><span>1. Phân tích từ vựng:</span><br>
+                    - <b>world</b> (n): thế giới<br>
+                    - <b>career</b> (n): sự nghiệp<br>
+                    - <b>game</b> (n): trò chơi<br>
+                    - <b>shape</b> (n): hình dáng
+                    </div>
+                    <div class="expl-step"><span>2. Dịch câu:</span> "...những điều sẽ giúp ích cho các em ở trường học, <b>sự nghiệp</b> tương lai và các mối quan hệ cá nhân."</div>
+                    <div class="expl-step"><span>3. Giải thích:</span> Xét theo ngữ cảnh, những kỹ năng này mang tính dài hạn. Cụm từ "future career" (sự nghiệp trong tương lai) hoàn toàn hợp lý và tự nhiên nhất. Các từ còn lại ghép vào không tạo thành cụm từ có nghĩa phù hợp logic.</div>
+                `
+            },
+            {
+                id: 36,
+                text: "Question 36: What is the text mainly about?",
+                options: [
+                    { text: "Capital of the USA", isCorrect: false },
+                    { text: "San Francisco Bay", isCorrect: false },
+                    { text: "Food in San Francisco", isCorrect: false },
+                    { text: "A city of the USA", isCorrect: true }
+                ],
+                explanation: `
+                    <div class="expl-step"><span>1. Dịch câu hỏi:</span> "Nội dung chính của đoạn văn là gì?"</div>
+                    <div class="expl-step"><span>2. Phân tích đáp án & Dẫn chứng:</span><br>
+                    Đoạn văn bắt đầu bằng "San Francisco... is in the San Francisco Bay, the USA." Sau đó miêu tả các địa danh, lễ hội, thức ăn của thành phố này. Vậy bài văn nói về một thành phố của nước Mỹ (San Francisco).<br>
+                    - Loại "Capital of the USA" vì thủ đô Mỹ là Washington D.C, bài không nhắc đến.<br>
+                    - Loại "San Francisco Bay" và "Food" vì đây chỉ là chi tiết nhỏ trong bài, không bao quát toàn bộ bài văn. Nên chọn <b>A city of the USA</b>.
+                    </div>
+                `
+            },
+            {
+                id: 37,
+                text: "Question 37: What does the word “its” in line 2 mean?",
+                options: [
+                    { text: "San Francisco's", isCorrect: true },
+                    { text: "the USA's", isCorrect: false },
+                    { text: "the landmark’s", isCorrect: false },
+                    { text: "Chinatown`s", isCorrect: false }
+                ],
+                explanation: `
+                    <div class="expl-step"><span>1. Dịch câu hỏi:</span> "Từ 'its' ở dòng 2 có nghĩa là gì?"</div>
+                    <div class="expl-step"><span>2. Tìm dẫn chứng trong bài:</span> Dòng 2 viết: "San Francisco is well-known for <b>its</b> steep rolling hills..." (San Francisco nổi tiếng với những ngọn đồi dốc thoai thoải của <b>nó</b>).</div>
+                    <div class="expl-step"><span>3. Giải thích:</span> Từ "its" (của nó) là đại từ sở hữu thay thế cho danh từ đứng trước nó làm chủ ngữ, chính là "San Francisco". Vậy "its" nghĩa là <b>San Francisco's</b> (của San Francisco).</div>
+                `
+            },
+            {
+                id: 38,
+                text: "Question 38: Who built Mission Dolores church in the 18th century?",
+                options: [
+                    { text: "People from Russia.", isCorrect: false },
+                    { text: "People from Spain.", isCorrect: true },
+                    { text: "People from Brazil.", isCorrect: false },
+                    { text: "People from Japan.", isCorrect: false }
+                ],
+                explanation: `
+                    <div class="expl-step"><span>1. Dịch câu hỏi:</span> "Ai đã xây dựng nhà thờ Mission Dolores vào thế kỷ 18?"</div>
+                    <div class="expl-step"><span>2. Tìm dẫn chứng trong bài:</span> Ở đoạn 2 có câu: "You should also visit Mission Dolores, an old church built by <b>the Spanish</b> in the 18th century." (Bạn cũng nên đến thăm Mission Dolores, một nhà thờ cổ do người Tây Ban Nha xây dựng...)</div>
+                    <div class="expl-step"><span>3. Giải thích:</span> "the Spanish" có nghĩa là người Tây Ban Nha (People from Spain). Vì vậy đáp án chính xác là <b>People from Spain</b>.</div>
+                `
+            },
+            {
+                id: 39,
+                text: "Question 39: Where can we have coffee and enjoy fresh air?",
+                options: [
+                    { text: "Chinatown", isCorrect: false },
+                    { text: "Old houses", isCorrect: false },
+                    { text: "Churches", isCorrect: false },
+                    { text: "Outdoor coffee shops", isCorrect: true }
+                ],
+                explanation: `
+                    <div class="expl-step"><span>1. Dịch câu hỏi:</span> "Chúng ta có thể uống cà phê và tận hưởng không khí trong lành ở đâu?"</div>
+                    <div class="expl-step"><span>2. Tìm dẫn chứng trong bài:</span> Ở câu cuối cùng của đoạn văn có viết: "Don't forget to visit a jazz club or an <b>outdoor coffee shop</b> to enjoy good coffee and fresh air." (Đừng quên ghé thăm một câu lạc bộ nhạc jazz hoặc quán cà phê ngoài trời để thưởng thức cà phê ngon và không khí trong lành).</div>
+                    <div class="expl-step"><span>3. Giải thích:</span> Thông tin trùng khớp hoàn toàn, đáp án chắc chắn là <b>Outdoor coffee shops</b>.</div>
+                `
+            },
+            {
+                id: 40,
+                text: "Question 40: Which of the following sentences is NOT TRUE about San Francisco?",
+                options: [
+                    { text: "San Francisco is in the San Francisco Bay.", isCorrect: false },
+                    { text: "The celebration of the Chinese New Year in Chinatown is very interesting.", isCorrect: false },
+                    { text: "You can only enjoy American and Chinese food in San Francisco.", isCorrect: true },
+                    { text: "You should enjoy jazz at a jazz club in San Francisco.", isCorrect: false }
+                ],
+                explanation: `
+                    <div class="expl-step"><span>1. Dịch câu hỏi:</span> "Câu nào sau đây KHÔNG ĐÚNG về San Francisco?" (Chú ý từ NOT TRUE).</div>
+                    <div class="expl-step"><span>2. Đối chiếu các đáp án với bài đọc:</span><br>
+                    - A đúng vì bài viết "San Francisco... is in the San Francisco Bay".<br>
+                    - B đúng vì bài khuyên "is one thing that you should not miss" (là một điều bạn không nên bỏ lỡ -> Rất thú vị).<br>
+                    - D đúng vì bài viết "Don't forget to visit a jazz club...".<br>
+                    - C sai. Ý C nói: "Bạn <b>chỉ có thể</b> (only) thưởng thức đồ ăn Mỹ và Trung Quốc". Trong khi bài đọc liệt kê rất nhiều: "Brazilian, Indian, Japanese, Korean, Mexican, Russian, Thai, Chinese...". Vì vậy câu C là thông tin KHÔNG ĐÚNG. Chọn C.
+                    </div>
+                `
+            }
+        ];
+
+        let score = 0;
+        let answeredQuestions = 0;
+        const totalQuestions = questionsData.length;
+
+        // --- UTILS: Shuffle Array ---
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        // --- WEB AUDIO API (Synthesizing Sounds) ---
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        let audioCtx;
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new AudioContext();
+            }
+        }
+
+        function playCorrectSound() {
+            initAudio();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(523.25, audioCtx.currentTime); // C5
+            osc.frequency.exponentialRampToValueAtTime(1046.50, audioCtx.currentTime + 0.1); // C6
+            
+            gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+            
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.4);
+        }
+
+        function playWrongSound() {
+            initAudio();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(300, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(150, audioCtx.currentTime + 0.3);
+            
+            gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+            
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.3);
+        }
+
+        // --- TIMER LOGIC ---
+        let timerInterval;
+        let timeRemaining = 600; // 10 minutes in seconds
+        let isTimerRunning = false;
+
+        function updateTimerDisplay() {
+            let m = Math.floor(timeRemaining / 60);
+            let s = timeRemaining % 60;
+            document.getElementById('timer-display').innerText = `${m < 10 ? '0' + m : m}:${s < 10 ? '0' + s : s}`;
+        }
+
+        function toggleTimer() {
+            const btn = document.getElementById('start-timer-btn');
+            if (isTimerRunning) {
+                clearInterval(timerInterval);
+                btn.innerText = "TIẾP TỤC LÀM";
+                btn.style.background = "#00b85c";
+            } else {
+                btn.innerText = "TẠM DỪNG";
+                btn.style.background = "#e1b12c";
+                timerInterval = setInterval(() => {
+                    if (timeRemaining > 0) {
+                        timeRemaining--;
+                        updateTimerDisplay();
+                    } else {
+                        clearInterval(timerInterval);
+                        alert("⏰ Đã hết giờ làm bài. Bạn vẫn có thể tiếp tục làm, nhưng nhớ là trong phòng thi thật, bạn chỉ nên làm một bài như thế này trong 10 phút thôi nha.");
+                    }
+                }, 1000);
+            }
+            isTimerRunning = !isTimerRunning;
+        }
+
+        // --- TRANSLATION TOGGLE ---
+        function toggleTranslate(id) {
+            const el = document.getElementById(id);
+            if (el.style.display === "block") {
+                el.style.display = "none";
+            } else {
+                el.style.display = "block";
+            }
+        }
+
+        // --- RENDER QUESTIONS ---
+        function renderQuestions() {
+            const container = document.getElementById('exercises-container');
+            let html = "";
+            const labels = ['A', 'B', 'C', 'D'];
+
+            questionsData.forEach((q, index) => {
+                let optionsHtml = "";
+                // Shuffle options for this specific question dynamically
+                let shuffledOptions = shuffleArray([...q.options]);
+
+                shuffledOptions.forEach((opt, optIndex) => {
+                    optionsHtml += `
+                        <button class="option-btn" 
+                            onclick="checkAnswer(this, ${index}, ${opt.isCorrect})"
+                            data-correct="${opt.isCorrect}">
+                            <span style="background: white; border-radius: 50%; width: 30px; height: 30px; display: inline-flex; align-items: center; justify-content: center; margin-right: 15px; color: var(--primary); font-weight: 900;">${labels[optIndex]}</span>
+                            ${opt.text}
+                        </button>
+                    `;
+                });
+
+                html += `
+                    <div class="question-block" id="qb-${index}">
+                        <div class="question-text">${q.text}</div>
+                        <div class="options-grid" id="options-${index}">
+                            ${optionsHtml}
+                        </div>
+                        <div class="explanation-box" id="expl-${index}">
+                            <h4>💡 GIẢI THÍCH CHI TIẾT:</h4>
+                            ${q.explanation}
+                        </div>
+                    </div>
+                `;
+            });
+            // Insert before submit button
+            container.insertAdjacentHTML('afterbegin', html);
+        }
+
+        // --- CHECK ANSWER LOGIC ---
+        function checkAnswer(buttonElement, questionIndex, isCorrect) {
+            // Disable all buttons in this question to prevent multiple clicks
+            const parent = document.getElementById(`options-${questionIndex}`);
+            const buttons = parent.querySelectorAll('.option-btn');
+            buttons.forEach(btn => btn.disabled = true);
+
+            answeredQuestions++;
+
+            if (isCorrect) {
+                buttonElement.classList.add('correct');
+                playCorrectSound();
+                fireConfetti();
+                score++;
+            } else {
+                buttonElement.classList.add('wrong');
+                buttonElement.classList.add('shake');
+                playWrongSound();
+                // Find and highlight correct answer
+                buttons.forEach(btn => {
+                    if(btn.getAttribute('data-correct') === 'true') {
+                        btn.classList.add('correct');
+                    }
+                });
+            }
+
+            // Show explanation
+            document.getElementById(`expl-${questionIndex}`).style.display = "block";
+        }
+
+        // --- CONFETTI EFFECT ---
+        let particles = [];
+        const colors = ["#8854C0", "#FDCB6E", "#00C9A7", "#FF4757", "#00D26A"];
+        let canvas, ctx;
+
+        function fireConfetti() {
+            canvas = document.getElementById('confetti-canvas');
+            ctx = canvas.getContext('2d');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            
+            for (let i = 0; i < 100; i++) {
+                particles.push({
+                    x: canvas.width / 2,
+                    y: canvas.height / 2 + 100,
+                    r: Math.random() * 6 + 4,
+                    dx: Math.random() * 10 - 5,
+                    dy: Math.random() * -10 - 5,
+                    color: colors[Math.floor(Math.random() * colors.length)],
+                    tilt: Math.floor(Math.random() * 10) - 10,
+                    tiltAngleInc: (Math.random() * 0.07) + 0.05,
+                    tiltAngle: 0
+                });
+            }
+            if(particles.length <= 100) requestAnimationFrame(drawConfetti);
+        }
+
+        function drawConfetti() {
+            requestAnimationFrame(drawConfetti);
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach((p, index) => {
+                p.tiltAngle += p.tiltAngleInc;
+                p.y += (Math.cos(p.tiltAngle) + 1 + p.r / 2) / 2;
+                p.x += Math.sin(p.tiltAngle) * 2;
+                
+                ctx.beginPath();
+                ctx.lineWidth = p.r;
+                ctx.strokeStyle = p.color;
+                ctx.moveTo(p.x + p.tilt + p.r, p.y);
+                ctx.lineTo(p.x + p.tilt, p.y + p.tilt + p.r);
+                ctx.stroke();
+
+                if (p.y > canvas.height) particles.splice(index, 1);
+            });
+        }
+
+        // --- SUBMIT AND SCORE ---
+        function submitQuiz() {
+            if (answeredQuestions < totalQuestions) {
+                const confirmSubmit = confirm("Bạn chưa làm hết các câu hỏi. Bạn có chắc chắn muốn nộp bài không?");
+                if (!confirmSubmit) return;
+            }
+            
+            clearInterval(timerInterval); // Stop timer
+            
+            document.getElementById('final-score').innerText = `${score} / ${totalQuestions}`;
+            
+            let feedback = "";
+            if (score === totalQuestions) feedback = "Thật không thể tin nổi! Bạn là Thiên Tài! 🏆";
+            else if (score >= 8) feedback = "Làm tốt lắm! Kiến thức của bạn rất vững! 🌟";
+            else if (score >= 5) feedback = "Bạn đã cố gắng rồi! Hãy xem lại giải thích để giỏi hơn nha! 💪";
+            else feedback = "Đừng nản chí! Hãy đọc kỹ lại lời giải chi tiết và thử lại nhé! ❤️";
+            
+            document.getElementById('feedback-text').innerText = feedback;
+            document.getElementById('result-modal').style.display = "flex";
+            if(score >= 8) fireConfetti();
+        }
+
+        function closeModal() {
+            document.getElementById('result-modal').style.display = "none";
+        }
+
+        // INIT
+        window.onload = () => {
+            renderQuestions();
+        };
+
+    </script>
+</body>
+</html>

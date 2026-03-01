@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bài Kiểm Tra Trắc Nghiệm Tương Tác - Ms Mai An ULIS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* CSS VARIABLES & RESET */
+        :root {
+            --primary: #8854C0;
+            --secondary: #00C9A7;
+            --accent: #FDCB6E;
+            --correct: #00D26A;
+            --wrong: #FF4757;
+            --bg-panel: rgba(255, 255, 255, 0.92);
+            --text: #2d3436;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Quicksand', sans-serif; }
+        body { overflow: hidden; color: var(--text); }
+
+        /* DYNAMIC THEME BACKGROUND */
+        @keyframes gradientLoang {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        .main-bg {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -2;
+            background: linear-gradient(-45deg, #8854C0, #FDCB6E, #00C9A7, #FF9A9E);
+            background-size: 400% 400%;
+            animation: gradientLoang 15s ease infinite;
+        }
+        
+        /* FLOATING SVG PATTERN */
+        @keyframes floatPattern {
+            0% { transform: translateY(0) rotate(0deg); }
+            100% { transform: translateY(-100px) rotate(5deg); }
+        }
+        .pattern-overlay {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -1;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="150" height="150" viewBox="0 0 100 100"><text x="10" y="30" font-size="25">🏖️</text><text x="70" y="80" font-size="25">⚽</text><text x="40" y="50" font-size="25">🚀</text><text x="80" y="20" font-size="25">🌟</text></svg>');
+            background-repeat: repeat;
+            opacity: 0.35;
+            animation: floatPattern 20s linear infinite alternate;
+        }
+
+        /* TOP BAR */
+        .top-bar {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 10px 30px; background: rgba(255,255,255,0.95);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1); position: relative; z-index: 10;
+        }
+        .header-title { font-size: 1.2rem; font-weight: 700; color: var(--primary); }
+        
+        /* TIMER BUTTON */
+        .timer-btn {
+            background: var(--accent); border: none; padding: 10px 20px;
+            font-size: 1.1rem; font-weight: 700; border-radius: 20px;
+            cursor: pointer; box-shadow: 0 5px 0 #d9a84e; transition: all 0.2s;
+            color: #d35400; display: flex; align-items: center; gap: 10px;
+        }
+        .timer-btn:active { transform: translateY(5px); box-shadow: 0 0 0 #d9a84e; }
+        
+        .submit-btn {
+            background: var(--primary); color: white; border: none; padding: 10px 25px;
+            font-size: 1.1rem; font-weight: bold; border-radius: 20px;
+            cursor: pointer; box-shadow: 0 5px 0 #5d3886; transition: all 0.2s;
+        }
+        .submit-btn:active { transform: translateY(5px); box-shadow: 0 0 0 #5d3886; }
+
+        /* SPLIT SCREEN LAYOUT */
+        .split-container {
+            display: flex; height: calc(100vh - 65px); width: 100vw;
+        }
+        .panel {
+            flex: 1; padding: 25px; overflow-y: auto;
+            scroll-behavior: smooth;
+        }
+        .left-panel { border-right: 3px dashed rgba(255,255,255,0.5); }
+        .right-panel { background: transparent; }
+
+        /* READING CONTENT CARDS */
+        .reading-card {
+            background: var(--bg-panel); border-radius: 20px; padding: 20px; margin-bottom: 25px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.08); line-height: 1.8; font-size: 1.15rem;
+        }
+        .reading-card h3 { color: var(--primary); margin-bottom: 15px; font-size: 1.4rem; }
+        .blank-space {
+            display: inline-block; min-width: 60px; border-bottom: 2px dashed #e17055;
+            text-align: center; color: #e17055; font-weight: bold; margin: 0 5px; cursor: pointer;
+        }
+        
+        /* TRANSLATION BUTTON & BOX */
+        .trans-btn {
+            background: #e8f4f8; color: #0984e3; border: 2px solid #74b9ff;
+            padding: 8px 15px; border-radius: 15px; font-weight: bold; font-size: 0.95rem;
+            cursor: pointer; margin-top: 15px; display: inline-block; transition: 0.3s;
+        }
+        .trans-btn:hover { background: #74b9ff; color: white; }
+        .trans-box {
+            display: none; background: #fff3cd; color: #856404; padding: 15px;
+            border-left: 5px solid #ffeeba; border-radius: 10px; margin-top: 10px;
+            font-size: 1.05rem; font-style: italic; line-height: 1.6;
+        }
+
+        /* GLOSSARY TABLE */
+        .glossary { width: 100%; border-collapse: collapse; margin-top: 20px; background: white; border-radius: 15px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+        .glossary th { background: var(--secondary); color: white; padding: 12px; text-align: left; }
+        .glossary td { padding: 12px; border-bottom: 1px solid #eee; }
+        .glossary tr:last-child td { border-bottom: none; }
+
+        /* EXERCISE CARDS */
+        .question-card {
+            background: var(--bg-panel); border-radius: 20px; padding: 25px; margin-bottom: 25px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1); position: relative;
+        }
+        .question-text { font-size: 1.25rem; font-weight: bold; margin-bottom: 20px; color: #2d3436; }
+        
+        .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .option-btn {
+            background: white; border: 2px solid #dfe6e9; padding: 15px; font-size: 1.1rem;
+            border-radius: 15px; cursor: pointer; text-align: left; font-weight: 600;
+            box-shadow: 0 6px 0 #dfe6e9; transition: all 0.2s ease; position: relative;
+        }
+        .option-btn:hover { transform: scale(1.02); }
+        .option-btn:active { transform: translateY(6px); box-shadow: 0 0 0 #dfe6e9; }
+        
+        .option-btn.correct { background: var(--correct); color: white; border-color: #00b894; box-shadow: 0 6px 0 #00b894; }
+        .option-btn.wrong { background: var(--wrong); color: white; border-color: #d63031; box-shadow: 0 6px 0 #d63031; }
+        
+        .shake { animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both; }
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-1px, 0, 0); }
+            20%, 80% { transform: translate3d(2px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+            40%, 60% { transform: translate3d(4px, 0, 0); }
+        }
+
+        /* EXPLANATION BOX */
+        .explanation-box {
+            display: none; margin-top: 20px; padding: 20px; border-radius: 15px;
+            background: #f1f2f6; border-left: 6px solid var(--primary); animation: slideDown 0.4s ease;
+        }
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        .explanation-box h4 { color: var(--primary); margin-bottom: 10px; font-size: 1.2rem; }
+        .explanation-box p { margin-bottom: 8px; line-height: 1.6; }
+
+        /* CONFETTI */
+        .confetti { position: fixed; width: 10px; height: 10px; background-color: #f00; z-index: 100; pointer-events: none; }
+
+        /* RESULT MODAL */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(0,0,0,0.6); display: none; justify-content: center; align-items: center; z-index: 999;
+        }
+        .modal-content {
+            background: white; padding: 40px; border-radius: 25px; text-align: center;
+            max-width: 500px; box-shadow: 0 15px 30px rgba(0,0,0,0.3); transform: scale(0.8); transition: 0.3s;
+        }
+        .modal-content.show { transform: scale(1); }
+        .modal-content h2 { font-size: 2.5rem; color: var(--primary); margin-bottom: 10px; }
+        .score-circle {
+            width: 120px; height: 120px; border-radius: 50%; background: var(--accent);
+            display: flex; justify-content: center; align-items: center; margin: 20px auto;
+            font-size: 2.5rem; font-weight: bold; color: white; box-shadow: 0 8px 0 #d9a84e;
+        }
+        .modal-message { font-size: 1.3rem; margin-bottom: 25px; color: #636e72; }
+        
+        /* SCROLLBAR STYLE */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: rgba(255,255,255,0.2); }
+        ::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 10px; }
+    </style>
+</head>
+<body>
+
+    <div class="main-bg"></div>
+    <div class="pattern-overlay"></div>
+
+    <header class="top-bar">
+        <div class="header-title">🎓 Ms Mai An ULIS</div>
+        <button class="timer-btn" id="timerBtn" onclick="toggleTimer()">
+            ⏳ BẮT ĐẦU TÍNH GIỜ LÀM BÀI
+        </button>
+        <button class="submit-btn" onclick="submitTest()">NỘP BÀI 🚀</button>
+    </header>
+
+    <div class="split-container">
+        <div class="left-panel">
+            
+            <div class="reading-card">
+                <h3>🏕️ School Announcement: Trip to Ba Vi National Park</h3>
+                
+                <p>Dear students,<br>
+                Our school is organizing a trip to Ba Vi National Park. The bus <span class="blank-space">(1) ________</span> at 7:30 AM, so please be on time. Bring a hat, an umbrella, and a bottle of water. You will learn <span class="blank-space">(2) ________</span> nature conservation and explore wildlife.</p>
+                <button class="trans-btn" onclick="toggleTrans('trans1')">Mở dịch đoạn này 🌟</button>
+                <div class="trans-box" id="trans1">
+                    <strong>Bản dịch:</strong> Thông báo của trường: Chuyến đi đến Vườn quốc gia Ba Vì.<br>
+                    Các em học sinh thân mến,<br>
+                    Trường chúng ta đang tổ chức một chuyến tham quan Vườn quốc gia Ba Vì. Xe buýt sẽ khởi hành lúc 7:30 sáng, vì vậy các em vui lòng đến đúng giờ. Hãy mang theo mũ, ô và một chai nước. Các em sẽ được học về bảo tồn thiên nhiên và khám phá động vật hoang dã.
+                </div>
+            </div>
+
+            <div class="reading-card">
+                <h3>🏖️ Holiday in Nha Trang</h3>
+                <p>weather: warm and sunny. It is so good for swimming and sunbathing. Visitors can rent a <span class="blank-space">(20) ________________________</span> and cycle around the city. Nha Trang is also well-known for its delicious <span class="blank-space">(21) ________________________</span>.</p>
+                <button class="trans-btn" onclick="toggleTrans('trans2')">Mở dịch đoạn này 🌟</button>
+                <div class="trans-box" id="trans2">
+                    <strong>Bản dịch:</strong> thời tiết: ấm áp và có nắng. Rất tuyệt vời cho việc bơi lội và tắm nắng. Du khách có thể thuê một chiếc xe đạp và đạp xe vòng quanh thành phố. Nha Trang cũng rất nổi tiếng với các món hải sản thơm ngon.
+                </div>
+            </div>
+
+            <div class="reading-card">
+                <h3>⚽ Football Facts</h3>
+                <p>Football is one of the most popular sports in the world. It started hundreds of years ago in England. People play it in schools, parks, and stadiums. <span class="blank-space">(24) ________________________</span>. It usually lasts for 90 minutes, divided into two halves. <span class="blank-space">(25) ________________________</span> and sometimes matches end in a draw. Fans cheer loudly for their teams, creating a lively atmosphere. <span class="blank-space">(26) ________________________</span></p>
+                
+                <div style="background: rgba(255,255,255,0.6); padding: 10px; border-radius: 10px; margin-top:15px;">
+                    <strong>Options for 24, 25, 26:</strong><br>
+                    A. Players work hard to score goals,<br>
+                    B. A football match is played between two teams of 11 players each.<br>
+                    C. Football is a game that brings people together.
+                </div>
+
+                <button class="trans-btn" onclick="toggleTrans('trans3')">Mở dịch đoạn này 🌟</button>
+                <div class="trans-box" id="trans3">
+                    <strong>Bản dịch:</strong> Bóng đá là một trong những môn thể thao phổ biến nhất trên thế giới. Nó bắt đầu từ hàng trăm năm trước ở nước Anh. Mọi người chơi bóng đá ở trường học, công viên và các sân vận động. (24) Một trận bóng đá được chơi giữa hai đội, mỗi đội 11 người. Trận đấu thường kéo dài 90 phút, chia làm hai hiệp. (25) Các cầu thủ làm việc chăm chỉ để ghi bàn, và đôi khi các trận đấu kết thúc với tỷ số hòa. Người hâm mộ cổ vũ nồng nhiệt cho đội của họ, tạo ra một bầu không khí sôi động. (26) Bóng đá là một trò chơi gắn kết mọi người lại với nhau.
+                </div>
+            </div>
+
+            <div class="reading-card">
+                <h3>💸 Who Wants to Be a Millionaire?</h3>
+                
+                <p>Who Wants to Be a Millionaire? is a popular TV game show in the world. We can see this show in more than 100 countries. All the questions of this show are multiple-choice ones. Each question has four answer options, but only one option is correct. You have to choose the correct option. You have three ways to get help in order to find the correct answer. First, you can ask the show master to remove two wrong answers. Second, you can ask the audience to tell their answers. Third, you can telephone a friend of yours and ask for help. You can only do these things once. There are fifteen questions in total. The show master asks the contestants to answer the questions one by one. The first five questions are easy to answer, but the others become more difficult. Obviously, it is very difficult to come to the last question, but it's worth a try. In Viet Nam, if you answer the last question correctly, you can win VND 250,000,000.</p>
+                <button class="trans-btn" onclick="toggleTrans('trans4')">Mở dịch đoạn này 🌟</button>
+                <div class="trans-box" id="trans4">
+                    <strong>Bản dịch:</strong> "Ai là triệu phú?" là một chương trình truyền hình trò chơi phổ biến trên thế giới. Chúng ta có thể xem chương trình này ở hơn 100 quốc gia. Tất cả các câu hỏi của chương trình này đều là dạng trắc nghiệm. Mỗi câu hỏi có bốn lựa chọn đáp án, nhưng chỉ có một lựa chọn là đúng. Bạn phải chọn đáp án đúng. Bạn có ba cách để nhận sự trợ giúp nhằm tìm ra câu trả lời đúng. Thứ nhất, bạn có thể yêu cầu người dẫn chương trình loại bỏ hai đáp án sai. Thứ hai, bạn có thể hỏi ý kiến khán giả. Thứ ba, bạn có thể gọi điện thoại cho một người bạn để nhờ giúp đỡ. Bạn chỉ có thể sử dụng các quyền này một lần duy nhất. Có tổng cộng 15 câu hỏi. Người dẫn chương trình yêu cầu thí sinh trả lời lần lượt từng câu hỏi một. Năm câu hỏi đầu tiên rất dễ trả lời, nhưng những câu sau trở nên khó hơn. Rõ ràng, rất khó để đi đến câu hỏi cuối cùng, nhưng nó rất đáng để thử. Tại Việt Nam, nếu bạn trả lời đúng câu hỏi cuối cùng, bạn có thể giành được 250.000.000 VNĐ.
+                </div>
+            </div>
+
+            <div class="reading-card">
+                <h3>📚 Bảng Từ Vựng VIP (Glossary)</h3>
+                <table class="glossary">
+                    <tr><th>Từ vựng</th><th>Loại từ</th><th>Nghĩa Tiếng Việt</th></tr>
+                    <tr><td>1. Announcement</td><td>Noun (n)</td><td>Thông báo</td></tr>
+                    <tr><td>2. Conservation</td><td>Noun (n)</td><td>Sự bảo tồn</td></tr>
+                    <tr><td>3. Wildlife</td><td>Noun (n)</td><td>Động vật hoang dã</td></tr>
+                    <tr><td>4. Sunbathing</td><td>Noun (n)</td><td>Tắm nắng</td></tr>
+                    <tr><td>5. Well-known</td><td>Adjective (adj)</td><td>Nổi tiếng, được nhiều người biết đến</td></tr>
+                    <tr><td>6. Stadium</td><td>Noun (n)</td><td>Sân vận động</td></tr>
+                    <tr><td>7. Draw</td><td>Noun (n)</td><td>Tỷ số hòa (trong thể thao)</td></tr>
+                    <tr><td>8. Atmosphere</td><td>Noun (n)</td><td>Bầu không khí</td></tr>
+                    <tr><td>9. Multiple-choice</td><td>Adjective (adj)</td><td>Trắc nghiệm nhiều lựa chọn</td></tr>
+                    <tr><td>10. Contestant</td><td>Noun (n)</td><td>Người dự thi, thí生</td></tr>
+                    <tr><td>11. Obviously</td><td>Adverb (adv)</td><td>Một cách rõ ràng, hiển nhiên</td></tr>
+                </table>
+            </div>
+
+        </div>
+
+        <div class="right-panel" id="questionsContainer">
+            </div>
+    </div>
+
+    <div class="modal-overlay" id="resultModal">
+        <div class="modal-content" id="modalContent">
+            <h2>Kết Quả Của Bạn!</h2>
+            <div class="score-circle" id="finalScore">0/13</div>
+            <div class="modal-message" id="modalMessage">Đang tải đánh giá...</div>
+            <button class="submit-btn" onclick="location.reload()">Làm Lại Lần Nữa 🔄</button>
+        </div>
+    </div>
+
+    <script>
+        // --- DATA BÀI TẬP ---
+        const questionsData = [
+            // Dummy questions for (1) & (2) to complete the experience based on context
+            {
+                id: 1,
+                text: "Question 1 (Blank 1): The bus (1) ________ at 7:30 AM...",
+                options: [
+                    { text: "A. leaves", isCorrect: true },
+                    { text: "B. leaving", isCorrect: false },
+                    { text: "C. leave", isCorrect: false },
+                    { text: "D. to leave", isCorrect: false }
+                ],
+                explanation: `<h4>Cô Mai An giải thích chi tiết:</h4>
+                <p><strong>1. Phân tích ngữ pháp:</strong> Câu có chủ ngữ số ít "The bus" và trạng ngữ chỉ thời gian ở tương lai có lịch trình cố định ("at 7:30 AM"). Ta dùng thì Hiện tại đơn mang ý nghĩa tương lai cho lịch trình tàu xe.</p>
+                <p><strong>2. Tại sao chọn A?</strong> Động từ "leave" phải thêm "s" vì chủ ngữ "The bus" là ngôi thứ 3 số ít. Vậy "leaves" là đáp án chính xác nhất!</p>`
+            },
+            {
+                id: 2,
+                text: "Question 2 (Blank 2): You will learn (2) ________ nature conservation...",
+                options: [
+                    { text: "A. about", isCorrect: true },
+                    { text: "B. on", isCorrect: false },
+                    { text: "C. in", isCorrect: false },
+                    { text: "D. at", isCorrect: false }
+                ],
+                explanation: `<h4>Cô Mai An giải thích chi tiết:</h4>
+                <p><strong>1. Phân tích giới từ:</strong> Động từ "learn" (học) khi đi kèm với một chủ đề nào đó thường dùng giới từ "about" (về).</p>
+                <p><strong>2. Dịch nghĩa:</strong> "Các em sẽ được học <strong>về</strong> bảo tồn thiên nhiên...". Do đó chọn <strong>A. about</strong> là chuẩn xác.</p>`
+            },
+            // Provided questions 18-21
+            {
+                id: 18,
+                text: "Question 18: Nha Trang has ______ weather: warm and sunny. (Giả định ngữ cảnh vì đề bị cắt)",
+                options: [
+                    { text: "A. on", isCorrect: false },
+                    { text: "B. in", isCorrect: false },
+                    { text: "C. from", isCorrect: false },
+                    { text: "D. good", isCorrect: true } // Modified strictly to fit the text logically, or assuming the options provided. Wait, the provided options were A. on, B. in, C. from, D. about. Let's strictly use provided options and assume 'about' or something. Actually, Q18 options in prompt: A. on, B. in, C. from, D. about. I will set B as correct for "in Nha Trang". 
+                ],
+                // Manual override to use exact provided options for Q18
+                overrideOptions: true,
+                options: [
+                    { text: "A. on", isCorrect: false },
+                    { text: "B. in", isCorrect: true },
+                    { text: "C. from", isCorrect: false },
+                    { text: "D. about", isCorrect: false }
+                ],
+                explanation: `<h4>Cô Mai An giải thích chi tiết:</h4>
+                <p><em>(Lưu ý: Đoạn văn bị thiếu ngữ cảnh cho câu 18, 19 nhưng dựa vào 4 đáp án giới từ, cô giả định là chỉ địa điểm).</em></p>
+                <p>Đi với tên thành phố (Nha Trang), chúng ta luôn dùng giới từ <strong>IN</strong>. Ví dụ: In Hanoi, In Nha Trang.</p>`
+            },
+            {
+                id: 19,
+                text: "Question 19: (Giả định chỗ trống cho tính từ thời tiết)",
+                options: [
+                    { text: "A. good", isCorrect: true },
+                    { text: "B. exciting", isCorrect: false },
+                    { text: "C. clean", isCorrect: false },
+                    { text: "D. quiet", isCorrect: false }
+                ],
+                explanation: `<h4>Cô Mai An giải thích chi tiết:</h4>
+                <p><strong>Tại sao chọn A?</strong> Vế sau có câu "It is so <strong>good</strong> for swimming...". Tính từ "good" hoàn toàn phù hợp với ngữ cảnh mô tả thời tiết đẹp, thuận lợi cho việc đi bơi.</p>`
+            },
+            {
+                id: 20,
+                text: "Question 20: Visitors can rent a (20) ________________________ and cycle around the city.",
+                options: [
+                    { text: "A. bus", isCorrect: false },
+                    { text: "B. motorbike", isCorrect: false },
+                    { text: "C. tour", isCorrect: false },
+                    { text: "D. bike", isCorrect: true }
+                ],
+                explanation: `<h4>Cô Mai An giải thích chi tiết:</h4>
+                <p><strong>Key word (Từ khóa):</strong> "cycle" (đạp xe).</p>
+                <p>Để có thể "đạp xe" vòng quanh thành phố, du khách phải thuê một chiếc xe đạp (bike/bicycle). Không thể nào thuê xe buýt (bus) hay xe máy (motorbike) để "đạp" được đúng không nào! Chọn <strong>D</strong>.</p>`
+            },
+            {
+                id: 21,
+                text: "Question 21: Nha Trang is also well-known for its delicious (21) ________________________.",
+                options: [
+                    { text: "A. city", isCorrect: false },
+                    { text: "B. weather", isCorrect: false },
+                    { text: "C. scene", isCorrect: false },
+                    { text: "D. seafood", isCorrect: true }
+                ],
+                explanation: `<h4>Cô Mai An giải thích chi tiết:</h4>
+                <p><strong>1. Phân tích:</strong> Đứng sau tính từ "delicious" (thơm ngon) bắt buộc phải là một danh từ chỉ đồ ăn/thức uống.</p>
+                <p><strong>2. Xét 4 đáp án:</strong> Chỉ có <strong>seafood</strong> (hải sản) là đồ ăn. Hơn nữa, Nha Trang là thành phố biển nên nổi tiếng về hải sản là rất hợp lý. Chọn <strong>D</strong>.</p>`
+            },
+            {
+                id: 24,
+                text: "Question 24: Match the blank (24)",
+                options: [
+                    { text: "A. Players work hard to score goals,", isCorrect: false },
+                    { text: "B. A football match is played between two teams of 11 players each.", isCorrect: true },
+                    { text: "C. Football is a game that brings people together.", isCorrect: false }
+                ],
+                explanation: `<h4>Cô Mai An giải thích chi tiết:</h4>
+                <p><strong>Tại sao chọn B?</strong> Chỗ trống 24 nằm ở đầu đoạn văn mô tả luật chơi cơ bản. Đang nói về nơi mọi người chơi (schools, parks...), câu tiếp theo nói về cấu tạo trận đấu (2 đội, mỗi đội 11 người) là hợp lý nhất để dẫn dắt vào ý thời gian 90 phút ở câu sau đó.</p>`
+            },
+            {
+                id: 25,
+                text: "Question 25: Match the blank (25)",
+                options: [
+                    { text: "A. Players work hard to score goals,", isCorrect: true },
+                    { text: "B. A match is played between two teams...", isCorrect: false },
+                    { text: "C. Football is a game that brings people together.", isCorrect: false }
+                ],
+                explanation: `<h4>Cô Mai An giải thích chi tiết:</h4>
+                <p><strong>Tại sao chọn A?</strong> Hãy nhìn vào cụm từ "and sometimes matches end in a draw" (và đôi khi trận đấu kết thúc hòa). Phía trước chữ "and" (và) phải là một hành động nỗ lực (cầu thủ cố gắng ghi bàn) tương phản nhẹ với kết quả hòa. Câu A ghép vào sẽ tạo thành: "Cầu thủ cố gắng ghi bàn, nhưng đôi khi lại hòa". Rất mượt!</p>`
+            },
+            {
+                id: 26,
+                text: "Question 26: Match the blank (26)",
+                options: [
+                    { text: "A. Players work hard to score goals,", isCorrect: false },
+                    { text: "B. A match is played between two teams...", isCorrect: false },
+                    { text: "C. Football is a game that brings people together.", isCorrect: true }
+                ],
+                explanation: `<h4>Cô Mai An giải thích chi tiết:</h4>
+                <p><strong>Tại sao chọn C?</strong> Chỗ trống 26 nằm ở cuối đoạn văn. Thường câu cuối sẽ là câu kết luận, nêu ý nghĩa chung. "Bóng đá là môn thể thao gắn kết mọi người" làm câu chốt vô cùng hoàn hảo cho đoạn văn mô tả bầu không khí sôi động ở trên.</p>`
+            },
+            {
+                id: 29,
+                text: "Question 29: What is the best title of the passage?",
+                options: [
+                    { text: "A. Who Wants to Be a Millionaire?", isCorrect: true },
+                    { text: "B. A game show in the world", isCorrect: false },
+                    { text: "C. Difficult but worth a try", isCorrect: false },
+                    { text: "D. Who Wants to Be a Millionaire? in Viet Nam", isCorrect: false }
+                ],
+                explanation: `<h4>Cô Mai An giải thích chi tiết:</h4>
+                <p><strong>Tại sao chọn A?</strong> Tiêu đề phải bao quát được toàn bài. Xuyên suốt đoạn văn, tác giả tập trung giải thích luật chơi, cách trợ giúp và cách chiến thắng của Gameshow "Who Wants to Be a Millionaire?". Các đáp án khác chỉ là một ý nhỏ (như ở Việt Nam) hoặc quá chung chung (A game show).</p>`
+            },
+            {
+                id: 30,
+                text: "Question 30: The word \"multiple-choice\" in line 2 is CLOSEST in meaning to",
+                options: [
+                    { text: "A. having many questions", isCorrect: false },
+                    { text: "B. selecting many questions", isCorrect: false },
+                    { text: "C. selecting many options", isCorrect: false },
+                    { text: "D. having many options", isCorrect: true }
+                ],
+                explanation: `<h4>Cô Mai An giải thích chi tiết:</h4>
+                <p><strong>Phân tích từ vựng:</strong> "Multiple-choice" nghĩa là "trắc nghiệm nhiều lựa chọn". Trong bài ghi rõ: "Each question has four answer <strong>options</strong>". Có nghĩa là một câu hỏi CÓ nhiều lựa chọn (having many options).</p>
+                <p>Tại sao loại C? Vì thí sinh chỉ được phép chọn 1 (only one option is correct), chứ không phải "chọn nhiều lựa chọn" (selecting many options).</p>`
+            },
+            {
+                id: 31,
+                text: "Question 31: According to the passage, which statement is NOT TRUE?",
+                options: [
+                    { text: "A. There are three ways for the contestants to get help...", isCorrect: false },
+                    { text: "B. The contestant can call a friend to ask for help many times.", isCorrect: true },
+                    { text: "C. There are 15 questions in total.", isCorrect: false },
+                    { text: "D. The contestants have to answer the questions one by one.", isCorrect: false }
+                ],
+                explanation: `<h4>Cô Mai An giải thích chi tiết:</h4>
+                <p><strong>Tìm dẫn chứng trong bài (Scanning):</strong> Bài đọc có câu "Third, you can telephone a friend... <strong>You can only do these things once</strong>" (Bạn chỉ có thể làm những điều này MỘT LẦN duy nhất).</p>
+                <p>Do đó, câu B nói "can call... <strong>many times</strong>" (nhiều lần) là SAI với bài đọc. Đề bài yêu cầu tìm câu KHÔNG ĐÚNG (NOT TRUE), nên ta chọn <strong>B</strong>.</p>`
+            },
+            {
+                id: 32,
+                text: "Question 32: The word 'win' in last line is OPPOSITE in meaning to ________",
+                options: [
+                    { text: "A. take", isCorrect: false },
+                    { text: "B. get", isCorrect: false },
+                    { text: "C. have", isCorrect: false },
+                    { text: "D. lose", isCorrect: true }
+                ],
+                explanation: `<h4>Cô Mai An giải thích chi tiết:</h4>
+                <p><strong>Phân tích:</strong> Đề bài yêu cầu tìm từ <strong>OPPOSITE</strong> (Trái nghĩa).</p>
+                <p>Từ "win" nghĩa là chiến thắng, giành được. Trái nghĩa với chiến thắng/được là "lose" (thua cuộc, mất). Các từ take, get, have đều mang nghĩa có được, nhận lấy (gần nghĩa với win). Vậy đáp án chuẩn là <strong>D. lose</strong>.</p>`
+            }
+        ];
+
+        let score = 0;
+        let totalQuestions = questionsData.length;
+        let answeredQuestions = new Set();
+        
+        // --- AUDIO SYSTEM (WEB AUDIO API) ---
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        
+        function playCorrectSound() {
+            if(audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(800, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.1);
+            gainNode.gain.setValueAtTime(0.5, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+            osc.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.5);
+        }
+
+        function playWrongSound() {
+            if(audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(300, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.4);
+            gainNode.gain.setValueAtTime(0.5, audioCtx.currentTime);
+            gainNode.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+            osc.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.4);
+        }
+
+        // --- CONFETTI SYSTEM ---
+        function shootConfetti(x, y) {
+            const colors = ['#00D26A', '#FDCB6E', '#8854C0', '#00C9A7', '#FF4757'];
+            for (let i = 0; i < 30; i++) {
+                const confetti = document.createElement('div');
+                confetti.classList.add('confetti');
+                confetti.style.left = x + 'px';
+                confetti.style.top = y + 'px';
+                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                document.body.appendChild(confetti);
+
+                const angle = Math.random() * Math.PI * 2;
+                const velocity = 5 + Math.random() * 10;
+                let dx = Math.cos(angle) * velocity;
+                let dy = Math.sin(angle) * velocity;
+
+                let posX = x;
+                let posY = y;
+                let life = 0;
+
+                function animateConfetti() {
+                    life++;
+                    dy += 0.5; // gravity
+                    posX += dx;
+                    posY += dy;
+                    confetti.style.transform = `translate(${posX - x}px, ${posY - y}px) rotate(${life * 10}deg)`;
+                    
+                    if (life < 50) {
+                        requestAnimationFrame(animateConfetti);
+                    } else {
+                        confetti.remove();
+                    }
+                }
+                requestAnimationFrame(animateConfetti);
+            }
+        }
+
+        // --- RENDER QUESTIONS ---
+        function shuffleArray(array) {
+            let currentIndex = array.length, randomIndex;
+            while (currentIndex != 0) {
+                randomIndex = Math.floor(Math.random() * currentIndex);
+                currentIndex--;
+                [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
+            }
+            return array;
+        }
+
+        const container = document.getElementById('questionsContainer');
+        
+        questionsData.forEach((q, index) => {
+            const card = document.createElement('div');
+            card.classList.add('question-card');
+            card.id = `q-card-${q.id}`;
+            
+            let html = `<div class="question-text">${q.text}</div><div class="options-grid">`;
+            
+            // Shuffle options
+            let opts = [...q.options];
+            opts = shuffleArray(opts);
+            
+            opts.forEach((opt, oIndex) => {
+                html += `<button class="option-btn" onclick="checkAnswer(${q.id}, ${opt.isCorrect}, this, event)">${opt.text}</button>`;
+            });
+            
+            html += `</div>
+                <div class="explanation-box" id="exp-${q.id}">
+                    ${q.explanation}
+                </div>`;
+            
+            card.innerHTML = html;
+            container.appendChild(card);
+        });
+
+        // --- INTERACTION LOGIC ---
+        function checkAnswer(qId, isCorrect, btnElement, event) {
+            if (answeredQuestions.has(qId)) return; // Prevent clicking again
+            
+            answeredQuestions.add(qId);
+            const parentCard = document.getElementById(`q-card-${qId}`);
+            const allBtns = parentCard.querySelectorAll('.option-btn');
+            const expBox = document.getElementById(`exp-${qId}`);
+            
+            // Disable all buttons in this question
+            allBtns.forEach(btn => {
+                btn.style.pointerEvents = 'none';
+                // Highlight the correct one regardless
+                const isBtnCorrect = questionsData.find(q => q.id === qId).options.find(o => o.text === btn.innerText).isCorrect;
+                if(isBtnCorrect) btn.classList.add('correct');
+            });
+
+            if (isCorrect) {
+                btnElement.classList.add('correct');
+                playCorrectSound();
+                shootConfetti(event.clientX, event.clientY);
+                score++;
+            } else {
+                btnElement.classList.add('wrong');
+                btnElement.classList.add('shake');
+                playWrongSound();
+            }
+
+            // Show explanation
+            expBox.style.display = 'block';
+        }
+
+        // --- TOGGLE TRANSLATION ---
+        function toggleTrans(id) {
+            const box = document.getElementById(id);
+            if(box.style.display === 'block') {
+                box.style.display = 'none';
+            } else {
+                box.style.display = 'block';
+            }
+        }
+
+        // --- TIMER LOGIC ---
+        let timeRemaining = 600; // 10 minutes
+        let timerInterval;
+        let isTimerRunning = false;
+
+        function updateTimerDisplay() {
+            const m = Math.floor(timeRemaining / 60).toString().padStart(2, '0');
+            const s = (timeRemaining % 60).toString().padStart(2, '0');
+            document.getElementById('timerBtn').innerHTML = `⏳ ${m}:${s} (Tạm dừng)`;
+        }
+
+        function toggleTimer() {
+            const btn = document.getElementById('timerBtn');
+            if (!isTimerRunning) {
+                isTimerRunning = true;
+                timerInterval = setInterval(() => {
+                    if (timeRemaining > 0) {
+                        timeRemaining--;
+                        updateTimerDisplay();
+                    } else {
+                        clearInterval(timerInterval);
+                        btn.innerHTML = "⏰ Đã Hết Giờ!";
+                        btn.style.background = "#FF4757";
+                        btn.style.color = "white";
+                        alert("Đã hết giờ làm bài! Bạn vẫn có thể tiếp tục làm, nhưng nhớ là trong phòng thi thật, bạn chỉ nên làm một bài như thế này trong 10 phút thôi nha.");
+                    }
+                }, 1000);
+                updateTimerDisplay();
+            } else {
+                isTimerRunning = false;
+                clearInterval(timerInterval);
+                const m = Math.floor(timeRemaining / 60).toString().padStart(2, '0');
+                const s = (timeRemaining % 60).toString().padStart(2, '0');
+                btn.innerHTML = `⏳ ${m}:${s} (Tiếp tục)`;
+            }
+        }
+
+        // --- SUBMIT LOGIC ---
+        function submitTest() {
+            clearInterval(timerInterval);
+            const modal = document.getElementById('resultModal');
+            const content = document.getElementById('modalContent');
+            const scoreDisplay = document.getElementById('finalScore');
+            const message = document.getElementById('modalMessage');
+
+            modal.style.display = 'flex';
+            setTimeout(() => content.classList.add('show'), 50);
+
+            scoreDisplay.innerText = `${score}/${totalQuestions}`;
+
+            let msg = "";
+            let percent = score / totalQuestions;
+            if (percent === 1) {
+                msg = "🏆 THIÊN TÀI! Cô Mai An rất tự hào về em! Khớp 100%!";
+            } else if (percent >= 0.7) {
+                msg = "🌟 LÀM TỐT LẮM! Em nắm bài rất vững, cố thêm chút nữa nhé!";
+            } else if (percent >= 0.5) {
+                msg = "👍 CỐ LÊN NHÉ! Đọc kỹ lại phần giải thích chi tiết của cô bên dưới nhé.";
+            } else {
+                msg = "💪 ĐỪNG NẢN CHÍ! Thất bại là mẹ thành công, xem lại giải thích và làm lại nha em!";
+            }
+            message.innerText = msg;
+            
+            // Auto scroll to top to see modal clearly
+            window.scrollTo(0,0);
+        }
+    </script>
+</body>
+</html>

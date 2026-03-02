@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ms Mai An ULIS - Gamified Reading Quiz</title>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* CSS VARIABLES & DYNAMIC THEME */
+        :root {
+            --primary: #8854C0;
+            --secondary: #FDCB6E;
+            --accent: #00C9A7;
+            --correct: #00D26A;
+            --wrong: #FF4757;
+            --bg-card: rgba(255, 255, 255, 0.95);
+            --text-dark: #2D3436;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Quicksand', sans-serif;
+            color: var(--text-dark);
+            overflow: hidden; /* Prevent body scroll, let panes scroll */
+        }
+
+        /* TỰ ĐỘNG TẠO BACKGROUND ANIMATION KẾT HỢP SVG EMOJI (Chủ đề Neighborhood/Drama) */
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: linear-gradient(120deg, #a18cd1, #fbc2eb, #ff9a9e, #fecfef, #00C9A7);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            z-index: -2;
+        }
+
+        body::after {
+            content: "";
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            /* SVG Pattern với Emoji 🏘️ (Khu phố) và 🌟 (Bất ngờ/Kịch tính) */
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120"><text x="20" y="50" font-size="30" opacity="0.6">🏘️</text><text x="80" y="100" font-size="25" opacity="0.6">🌟</text><text x="10" y="110" font-size="20" opacity="0.4">✨</text></svg>');
+            animation: floatUp 30s linear infinite;
+            z-index: -1;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        @keyframes floatUp {
+            from { background-position: 0 0; }
+            to { background-position: 120px -120px; }
+        }
+
+        /* HEADER & CONTROL BAR */
+        .header {
+            position: absolute;
+            top: 0; left: 0; width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 10px 0;
+            z-index: 10;
+            pointer-events: none;
+        }
+
+        .teacher-badge {
+            position: absolute;
+            left: 20px;
+            background: var(--primary);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            pointer-events: auto;
+            font-size: 14px;
+        }
+
+        .timer-container {
+            background: white;
+            padding: 10px 25px;
+            border-radius: 30px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            pointer-events: auto;
+            border: 3px solid var(--secondary);
+        }
+
+        .timer-text { font-size: 24px; font-weight: bold; color: var(--primary); width: 80px; text-align: center;}
+        
+        .btn-timer {
+            background: var(--accent); color: white;
+            border: none; padding: 8px 20px; border-radius: 20px;
+            font-weight: bold; cursor: pointer; transition: 0.2s;
+            box-shadow: 0 4px 0 #009980;
+        }
+        .btn-timer:active { transform: translateY(4px); box-shadow: 0 0 0 #009980; }
+
+        /* SPLIT SCREEN LAYOUT */
+        .split-container {
+            display: flex;
+            height: 100vh;
+            padding-top: 70px; /* Space for header */
+            box-sizing: border-box;
+            gap: 20px;
+            padding-left: 20px;
+            padding-right: 20px;
+            padding-bottom: 20px;
+        }
+
+        .pane {
+            background: var(--bg-card);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            overflow-y: auto;
+            padding: 30px;
+            box-sizing: border-box;
+        }
+
+        .left-pane { flex: 4.5; }
+        .right-pane { flex: 5.5; }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 10px; }
+        ::-webkit-scrollbar-track { background: rgba(0,0,0,0.05); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 10px; }
+
+        /* READING PASSAGE STYLES */
+        .passage-title { color: var(--primary); text-align: center; margin-bottom: 20px; }
+        .paragraph-box { margin-bottom: 30px; line-height: 1.8; font-size: 17px;}
+        .blank-space { 
+            display: inline-block; min-width: 60px; text-align: center; 
+            border-bottom: 2px dashed var(--primary); color: var(--primary); 
+            font-weight: bold; padding: 0 5px; cursor: help;
+        }
+        
+        .btn-translate {
+            background: #f1f2f6; color: var(--primary);
+            border: 2px solid var(--secondary); padding: 6px 15px;
+            border-radius: 15px; font-weight: bold; font-size: 14px;
+            cursor: pointer; margin-top: 10px; display: inline-flex; align-items: center; gap: 5px;
+            transition: 0.2s;
+        }
+        .btn-translate:hover { background: var(--secondary); color: white; }
+        .translation-content {
+            display: none; background: #fff5e6; padding: 15px;
+            border-left: 4px solid var(--secondary); border-radius: 0 10px 10px 0;
+            margin-top: 10px; font-size: 16px; color: #555;
+        }
+
+        /* GLOSSARY TABLE */
+        .glossary-wrapper { margin-top: 40px; }
+        .glossary-table {
+            width: 100%; border-collapse: collapse; background: white;
+            border-radius: 15px; overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+        .glossary-table th { background: var(--primary); color: white; padding: 12px; text-align: left; }
+        .glossary-table td { padding: 12px; border-bottom: 1px solid #eee; }
+        .glossary-table tr:last-child td { border-bottom: none; }
+        .word-tag { background: var(--secondary); color: #333; padding: 3px 8px; border-radius: 10px; font-size: 12px; font-weight: bold;}
+
+        /* QUIZ STYLES (RIGHT PANE) */
+        .question-card {
+            background: white; border-radius: 15px; padding: 20px;
+            margin-bottom: 20px; box-shadow: 0 6px 0 rgba(0,0,0,0.05);
+            border: 2px solid #eee; transition: all 0.3s ease;
+        }
+        .question-text { font-size: 18px; font-weight: bold; margin-bottom: 15px; color: var(--primary); }
+        
+        .options-grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
+        .option-btn {
+            background: #f8f9fa; border: 2px solid #dfe4ea;
+            padding: 15px; border-radius: 15px; font-size: 16px; font-weight: 600;
+            cursor: pointer; text-align: left; transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 4px 0 #dfe4ea; display: flex; align-items: center; font-family: 'Quicksand', sans-serif;
+        }
+        
+        .option-btn:hover:not(.disabled) { transform: scale(1.02); border-color: var(--secondary); }
+        .option-btn:active:not(.disabled) { transform: translateY(4px); box-shadow: 0 0 0 transparent; }
+        
+        /* Trạng thái đáp án */
+        .option-btn.correct {
+            background: var(--correct); color: white; border-color: var(--correct);
+            box-shadow: 0 4px 0 #00a855;
+        }
+        .option-btn.wrong {
+            background: var(--wrong); color: white; border-color: var(--wrong);
+            box-shadow: 0 4px 0 #c23642; animation: shake 0.4s ease-in-out;
+        }
+        .option-btn.disabled { pointer-events: none; opacity: 0.7; }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-5px); }
+            40%, 80% { transform: translateX(5px); }
+        }
+
+        /* EXPLANATION BOX */
+        .explanation-box {
+            display: none; margin-top: 15px; background: #f0fdf4; border: 2px dashed var(--correct);
+            padding: 15px; border-radius: 15px; font-size: 15px; animation: slideDown 0.3s ease;
+        }
+        .explanation-box h4 { margin: 0 0 10px 0; color: #00a855; }
+        .expl-section { margin-bottom: 10px; }
+        .expl-section strong { color: var(--primary); }
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* SUBMIT BUTTON & MODAL */
+        .submit-container { text-align: center; margin-top: 30px; margin-bottom: 20px;}
+        .btn-submit {
+            background: linear-gradient(45deg, var(--primary), var(--accent));
+            color: white; border: none; padding: 15px 40px; border-radius: 30px;
+            font-size: 20px; font-weight: bold; cursor: pointer;
+            box-shadow: 0 8px 0 rgba(0,0,0,0.2); transition: 0.2s; font-family: 'Quicksand', sans-serif;
+        }
+        .btn-submit:active { transform: translateY(8px); box-shadow: 0 0 0; }
+
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(0,0,0,0.6); backdrop-filter: blur(5px);
+            display: none; justify-content: center; align-items: center; z-index: 100;
+        }
+        .score-modal {
+            background: white; padding: 40px; border-radius: 30px; text-align: center;
+            max-width: 400px; width: 90%; box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+            animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        @keyframes popIn { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        
+        .score-circle {
+            width: 120px; height: 120px; border-radius: 50%; background: var(--secondary);
+            margin: 0 auto 20px; display: flex; justify-content: center; align-items: center;
+            font-size: 36px; font-weight: bold; color: white; border: 6px solid #FFEAA7;
+        }
+        .score-msg { font-size: 24px; color: var(--primary); font-weight: bold; margin-bottom: 10px; }
+        .btn-close-modal {
+            background: var(--text-dark); color: white; border: none; padding: 10px 25px;
+            border-radius: 20px; font-size: 16px; cursor: pointer; margin-top: 20px; font-family: 'Quicksand';
+        }
+
+        /* ALERTS */
+        .alert-toast {
+            position: fixed; top: 20px; right: 20px; background: #FF4757; color: white;
+            padding: 15px 25px; border-radius: 15px; font-weight: bold; box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            transform: translateX(200%); transition: 0.3s ease; z-index: 1000;
+        }
+
+        /* CONFETTI CANVAS */
+        #confetti { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 99; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div class="teacher-badge">👩‍🏫 Ms Mai An ULIS</div>
+        <div class="timer-container">
+            <span class="timer-text" id="timerDisplay">10:00</span>
+            <button class="btn-timer" id="btnTimerStart">BẮT ĐẦU TÍNH GIỜ</button>
+        </div>
+    </div>
+
+    <div class="alert-toast" id="timeoutToast">⏰ Đã hết giờ làm bài! Cố gắng tăng tốc lần sau nhé!</div>
+    <canvas id="confetti"></canvas>
+
+    <div class="split-container">
+        
+        <div class="pane left-pane">
+            <h2 class="passage-title">📖 IELTS SPEAKING PART 2 WORKSHEET</h2>
+            <p><strong>Topic:</strong> Describe a time when someone's behavior surprised or shocked you.</p>
+            <hr style="border:1px dashed #ccc; margin-bottom: 20px;">
+
+            <div class="paragraph-box">
+                <h3 style="color:var(--accent)">Part 1: The Unusual Neighbor</h3>
+                "I’d like to talk about a bizarre situation in my neighborhood that really <span class="blank-space" data-q="1">(1) ________</span>. It involved an eccentric older neighbor of mine who was clearly going through a severe <span class="blank-space" data-q="2">(2) ________</span>. A few months ago, she became known as the local <span class="blank-space" data-q="3">(3) ________</span> because she started dating a guy who was literally half her age.<br><br>
+                At first, this young man seemed incredibly <span class="blank-space" data-q="4">(4) ________</span>, always opening doors for her and acting like a perfect gentleman. In return, she would <span class="blank-space" data-q="5">(5) ________</span> him, buying him expensive designer clothes and watches, claiming she just wanted some <span class="blank-space" data-q="6">(6) ________</span> in her lonely life. However, her house was incredibly strange. She had a weird <span class="blank-space" data-q="7">(7) ________</span> vintage romantic items and had even turned her living room into a literal <span class="blank-space" data-q="8">(8) ________</span> filled with old <span class="blank-space" data-q="9">(9) ________</span> from her past relationships, like dried roses and old love letters."
+                
+                <br>
+                <button class="btn-translate" onclick="toggleTranslation('trans1')">Mở dịch đoạn này 🌟</button>
+                <div class="translation-content" id="trans1">
+                    "Tôi muốn kể về một tình huống kỳ quái trong khu phố của tôi khiến mọi người thực sự <strong>nhướng mày ngạc nhiên (raised eyebrows)</strong>. Nó liên quan đến một người hàng xóm lớn tuổi lập dị của tôi, người rõ ràng đang trải qua một <strong>cuộc khủng hoảng tuổi trung niên (midlife crisis)</strong> nghiêm trọng. Vài tháng trước, bà ấy được biết đến như một <strong>'máy bay bà già' (urban cougar)</strong> của địa phương vì bắt đầu hẹn hò với một chàng trai theo đúng nghĩa đen là chỉ bằng nửa tuổi bà ấy.<br><br>
+                    Ban đầu, chàng thanh niên này có vẻ vô cùng <strong>ga lăng/hào hoa (chivalrous)</strong>, luôn mở cửa cho bà ấy và hành xử như một quý ông hoàn hảo. Đổi lại, bà ấy sẽ <strong>tiêu xài hoang phí/chi đậm (lavish money on)</strong> cho anh ta, mua cho anh ta những bộ quần áo hàng hiệu và đồng hồ đắt tiền, khẳng định rằng bà ấy chỉ muốn có chút <strong>sự bầu bạn (companionship)</strong> trong cuộc sống cô đơn của mình. Tuy nhiên, ngôi nhà của bà ấy lại cực kỳ kỳ lạ. Bà ấy có một <strong>sự đam mê kỳ quặc (fetish for)</strong> với những món đồ lãng mạn cổ điển và thậm chí đã biến phòng khách của mình thành một <strong>điện thờ (shrine)</strong> đúng nghĩa, chứa đầy <strong>kỷ vật (memorabilia)</strong> cũ từ các mối quan hệ trong quá khứ, như hoa hồng khô và những bức thư tình cũ."
+                </div>
+            </div>
+
+            <div class="paragraph-box">
+                <h3 style="color:var(--accent)">Part 2: The Shocking Behavior</h3>
+                "Things got really out of hand when their behavior started to disrupt the neighborhood. They acted like wild <span class="blank-space" data-q="10">(10) ________</span> with zero sense of boundaries. They didn't care who knew about their <span class="blank-space" data-q="11">(11) ________</span>, and were completely unapologetic about their loud, late-night <span class="blank-space" data-q="12">(12) ________</span>, which gave everyone in the apartment complex a strong <span class="blank-space" data-q="13">(13) ________</span> to them.<br><br>
+                One evening, things reached a peak when she walked out into the public hallway wearing nothing but a sheer, revealing <span class="blank-space" data-q="14">(14) ________</span>, trying to create a <span class="blank-space" data-q="15">(15) ________</span> atmosphere for him. Honestly, to the rest of us, it was just <span class="blank-space" data-q="16">(16) ________</span> and managed to completely <span class="blank-space" data-q="17">(17) ________</span> everyone in the building. When the building manager politely asked her to <span class="blank-space" data-q="18">(18) ________</span> and keep the noise down, her temper was instantly <span class="blank-space" data-q="19">(19) ________</span>. She started screaming in the hallway like she was completely <span class="blank-space" data-q="20">(20) ________</span>."
+                
+                <br>
+                <button class="btn-translate" onclick="toggleTranslation('trans2')">Mở dịch đoạn này 🌟</button>
+                <div class="translation-content" id="trans2">
+                    "Mọi chuyện thực sự vượt khỏi tầm kiểm soát khi hành vi của họ bắt đầu phá rối khu dân cư. Họ hành động như những <strong>con thú hoang (animals)</strong> không hề có ý thức về ranh giới. Họ không quan tâm ai biết về việc <strong>quan hệ tình dục trước hôn nhân (premarital sex)</strong> của họ, và hoàn toàn không biết xấu hổ về những màn <strong>ân ái (lovemaking)</strong> ồn ào lúc nửa đêm, điều này khiến tất cả mọi người trong khu chung cư có <strong>sự ác cảm (aversion)</strong> mạnh mẽ với họ.<br><br>
+                    Một buổi tối, mọi chuyện lên tới đỉnh điểm khi bà ấy bước ra hành lang công cộng, trên người không mặc gì ngoài một chiếc <strong>áo ngủ (negligée)</strong> mỏng manh, hở hang, cố gắng tạo ra một bầu không khí <strong>gợi cảm (sensual)</strong> cho anh ta. Thành thật mà nói, đối với những người còn lại trong chúng tôi, điều đó thật <strong>kinh tởm (gross)</strong> và đã hoàn toàn <strong>khiến mọi người mất hứng/chán ghét (turn off)</strong>. Khi người quản lý tòa nhà lịch sự yêu cầu bà ấy <strong>im lặng/ngậm miệng lại (put a cork in it)</strong> và giữ trật tự, cơn giận của bà ấy ngay lập tức <strong>nổi lên (aroused)</strong>. Bà ấy bắt đầu la hét ngoài hành lang như thể bị <strong>điên loạn/mất trí (demented)</strong> hoàn toàn."
+                </div>
+            </div>
+
+            <div class="paragraph-box">
+                <h3 style="color:var(--accent)">Part 3: The Aftermath</h3>
+                "We all tried to tell her to <span class="blank-space" data-q="21">(21) ________</span> and warned her that he was clearly just a gold-digger taking advantage of her. But she wouldn't listen. Predictably, a few weeks later, he left her for someone his own age. He made a massive public scene on his way out, shouting cruel things just to <span class="blank-space" data-q="22">(22) ________</span> and <span class="blank-space" data-q="23">(23) ________</span> her character. It was horrible to watch him <span class="blank-space" data-q="24">(24) ________</span> her in front of the whole neighborhood like that. Looking back, it was a completely toxic dynamic, and I am absolutely certain she will <span class="blank-space" data-q="25">(25) ________</span> ever letting him into her life."
+                
+                <br>
+                <button class="btn-translate" onclick="toggleTranslation('trans3')">Mở dịch đoạn này 🌟</button>
+                <div class="translation-content" id="trans3">
+                    "Tất cả chúng tôi đều cố gắng bảo bà ấy hãy <strong>tỉnh ngộ đi (get a clue)</strong> và cảnh báo bà ấy rằng anh ta rõ ràng chỉ là một kẻ đào mỏ đang lợi dụng bà. Nhưng bà ấy không chịu nghe. Đúng như dự đoán, vài tuần sau, anh ta đã bỏ bà để đến với một người cùng tuổi. Anh ta đã làm ầm ĩ giữa chốn đông người trên đường rời đi, hét lên những lời tàn nhẫn chỉ để <strong>hạ nhục (demean)</strong> và <strong>bôi nhọ/làm giảm giá trị (debase)</strong> nhân phẩm của bà ấy. Thật khủng khiếp khi phải chứng kiến cảnh anh ta <strong>làm bẽ mặt (humiliate)</strong> bà ấy trước toàn bộ khu phố như vậy. Nhìn lại, đó là một mối quan hệ hoàn toàn độc hại, và tôi tuyệt đối chắc chắn rằng bà ấy sẽ <strong>sống trong sự hối hận (live to regret)</strong> vì đã từng để anh ta bước vào cuộc đời mình."
+                </div>
+            </div>
+
+            <div class="glossary-wrapper">
+                <h3 style="color:var(--primary); text-align:center;">📚 BẢNG TỪ VỰNG NÂNG CAO (GLOSSARY)</h3>
+                <table class="glossary-table">
+                    <thead>
+                        <tr>
+                            <th>Từ vựng (Word)</th>
+                            <th>Loại từ (POS)</th>
+                            <th>Nghĩa tiếng Việt (Meaning)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td><strong>Eccentric</strong></td><td><span class="word-tag">Adj</span></td><td>Lập dị, kỳ quái (khác thường)</td></tr>
+                        <tr><td><strong>Midlife crisis</strong></td><td><span class="word-tag">Noun</span></td><td>Khủng hoảng tuổi trung niên</td></tr>
+                        <tr><td><strong>Chivalrous</strong></td><td><span class="word-tag">Adj</span></td><td>Ga lăng, hào hoa, lịch sự (đặc biệt với phụ nữ)</td></tr>
+                        <tr><td><strong>Lavish (money on)</strong></td><td><span class="word-tag">Verb</span></td><td>Tiêu xài hoang phí, chi đậm cho ai đó</td></tr>
+                        <tr><td><strong>Memorabilia</strong></td><td><span class="word-tag">Noun</span></td><td>Kỷ vật, những món đồ lưu niệm đáng nhớ</td></tr>
+                        <tr><td><strong>Unapologetic</strong></td><td><span class="word-tag">Adj</span></td><td>Không biết hối lỗi, thản nhiên</td></tr>
+                        <tr><td><strong>Aversion</strong></td><td><span class="word-tag">Noun</span></td><td>Sự ác cảm, sự ghét bỏ mạnh mẽ</td></tr>
+                        <tr><td><strong>Demented</strong></td><td><span class="word-tag">Adj</span></td><td>Điên rồ, mất trí, loạn trí</td></tr>
+                        <tr><td><strong>Demean</strong></td><td><span class="word-tag">Verb</span></td><td>Hạ thấp phẩm giá, làm nhục ai đó</td></tr>
+                        <tr><td><strong>Humiliate</strong></td><td><span class="word-tag">Verb</span></td><td>Làm bẽ mặt, sỉ nhục công khai</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+
+        <div class="pane right-pane" id="quizContainer">
+            </div>
+
+    </div>
+
+    <div class="modal-overlay" id="scoreModal">
+        <div class="score-modal">
+            <div class="score-circle" id="scoreValue">0/25</div>
+            <div class="score-msg" id="scoreMessage">Tuyệt vời!</div>
+            <p>Em đã hoàn thành bài kiểm tra Reading Part.</p>
+            <button class="btn-close-modal" onclick="closeModal()">Xem Lại Bài Làm</button>
+        </div>
+    </div>
+
+<script>
+    // --- 1. DATA CÂU HỎI & GIẢI THÍCH SIÊU CHI TIẾT ---
+    const quizData = [
+        { q: 1, text: "Question 1", options: ["A. put a cork in it", "B. raised eyebrows", "C. got a clue"], correct: "B. raised eyebrows", 
+          expl: "<strong>- raised eyebrows (idiom):</strong> nhướng mày (thể hiện sự ngạc nhiên hoặc bất bình).<br><strong>- put a cork in it:</strong> im miệng lại.<br><strong>- got a clue:</strong> hiểu ra vấn đề.<br><em>Dịch vế:</em> 'một tình huống kỳ quái... khiến mọi người thực sự nhướng mày ngạc nhiên.' Dựa vào từ 'bizarre' (kỳ quái), phản ứng phù hợp nhất của hàng xóm là ngạc nhiên/bất bình (raised eyebrows)." },
+        { q: 2, text: "Question 2", options: ["A. midlife crisis", "B. negligée", "C. companionship"], correct: "A. midlife crisis", 
+          expl: "<strong>- midlife crisis (n):</strong> khủng hoảng tuổi trung niên.<br><strong>- negligée (n):</strong> áo ngủ nữ.<br><strong>- companionship (n):</strong> sự bầu bạn.<br><em>Ngữ cảnh:</em> 'older neighbor... going through a severe _____' -> Hàng xóm lớn tuổi, hẹn hò người trẻ bằng nửa tuổi -> Đây là dấu hiệu điển hình của 'khủng hoảng tuổi trung niên'." },
+        { q: 3, text: "Question 3", options: ["A. memorabilia", "B. urban cougar", "C. aversion"], correct: "B. urban cougar", 
+          expl: "<strong>- urban cougar (slang):</strong> thuật ngữ chỉ người phụ nữ lớn tuổi thích hẹn hò với trai trẻ ('máy bay bà già').<br><em>Ngữ cảnh:</em> Vế sau giải thích rõ 'because she started dating a guy who was literally half her age'. Khớp 100% với định nghĩa của từ này." },
+        { q: 4, text: "Question 4", options: ["A. demented", "B. gross", "C. chivalrous"], correct: "C. chivalrous", 
+          expl: "<strong>- chivalrous (adj):</strong> hào hoa, ga lăng.<br><strong>- demented (adj):</strong> điên rồ.<br><strong>- gross (adj):</strong> kinh tởm.<br><em>Giải thích:</em> Hành động 'always opening doors for her and acting like a perfect gentleman' (luôn mở cửa, hành xử như quý ông) là biểu hiện rõ ràng của sự 'chivalrous'." },
+        { q: 5, text: "Question 5", options: ["A. lavish money on", "B. demean", "C. turn off"], correct: "A. lavish money on", 
+          expl: "<strong>- lavish money on (v):</strong> tiêu xài hoang phí, chi đậm tiền cho ai.<br><strong>- demean (v):</strong> hạ thấp.<br><em>Giải thích:</em> Câu tiếp theo 'buying him expensive designer clothes and watches' (mua quần áo hiệu và đồng hồ đắt tiền) chứng minh cho hành động tiêu xài hoang phí (lavish)." },
+        { q: 6, text: "Question 6", options: ["A. companionship", "B. premarital sex", "C. fetish"], correct: "A. companionship", 
+          expl: "<strong>- companionship (n):</strong> sự bầu bạn.<br><em>Giải thích:</em> Cụm từ 'in her lonely life' (trong cuộc sống cô đơn) cho thấy thứ bà ấy khao khát tìm kiếm là sự bầu bạn, đồng hành." },
+        { q: 7, text: "Question 7", options: ["A. lovemaking for", "B. fetish for", "C. aversion to"], correct: "B. fetish for", 
+          expl: "<strong>- fetish for (n):</strong> sự đam mê kỳ quặc, nỗi ám ảnh với thứ gì đó.<br><strong>- aversion to (n):</strong> sự ác cảm.<br><em>Giải thích:</em> Đoạn văn miêu tả bà có những món đồ lãng mạn cũ kỹ và biến nhà thành điện thờ -> Thể hiện sự ám ảnh, đam mê kỳ lạ (weird fetish)." },
+        { q: 8, text: "Question 8", options: ["A. shrine", "B. negligée", "C. midlife crisis"], correct: "A. shrine", 
+          expl: "<strong>- shrine (n):</strong> điện thờ, đền thờ (ở đây dùng với nghĩa bóng: nơi trưng bày tôn thờ thứ gì).<br><em>Giải thích:</em> Bà ấy biến phòng khách thành 'a literal shrine' (một điện thờ đúng nghĩa) chứa đầy kỷ vật quá khứ." },
+        { q: 9, text: "Question 9", options: ["A. companionship", "B. memorabilia", "C. animals"], correct: "B. memorabilia", 
+          expl: "<strong>- memorabilia (n):</strong> kỷ vật, đồ lưu niệm.<br><em>Giải thích:</em> Từ khóa 'from her past relationships, like dried roses and old love letters' (hoa hồng khô, thư tình cũ) chính là định nghĩa hoàn hảo của 'memorabilia'." },
+        { q: 10, text: "Question 10", options: ["A. urban cougars", "B. animals", "C. shrines"], correct: "B. animals", 
+          expl: "<strong>- act like wild animals:</strong> hành xử như thú hoang.<br><em>Giải thích:</em> Vế 'zero sense of boundaries' (không có ý thức về ranh giới) miêu tả hành vi bản năng, hoang dã, không phù hợp chuẩn mực xã hội." },
+        { q: 11, text: "Question 11", options: ["A. premarital sex", "B. negligée", "C. memorabilia"], correct: "A. premarital sex", 
+          expl: "<strong>- premarital sex (n):</strong> quan hệ tình dục trước hôn nhân.<br><em>Giải thích:</em> Đoạn này đang nói về việc họ công khai quá mức các hành vi riêng tư thân mật, từ này phù hợp nhất với ngữ cảnh phá vỡ ranh giới (boundaries)." },
+        { q: 12, text: "Question 12", options: ["A. lovemaking", "B. fetish", "C. aversion"], correct: "A. lovemaking", 
+          expl: "<strong>- lovemaking (n):</strong> sự ân ái.<br><em>Giải thích:</em> Đi kèm với tính từ 'loud, late-night' (ồn ào lúc nửa đêm) phản ánh lý do tại sao hàng xóm lại cực kỳ khó chịu." },
+        { q: 13, text: "Question 13", options: ["A. companionship", "B. aversion", "C. shrine"], correct: "B. aversion", 
+          expl: "<strong>- strong aversion to (n):</strong> sự ác cảm mạnh mẽ đối với.<br><em>Giải thích:</em> Vì những hành vi ồn ào, phản cảm, mọi người trong khu chung cư sinh ra cảm giác ghét bỏ, ác cảm (aversion)." },
+        { q: 14, text: "Question 14", options: ["A. memorabilia", "B. negligée", "C. midlife crisis"], correct: "B. negligée", 
+          expl: "<strong>- negligée (n):</strong> áo ngủ mỏng mảnh của nữ.<br><em>Giải thích:</em> Các tính từ 'sheer, revealing' (mỏng xuyên thấu, hở hang) bổ nghĩa chính xác cho trang phục phòng ngủ này." },
+        { q: 15, text: "Question 15", options: ["A. gross", "B. sensual", "C. demented"], correct: "B. sensual", 
+          expl: "<strong>- sensual (adj):</strong> gợi cảm, khêu gợi.<br><em>Giải thích:</em> Mục đích của việc mặc áo ngủ mỏng ra ngoài là để tạo ra một bầu không khí khêu gợi (sensual atmosphere) cho người tình trẻ." },
+        { q: 16, text: "Question 16", options: ["A. chivalrous", "B. gross", "C. aroused"], correct: "B. gross", 
+          expl: "<strong>- gross (adj):</strong> tởm lợm, kinh tởm.<br><em>Giải thích:</em> Đối với những người hàng xóm ('to the rest of us'), hành động phơi bày thân thể ngoài hành lang là phản cảm và kinh tởm." },
+        { q: 17, text: "Question 17", options: ["A. lavish money on", "B. raise eyebrows", "C. turn someone off"], correct: "C. turn someone off", 
+          expl: "<strong>- turn someone off (phrasal verb):</strong> làm ai đó mất hứng, chán ghét.<br><em>Giải thích:</em> Hành vi kinh tởm đó đã hoàn toàn làm tất cả mọi người trong tòa nhà chán ghét/mất thiện cảm." },
+        { q: 18, text: "Question 18", options: ["A. get a clue", "B. put a cork in it", "C. live to regret it"], correct: "B. put a cork in it", 
+          expl: "<strong>- put a cork in it (idiom):</strong> im lặng, ngậm miệng lại.<br><em>Giải thích:</em> Quản lý yêu cầu bà ấy 'keep the noise down' (giữ trật tự), đồng nghĩa với việc yêu cầu bớt ồn ào, im lặng." },
+        { q: 19, text: "Question 19", options: ["A. debased", "B. aroused", "C. demeaned"], correct: "B. aroused", 
+          expl: "<strong>- temper was aroused:</strong> cơn giận bị khơi dậy, nổi trận lôi đình.<br><em>Giải thích:</em> 'Aroused' ngoài nghĩa khơi gợi tình dục còn dùng để chỉ việc khơi dậy cảm xúc mạnh (như sự tức giận). Bị nhắc nhở nên bà ta nổi cáu." },
+        { q: 20, text: "Question 20", options: ["A. demented", "B. chivalrous", "C. sensual"], correct: "A. demented", 
+          expl: "<strong>- demented (adj):</strong> điên loạn, mất trí.<br><em>Giải thích:</em> Hành động 'screaming in the hallway' (la hét ngoài hành lang) là hành vi thiếu kiểm soát, như người điên (demented)." },
+        { q: 21, text: "Question 21", options: ["A. get a clue", "B. lavish money", "C. put a cork in it"], correct: "A. get a clue", 
+          expl: "<strong>- get a clue (idiom):</strong> hiểu ra vấn đề, tỉnh ngộ đi.<br><em>Giải thích:</em> Mọi người khuyên bà ấy hãy 'tỉnh ngộ' và nhận ra gã kia chỉ là kẻ đào mỏ (gold-digger)." },
+        { q: 22, text: "Question 22", options: ["A. demean", "B. turn off", "C. arouse"], correct: "A. demean", 
+          expl: "<strong>- demean (v):</strong> hạ thấp, làm mất thể diện.<br><em>Giải thích:</em> Anh ta hét lên những lời tàn nhẫn (cruel things) nhằm mục đích hạ thấp danh dự của bà." },
+        { q: 23, text: "Question 23", options: ["A. debase", "B. raise", "C. lavish"], correct: "A. debase", 
+          expl: "<strong>- debase (v):</strong> làm giảm giá trị, bôi nhọ.<br><em>Giải thích:</em> Đi kèm với 'demean' tạo thành cặp từ mang tính phá hủy nhân phẩm/nhân cách (character) của bà ấy." },
+        { q: 24, text: "Question 24", options: ["A. humiliate", "B. put a cork in", "C. get a clue about"], correct: "A. humiliate", 
+          expl: "<strong>- humiliate (v):</strong> làm bẽ mặt, làm nhục.<br><em>Giải thích:</em> Hành động sỉ vả công khai 'in front of the whole neighborhood' là sự làm bẽ mặt tột độ." },
+        { q: 25, text: "Question 25", options: ["A. live to regret", "B. have a fetish for", "C. raise eyebrows at"], correct: "A. live to regret", 
+          expl: "<strong>- live to regret (phrase):</strong> sống trong sự hối hận vì một quyết định sai lầm.<br><em>Giải thích:</em> Kết cục của mối quan hệ độc hại này khiến tác giả chắc chắn rằng người phụ nữ sẽ ôm hận suốt đời vì đã để gã kia bước vào đời mình." }
+    ];
+
+    // --- 2. HỆ THỐNG AUDIO (WEB AUDIO API - KHÔNG CẦN FILE NGOÀI) ---
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    let audioCtx;
+
+    function initAudio() { if(!audioCtx) audioCtx = new AudioContext(); }
+
+    function playSound(type) {
+        initAudio();
+        if(audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        osc.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+
+        if (type === 'correct') {
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(523.25, audioCtx.currentTime); // C5
+            osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.1); // A5
+            gainNode.gain.setValueAtTime(0.5, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.3);
+        } else if (type === 'wrong') {
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(300, audioCtx.currentTime); 
+            osc.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.3);
+            gainNode.gain.setValueAtTime(0.5, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.4);
+        }
+    }
+
+    // --- 3. LOGIC GIAO DIỆN & TRẮC NGHIỆM ---
+    let userScore = 0;
+    let answeredQuestions = new Set();
+
+    // Thuật toán xáo trộn mảng (Fisher-Yates Shuffle)
+    function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+    }
+
+    function renderQuiz() {
+        const container = document.getElementById('quizContainer');
+        container.innerHTML = ''; // Clear
+
+        quizData.forEach((qItem, index) => {
+            // Shuffle options
+            let shuffledOptions = shuffleArray([...qItem.options]);
+
+            let card = document.createElement('div');
+            card.className = 'question-card';
+            card.id = `card-${qItem.q}`;
+
+            let title = document.createElement('div');
+            title.className = 'question-text';
+            title.innerText = `Question ${qItem.q}: Choose the correct word for blank (${qItem.q})`;
+            card.appendChild(title);
+
+            let grid = document.createElement('div');
+            grid.className = 'options-grid';
+
+            shuffledOptions.forEach(opt => {
+                let btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.innerText = opt;
+                btn.onclick = () => handleAnswer(btn, opt, qItem, grid, card);
+                grid.appendChild(btn);
+            });
+            card.appendChild(grid);
+
+            // Explanation Box
+            let explBox = document.createElement('div');
+            explBox.className = 'explanation-box';
+            explBox.id = `expl-${qItem.q}`;
+            explBox.innerHTML = `<h4>💡 Giải thích chi tiết:</h4><div class="expl-section">${qItem.expl}</div>`;
+            card.appendChild(explBox);
+
+            container.appendChild(card);
+        });
+
+        // Add Submit Button
+        let submitDiv = document.createElement('div');
+        submitDiv.className = 'submit-container';
+        submitDiv.innerHTML = `<button class="btn-submit" onclick="submitQuiz()">NỘP BÀI TỔNG KẾT</button>`;
+        container.appendChild(submitDiv);
+    }
+
+    function handleAnswer(btn, selectedOpt, qItem, grid, card) {
+        initAudio(); // Initialize audio on first user interaction
+        
+        // Disable all buttons in this grid
+        let allBtns = grid.querySelectorAll('.option-btn');
+        allBtns.forEach(b => b.classList.add('disabled'));
+
+        let isCorrect = (selectedOpt === qItem.correct);
+        let spanBlank = document.querySelector(`.blank-space[data-q="${qItem.q}"]`);
+
+        if (isCorrect) {
+            btn.classList.add('correct');
+            playSound('correct');
+            createConfetti();
+            userScore++;
+            if(spanBlank) {
+                spanBlank.innerText = qItem.correct.replace(/^[A-C]\.\s/, ''); // Điền từ vào chỗ trống bên trái
+                spanBlank.style.color = 'var(--correct)';
+                spanBlank.style.borderBottom = 'none';
+            }
+        } else {
+            btn.classList.add('wrong');
+            playSound('wrong');
+            // Auto show correct answer
+            allBtns.forEach(b => {
+                if (b.innerText === qItem.correct) b.classList.add('correct');
+            });
+            if(spanBlank) {
+                spanBlank.innerText = qItem.correct.replace(/^[A-C]\.\s/, '');
+                spanBlank.style.color = 'var(--wrong)';
+            }
+        }
+
+        // Show explanation
+        document.getElementById(`expl-${qItem.q}`).style.display = 'block';
+        answeredQuestions.add(qItem.q);
+    }
+
+    // Toggle Translation
+    function toggleTranslation(id) {
+        let el = document.getElementById(id);
+        el.style.display = (el.style.display === 'block') ? 'none' : 'block';
+    }
+
+    // --- 4. HỆ THỐNG ĐẾM GIỜ ---
+    let timerInterval;
+    let timeRemaining = 600; // 10 minutes
+    let isTimerRunning = false;
+
+    document.getElementById('btnTimerStart').addEventListener('click', function() {
+        if (isTimerRunning) {
+            clearInterval(timerInterval);
+            this.innerText = "TIẾP TỤC";
+            this.style.background = "#FDCB6E"; // Yellow pause
+            isTimerRunning = false;
+        } else {
+            this.innerText = "TẠM DỪNG";
+            this.style.background = "#FF4757"; // Red
+            isTimerRunning = true;
+            timerInterval = setInterval(() => {
+                timeRemaining--;
+                updateTimerDisplay();
+                if (timeRemaining <= 0) {
+                    clearInterval(timerInterval);
+                    showTimeoutAlert();
+                    this.innerText = "HẾT GIỜ";
+                    this.style.background = "#ccc";
+                    this.disabled = true;
+                }
+            }, 1000);
+        }
+    });
+
+    function updateTimerDisplay() {
+        let m = Math.floor(timeRemaining / 60);
+        let s = timeRemaining % 60;
+        document.getElementById('timerDisplay').innerText = `${m < 10 ? '0':''}${m}:${s < 10 ? '0':''}${s}`;
+    }
+
+    function showTimeoutAlert() {
+        let toast = document.getElementById('timeoutToast');
+        toast.style.transform = 'translateX(0)';
+        setTimeout(() => { toast.style.transform = 'translateX(200%)'; }, 5000);
+    }
+
+    // --- 5. TỔNG KẾT ĐIỂM SỐ ---
+    function submitQuiz() {
+        clearInterval(timerInterval);
+        document.getElementById('scoreModal').style.display = 'flex';
+        document.getElementById('scoreValue').innerText = `${userScore}/25`;
+        
+        let msg = "";
+        if (userScore === 25) msg = "🏆 THIÊN TÀI XUẤT CHÚNG!";
+        else if (userScore >= 20) msg = "🌟 RẤT XUẤT SẮC!";
+        else if (userScore >= 15) msg = "👏 LÀM TỐT LẮM!";
+        else msg = "💪 CỐ GẮNG HƠN LẦN SAU NHÉ!";
+        
+        document.getElementById('scoreMessage').innerText = msg;
+        createConfetti();
+    }
+
+    function closeModal() {
+        document.getElementById('scoreModal').style.display = 'none';
+    }
+
+    // --- 6. HIỆU ỨNG PHÁO GIẤY (CONFETTI) ---
+    const canvas = document.getElementById('confetti');
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+    let particles = [];
+
+    function createConfetti() {
+        for (let i = 0; i < 50; i++) {
+            particles.push({
+                x: canvas.width / 2, y: canvas.height / 2 + 100,
+                r: Math.random() * 6 + 2,
+                dx: Math.random() * 10 - 5, dy: Math.random() * -15 - 5,
+                color: `hsl(${Math.random() * 360}, 100%, 50%)`
+            });
+        }
+    }
+
+    function animateConfetti() {
+        requestAnimationFrame(animateConfetti);
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        particles.forEach((p, index) => {
+            p.x += p.dx; p.y += p.dy; p.dy += 0.5; // gravity
+            ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+            ctx.fillStyle = p.color; ctx.fill();
+            if (p.y > canvas.height) particles.splice(index, 1);
+        });
+    }
+    animateConfetti();
+
+    // Khởi tạo bài tập khi load trang
+    window.onload = renderQuiz;
+</script>
+</body>
+</html>

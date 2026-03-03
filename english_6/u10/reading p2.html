@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Future Houses Quiz | Ms Mai An ULIS</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --pri:#6C63FF;--sec:#00C9A7;--acc:#FF6B9D;
+  --bg:#0D0D2B;--card:rgba(255,255,255,0.07);
+  --cb:rgba(108,99,255,0.35);--txt:#E8E8FF;--muted:#9090CC;
+  --ok:#00D26A;--err:#FF4757;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;overflow:hidden;}
+body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--txt);display:flex;flex-direction:column;}
+
+/* ANIMATED BG */
+body::before{
+  content:'';position:fixed;inset:0;z-index:0;
+  background:linear-gradient(135deg,#0D0D2B,#1A0A3E,#0A2040,#0D0D2B);
+  background-size:400% 400%;
+  animation:grad 10s ease infinite;
+}
+@keyframes grad{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+body::after{
+  content:'';position:fixed;inset:0;z-index:0;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Ctext x='30' y='80' font-size='40' opacity='0.07'%3E%F0%9F%9A%80%3C/text%3E%3Ctext x='200' y='160' font-size='35' opacity='0.06'%3E%F0%9F%8F%A0%3C/text%3E%3Ctext x='310' y='60' font-size='30' opacity='0.07'%3E%F0%9F%8C%8A%3C/text%3E%3Ctext x='80' y='290' font-size='38' opacity='0.06'%3E%F0%9F%8C%99%3C/text%3E%3Ctext x='260' y='330' font-size='32' opacity='0.07'%3E%E2%9A%A1%3C/text%3E%3Ctext x='140' y='380' font-size='36' opacity='0.06'%3E%F0%9F%A4%96%3C/text%3E%3C/svg%3E");
+  background-size:400px 400px;
+  animation:floatbg 22s linear infinite;
+  pointer-events:none;
+}
+@keyframes floatbg{from{background-position:0 0}to{background-position:400px 400px}}
+
+/* All content must be above bg */
+header,nav,.workspace,footer-bar,.modal,.alert-box,.confetti-wrap{position:relative;z-index:10;}
+
+/* HEADER */
+header{
+  background:rgba(13,13,43,0.9);backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--cb);
+  padding:8px 18px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;
+  flex-shrink:0;
+}
+.htitle{font-size:.95rem;font-weight:900;background:linear-gradient(90deg,#6C63FF,#00C9A7,#FF6B9D);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.hsub{font-size:.68rem;color:var(--muted);margin-top:1px;}
+.timer-wrap{display:flex;align-items:center;gap:8px;}
+#clock{font-size:1.4rem;font-weight:900;color:var(--sec);min-width:66px;text-align:center;font-variant-numeric:tabular-nums;letter-spacing:1px;}
+#clock.red{color:var(--err);animation:blink .6s infinite;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.4}}
+.btn{background:linear-gradient(135deg,#6C63FF,#00C9A7);border:none;color:#fff;font-family:'Nunito',sans-serif;font-weight:800;font-size:.72rem;padding:7px 14px;border-radius:20px;cursor:pointer;box-shadow:0 3px 12px rgba(108,99,255,.4);transition:transform .15s;}
+.btn:hover{transform:scale(1.05);}
+.btn-submit{background:linear-gradient(135deg,#FF6B9D,#6C63FF);}
+
+/* NAV TABS */
+nav{
+  background:rgba(13,13,43,.8);backdrop-filter:blur(8px);
+  border-bottom:1px solid var(--cb);
+  padding:6px 14px;display:flex;gap:5px;overflow-x:auto;flex-shrink:0;align-items:center;
+}
+nav::-webkit-scrollbar{height:3px;}nav::-webkit-scrollbar-thumb{background:var(--pri);}
+.tab{background:transparent;border:1.5px solid rgba(108,99,255,.28);color:var(--muted);font-family:'Nunito',sans-serif;font-weight:700;font-size:.72rem;padding:5px 13px;border-radius:18px;cursor:pointer;transition:all .2s;white-space:nowrap;}
+.tab:hover{border-color:var(--pri);color:var(--txt);}
+.tab.on{background:linear-gradient(135deg,#6C63FF,#00C9A7);border-color:transparent;color:#fff;box-shadow:0 0 14px rgba(108,99,255,.5);}
+
+/* WORKSPACE */
+.workspace{flex:1;overflow:hidden;display:flex;flex-direction:column;}
+.pane-wrap{display:none;flex:1;overflow:hidden;}
+.pane-wrap.on{display:grid;grid-template-columns:1fr 1fr;}
+.pane{overflow-y:auto;padding:14px;border-right:1px solid var(--cb);height:100%;}
+.pane:last-child{border-right:none;}
+.pane::-webkit-scrollbar{width:5px;}.pane::-webkit-scrollbar-thumb{background:var(--pri);border-radius:3px;}
+
+/* PANEL LABEL */
+.plabel{font-size:.62rem;font-weight:800;color:var(--pri);letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:6px;}
+.plabel::after{content:'';flex:1;height:1px;background:var(--cb);}
+
+/* PASSAGE */
+.ptitle{font-size:1rem;font-weight:900;background:linear-gradient(90deg,#6C63FF,#00C9A7);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:12px;}
+.para{background:var(--card);border:1px solid var(--cb);border-radius:12px;padding:12px;margin-bottom:8px;}
+.para-head{font-weight:800;color:var(--sec);font-size:.78rem;margin-bottom:5px;display:block;}
+.para-body{font-size:.84rem;line-height:1.8;color:#D0D0F8;}
+.btn-tr{display:inline-flex;align-items:center;gap:4px;background:rgba(108,99,255,.12);border:1px solid rgba(108,99,255,.28);color:#9090DD;font-family:'Nunito',sans-serif;font-weight:700;font-size:.7rem;padding:4px 11px;border-radius:16px;cursor:pointer;transition:all .18s;margin-top:7px;}
+.btn-tr:hover{background:rgba(108,99,255,.26);color:#fff;}
+.trbox{display:none;margin-top:8px;padding:9px 11px;background:rgba(0,201,167,.07);border-left:3px solid var(--sec);border-radius:0 8px 8px 0;font-size:.8rem;line-height:1.75;color:#A0FFE8;}
+.trbox.show{display:block;}
+
+/* GLOSSARY */
+.glos{margin-top:14px;}
+.glos-head{font-size:.64rem;font-weight:800;color:var(--acc);letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;gap:6px;}
+.glos-head::after{content:'';flex:1;height:1px;background:rgba(255,107,157,.25);}
+.gtable{width:100%;border-collapse:collapse;font-size:.76rem;}
+.gtable th{background:rgba(108,99,255,.18);color:var(--pri);padding:5px 9px;text-align:left;font-weight:800;border-bottom:1px solid var(--cb);}
+.gtable td{padding:4px 9px;border-bottom:1px solid rgba(255,255,255,.04);color:#B8B8E0;}
+.gtable tr:hover td{background:rgba(108,99,255,.07);}
+
+/* EXERCISES */
+.etitle{font-size:.88rem;font-weight:900;color:#fff;margin-bottom:12px;}
+.qcard{background:var(--card);border:1px solid var(--cb);border-radius:14px;padding:13px;margin-bottom:10px;transition:border .25s,background .25s;}
+.qcard.right{border-color:var(--ok);background:rgba(0,210,106,.07);}
+.qcard.wrong{border-color:var(--err);background:rgba(255,71,87,.05);}
+.qnum{font-size:.65rem;font-weight:800;color:var(--pri);text-transform:uppercase;letter-spacing:1px;margin-bottom:5px;}
+.qtxt{font-size:.84rem;font-weight:700;color:#E0E0FF;line-height:1.5;margin-bottom:9px;}
+.opts{display:flex;flex-direction:column;gap:5px;}
+.opt{background:rgba(255,255,255,.04);border:1.5px solid rgba(108,99,255,.22);color:#C0C0E8;font-family:'Nunito',sans-serif;font-weight:600;font-size:.8rem;padding:7px 13px;border-radius:11px;cursor:pointer;text-align:left;transition:all .18s;display:flex;align-items:flex-start;gap:7px;}
+.opt:hover:not(:disabled){transform:scale(1.015);background:rgba(108,99,255,.13);border-color:var(--pri);color:#fff;}
+.opt.ok{background:rgba(0,210,106,.18)!important;border-color:var(--ok)!important;color:#00FF7F!important;font-weight:800;}
+.opt.no{background:rgba(255,71,87,.18)!important;border-color:var(--err)!important;color:#FF8090!important;animation:shake .38s ease;}
+.opt:disabled{cursor:default;}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+.lbl{background:rgba(108,99,255,.28);color:var(--pri);border-radius:5px;padding:1px 6px;font-weight:900;font-size:.75rem;flex-shrink:0;margin-top:1px;}
+.reveal{margin-top:7px;padding:6px 10px;background:rgba(0,210,106,.13);border:1px solid var(--ok);border-radius:7px;font-size:.76rem;color:#00FF7F;font-weight:700;}
+.expbox{display:none;margin-top:9px;padding:11px;background:rgba(0,0,0,.28);border-left:3px solid var(--acc);border-radius:0 9px 9px 0;font-size:.75rem;line-height:1.68;color:#D0D0FF;}
+.expbox.show{display:block;}
+.expbox .es{margin-bottom:5px;}
+.expbox .es strong{color:var(--acc);}
+
+/* EX15 context block */
+.ctx-block{background:rgba(108,99,255,.1);border:1px dashed rgba(108,99,255,.4);border-radius:10px;padding:10px 12px;margin-bottom:9px;font-size:.82rem;line-height:1.8;color:#D0D0FF;}
+.ctx-blank{display:inline-block;background:rgba(255,107,157,.2);border-bottom:2px solid var(--acc);color:var(--acc);font-weight:900;padding:0 8px;border-radius:4px;min-width:30px;text-align:center;}
+
+/* SCORE MODAL */
+.modal{display:none;position:fixed;inset:0;z-index:900;background:rgba(0,0,0,.8);backdrop-filter:blur(8px);justify-content:center;align-items:center;}
+.modal.show{display:flex;}
+.mbox{background:linear-gradient(135deg,#1A1A4E,#0D1A3E);border:2px solid var(--pri);border-radius:22px;padding:30px 36px;max-width:480px;width:92%;text-align:center;box-shadow:0 0 50px rgba(108,99,255,.5);}
+.mtitle{font-size:1.3rem;font-weight:900;background:linear-gradient(90deg,#FF6B9D,#6C63FF,#00C9A7);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:14px;}
+.mscore{font-size:3.2rem;font-weight:900;color:#fff;text-shadow:0 0 25px var(--pri);}
+.mslabel{font-size:.85rem;color:var(--muted);margin-bottom:16px;}
+.mbadge{display:inline-block;background:linear-gradient(135deg,#FF6B9D,#6C63FF);padding:7px 22px;border-radius:18px;font-weight:900;font-size:1rem;color:#fff;margin-bottom:12px;}
+.mcomment{font-size:.85rem;color:#A8A8E0;line-height:1.65;margin-bottom:18px;}
+
+/* TIME ALERT */
+.alert-box{display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:800;background:linear-gradient(135deg,#1A1A4E,#0D1A3E);border:2px solid var(--acc);border-radius:18px;padding:22px 30px;max-width:400px;width:90%;text-align:center;box-shadow:0 0 35px rgba(255,107,157,.45);}
+.alert-box.show{display:block;}
+.alert-box h3{color:var(--acc);margin-bottom:9px;}
+.alert-box p{color:#A0A0D0;font-size:.82rem;line-height:1.65;}
+
+/* CONFETTI */
+.confetti-wrap{position:fixed;inset:0;pointer-events:none;z-index:999;overflow:hidden;}
+.cf{position:absolute;width:7px;height:7px;animation:cfall 1.4s ease-out forwards;border-radius:2px;}
+@keyframes cfall{0%{transform:translateY(-10px) rotate(0deg);opacity:1}100%{transform:translateY(100vh) rotate(720deg);opacity:0}}
+</style>
+</head>
+<body>
+
+<div class="confetti-wrap" id="cfWrap"></div>
+
+<!-- TIME ALERT -->
+<div class="alert-box" id="alertBox">
+  <h3>⏰ Đã hết giờ làm bài!</h3>
+  <p>Bạn vẫn có thể tiếp tục làm, nhưng nhớ là trong phòng thi thật, bạn chỉ nên làm một bài như thế này trong <strong>10 phút</strong> thôi nha! Cố gắng luyện tập thêm nhé 💪</p>
+  <button class="btn" style="margin-top:12px;" onclick="document.getElementById('alertBox').classList.remove('show')">Tiếp tục làm bài</button>
+</div>
+
+<!-- SCORE MODAL -->
+<div class="modal" id="scoreModal">
+  <div class="mbox">
+    <div class="mtitle">🏆 KẾT QUẢ BÀI THI</div>
+    <div class="mscore" id="sNum">0/0</div>
+    <div class="mslabel">câu trả lời đúng</div>
+    <div class="mbadge" id="sBadge"></div>
+    <div class="mcomment" id="sComment"></div>
+    <button class="btn" onclick="document.getElementById('scoreModal').classList.remove('show')">Xem lại bài ✨</button>
+  </div>
+</div>
+
+<!-- HEADER -->
+<header>
+  <div>
+    <div class="htitle">🏠 FUTURE HOUSES QUIZ</div>
+    <div class="hsub">Giáo viên tạo: <strong>Ms Mai An ULIS</strong> &nbsp;|&nbsp; Exercise 14 &amp; 15</div>
+  </div>
+  <div class="timer-wrap">
+    <div id="clock">10:00</div>
+    <button class="btn" id="btnClock" onclick="toggleTimer()">▶ BẮT ĐẦU</button>
+    <button class="btn btn-submit" onclick="submitAll()">🏆 NỘP BÀI</button>
+  </div>
+</header>
+
+<!-- TABS -->
+<nav>
+  <button class="tab on" onclick="goTab(0)">📖 Ex.14 – Bài 1</button>
+  <button class="tab" onclick="goTab(1)">📖 Ex.14 – Bài 2</button>
+  <button class="tab" onclick="goTab(2)">✏️ Ex.15 – Text 1</button>
+  <button class="tab" onclick="goTab(3)">✏️ Ex.15 – Text 2</button>
+</nav>
+
+<!-- WORKSPACE -->
+<div class="workspace">
+
+<!-- ========== TAB 0 ========== -->
+<div class="pane-wrap on" id="tab0">
+  <div class="pane">
+    <div class="plabel">📚 Reading Passage</div>
+    <div class="ptitle">HOUSES OF THE FUTURE</div>
+
+    <div class="para">
+      <span class="para-head">¶ Introduction</span>
+      <div class="para-body">In 2050, people will live in amazing houses with smart technology. These houses will be very different from today's homes.</div>
+      <button class="btn-tr" onclick="toggleTr(this)">🌟 Mở dịch đoạn này</button>
+      <div class="trbox">Vào năm 2050, mọi người sẽ sống trong những ngôi nhà tuyệt vời với công nghệ thông minh. Những ngôi nhà này sẽ rất khác so với những ngôi nhà ngày nay.</div>
+    </div>
+
+    <div class="para">
+      <span class="para-head">¶ Sky Houses</span>
+      <div class="para-body">Sky houses will float 100 meters above the ground. They will use magnetic energy to stay in the air. People will travel between houses using flying cars or sky bridges. These houses will have glass floors, so residents can see the city below. The best thing is there will be no noise from traffic.</div>
+      <button class="btn-tr" onclick="toggleTr(this)">🌟 Mở dịch đoạn này</button>
+      <div class="trbox">Những ngôi nhà trên không sẽ lơ lửng 100 mét so với mặt đất. Chúng sẽ sử dụng năng lượng từ tính để ở lại trên không. Mọi người sẽ di chuyển giữa các ngôi nhà bằng xe bay hoặc cầu trên không. Những ngôi nhà này sẽ có sàn kính, vì vậy cư dân có thể nhìn thấy thành phố bên dưới. Điều tuyệt nhất là sẽ không có tiếng ồn từ giao thông.</div>
+    </div>
+
+    <div class="para">
+      <span class="para-head">¶ Underwater Houses</span>
+      <div class="para-body">Underwater houses will be built in the ocean. They will have strong glass walls to watch sea animals swim by. Special machines will make fresh air from seawater. People living there will eat fresh seafood every day. Children will go to school by submarine.</div>
+      <button class="btn-tr" onclick="toggleTr(this)">🌟 Mở dịch đoạn này</button>
+      <div class="trbox">Những ngôi nhà dưới nước sẽ được xây dựng trong đại dương. Chúng sẽ có những bức tường kính chắc chắn để ngắm các sinh vật biển bơi qua. Các máy đặc biệt sẽ tạo ra không khí trong lành từ nước biển. Những người sống ở đó sẽ ăn hải sản tươi mỗi ngày. Trẻ em sẽ đến trường bằng tàu ngầm.</div>
+    </div>
+
+    <div class="para">
+      <span class="para-head">¶ Smart Eco-Houses</span>
+      <div class="para-body">Smart eco-houses will be on land but completely green. They will grow food on the roof and walls. Solar panels will provide all electricity. The houses will collect rainwater for drinking and washing. All waste will become fertilizer for plants. The temperature inside will always be perfect.</div>
+      <button class="btn-tr" onclick="toggleTr(this)">🌟 Mở dịch đoạn này</button>
+      <div class="trbox">Những ngôi nhà sinh thái thông minh sẽ ở trên mặt đất nhưng hoàn toàn xanh. Chúng sẽ trồng thực phẩm trên mái nhà và các bức tường. Các tấm pin mặt trời sẽ cung cấp tất cả điện. Những ngôi nhà sẽ thu gom nước mưa để uống và rửa. Tất cả rác thải sẽ trở thành phân bón cho cây. Nhiệt độ bên trong luôn luôn hoàn hảo.</div>
+    </div>
+
+    <div class="para">
+      <span class="para-head">¶ Moving Houses</span>
+      <div class="para-body">Moving houses will be like big robots. They can walk to different places when owners want to change locations. In summer, they will move to cool mountains. In winter, they will walk to warm beaches. These houses will have legs like spiders.</div>
+      <button class="btn-tr" onclick="toggleTr(this)">🌟 Mở dịch đoạn này</button>
+      <div class="trbox">Những ngôi nhà di chuyển sẽ giống như những con robot lớn. Chúng có thể đi bộ đến những nơi khác nhau khi chủ nhân muốn thay đổi địa điểm. Vào mùa hè, chúng sẽ di chuyển đến những ngọn núi mát mẻ. Vào mùa đông, chúng sẽ đi bộ đến những bãi biển ấm áp. Những ngôi nhà này sẽ có chân giống như nhện.</div>
+    </div>
+
+    <div class="glos">
+      <div class="glos-head">📚 Bảng từ vựng quan trọng</div>
+      <table class="gtable">
+        <tr><th>Từ vựng</th><th>Loại từ</th><th>Nghĩa</th></tr>
+        <tr><td><b>float</b> /floʊt/</td><td>v.</td><td>lơ lửng, nổi</td></tr>
+        <tr><td><b>magnetic energy</b></td><td>n.phr.</td><td>năng lượng từ tính</td></tr>
+        <tr><td><b>resident</b> /ˈrezɪdənt/</td><td>n.</td><td>cư dân</td></tr>
+        <tr><td><b>submarine</b> /ˌsʌbməˈriːn/</td><td>n.</td><td>tàu ngầm</td></tr>
+        <tr><td><b>seawater</b></td><td>n.</td><td>nước biển</td></tr>
+        <tr><td><b>solar panel</b></td><td>n.phr.</td><td>tấm pin mặt trời</td></tr>
+        <tr><td><b>fertilizer</b></td><td>n.</td><td>phân bón</td></tr>
+        <tr><td><b>eco-house</b></td><td>n.</td><td>nhà sinh thái</td></tr>
+        <tr><td><b>location</b></td><td>n.</td><td>địa điểm, vị trí</td></tr>
+        <tr><td><b>traffic</b></td><td>n.</td><td>giao thông</td></tr>
+        <tr><td><b>waste</b></td><td>n.</td><td>rác thải</td></tr>
+        <tr><td><b>temperature</b></td><td>n.</td><td>nhiệt độ</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="pane">
+    <div class="plabel">✏️ Bài Tập</div>
+    <div class="etitle">Exercise 14 · Passage 1 – Multiple Choice</div>
+    <div id="c0"></div>
+  </div>
+</div>
+
+<!-- ========== TAB 1 ========== -->
+<div class="pane-wrap" id="tab1">
+  <div class="pane">
+    <div class="plabel">📚 Reading Passage</div>
+    <div class="ptitle">AMAZING FUTURE HOME TECHNOLOGY</div>
+
+    <div class="para">
+      <span class="para-head">¶ Introduction</span>
+      <div class="para-body">By 2060, our houses will be completely different from today. Scientists are working on incredible new technologies for future homes.</div>
+      <button class="btn-tr" onclick="toggleTr(this)">🌟 Mở dịch đoạn này</button>
+      <div class="trbox">Vào năm 2060, những ngôi nhà của chúng ta sẽ hoàn toàn khác ngày nay. Các nhà khoa học đang nghiên cứu những công nghệ mới đáng kinh ngạc cho những ngôi nhà trong tương lai.</div>
+    </div>
+
+    <div class="para">
+      <span class="para-head">¶ Japanese Earthquake-Proof Houses</span>
+      <div class="para-body">Japanese engineers are building houses that can survive earthquakes. These houses float on air cushions. When earthquakes happen, the houses move gently like boats on water. They have tested 50 houses already, and all worked perfectly! The houses also have emergency food storage for 30 days.</div>
+      <button class="btn-tr" onclick="toggleTr(this)">🌟 Mở dịch đoạn này</button>
+      <div class="trbox">Các kỹ sư Nhật Bản đang xây dựng những ngôi nhà có thể chịu được động đất. Những ngôi nhà này nổi trên đệm không khí. Khi động đất xảy ra, những ngôi nhà di chuyển nhẹ nhàng như những chiếc thuyền trên mặt nước. Họ đã thử nghiệm 50 ngôi nhà rồi, và tất cả đều hoạt động hoàn hảo! Những ngôi nhà cũng có kho lưu trữ thức ăn khẩn cấp trong 30 ngày.</div>
+    </div>
+
+    <div class="para">
+      <span class="para-head">¶ Swedish Ice Houses</span>
+      <div class="para-body">In Sweden, people are creating ice houses for hot countries. Special cooling walls keep the temperature at 18 degrees all year. The houses use frozen water to make electricity. One ice house can cool 10 normal rooms! Families living there never need air conditioners. The monthly electricity bill is only 5 dollars.</div>
+      <button class="btn-tr" onclick="toggleTr(this)">🌟 Mở dịch đoạn này</button>
+      <div class="trbox">Ở Thụy Điển, người ta đang tạo ra những ngôi nhà băng cho các nước nóng. Những bức tường làm lạnh đặc biệt giữ nhiệt độ ở 18 độ quanh năm. Những ngôi nhà sử dụng nước đông đặc để tạo ra điện. Một ngôi nhà băng có thể làm mát 10 phòng thông thường! Các gia đình sống ở đó không bao giờ cần điều hòa. Hóa đơn điện hàng tháng chỉ là 5 đô la.</div>
+    </div>
+
+    <div class="para">
+      <span class="para-head">¶ Self-Cleaning Houses</span>
+      <div class="para-body">American scientists designed houses that clean themselves. Tiny robots live in the walls and come out at night. They clean everything while people sleep. The robots are 2 centimeters long and work in groups of 100. Windows have special glass that never gets dirty. Floors absorb dust and turn it into fresh air.</div>
+      <button class="btn-tr" onclick="toggleTr(this)">🌟 Mở dịch đoạn này</button>
+      <div class="trbox">Các nhà khoa học Mỹ đã thiết kế những ngôi nhà tự làm sạch. Những con robot nhỏ sống trong tường và ra ngoài vào ban đêm. Chúng làm sạch mọi thứ trong khi mọi người ngủ. Những con robot dài 2 centimet và làm việc theo nhóm 100 con. Cửa sổ có kính đặc biệt không bao giờ bẩn. Sàn nhà hút bụi và biến nó thành không khí trong lành.</div>
+    </div>
+
+    <div class="para">
+      <span class="para-head">¶ Conclusion</span>
+      <div class="para-body">These amazing technologies will make our future homes safer, cleaner, and more comfortable than ever before!</div>
+      <button class="btn-tr" onclick="toggleTr(this)">🌟 Mở dịch đoạn này</button>
+      <div class="trbox">Những công nghệ tuyệt vời này sẽ làm cho những ngôi nhà trong tương lai của chúng ta trở nên an toàn hơn, sạch hơn và thoải mái hơn bao giờ hết!</div>
+    </div>
+
+    <div class="glos">
+      <div class="glos-head">📚 Bảng từ vựng quan trọng</div>
+      <table class="gtable">
+        <tr><th>Từ vựng</th><th>Loại từ</th><th>Nghĩa</th></tr>
+        <tr><td><b>survive</b></td><td>v.</td><td>sống sót, chịu được</td></tr>
+        <tr><td><b>earthquake</b></td><td>n.</td><td>động đất</td></tr>
+        <tr><td><b>air cushion</b></td><td>n.phr.</td><td>đệm không khí</td></tr>
+        <tr><td><b>gently</b></td><td>adv.</td><td>nhẹ nhàng</td></tr>
+        <tr><td><b>emergency</b></td><td>n./adj.</td><td>khẩn cấp</td></tr>
+        <tr><td><b>incredible</b></td><td>adj.</td><td>đáng kinh ngạc</td></tr>
+        <tr><td><b>electricity</b></td><td>n.</td><td>điện</td></tr>
+        <tr><td><b>air conditioner</b></td><td>n.phr.</td><td>máy điều hòa</td></tr>
+        <tr><td><b>absorb</b></td><td>v.</td><td>hút, hấp thụ</td></tr>
+        <tr><td><b>tiny</b></td><td>adj.</td><td>rất nhỏ, tí hon</td></tr>
+        <tr><td><b>comfortable</b></td><td>adj.</td><td>thoải mái</td></tr>
+        <tr><td><b>engineer</b></td><td>n.</td><td>kỹ sư</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="pane">
+    <div class="plabel">✏️ Bài Tập</div>
+    <div class="etitle">Exercise 14 · Passage 2 – Multiple Choice</div>
+    <div id="c1"></div>
+  </div>
+</div>
+
+<!-- ========== TAB 2 ========== -->
+<div class="pane-wrap" id="tab2">
+  <div class="pane">
+    <div class="plabel">📚 Reading Passage</div>
+    <div class="ptitle">LIVING IN A SPACE HOUSE</div>
+
+    <div class="para">
+      <span class="para-head">¶ Đoạn 1</span>
+      <div class="para-body">In 2070, my family will move to a house on the Moon. <span style="color:#FF6B9D;font-weight:800;">(1) ______</span> We will travel there by spaceship in just three hours.</div>
+      <button class="btn-tr" onclick="toggleTr(this)">🌟 Mở dịch đoạn này</button>
+      <div class="trbox">Vào năm 2070, gia đình tôi sẽ chuyển đến một ngôi nhà trên Mặt Trăng. <em>(1) [chỗ trống]</em> Chúng tôi sẽ đến đó bằng tàu vũ trụ chỉ trong ba giờ.</div>
+    </div>
+
+    <div class="para">
+      <span class="para-head">¶ Đoạn 2</span>
+      <div class="para-body">Our Moon house will be inside a giant glass bubble. <span style="color:#FF6B9D;font-weight:800;">(2) ______</span> The bubble will protect us from the cold space outside. We will have oxygen machines to help us breathe normally.</div>
+      <button class="btn-tr" onclick="toggleTr(this)">🌟 Mở dịch đoạn này</button>
+      <div class="trbox">Ngôi nhà Mặt Trăng của chúng tôi sẽ ở bên trong một bong bóng kính khổng lồ. <em>(2) [chỗ trống]</em> Bong bóng sẽ bảo vệ chúng tôi khỏi không gian lạnh bên ngoài. Chúng tôi sẽ có máy oxy để giúp chúng tôi thở bình thường.</div>
+    </div>
+
+    <div class="para">
+      <span class="para-head">¶ Đoạn 3</span>
+      <div class="para-body">Inside, everything will float if we want. The furniture will stick to the floors using magnets. <span style="color:#FF6B9D;font-weight:800;">(3) ______</span> We can play floating basketball in the living room!</div>
+      <button class="btn-tr" onclick="toggleTr(this)">🌟 Mở dịch đoạn này</button>
+      <div class="trbox">Bên trong, mọi thứ sẽ nổi lơ lửng nếu chúng tôi muốn. Đồ đạc sẽ bám vào sàn nhờ nam châm. <em>(3) [chỗ trống]</em> Chúng tôi có thể chơi bóng rổ bay trong phòng khách!</div>
+    </div>
+
+    <div class="para">
+      <span class="para-head">¶ Đoạn 4</span>
+      <div class="para-body">For food, we will grow vegetables in a special moon garden. Robots will deliver supplies from Earth every month. <span style="color:#FF6B9D;font-weight:800;">(4) ______</span> The view of Earth from our windows will be beautiful!</div>
+      <button class="btn-tr" onclick="toggleTr(this)">🌟 Mở dịch đoạn này</button>
+      <div class="trbox">Về thực phẩm, chúng tôi sẽ trồng rau trong một khu vườn đặc biệt trên Mặt Trăng. Robot sẽ giao hàng tiếp tế từ Trái Đất mỗi tháng. <em>(4) [chỗ trống]</em> Khung cảnh Trái Đất từ cửa sổ của chúng tôi sẽ thật đẹp!</div>
+    </div>
+
+    <div class="para">
+      <span class="para-head">¶ Kết luận</span>
+      <div class="para-body">Living on the Moon will be an exciting adventure for our family!</div>
+      <button class="btn-tr" onclick="toggleTr(this)">🌟 Mở dịch đoạn này</button>
+      <div class="trbox">Sống trên Mặt Trăng sẽ là một cuộc phiêu lưu thú vị cho gia đình chúng tôi!</div>
+    </div>
+
+    <div class="glos">
+      <div class="glos-head">📚 Bảng từ vựng quan trọng</div>
+      <table class="gtable">
+        <tr><th>Từ vựng</th><th>Loại từ</th><th>Nghĩa</th></tr>
+        <tr><td><b>spaceship</b></td><td>n.</td><td>tàu vũ trụ</td></tr>
+        <tr><td><b>bubble</b></td><td>n.</td><td>bong bóng</td></tr>
+        <tr><td><b>oxygen</b></td><td>n.</td><td>ô-xi</td></tr>
+        <tr><td><b>magnet</b></td><td>n.</td><td>nam châm</td></tr>
+        <tr><td><b>supplies</b></td><td>n.</td><td>hàng tiếp tế</td></tr>
+        <tr><td><b>adventure</b></td><td>n.</td><td>cuộc phiêu lưu</td></tr>
+        <tr><td><b>surface</b></td><td>n.</td><td>bề mặt</td></tr>
+        <tr><td><b>protect</b></td><td>v.</td><td>bảo vệ</td></tr>
+        <tr><td><b>giant</b></td><td>adj.</td><td>khổng lồ</td></tr>
+        <tr><td><b>deliver</b></td><td>v.</td><td>giao hàng</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="pane">
+    <div class="plabel">✏️ Bài Tập</div>
+    <div class="etitle">Exercise 15 · Text 1 – Điền câu vào chỗ trống</div>
+    <div id="c2"></div>
+  </div>
+</div>
+
+<!-- ========== TAB 3 ========== -->
+<div class="pane-wrap" id="tab3">
+  <div class="pane">
+    <div class="plabel">📚 Reading Passage</div>
+    <div class="ptitle">MY UNDERWATER HOUSE</div>
+
+    <div class="para">
+      <span class="para-head">¶ Đoạn 1</span>
+      <div class="para-body">By 2055, people will build amazing houses under the ocean. <span style="color:#FF6B9D;font-weight:800;">(1) ______</span> Fish will swim past our windows every day!</div>
+      <button class="btn-tr" onclick="toggleTr(this)">🌟 Mở dịch đoạn này</button>
+      <div class="trbox">Vào năm 2055, người ta sẽ xây dựng những ngôi nhà tuyệt vời dưới đại dương. <em>(1) [chỗ trống]</em> Cá sẽ bơi ngang qua cửa sổ của chúng tôi mỗi ngày!</div>
+    </div>
+
+    <div class="para">
+      <span class="para-head">¶ Đoạn 2</span>
+      <div class="para-body">My underwater house will be 20 meters below the sea. Special tubes will connect it to the land above. <span style="color:#FF6B9D;font-weight:800;">(2) ______</span> Fresh air will come down through these tubes all day.</div>
+      <button class="btn-tr" onclick="toggleTr(this)">🌟 Mở dịch đoạn này</button>
+      <div class="trbox">Ngôi nhà dưới nước của tôi sẽ ở 20 mét dưới biển. Những ống đặc biệt sẽ kết nối nó với đất liền phía trên. <em>(2) [chỗ trống]</em> Không khí trong lành sẽ đi xuống qua những ống này cả ngày.</div>
+    </div>
+
+    <div class="para">
+      <span class="para-head">¶ Đoạn 3</span>
+      <div class="para-body">The walls will be made of super strong glass. We can see dolphins, turtles, and colorful fish outside. <span style="color:#FF6B9D;font-weight:800;">(3) ______</span> At night, special lights will make the water glow beautifully.</div>
+      <button class="btn-tr" onclick="toggleTr(this)">🌟 Mở dịch đoạn này</button>
+      <div class="trbox">Những bức tường sẽ được làm bằng kính siêu bền. Chúng tôi có thể nhìn thấy cá heo, rùa và cá đầy màu sắc bên ngoài. <em>(3) [chỗ trống]</em> Ban đêm, những ngọn đèn đặc biệt sẽ làm cho nước phát sáng rất đẹp.</div>
+    </div>
+
+    <div class="para">
+      <span class="para-head">¶ Đoạn 4</span>
+      <div class="para-body">We will eat fresh seafood and seaweed salad. There will be an underwater garden with sea plants. <span style="color:#FF6B9D;font-weight:800;">(4) ______</span> Friendly robots will help us catch fish for dinner.</div>
+      <button class="btn-tr" onclick="toggleTr(this)">🌟 Mở dịch đoạn này</button>
+      <div class="trbox">Chúng tôi sẽ ăn hải sản tươi và salad rong biển. Sẽ có một khu vườn dưới nước với các loài thực vật biển. <em>(4) [chỗ trống]</em> Những con robot thân thiện sẽ giúp chúng tôi bắt cá cho bữa tối.</div>
+    </div>
+
+    <div class="para">
+      <span class="para-head">¶ Kết luận</span>
+      <div class="para-body">This underwater life will be peaceful and wonderful!</div>
+      <button class="btn-tr" onclick="toggleTr(this)">🌟 Mở dịch đoạn này</button>
+      <div class="trbox">Cuộc sống dưới nước này sẽ thật bình yên và tuyệt vời!</div>
+    </div>
+
+    <div class="glos">
+      <div class="glos-head">📚 Bảng từ vựng quan trọng</div>
+      <table class="gtable">
+        <tr><th>Từ vựng</th><th>Loại từ</th><th>Nghĩa</th></tr>
+        <tr><td><b>tube</b></td><td>n.</td><td>ống dẫn</td></tr>
+        <tr><td><b>dolphin</b></td><td>n.</td><td>cá heo</td></tr>
+        <tr><td><b>turtle</b></td><td>n.</td><td>rùa biển</td></tr>
+        <tr><td><b>coral reef</b></td><td>n.phr.</td><td>rạn san hô</td></tr>
+        <tr><td><b>seaweed</b></td><td>n.</td><td>rong biển</td></tr>
+        <tr><td><b>seafood</b></td><td>n.</td><td>hải sản</td></tr>
+        <tr><td><b>glow</b></td><td>v.</td><td>phát sáng</td></tr>
+        <tr><td><b>peaceful</b></td><td>adj.</td><td>bình yên</td></tr>
+        <tr><td><b>elevator</b></td><td>n.</td><td>thang máy</td></tr>
+        <tr><td><b>salty</b></td><td>adj.</td><td>mặn</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="pane">
+    <div class="plabel">✏️ Bài Tập</div>
+    <div class="etitle">Exercise 15 · Text 2 – Điền câu vào chỗ trống</div>
+    <div id="c3"></div>
+  </div>
+</div>
+
+</div><!-- end workspace -->
+
+<script>
+// ---- AUDIO ----
+let AC;
+function getAC(){if(!AC)AC=new(window.AudioContext||window.webkitAudioContext)();return AC;}
+function ding(){try{let c=getAC(),notes=[523,659,784,1047];notes.forEach((f,i)=>{let o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);o.frequency.value=f;o.type='sine';let t=c.currentTime+i*.08;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.16,t+.02);g.gain.exponentialRampToValueAtTime(.001,t+.22);o.start(t);o.stop(t+.22);});}catch(e){}}
+function buzz(){try{let c=getAC(),notes=[300,240];notes.forEach((f,i)=>{let o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);o.frequency.value=f;o.type='sawtooth';let t=c.currentTime+i*.18;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.13,t+.04);g.gain.exponentialRampToValueAtTime(.001,t+.28);o.start(t);o.stop(t+.28);});}catch(e){}}
+
+// ---- CONFETTI ----
+function confetti(){
+  const wrap=document.getElementById('cfWrap');
+  const cols=['#FF6B9D','#6C63FF','#00C9A7','#FDCB6E','#FF4757','#00FF7F'];
+  for(let i=0;i<45;i++){
+    const d=document.createElement('div');d.className='cf';
+    d.style.cssText=`left:${Math.random()*100}vw;background:${cols[Math.random()*cols.length|0]};width:${Math.random()*7+4}px;height:${Math.random()*7+4}px;animation-delay:${Math.random()*.4}s;animation-duration:${Math.random()*.8+1}s;`;
+    wrap.appendChild(d);setTimeout(()=>d.remove(),1800);
+  }
+}
+
+// ---- TIMER ----
+let sec=600,running=false,iv=null;
+function toggleTimer(){
+  const b=document.getElementById('btnClock');
+  if(!running){
+    running=true;b.textContent='⏸ Tạm dừng';
+    iv=setInterval(()=>{
+      sec--;
+      const m=Math.floor(sec/60),s=sec%60;
+      const el=document.getElementById('clock');
+      el.textContent=m+':'+(s<10?'0':'')+s;
+      if(sec<=60)el.classList.add('red');
+      if(sec<=0){clearInterval(iv);running=false;b.textContent='▶ BẮT ĐẦU';document.getElementById('alertBox').classList.add('show');}
+    },1000);
+  } else {
+    clearInterval(iv);running=false;b.textContent='▶ Tiếp tục';
+  }
+}
+
+// ---- TABS ----
+function goTab(i){
+  document.querySelectorAll('.pane-wrap').forEach((p,j)=>p.classList.toggle('on',j===i));
+  document.querySelectorAll('.tab').forEach((t,j)=>t.classList.toggle('on',j===i));
+}
+
+// ---- TRANSLATION ----
+function toggleTr(btn){
+  const box=btn.nextElementSibling;
+  box.classList.toggle('show');
+  btn.textContent=box.classList.contains('show')?'🔒 Ẩn bản dịch':'🌟 Mở dịch đoạn này';
+}
+
+// ---- SHUFFLE ----
+function shuffle(a){const b=[...a];for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]];}return b;}
+
+// ---- SCORE ----
+let tot=0,cor=0;
+
+// ---- BUILD MC ----
+function buildMC(containerId, questions){
+  const wrap=document.getElementById(containerId);
+  questions.forEach((q,qi)=>{
+    tot++;
+    const card=document.createElement('div');card.className='qcard';card.id='qc_'+q.id;
+    const shuf=shuffle(q.opts);
+    const labels=['A','B','C','D'];
+    let optHTML=shuf.map((o,oi)=>`<button class="opt" id="ob_${q.id}_${oi}" onclick="pickMC('${q.id}','${o.v}','${q.ans}',${oi},${shuf.length})"><span class="lbl">${labels[oi]}</span><span>${o.t}</span></button>`).join('');
+    card.innerHTML=`<div class="qnum">Câu ${qi+1}</div><div class="qtxt">${q.q}</div><div class="opts" id="og_${q.id}">${optHTML}</div><div class="expbox" id="ex_${q.id}">${q.exp}</div>`;
+    wrap.appendChild(card);
+  });
+}
+
+function pickMC(qid, sel, ans, idx, total){
+  const og=document.getElementById('og_'+qid);
+  const btns=og.querySelectorAll('.opt');
+  btns.forEach(b=>b.disabled=true);
+  const card=document.getElementById('qc_'+qid);
+  const expbox=document.getElementById('ex_'+qid);
+  if(sel===ans){
+    btns[idx].classList.add('ok');card.classList.add('right');ding();confetti();cor++;
+  } else {
+    btns[idx].classList.add('no');card.classList.add('wrong');buzz();
+    // highlight correct
+    for(let i=0;i<btns.length;i++){
+      const oc=btns[i].getAttribute('onclick');
+      const m=oc.match(/'([^']+)'/g);
+      if(m&&m[1].replace(/'/g,'')===ans){btns[i].classList.add('ok');break;}
+    }
+    const rv=document.createElement('div');rv.className='reveal';rv.innerHTML='✅ Đáp án đúng: <strong>'+ans+'</strong>';og.appendChild(rv);
+  }
+  expbox.classList.add('show');
+}
+
+// ---- BUILD MC WITH CONTEXT (for Ex.15) ----
+function buildMCctx(containerId, questions){
+  const wrap=document.getElementById(containerId);
+  questions.forEach((q,qi)=>{
+    tot++;
+    const card=document.createElement('div');card.className='qcard';card.id='qc_'+q.id;
+    const shuf=shuffle(q.opts);
+    const labels=['A','B','C','D'];
+    let optHTML=shuf.map((o,oi)=>`<button class="opt" id="ob_${q.id}_${oi}" onclick="pickMC('${q.id}','${o.v}','${q.ans}',${oi},${shuf.length})"><span class="lbl">${labels[oi]}</span><span>${o.t}</span></button>`).join('');
+    card.innerHTML=`
+      <div class="qnum">Câu ${qi+1}</div>
+      <div class="ctx-block">${q.ctx}</div>
+      <div class="qtxt">${q.q}</div>
+      <div class="opts" id="og_${q.id}">${optHTML}</div>
+      <div class="expbox" id="ex_${q.id}">${q.exp}</div>
+    `;
+    wrap.appendChild(card);
+  });
+}
+
+// ---- SUBMIT ----
+function submitAll(){
+  const pct=tot>0?Math.round(cor/tot*100):0;
+  document.getElementById('sNum').textContent=cor+'/'+tot;
+  document.getElementById('sNum').style.color=pct>=75?'#00FF7F':pct>=55?'#FDCB6E':'#FF6B9D';
+  let badge,comment;
+  if(pct>=90){badge='🏆 THIÊN TÀI!';comment='Xuất sắc! Em thực sự là ngôi sao của lớp! Kết quả này rất ấn tượng. Tiếp tục phát huy nhé! 🌟';}
+  else if(pct>=75){badge='⭐ LÀM TỐT LẮM!';comment='Giỏi lắm! Em đã hiểu bài rất tốt. Chỉ cần ôn lại một chút những phần chưa chắc là hoàn hảo thôi! 💪';}
+  else if(pct>=55){badge='📚 CẦN CỐ THÊM!';comment='Em đã cố gắng rồi! Hãy đọc lại bài và chú ý đến các từ chìa khóa trong câu hỏi. Em nhất định sẽ làm tốt hơn! 🌈';}
+  else{badge='💡 CỐ LÊN NHÉ!';comment='Đừng nản lòng! Đọc kỹ bài đọc, chú ý từng chi tiết nhỏ. Luyện tập thêm là em sẽ tiến bộ rất nhanh thôi! ❤️';}
+  document.getElementById('sBadge').textContent=badge;
+  document.getElementById('sComment').textContent=comment;
+  document.getElementById('scoreModal').classList.add('show');
+}
+
+// ============================
+// QUESTION DATA
+// ============================
+
+// ---- EX14 PASSAGE 1 ----
+const q0=[
+  {id:'p1q1',q:'1. How high will sky houses float above the ground?',
+   opts:[{v:'A',t:'50 meters'},{v:'B',t:'100 meters'},{v:'C',t:'150 meters'},{v:'D',t:'200 meters'}],ans:'B',
+   exp:`<div class="es"><strong>✅ Đáp án đúng: B – 100 meters</strong></div>
+<div class="es"><strong>📖 Dẫn chứng:</strong> Đoạn Sky Houses: <em>"Sky houses will float <u>100 meters</u> above the ground."</em></div>
+<div class="es"><strong>🔍 Phân tích:</strong> A (50m), C (150m), D (200m) – đều không xuất hiện trong bài. Bài ghi rõ 100 mét → chọn B.</div>
+<div class="es"><strong>💡 Tip:</strong> Câu hỏi "How high?" → tìm con số kèm đơn vị chiều cao. Đây là câu hỏi Detail (chi tiết) – loại dễ nhất.</div>`},
+
+  {id:'p1q2',q:'2. What will people use to travel between sky houses?',
+   opts:[{v:'A',t:'Elevators and stairs'},{v:'B',t:'Boats and trains'},{v:'C',t:'Flying cars or sky bridges'},{v:'D',t:'Submarines'}],ans:'C',
+   exp:`<div class="es"><strong>✅ Đáp án đúng: C – Flying cars or sky bridges</strong></div>
+<div class="es"><strong>📖 Dẫn chứng:</strong> <em>"People will travel between houses using <u>flying cars or sky bridges</u>."</em></div>
+<div class="es"><strong>🔍 Phân tích:</strong> A (thang máy, cầu thang) – không đề cập. B (thuyền, tàu) – không phù hợp với nhà trên không. D (tàu ngầm) – dùng cho nhà dưới nước. Chỉ C khớp với bài.</div>
+<div class="es"><strong>💡 Tip:</strong> Chú ý "travel between sky houses" là cụm chìa khóa. Submarines (tàu ngầm) → dễ bẫy vì xuất hiện trong bài nhưng ở đoạn KHÁC.</div>`},
+
+  {id:'p1q3',q:'3. Where will underwater houses get fresh air from?',
+   opts:[{v:'A',t:'From oxygen tanks'},{v:'B',t:'From seawater'},{v:'C',t:'From the surface'},{v:'D',t:'From plants'}],ans:'B',
+   exp:`<div class="es"><strong>✅ Đáp án đúng: B – From seawater</strong></div>
+<div class="es"><strong>📖 Dẫn chứng:</strong> <em>"Special machines will make fresh air from <u>seawater</u>."</em></div>
+<div class="es"><strong>🔍 Phân tích:</strong> A (bình oxy) – không đề cập. C (từ bề mặt) – không đề cập. D (từ cây) – không đề cập cho nhà dưới nước.</div>
+<div class="es"><strong>💡 Từ vựng:</strong> <em>seawater</em> = nước biển. Máy đặc biệt (special machines) chuyển hóa nước biển → không khí trong lành.</div>`},
+
+  {id:'p1q4',q:'4. In paragraph five, what does "They" refer to?',
+   opts:[{v:'A',t:'Moving houses'},{v:'B',t:'Smart eco-houses'},{v:'C',t:'Owners'},{v:'D',t:'Robots'}],ans:'A',
+   exp:`<div class="es"><strong>✅ Đáp án đúng: A – Moving houses</strong></div>
+<div class="es"><strong>📖 Dẫn chứng:</strong> Đoạn 5: <em>"Moving houses will be like big robots. <u>They</u> can walk to different places when owners want to change locations."</em></div>
+<div class="es"><strong>🔍 Phân tích Reference (đại từ tham chiếu):</strong> "They" (số nhiều) thay thế danh từ số nhiều gần nhất đứng trước = "Moving houses". B (Smart eco-houses) sai vì ở đoạn 4. C (Owners) sai – owners đứng SAU "they". D (Robots) sai – chỉ là phép so sánh "like big robots".</div>
+<div class="es"><strong>💡 Kỹ thuật:</strong> Reference → tìm danh từ số nhiều gần nhất trong cùng đoạn văn.</div>`},
+
+  {id:'p1q5',q:'5. Why will moving houses go to warm beaches?',
+   opts:[{v:'A',t:'In spring'},{v:'B',t:'In summer'},{v:'C',t:'In autumn'},{v:'D',t:'In winter'}],ans:'D',
+   exp:`<div class="es"><strong>✅ Đáp án đúng: D – In winter</strong></div>
+<div class="es"><strong>📖 Dẫn chứng:</strong> <em>"In summer, they will move to cool mountains. In <u>winter</u>, they will walk to warm beaches."</em></div>
+<div class="es"><strong>🔍 Phân tích:</strong> B (summer) sai – mùa hè → đến núi mát, không phải biển ấm. A, C (spring, autumn) không đề cập. D đúng: mùa đông lạnh → di chuyển đến biển ẤM.</div>
+<div class="es"><strong>💡 Logic:</strong> Mùa đông (lạnh) → cần chỗ ấm (warm beaches). Mùa hè (nóng) → cần chỗ mát (cool mountains). Từ "warm" là từ chìa khóa.</div>`}
+];
+
+// ---- EX14 PASSAGE 2 ----
+const q1=[
+  {id:'p2q1',q:'1. What do Japanese earthquake-proof houses float on?',
+   opts:[{v:'A',t:'Water tanks'},{v:'B',t:'Air cushions'},{v:'C',t:'Magnetic fields'},{v:'D',t:'Special springs'}],ans:'B',
+   exp:`<div class="es"><strong>✅ Đáp án đúng: B – Air cushions</strong></div>
+<div class="es"><strong>📖 Dẫn chứng:</strong> <em>"These houses float on <u>air cushions</u>."</em></div>
+<div class="es"><strong>🔍 Phân tích:</strong> A (bể nước) – không đề cập. B đúng: air cushions = đệm không khí. C (từ trường) – đề cập ở Passage 1, không phải đây. D (lò xo) – không đề cập.</div>
+<div class="es"><strong>💡 Từ vựng:</strong> <em>air cushion</em> = đệm không khí, giúp nhà hấp thụ chấn động khi động đất.</div>`},
+
+  {id:'p2q2',q:'2. How many houses have Japanese engineers tested?',
+   opts:[{v:'A',t:'10 houses'},{v:'B',t:'18 houses'},{v:'C',t:'30 houses'},{v:'D',t:'50 houses'}],ans:'D',
+   exp:`<div class="es"><strong>✅ Đáp án đúng: D – 50 houses</strong></div>
+<div class="es"><strong>📖 Dẫn chứng:</strong> <em>"They have tested <u>50 houses</u> already, and all worked perfectly!"</em></div>
+<div class="es"><strong>🔍 Phân tích (Bẫy số liệu):</strong> A (10) – số phòng mà 1 nhà băng có thể làm mát. B (18) – nhiệt độ nhà băng. C (30) – số ngày dự trữ thức ăn. D (50) – số nhà đã được thử nghiệm.</div>
+<div class="es"><strong>💡 Tip:</strong> Bài có nhiều con số (10, 18, 30, 50, 5, 2, 100). Phải gắn TỪNG SỐ với thông tin tương ứng.</div>`},
+
+  {id:'p2q3',q:'3. What temperature do Swedish ice houses maintain all year?',
+   opts:[{v:'A',t:'5 degrees'},{v:'B',t:'10 degrees'},{v:'C',t:'18 degrees'},{v:'D',t:'30 degrees'}],ans:'C',
+   exp:`<div class="es"><strong>✅ Đáp án đúng: C – 18 degrees</strong></div>
+<div class="es"><strong>📖 Dẫn chứng:</strong> <em>"Special cooling walls keep the temperature at <u>18 degrees</u> all year."</em></div>
+<div class="es"><strong>🔍 Phân tích:</strong> A (5°), B (10°), D (30°) – đều không xuất hiện trong bài. C khớp chính xác với bài đọc.</div>
+<div class="es"><strong>💡 Từ vựng:</strong> <em>maintain</em> = duy trì. <em>all year</em> = quanh năm. 18°C là nhiệt độ dễ chịu ngay cả ở nước nhiệt đới nóng.</div>`},
+
+  {id:'p2q4',q:'4. In the fourth paragraph, what does "They" refer to in "They clean everything"?',
+   opts:[{v:'A',t:'Scientists'},{v:'B',t:'Families'},{v:'C',t:'Tiny robots'},{v:'D',t:'Windows'}],ans:'C',
+   exp:`<div class="es"><strong>✅ Đáp án đúng: C – Tiny robots</strong></div>
+<div class="es"><strong>📖 Dẫn chứng:</strong> <em>"Tiny robots live in the walls and come out at night. <u>They</u> clean everything while people sleep."</em></div>
+<div class="es"><strong>🔍 Phân tích:</strong> A (Scientists) – nhắc ở đầu đoạn, không phải người dọn dẹp. B (Families) – không xuất hiện trong đoạn 4. C đúng: "They" → "Tiny robots" ở câu trước. D (Windows) – xuất hiện SAU "they clean everything".</div>
+<div class="es"><strong>💡 Kỹ thuật:</strong> "They" số nhiều → danh từ số nhiều gần nhất ở câu trước = Tiny robots.</div>`},
+
+  {id:'p2q5',q:'5. How long are the cleaning robots?',
+   opts:[{v:'A',t:'2 millimeters'},{v:'B',t:'2 centimeters'},{v:'C',t:'2 meters'},{v:'D',t:'2 inches'}],ans:'B',
+   exp:`<div class="es"><strong>✅ Đáp án đúng: B – 2 centimeters</strong></div>
+<div class="es"><strong>📖 Dẫn chứng:</strong> <em>"The robots are <u>2 centimeters</u> long and work in groups of 100."</em></div>
+<div class="es"><strong>🔍 Phân tích:</strong> A (millimeters) – đơn vị nhỏ hơn, sai. B đúng: centimeters. C (meters) – 2 mét quá to, mâu thuẫn với "tiny". D (inches) – đơn vị không xuất hiện trong bài.</div>
+<div class="es"><strong>💡 Logic:</strong> Robot được mô tả là "tiny" (tí hon) → 2cm rất nhỏ, phù hợp. 2 mét = to như người, không thể gọi là "tiny"!</div>`},
+
+  {id:'p2q6',q:'6. What happens to dust on the special floors?',
+   opts:[{v:'A',t:'It disappears'},{v:'B',t:'It becomes water'},{v:'C',t:'It turns into fresh air'},{v:'D',t:'It goes into the walls'}],ans:'C',
+   exp:`<div class="es"><strong>✅ Đáp án đúng: C – It turns into fresh air</strong></div>
+<div class="es"><strong>📖 Dẫn chứng:</strong> <em>"Floors absorb dust and turn it into <u>fresh air</u>."</em></div>
+<div class="es"><strong>🔍 Phân tích:</strong> A (biến mất) – không chính xác, bụi được chuyển hóa chứ không tự biến mất. B (thành nước) – sai. C đúng: "turn it into fresh air". D (vào trong tường) – robot vào tường, không phải bụi.</div>
+<div class="es"><strong>💡 Từ vựng:</strong> <em>absorb</em> = hút, hấp thụ. <em>turn into</em> = biến thành. Cả hai là cụm từ quan trọng.</div>`}
+];
+
+// ---- EX15 TEXT 1 – MC per blank ----
+const q2=[
+  {id:'e15t1q1',
+   ctx:`In 2070, my family will move to a house on the Moon. <span class="ctx-blank">(1) ?</span> We will travel there by spaceship in just three hours.`,
+   q:'1. Câu nào phù hợp để điền vào chỗ trống (1)?',
+   opts:[
+     {v:'A',t:'Water will come from ice under the Moon\'s surface.'},
+     {v:'B',t:'Many scientists already live there now.'},
+     {v:'C',t:'We can turn off the magnets for fun.'},
+     {v:'D',t:'It will keep air inside for us to breathe.'}
+   ],ans:'B',
+   exp:`<div class="es"><strong>✅ Đáp án đúng: B</strong> – "Many scientists already live there now."</div>
+<div class="es"><strong>🌐 Dịch câu đúng:</strong> "Hiện tại đã có nhiều nhà khoa học sống ở đó rồi."</div>
+<div class="es"><strong>📖 Logic:</strong> Câu trước nói gia đình sẽ chuyển đến Mặt Trăng. Câu B cho biết đã có người sống ở đó → lý giải vì sao có thể chuyển đến ở được. Câu sau "We will travel there by spaceship" tiếp tục nói về việc di chuyển đến Mặt Trăng → mạch văn hoàn toàn tự nhiên.</div>
+<div class="es"><strong>❌ Loại các đáp án còn lại:</strong> A (nước từ băng) – nói về nguồn nước, không phù hợp chỗ trống này. C (tắt nam châm) – nói về đồ nội thất, sai ngữ cảnh. D (giữ không khí) – nói về bong bóng kính, sai vị trí.</div>`},
+
+  {id:'e15t1q2',
+   ctx:`Our Moon house will be inside a giant glass bubble. <span class="ctx-blank">(2) ?</span> The bubble will protect us from the cold space outside.`,
+   q:'2. Câu nào phù hợp để điền vào chỗ trống (2)?',
+   opts:[
+     {v:'A',t:'Water will come from ice under the Moon\'s surface.'},
+     {v:'B',t:'Many scientists already live there now.'},
+     {v:'C',t:'We can turn off the magnets for fun.'},
+     {v:'D',t:'It will keep air inside for us to breathe.'}
+   ],ans:'D',
+   exp:`<div class="es"><strong>✅ Đáp án đúng: D</strong> – "It will keep air inside for us to breathe."</div>
+<div class="es"><strong>🌐 Dịch câu đúng:</strong> "Nó sẽ giữ không khí bên trong để chúng tôi thở."</div>
+<div class="es"><strong>📖 Logic:</strong> "It" trong câu D chỉ "the giant glass bubble" (bong bóng kính) ở câu trước. Câu D nêu CHỨC NĂNG 1 của bong bóng: giữ không khí. Câu tiếp theo "The bubble will protect us from the cold" nêu CHỨC NĂNG 2: bảo vệ khỏi lạnh → hai chức năng bổ sung cho nhau.</div>
+<div class="es"><strong>❌ Loại:</strong> A – nói về nước, không liên quan bong bóng. B – nói về khoa học gia, đã dùng ở (1). C – nói về nam châm, sai ngữ cảnh.</div>`},
+
+  {id:'e15t1q3',
+   ctx:`The furniture will stick to the floors using magnets. <span class="ctx-blank">(3) ?</span> We can play floating basketball in the living room!`,
+   q:'3. Câu nào phù hợp để điền vào chỗ trống (3)?',
+   opts:[
+     {v:'A',t:'Water will come from ice under the Moon\'s surface.'},
+     {v:'B',t:'Many scientists already live there now.'},
+     {v:'C',t:'We can turn off the magnets for fun.'},
+     {v:'D',t:'It will keep air inside for us to breathe.'}
+   ],ans:'C',
+   exp:`<div class="es"><strong>✅ Đáp án đúng: C</strong> – "We can turn off the magnets for fun."</div>
+<div class="es"><strong>🌐 Dịch câu đúng:</strong> "Chúng tôi có thể tắt nam châm để chơi cho vui."</div>
+<div class="es"><strong>📖 Logic:</strong> Câu trước nói đồ nội thất bám sàn nhờ nam châm. Câu C nói có thể TẮT nam châm → đồ đạc nổi lơ lửng → câu sau giải thích ngay kết quả: "We can play floating basketball!" (chơi bóng rổ bay). Chuỗi nhân quả rất rõ ràng: nam châm TẮT → đồ vật LƠ LỬNG → chơi BÓNG RỔ BAY.</div>
+<div class="es"><strong>❌ Loại:</strong> A – nói về nước. B – nói về khoa học gia. D – nói về không khí và bong bóng kính.</div>`},
+
+  {id:'e15t1q4',
+   ctx:`Robots will deliver supplies from Earth every month. <span class="ctx-blank">(4) ?</span> The view of Earth from our windows will be beautiful!`,
+   q:'4. Câu nào phù hợp để điền vào chỗ trống (4)?',
+   opts:[
+     {v:'A',t:'Water will come from ice under the Moon\'s surface.'},
+     {v:'B',t:'Many scientists already live there now.'},
+     {v:'C',t:'We can turn off the magnets for fun.'},
+     {v:'D',t:'It will keep air inside for us to breathe.'}
+   ],ans:'A',
+   exp:`<div class="es"><strong>✅ Đáp án đúng: A</strong> – "Water will come from ice under the Moon's surface."</div>
+<div class="es"><strong>🌐 Dịch câu đúng:</strong> "Nước sẽ đến từ lớp băng bên dưới bề mặt Mặt Trăng."</div>
+<div class="es"><strong>📖 Logic:</strong> Đoạn này nói về nguồn THỰC PHẨM và CUNG CẤP tài nguyên. Câu trước: Robot giao đồ từ Trái Đất (nguồn cung từ bên ngoài). Câu A: Nước từ băng Mặt Trăng (nguồn cung tại chỗ) → bổ sung hoàn chỉnh thông tin về tài nguyên. Câu sau chuyển chủ đề sang cảnh quan → A là câu kết thúc phần tài nguyên.</div>
+<div class="es"><strong>❌ Loại:</strong> B – đã dùng ở (1). C – đã dùng ở (3). D – đã dùng ở (2).</div>`}
+];
+
+// ---- EX15 TEXT 2 – MC per blank ----
+const q3=[
+  {id:'e15t2q1',
+   ctx:`By 2055, people will build amazing houses under the ocean. <span class="ctx-blank">(1) ?</span> Fish will swim past our windows every day!`,
+   q:'1. Câu nào phù hợp để điền vào chỗ trống (1)?',
+   opts:[
+     {v:'A',t:'My bedroom window will face a coral reef.'},
+     {v:'B',t:'We will use elevators to go up for shopping.'},
+     {v:'C',t:'My family loves swimming and ocean animals.'},
+     {v:'D',t:'We can grow special vegetables that love salty water.'}
+   ],ans:'C',
+   exp:`<div class="es"><strong>✅ Đáp án đúng: C</strong> – "My family loves swimming and ocean animals."</div>
+<div class="es"><strong>🌐 Dịch câu đúng:</strong> "Gia đình tôi yêu thích bơi lội và các loài động vật đại dương."</div>
+<div class="es"><strong>📖 Logic:</strong> Câu trước nói người ta sẽ xây nhà dưới đại dương. Câu C giải thích LÝ DO CÁ NHÂN tại sao gia đình tác giả muốn sống ở đó: yêu biển và động vật biển. Câu sau "Fish will swim past our windows" tiếp tục miêu tả cuộc sống biển → rất tự nhiên và liền mạch.</div>
+<div class="es"><strong>❌ Loại:</strong> A (rạn san hô) – nói về cửa sổ phòng ngủ, chưa phù hợp ở đây. B (thang máy) – nói về di chuyển. D (rau đặc biệt) – nói về thực phẩm.</div>`},
+
+  {id:'e15t2q2',
+   ctx:`Special tubes will connect it to the land above. <span class="ctx-blank">(2) ?</span> Fresh air will come down through these tubes all day.`,
+   q:'2. Câu nào phù hợp để điền vào chỗ trống (2)?',
+   opts:[
+     {v:'A',t:'My bedroom window will face a coral reef.'},
+     {v:'B',t:'We will use elevators to go up for shopping.'},
+     {v:'C',t:'My family loves swimming and ocean animals.'},
+     {v:'D',t:'We can grow special vegetables that love salty water.'}
+   ],ans:'B',
+   exp:`<div class="es"><strong>✅ Đáp án đúng: B</strong> – "We will use elevators to go up for shopping."</div>
+<div class="es"><strong>🌐 Dịch câu đúng:</strong> "Chúng tôi sẽ dùng thang máy để đi lên trên mua sắm."</div>
+<div class="es"><strong>📖 Logic:</strong> Câu trước giới thiệu "Special tubes" kết nối nhà với mặt đất. Câu B mô tả MỘT CÔNG DỤNG của ống/đường kết nối đó: dùng thang máy đi lên mặt đất mua sắm. Câu sau mô tả CÔNG DỤNG KHÁC: không khí đi xuống qua ống → hai câu cùng nói về chức năng của hệ thống kết nối.</div>
+<div class="es"><strong>❌ Loại:</strong> A – nói về cửa sổ phòng ngủ. C – nói về sở thích, đã dùng ở (1). D – nói về rau đặc biệt.</div>`},
+
+  {id:'e15t2q3',
+   ctx:`We can see dolphins, turtles, and colorful fish outside. <span class="ctx-blank">(3) ?</span> At night, special lights will make the water glow beautifully.`,
+   q:'3. Câu nào phù hợp để điền vào chỗ trống (3)?',
+   opts:[
+     {v:'A',t:'My bedroom window will face a coral reef.'},
+     {v:'B',t:'We will use elevators to go up for shopping.'},
+     {v:'C',t:'My family loves swimming and ocean animals.'},
+     {v:'D',t:'We can grow special vegetables that love salty water.'}
+   ],ans:'A',
+   exp:`<div class="es"><strong>✅ Đáp án đúng: A</strong> – "My bedroom window will face a coral reef."</div>
+<div class="es"><strong>🌐 Dịch câu đúng:</strong> "Cửa sổ phòng ngủ của tôi sẽ hướng ra một rạn san hô."</div>
+<div class="es"><strong>📖 Logic:</strong> Đoạn này đang nói về CẢNH BIỂN nhìn từ nhà: cá heo, rùa, cá đầy màu sắc. Câu A bổ sung thêm một chi tiết cảnh biển cụ thể: rạn san hô nhìn từ phòng ngủ → cùng chủ đề ngắm cảnh đại dương. Câu sau chuyển sang ánh đèn ban đêm → câu A là cầu nối giữa cảnh ban ngày và ban đêm.</div>
+<div class="es"><strong>❌ Loại:</strong> B – đã dùng ở (2). C – đã dùng ở (1). D – nói về rau, sai chủ đề đoạn này (đoạn về cảnh đẹp).</div>`},
+
+  {id:'e15t2q4',
+   ctx:`There will be an underwater garden with sea plants. <span class="ctx-blank">(4) ?</span> Friendly robots will help us catch fish for dinner.`,
+   q:'4. Câu nào phù hợp để điền vào chỗ trống (4)?',
+   opts:[
+     {v:'A',t:'My bedroom window will face a coral reef.'},
+     {v:'B',t:'We will use elevators to go up for shopping.'},
+     {v:'C',t:'My family loves swimming and ocean animals.'},
+     {v:'D',t:'We can grow special vegetables that love salty water.'}
+   ],ans:'D',
+   exp:`<div class="es"><strong>✅ Đáp án đúng: D</strong> – "We can grow special vegetables that love salty water."</div>
+<div class="es"><strong>🌐 Dịch câu đúng:</strong> "Chúng tôi có thể trồng các loại rau đặc biệt thích nước mặn."</div>
+<div class="es"><strong>📖 Logic:</strong> Câu trước nói về "underwater garden with sea plants" (khu vườn dưới nước với cây biển). Câu D bổ sung thêm loại cây có thể trồng: rau đặc biệt chịu được nước mặn → cùng chủ đề vườn dưới nước. Câu sau nói về robot bắt cá → cùng chủ đề THỰC PHẨM dưới biển.</div>
+<div class="es"><strong>❌ Loại:</strong> A – đã dùng ở (3). B – đã dùng ở (2). C – đã dùng ở (1).</div>`}
+];
+
+// Register fill correct answers (kept for reference but not used)
+window['fca_t1']={1:'B',2:'D',3:'C',4:'A'};
+window['fca_t2']={1:'C',2:'B',3:'A',4:'D'};
+
+// ---- INIT ----
+window.onload=function(){
+  buildMC('c0',q0);
+  buildMC('c1',q1);
+  buildMCctx('c2',q2);
+  buildMCctx('c3',q3);
+};
+</script>
+</body>
+</html>

@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bài kiểm tra tiếng Anh - Unit 10</title>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --correct: #00D26A;
+      --wrong: #FF4757;
+      --card-bg: rgba(255,255,255,0.92);
+      --radius: 18px;
+      --shadow: 0 8px 24px rgba(0,0,0,0.12);
+      --shadow-3d: 0 6px 0 #8854C0, 0 8px 20px rgba(136,84,192,0.35);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Nunito', sans-serif;
+      min-height: 100vh;
+      padding: 12px 16px 40px;
+      position: relative;
+      overflow-x: hidden;
+    }
+    /* Animated gradient background */
+    .bg-gradient {
+      position: fixed;
+      inset: 0;
+      z-index: -2;
+      background: linear-gradient(135deg, #FDCB6E 0%, #E17055 25%, #00C9A7 50%, #8854C0 75%, #FDCB6E 100%);
+      background-size: 400% 400%;
+      animation: gradientShift 12s ease infinite;
+    }
+    @keyframes gradientShift {
+      0%, 100% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+    }
+    /* SVG pattern overlay - stars, flowers, clouds */
+    .bg-pattern {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      opacity: 0.4;
+      background-image:
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Cpath fill='%23fff' d='M50 10l6 18 18 2-14 12 6 18-16-10-16 10 6-18-14-12 18-2z'/%3E%3C/svg%3E"),
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Ccircle fill='%23fff' cx='40' cy='25' r='8'/%3E%3Cpath fill='%23fff' d='M25 50 Q40 30 55 50 Q40 65 25 50'/%3E%3Ccircle fill='%23fff' cx='40' cy='50' r='5'/%3E%3C/svg%3E"),
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='60' viewBox='0 0 120 60'%3E%3Cellipse fill='%23fff' cx='30' cy='35' rx='28' ry='18' opacity='0.7'/%3E%3Cellipse fill='%23fff' cx='70' cy='30' rx='35' ry='20' opacity='0.6'/%3E%3Cellipse fill='%23fff' cx='95' cy='38' rx='20' ry='14' opacity='0.5'/%3E%3C/svg%3E");
+      background-size: 100px 100px, 80px 80px, 120px 60px;
+      background-blend-mode: overlay;
+      animation: float 20s ease-in-out infinite;
+    }
+    @keyframes float {
+      0%, 100% { transform: translate(0,0) scale(1); }
+      33% { transform: translate(5px,-8px) scale(1.02); }
+      66% { transform: translate(-5px,5px) scale(0.98); }
+    }
+    .header-small {
+      text-align: center;
+      font-size: 0.9rem;
+      color: #5a3d7a;
+      margin-bottom: 16px;
+      font-weight: 700;
+      text-shadow: 0 1px 2px rgba(255,255,255,0.8);
+    }
+    .card {
+      max-width: 720px;
+      margin: 0 auto 20px;
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 20px 24px;
+      backdrop-filter: blur(8px);
+    }
+    .section-title {
+      font-size: 1.15rem;
+      color: #2d3436;
+      margin-bottom: 14px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid #8854C0;
+      font-weight: 800;
+    }
+    .q-block {
+      margin-bottom: 22px;
+    }
+    .q-text {
+      font-size: 1.05rem;
+      color: #2d3436;
+      margin-bottom: 12px;
+      line-height: 1.5;
+    }
+    .q-text u { text-decoration: underline; text-underline-offset: 2px; }
+    .options {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .opt-btn {
+      font-family: 'Nunito', sans-serif;
+      font-size: 1rem;
+      padding: 12px 18px;
+      border: none;
+      border-radius: 18px;
+      background: linear-gradient(180deg, #fff 0%, #f8f4ff 100%);
+      color: #2d3436;
+      text-align: left;
+      cursor: pointer;
+      box-shadow: var(--shadow-3d);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .opt-btn:hover:not(.locked) {
+      transform: scale(1.02);
+      box-shadow: 0 8px 0 #8854C0, 0 12px 28px rgba(136,84,192,0.4);
+    }
+    .opt-btn.locked { cursor: default; }
+    .opt-btn.correct {
+      background: linear-gradient(180deg, #00D26A 0%, #00b359 100%);
+      color: #fff;
+      box-shadow: 0 4px 0 #00884a, 0 6px 16px rgba(0,210,106,0.4);
+    }
+    .opt-btn.wrong {
+      background: linear-gradient(180deg, #FF4757 0%, #ee3344 100%);
+      color: #fff;
+      box-shadow: 0 4px 0 #cc2a38, 0 6px 16px rgba(255,71,87,0.4);
+      animation: shake 0.5s ease;
+    }
+    @keyframes shake {
+      0%,100%{transform:translateX(0)}
+      20%{transform:translateX(-6px)}
+      40%{transform:translateX(6px)}
+      60%{transform:translateX(-4px)}
+      80%{transform:translateX(4px)}
+    }
+    .explanation {
+      margin-top: 14px;
+      padding: 14px;
+      background: linear-gradient(135deg, #f0f4ff 0%, #fef4f0 100%);
+      border-radius: 12px;
+      border-left: 4px solid #8854C0;
+      font-size: 0.95rem;
+      line-height: 1.6;
+      color: #2d3436;
+      display: none;
+    }
+    .explanation.show { display: block; }
+    .explanation strong { color: #5a3d7a; }
+    .gap-inline {
+      display: inline-block;
+      min-width: 100px;
+      margin: 0 4px;
+      vertical-align: middle;
+    }
+    .gap-btn {
+      font-family: 'Nunito', sans-serif;
+      padding: 6px 12px;
+      border-radius: 12px;
+      border: 2px dashed #8854C0;
+      background: #fff;
+      cursor: pointer;
+      font-size: 0.95rem;
+      color: #5a3d7a;
+      transition: all 0.2s;
+    }
+    .gap-btn:hover:not(.locked) { background: #f8f4ff; transform: scale(1.03); }
+    .gap-btn.locked { cursor: default; }
+    .gap-btn.correct { background: var(--correct); color: #fff; border-style: solid; }
+    .gap-btn.wrong { background: var(--wrong); color: #fff; border-style: solid; animation: shake 0.5s ease; }
+    .gap-popup {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.4);
+      z-index: 100;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .gap-popup.show { display: flex; }
+    .gap-popup .card {
+      max-width: 400px;
+    }
+    .gap-popup .options { display: flex; flex-wrap: wrap; gap: 8px; }
+    .gap-popup .opt-btn { flex: 1 1 45%; }
+    .match-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+    .match-row .explanation.full-width { width: 100%; margin-top: 8px; }
+    .match-row select {
+      font-family: 'Nunito', sans-serif;
+      padding: 8px 12px;
+      border-radius: 12px;
+      border: 2px solid #8854C0;
+      font-size: 0.95rem;
+      min-width: 200px;
+    }
+    .tf-options { display: flex; gap: 12px; flex-wrap: wrap; }
+    .tf-options .opt-btn { flex: 1 1 140px; text-align: center; }
+    .passage {
+      background: #f8f9fa;
+      padding: 14px;
+      border-radius: 12px;
+      margin-bottom: 14px;
+      line-height: 1.7;
+      font-size: 0.98rem;
+    }
+    .sp2-block { position: relative; z-index: 1; }
+    .sp2-block .options { margin-top: 6px; }
+    .submit-wrap {
+      text-align: center;
+      margin-top: 28px;
+    }
+    .submit-btn {
+      font-family: 'Nunito', sans-serif;
+      font-size: 1.15rem;
+      font-weight: 800;
+      padding: 14px 32px;
+      border: none;
+      border-radius: 20px;
+      background: linear-gradient(135deg, #8854C0 0%, #6c3da8 100%);
+      color: #fff;
+      cursor: pointer;
+      box-shadow: 0 6px 0 #4a2d6e, 0 10px 24px rgba(136,84,192,0.45);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .submit-btn:hover {
+      transform: scale(1.05);
+      box-shadow: 0 8px 0 #4a2d6e, 0 14px 28px rgba(136,84,192,0.5);
+    }
+    .result-popup {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 200;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .result-popup.show { display: flex; }
+    .result-popup .card { max-width: 420px; text-align: center; }
+    .result-popup h2 { color: #8854C0; margin-bottom: 10px; }
+    .result-popup .score { font-size: 2rem; font-weight: 800; color: #00D26A; margin: 10px 0; }
+    .result-popup .message { font-size: 1.05rem; color: #2d3436; margin-top: 12px; }
+    #confetti-canvas { position: fixed; top: 0; left: 0; pointer-events: none; z-index: 300; }
+  </style>
+</head>
+<body>
+  <div class="bg-gradient"></div>
+  <div class="bg-pattern"></div>
+  <canvas id="confetti-canvas"></canvas>
+
+  <p class="header-small">Giáo viên tạo: Ms Mai An ULIS</p>
+
+  <div class="card">
+    <div class="section-title">VIII. Choose the correct form.</div>
+    <div id="s8-q1" class="q-block" data-correct="c">
+      <p class="q-text">1. Our dog is amazing - it _______ sing!</p>
+      <div class="options" data-options='["should","must","can","might"]'></div>
+      <div class="explanation" id="s8-e1"></div>
+    </div>
+    <div id="s8-q2" class="q-block" data-correct="b">
+      <p class="q-text">2. Bring your umbrella - it _______ rain later.</p>
+      <div class="options" data-options='["can","might","must","should"]'></div>
+      <div class="explanation" id="s8-e2"></div>
+    </div>
+    <div id="s8-q3" class="q-block" data-correct="d">
+      <p class="q-text">3. All students _______ wear their uniforms to school.</p>
+      <div class="options" data-options='["should","will","may","must"]'></div>
+      <div class="explanation" id="s8-e3"></div>
+    </div>
+    <div id="s8-q4" class="q-block" data-correct="c">
+      <p class="q-text">4. We _______ wash our hands before we have our meals.</p>
+      <div class="options" data-options='["could","can","should","might"]'></div>
+      <div class="explanation" id="s8-e4"></div>
+    </div>
+    <div id="s8-q5" class="q-block" data-correct="a">
+      <p class="q-text">5. _______ we go to the beach today? ~ Great!</p>
+      <div class="options" data-options='["Shall","Will","Might","Should"]'></div>
+      <div class="explanation" id="s8-e5"></div>
+    </div>
+    <div id="s8-q6" class="q-block" data-correct="b">
+      <p class="q-text">6. Students _______ use a dictionary during the test. It's forbidden.</p>
+      <div class="options" data-options='["can&apos;t","mustn&apos;t","might not","won&apos;t"]'></div>
+      <div class="explanation" id="s8-e6"></div>
+    </div>
+    <div id="s8-q7" class="q-block" data-correct="c">
+      <p class="q-text">7. I _______ go to the football match but I don't know yet.</p>
+      <div class="options" data-options='["can&apos;t","shouldn&apos;t","might not","mustn&apos;t"]'></div>
+      <div class="explanation" id="s8-e7"></div>
+    </div>
+    <div id="s8-q8" class="q-block" data-correct="b">
+      <p class="q-text">8. Ingrid _______ play the violin when she was six.</p>
+      <div class="options" data-options='["can&apos;t","could","might","shouldn&apos;t"]'></div>
+      <div class="explanation" id="s8-e8"></div>
+    </div>
+    <div id="s8-q9" class="q-block" data-correct="d">
+      <p class="q-text">9. _______ you like something to drink?</p>
+      <div class="options" data-options='["Could","Should","Will","Would"]'></div>
+      <div class="explanation" id="s8-e9"></div>
+    </div>
+    <div id="s8-q10" class="q-block" data-correct="a">
+      <p class="q-text">10. I'm afraid of water because I _______ swim.</p>
+      <div class="options" data-options='["can&apos;t","may","couldn&apos;t","must"]'></div>
+      <div class="explanation" id="s8-e10"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="section-title">IX. Complete the sentences with an appropriate preposition.</div>
+    <div id="s9-q1" class="q-block">
+      <p class="q-text">1. Cars of the future run <button type="button" class="gap-btn" data-answer="on"></button> electricity.</p>
+      <div class="explanation" id="s9-e1"></div>
+    </div>
+    <div id="s9-q2" class="q-block">
+      <p class="q-text">2. Phong's dream house looks <button type="button" class="gap-btn" data-answer="like"></button> a UFO.</p>
+      <div class="explanation" id="s9-e2"></div>
+    </div>
+    <div id="s9-q3" class="q-block">
+      <p class="q-text">3. We'll live <button type="button" class="gap-btn" data-answer="in"></button> a hi-tech house <button type="button" class="gap-btn" data-answer="on"></button> the moon.</p>
+      <div class="explanation" id="s9-e3"></div>
+    </div>
+    <div id="s9-q4" class="q-block">
+      <p class="q-text">4. Robots at home will help people <button type="button" class="gap-btn" data-answer="with"></button> household chores.</p>
+      <div class="explanation" id="s9-e4"></div>
+    </div>
+    <div id="s9-q5" class="q-block">
+      <p class="q-text">5. Will your future house be <button type="button" class="gap-btn" data-answer="in"></button> space?</p>
+      <div class="explanation" id="s9-e5"></div>
+    </div>
+    <div id="s9-q6" class="q-block">
+      <p class="q-text">6. Will robots take care <button type="button" class="gap-btn" data-answer="of"></button> children?</p>
+      <div class="explanation" id="s9-e6"></div>
+    </div>
+    <div id="s9-q7" class="q-block">
+      <p class="q-text">7. <button type="button" class="gap-btn" data-answer="In"></button> the future I will travel to the Moon <button type="button" class="gap-btn" data-answer="by"></button> super car.</p>
+      <div class="explanation" id="s9-e7"></div>
+    </div>
+    <div id="s9-q8" class="q-block">
+      <p class="q-text">8. We might have flying cars <button type="button" class="gap-btn" data-answer="in"></button> 2050.</p>
+      <div class="explanation" id="s9-e8"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="section-title">C. SPEAKING — I. Make questions for the underlined parts.</div>
+    <p class="q-text" style="margin-bottom:14px;">Susan and Nick are talking. Susan needs to ask a question for each underlined part in Nick's answers. Choose the best question Susan would ask.</p>
+    <div id="sp1-q1" class="q-block" data-correct="a">
+      <p class="q-text"><strong>Susan:</strong> (1) _______ <strong>Nick:</strong> I am <u>drawing</u> my dream house.</p>
+      <div class="options" data-options='["What are you doing?","What do you draw?","Do you draw?","Why are you drawing?"]'></div>
+      <div class="explanation" id="sp1-e1"></div>
+    </div>
+    <div id="sp1-q2" class="q-block" data-correct="b">
+      <p class="q-text"><strong>Susan:</strong> (2) _______ <strong>Nick:</strong> I like water, so I want to live in a <u>houseboat</u>.</p>
+      <div class="options" data-options='["Do you like water?","What kind of house do you want to live in?","Where do you want to live?","Why a houseboat?"]'></div>
+      <div class="explanation" id="sp1-e2"></div>
+    </div>
+    <div id="sp1-q3" class="q-block" data-correct="a">
+      <p class="q-text"><strong>Susan:</strong> A houseboat? (3) _______ <strong>Nick:</strong> <u>No</u>, not on the river. It will be located on the ocean.</p>
+      <div class="options" data-options='["Will it be on the river?","Is it on the ocean?","Where will it be?","Do you like the river?"]'></div>
+      <div class="explanation" id="sp1-e3"></div>
+    </div>
+    <div id="sp1-q4" class="q-block" data-correct="c">
+      <p class="q-text"><strong>Susan:</strong> (4) _______ <strong>Nick:</strong> Maybe it will be on <u>Atlantic Ocean</u>.</p>
+      <div class="options" data-options='["Will it be on the ocean?","What ocean?","Where will it be located?","Which ocean will it be on?"]'></div>
+      <div class="explanation" id="sp1-e4"></div>
+    </div>
+    <div id="sp1-q5" class="q-block" data-correct="b">
+      <p class="q-text"><strong>Susan:</strong> (5) _______ <strong>Nick:</strong> In my house, I'll have <u>smart appliances</u>. And everything will be wireless.</p>
+      <div class="options" data-options='["Do you have appliances?","What will you have in your house?","Will everything be wireless?","Why smart appliances?"]'></div>
+      <div class="explanation" id="sp1-e5"></div>
+    </div>
+    <div id="sp1-q6" class="q-block" data-correct="d">
+      <p class="q-text"><strong>Susan:</strong> (6) _______ <strong>Nick:</strong> I will travel to work by a <u>super car-boat that can travel on land as well as on water</u>.</p>
+      <div class="options" data-options='["Will you travel?","Do you have a car?","What is a super car-boat?","How will you travel to work?"]'></div>
+      <div class="explanation" id="sp1-e6"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="section-title">C. SPEAKING — II. Choose A - F to complete the conversation.</div>
+    <p class="q-text" style="margin-bottom:12px;">Đọc đoạn hội thoại, sau đó chọn đáp án đúng cho từng chỗ trống (1) đến (6).</p>
+    <div class="passage">
+      <strong>Lisa:</strong> I'll definitely buy a nice car when I grow up.<br>
+      <strong>Gavin:</strong> A car? (1) <strong class="sp2-blank" id="sp2-t1">_______</strong> when we're older!<br>
+      <strong>Lisa:</strong> You're such a dreamer.<br>
+      <strong>Gavin:</strong> Well, maybe in twenty or thirty years.<br>
+      <strong>Lisa:</strong> So, (2) <strong class="sp2-blank" id="sp2-t2">_______</strong><br>
+      <strong>Gavin:</strong> (3) <strong class="sp2-blank" id="sp2-t3">_______</strong> I'll be living in Tokyo and working in Mexico.<br>
+      <strong>Lisa:</strong> But the world is running out of oil. If there's no oil, (4) <strong class="sp2-blank" id="sp2-t4">_______</strong><br>
+      <strong>Gavin:</strong> People will discover a new source of fuel, (5) <strong class="sp2-blank" id="sp2-t5">_______</strong><br>
+      <strong>Lisa:</strong> But if we all have spaceships, traveling won't be exciting anymore? (6) <strong class="sp2-blank" id="sp2-t6">_______</strong><br>
+      <strong>Gavin:</strong> Maybe we'll be vacationing in space!
+    </div>
+    <p class="q-text" style="margin-bottom:8px; font-size:0.95rem;">Các đáp án: A. do you think we'll be taking a spaceship to work every day? — B. why not? — C. we'll probably be flying around in spaceships — D. so we won't need oil — E. where will we go on vacation? — F. how will we fly around in spaceships?</p>
+    <div id="sp2-q1" class="q-block sp2-block" data-correct="c">
+      <p class="q-text" style="margin-bottom:8px;"><strong>Chọn đáp án cho chỗ trống (1):</strong></p>
+      <div class="options" data-options='["do you think we&apos;ll be taking a spaceship to work every day?","why not?","we&apos;ll probably be flying around in spaceships","so we won&apos;t need oil","where will we go on vacation?","how will we fly around in spaceships?"]'></div>
+      <div class="explanation" id="sp2-e1"></div>
+    </div>
+    <div id="sp2-q2" class="q-block sp2-block" data-correct="a">
+      <p class="q-text" style="margin-bottom:8px;"><strong>Chọn đáp án cho chỗ trống (2):</strong></p>
+      <div class="options" data-options='["do you think we&apos;ll be taking a spaceship to work every day?","why not?","we&apos;ll probably be flying around in spaceships","so we won&apos;t need oil","where will we go on vacation?","how will we fly around in spaceships?"]'></div>
+      <div class="explanation" id="sp2-e2"></div>
+    </div>
+    <div id="sp2-q3" class="q-block sp2-block" data-correct="b">
+      <p class="q-text" style="margin-bottom:8px;"><strong>Chọn đáp án cho chỗ trống (3):</strong></p>
+      <div class="options" data-options='["do you think we&apos;ll be taking a spaceship to work every day?","why not?","we&apos;ll probably be flying around in spaceships","so we won&apos;t need oil","where will we go on vacation?","how will we fly around in spaceships?"]'></div>
+      <div class="explanation" id="sp2-e3"></div>
+    </div>
+    <div id="sp2-q4" class="q-block sp2-block" data-correct="f">
+      <p class="q-text" style="margin-bottom:8px;"><strong>Chọn đáp án cho chỗ trống (4):</strong></p>
+      <div class="options" data-options='["do you think we&apos;ll be taking a spaceship to work every day?","why not?","we&apos;ll probably be flying around in spaceships","so we won&apos;t need oil","where will we go on vacation?","how will we fly around in spaceships?"]'></div>
+      <div class="explanation" id="sp2-e4"></div>
+    </div>
+    <div id="sp2-q5" class="q-block sp2-block" data-correct="d">
+      <p class="q-text" style="margin-bottom:8px;"><strong>Chọn đáp án cho chỗ trống (5):</strong></p>
+      <div class="options" data-options='["do you think we&apos;ll be taking a spaceship to work every day?","why not?","we&apos;ll probably be flying around in spaceships","so we won&apos;t need oil","where will we go on vacation?","how will we fly around in spaceships?"]'></div>
+      <div class="explanation" id="sp2-e5"></div>
+    </div>
+    <div id="sp2-q6" class="q-block sp2-block" data-correct="e">
+      <p class="q-text" style="margin-bottom:8px;"><strong>Chọn đáp án cho chỗ trống (6):</strong></p>
+      <div class="options" data-options='["do you think we&apos;ll be taking a spaceship to work every day?","why not?","we&apos;ll probably be flying around in spaceships","so we won&apos;t need oil","where will we go on vacation?","how will we fly around in spaceships?"]'></div>
+      <div class="explanation" id="sp2-e6"></div>
+    </div>
+  </div>
+
+  <div class="submit-wrap">
+    <button type="button" class="submit-btn" id="submit-btn">Nộp bài</button>
+  </div>
+
+  <div class="result-popup" id="result-popup">
+    <div class="card">
+      <h2>Kết quả</h2>
+      <p class="score" id="result-score"></p>
+      <p class="message" id="result-message"></p>
+    </div>
+  </div>
+
+  <div class="gap-popup" id="gap-popup">
+    <div class="card">
+      <p class="q-text" id="gap-popup-text"></p>
+      <div class="options" id="gap-popup-options"></div>
+    </div>
+  </div>
+
+  <script>
+    window.showExplanation = {
+      "s8-e1": "<strong>1. Dịch câu hỏi sang tiếng Việt:</strong> Con chó của chúng tôi thật tuyệt – nó _______ hát!<br><strong>2. Liệt kê và dịch nghĩa cả 4 đáp án:</strong> A. should (nên, dùng cho lời khuyên); B. must (phải, bắt buộc); C. can (có thể, chỉ năng lực làm được việc gì); D. might (có thể, dự đoán không chắc chắn).<br><strong>3. Tại sao đáp án đúng là C (can)?</strong> Câu nói về khả năng đặc biệt của con chó (biết hát). Trong tiếng Anh, \"can\" dùng để chỉ năng lực (ability) ở hiện tại: ai/cái gì có khả năng làm việc gì. Cấu trúc: It can + V.<br><strong>4. Tại sao 3 đáp án còn lại sai?</strong> \"Should\" (nên) và \"must\" (phải) không diễn tả năng lực mà diễn tả nghĩa vụ hoặc lời khuyên. \"Might\" dùng cho khả năng không chắc chắn trong tương lai, không phù hợp với ngữ cảnh khen ngợi khả năng rõ ràng của con chó.",
+      "s8-e2": "<strong>1. Dịch câu:</strong> Mang theo ô đi – trời _______ mưa sau đó.<br><strong>2. Các đáp án:</strong> A. can (có thể); B. might (có thể – dự đoán không chắc); C. must (chắc chắn); D. should (nên).<br><strong>3. Tại sao chọn B (might)?</strong> Dự đoán về tương lai không chắc chắn (\"rain later\") thường dùng \"might\". Mang ô là đề phòng.<br><strong>4. Tại sao loại A, C, D?</strong> \"Can\" ít dùng cho dự đoán thời tiết. \"Must\" quá chắc chắn. \"Should\" không dùng để dự đoán khả năng mưa.",
+      "s8-e3": "<strong>1. Dịch câu:</strong> Tất cả học sinh _______ mặc đồng phục đến trường.<br><strong>2. Các đáp án:</strong> A. should (nên); B. will (sẽ); C. may (có thể); D. must (bắt buộc).<br><strong>3. Tại sao chọn D (must)?</strong> Đây là quy định bắt buộc của trường (uniforms to school). \"Must\" diễn tả nghĩa vụ/ quy định.<br><strong>4. Tại sao loại A, B, C?</strong> \"Should\" chỉ lời khuyên, không đủ mạnh cho quy định. \"Will\" chỉ tương lai, không phải bắt buộc. \"May\" cho phép tùy chọn.",
+      "s8-e4": "<strong>1. Dịch câu:</strong> Chúng ta _______ rửa tay trước khi ăn cơm.<br><strong>2. Các đáp án:</strong> A. could (có thể – quá khứ/ lịch sự); B. can (có thể); C. should (nên); D. might (có thể).<br><strong>3. Tại sao chọn C (should)?</strong> Đây là thói quen đúng đắn, lời khuyên về vệ sinh. \"Should\" dùng cho lời khuyên (nên làm gì).<br><strong>4. Tại sao loại A, B, D?</strong> \"Could\" thường cho khả năng hoặc đề nghị lịch sự. \"Can\" chỉ khả năng. \"Might\" không dùng cho lời khuyên chuẩn mực.",
+      "s8-e5": "<strong>1. Dịch câu:</strong> _______ chúng ta đi biển hôm nay nhé? ~ Tuyệt!<br><strong>2. Các đáp án:</strong> A. Shall (Chúng ta … nhé?); B. Will (sẽ); C. Might (có thể); D. Should (nên).<br><strong>3. Tại sao chọn A (Shall)?</strong> \"Shall we + V\" là cấu trúc đề nghị cùng làm gì (đi chơi, đi ăn…). Câu trả lời \"Great!\" cho thấy đây là lời đề nghị được chấp nhận.<br><strong>4. Tại sao loại B, C, D?</strong> \"Will we\" không dùng để đề nghị. \"Might we\" không tự nhiên. \"Should we\" hỏi ý kiến hơn là đề nghị đi chơi.",
+      "s8-e6": "<strong>1. Dịch câu:</strong> Học sinh _______ dùng từ điển trong giờ kiểm tra. Điều đó bị cấm.<br><strong>2. Các đáp án:</strong> A. can't (không thể); B. mustn't (không được phép); C. might not (có thể không); D. won't (sẽ không).<br><strong>3. Tại sao chọn B (mustn't)?</strong> \"It's forbidden\" = bị cấm, nên cần modal diễn tả cấm đoán mạnh. \"Mustn't\" = không được phép (chỉ quy định).<br><strong>4. Tại sao loại A, C, D?</strong> \"Can't\" nhấn khả năng hơn là quy định. \"Might not\" quá yếu. \"Won't\" là ý chí tương lai, không phải cấm.",
+      "s8-e7": "<strong>1. Dịch câu:</strong> Tôi _______ đi xem trận bóng đá nhưng tôi chưa biết chắc.<br><strong>2. Các đáp án:</strong> A. can't (không thể); B. shouldn't (không nên); C. might not (có thể sẽ không); D. mustn't (không được).<br><strong>3. Tại sao chọn C (might not)?</strong> \"I don't know yet\" cho thấy chưa quyết định. \"Might not\" = có thể sẽ không đi – phù hợp với sự không chắc chắn.<br><strong>4. Tại sao loại A, B, D?</strong> \"Can't\" = chắc chắn không thể. \"Shouldn't\" = không nên (ý khuyên). \"Mustn't\" = cấm đoán.",
+      "s8-e8": "<strong>1. Dịch câu:</strong> Ingrid _______ chơi violin khi cô ấy sáu tuổi.<br><strong>2. Các đáp án:</strong> A. can't (không thể); B. could (có thể – quá khứ); C. might (có thể); D. shouldn't (không nên).<br><strong>3. Tại sao chọn B (could)?</strong> \"When she was six\" là quá khứ. Chỉ \"could\" dùng cho năng lực trong quá khứ (could = past of can).<br><strong>4. Tại sao loại A, C, D?</strong> \"Can't\" là hiện tại. \"Might\" không dùng cho năng lực trong quá khứ. \"Shouldn't\" không hợp nghĩa.",
+      "s8-e9": "<strong>1. Dịch câu:</strong> _______ bạn có muốn uống gì không?<br><strong>2. Các đáp án:</strong> A. Could (Có thể … không?); B. Should (Nên); C. Will (sẽ); D. Would (có muốn … không?).<br><strong>3. Tại sao chọn D (Would)?</strong> \"Would you like something to drink?\" là mẫu câu mời uống rất phổ biến (lịch sự, thân thiện).<br><strong>4. Tại sao loại A, B, C?</strong> \"Could you like\" sai cấu trúc. \"Should you like\" không dùng để mời. \"Will you like\" không tự nhiên khi mời.",
+      "s8-e10": "<strong>1. Dịch câu:</strong> Tôi sợ nước vì tôi _______ bơi.<br><strong>2. Các đáp án:</strong> A. can't (không thể); B. may (có thể); C. couldn't (đã không thể); D. must (phải).<br><strong>3. Tại sao chọn A (can't)?</strong> Sợ nước thường do không biết bơi hoặc không có khả năng bơi ở hiện tại. \"Can't\" = không có khả năng (hiện tại).<br><strong>4. Tại sao loại B, C, D?</strong> \"May\" không diễn tả thiếu năng lực. \"Couldn't\" là quá khứ. \"Must\" trái nghĩa.",
+      "s9-e1": "<strong>1. Dịch câu sang tiếng Việt:</strong> Xe hơi trong tương lai chạy _______ điện.<br><strong>2. Giải thích giới từ:</strong> \"Run on\" là cụm động từ cố định (phrasal verb): chạy bằng (năng lượng/nhiên liệu). Ví dụ: run on solar power (chạy bằng năng lượng mặt trời), run on electricity (chạy bằng điện), run on petrol (chạy bằng xăng).<br><strong>3. Tại sao đáp án đúng là \"on\"?</strong> Với nghĩa \"hoạt động bằng nguồn năng lượng nào\", ta luôn dùng \"run on + danh từ chỉ nhiên liệu/năng lượng\". Đây là collocation chuẩn trong tiếng Anh.<br><strong>4. Tại sao không dùng in, by, with?</strong> \"Run in\" không dùng với electricity. \"Run by\" không đúng nghĩa (by thường đi với phương tiện: travel by car). \"Run with\" không có nghĩa \"chạy bằng (điện)\".",
+      "s9-e2": "<strong>1. Dịch câu:</strong> Ngôi nhà mơ ước của Phong trông _______ một UFO.<br><strong>2. Giới từ:</strong> \"Look like\" = trông giống như. Look + like + danh từ.<br><strong>3. Tại sao \"like\"?</strong> So sánh ngoại hình: look like = trông giống. \"Look as\" cần cấu trúc khác (as if). \"For\", \"to\" không đi với \"look\" theo nghĩa này.",
+      "s9-e3": "<strong>1. Dịch câu:</strong> Chúng ta sẽ sống _______ một ngôi nhà công nghệ cao _______ mặt trăng.<br><strong>2. Giới từ:</strong> Live <strong>in</strong> a house (sống trong nhà). On the moon (trên mặt trăng).<br><strong>3. Tại sao \"in\" và \"on\"?</strong> \"In\" dùng cho không gian kín (nhà, thành phố). \"On\" dùng cho bề mặt/ thiên thể (on the moon, on Earth).",
+      "s9-e4": "<strong>1. Dịch câu:</strong> Robot ở nhà sẽ giúp con người _______ việc nhà.<br><strong>2. Giới từ:</strong> \"Help somebody with something\" = giúp ai việc gì. Cấu trúc cố định.<br><strong>3. Tại sao \"with\"?</strong> Help + person + with + task. \"Help with household chores\" = giúp (làm) việc nhà. \"For\", \"to\" không đúng collocation.",
+      "s9-e5": "<strong>1. Dịch câu:</strong> Ngôi nhà tương lai của bạn sẽ ở _______ không gian (vũ trụ) chứ?<br><strong>2. Giới từ:</strong> \"In space\" = trong không gian (vũ trụ). Cụm cố định.<br><strong>3. Tại sao \"in\"?</strong> Space được coi là môi trường/ không gian, dùng \"in\". \"On space\" sai. \"At\", \"to\" không dùng.",
+      "s9-e6": "<strong>1. Dịch câu:</strong> Robot sẽ chăm sóc _______ trẻ em chứ?<br><strong>2. Giới từ:</strong> \"Take care of\" = chăm sóc. Cụm động từ cố định.<br><strong>3. Tại sao \"of\"?</strong> Take care of + đối tượng được chăm sóc. Các giới từ khác (for, with, about) không tạo thành cụm đúng nghĩa \"chăm sóc\".",
+      "s9-e7": "<strong>1. Dịch câu:</strong> _______ tương lai tôi sẽ du lịch lên Mặt Trăng _______ siêu xe.<br><strong>2. Giới từ:</strong> \"In the future\" = trong tương lai. \"By\" + phương tiện = bằng (by car, by super car).<br><strong>3. Tại sao \"In\" và \"by\"?</strong> In the future là cụm cố định. Travel by + phương tiện. \"On\", \"with\" không dùng cho phương tiện theo cách này.",
+      "s9-e8": "<strong>1. Dịch câu:</strong> Chúng ta có thể có xe bay _______ năm 2050.<br><strong>2. Giới từ:</strong> Chỉ năm (year) dùng \"in\": in 2050, in 2030.<br><strong>3. Tại sao \"in\"?</strong> Với năm, tháng, thập niên ta dùng \"in\" (in 2050). \"On\" dùng cho ngày (on Monday). \"At\" cho thời điểm cụ thể (at 5 o'clock).",
+      "sp1-e1": "<strong>1. Dịch câu hỏi:</strong> Susan cần đặt câu hỏi cho phần gạch chân \"drawing\" (đang vẽ) trong câu của Nick: \"I am drawing my dream house\" (Tôi đang vẽ ngôi nhà mơ ước của tôi).<br><strong>2. Liệt kê và dịch cả 4 đáp án:</strong> A. What are you doing? (Bạn đang làm gì?); B. What do you draw? (Bạn vẽ gì? – hỏi thói quen); C. Do you draw? (Bạn có vẽ không? – câu yes/no); D. Why are you drawing? (Tại sao bạn đang vẽ?).<br><strong>3. Tại sao đáp án đúng là A?</strong> Nick dùng thì hiện tại tiếp diễn (am drawing) để nói hành động đang diễn ra. Câu hỏi tương ứng phải hỏi \"đang làm gì\" (What are you doing?) – cấu trúc What + be + S + V-ing? dùng để hỏi hành động đang xảy ra.<br><strong>4. Tại sao B, C, D sai?</strong> B dùng present simple (do you draw) nên hỏi thói quen, không khớp \"am drawing\". C là câu yes/no, không hỏi nội dung hành động. D hỏi lý do (why), không hỏi hành động đang làm.",
+      "sp1-e2": "<strong>1. Phần gạch chân:</strong> \"houseboat\" (nhà thuyền). Susan cần hỏi loại nhà Nick muốn sống.<br><strong>2. Các đáp án:</strong> A. Do you like water? (Bạn có thích nước không?); B. What kind of house do you want to live in? (Bạn muốn sống trong loại nhà nào?); C. Where do you want to live? (Bạn muốn sống ở đâu?); D. Why a houseboat? (Tại sao nhà thuyền?).<br><strong>3. Tại sao chọn B?</strong> Nick trả lời về loại nhà (houseboat). Câu hỏi phù hợp là \"What kind of house do you want to live in?\"<br><strong>4. Tại sao loại A, C, D?</strong> A hỏi sở thích nước. C hỏi nơi chốn. D hỏi lý do, không hỏi loại nhà.",
+      "sp1-e3": "<strong>1. Phần gạch chân:</strong> \"No\" – Nick phủ định. Susan đã hỏi một câu yes/no (có phải trên sông không).<br><strong>2. Các đáp án:</strong> A. Will it be on the river? (Nó sẽ ở trên sông à?); B. Is it on the ocean? (Nó ở trên đại dương à?); C. Where will it be? (Nó sẽ ở đâu?); D. Do you like the river? (Bạn có thích sông không?).<br><strong>3. Tại sao chọn A?</strong> Nick trả lời \"No, not on the river. It will be located on the ocean\" – nên câu Susan hỏi phải là câu yes/no về sông: \"Will it be on the river?\"<br><strong>4. Tại sao loại B, C, D?</strong> B hỏi về ocean, không tạo ra câu trả lời \"No\". C là câu hỏi wh-. D không liên quan.",
+      "sp1-e4": "<strong>1. Phần gạch chân:</strong> \"Atlantic Ocean\" – địa điểm cụ thể. Susan hỏi nơi/vị trí.<br><strong>2. Các đáp án:</strong> A. Will it be on the ocean? (Nó sẽ ở trên đại dương à?); B. What ocean? (Đại dương nào?); C. Where will it be located? (Nó sẽ được đặt ở đâu?); D. Which ocean will it be on? (Nó sẽ ở đại dương nào?).<br><strong>3. Tại sao chọn C?</strong> \"Where will it be located?\" hỏi vị trí; câu trả lời \"Maybe it will be on Atlantic Ocean\" trả lời đúng dạng \"where\".<br><strong>4. Tại sao loại A, B, D?</strong> A là yes/no. B và D ngắn/ít trang trọng; C chuẩn và rõ ràng nhất.",
+      "sp1-e5": "<strong>1. Phần gạch chân:</strong> \"smart appliances\" (thiết bị thông minh). Susan hỏi Nick sẽ có gì trong nhà.<br><strong>2. Các đáp án:</strong> A. Do you have appliances? (Bạn có thiết bị không?); B. What will you have in your house? (Bạn sẽ có gì trong nhà?); C. Will everything be wireless? (Mọi thứ sẽ không dây à?); D. Why smart appliances? (Tại sao thiết bị thông minh?).<br><strong>3. Tại sao chọn B?</strong> Nick trả lời \"I'll have smart appliances\". Câu hỏi tương ứng: \"What will you have in your house?\"<br><strong>4. Tại sao loại A, C, D?</strong> A dùng hiện tại, không khớp \"will have\". C hỏi về wireless. D hỏi lý do.",
+      "sp1-e6": "<strong>1. Phần gạch chân:</strong> \"super car-boat that can travel on land as well as on water\" – phương tiện đi làm. Susan hỏi cách đi lại.<br><strong>2. Các đáp án:</strong> A. Will you travel? (Bạn sẽ đi chứ?); B. Do you have a car? (Bạn có xe không?); C. What is a super car-boat? (Siêu xe-thuyền là gì?); D. How will you travel to work? (Bạn sẽ đi làm bằng cách nào?).<br><strong>3. Tại sao chọn D?</strong> Nick trả lời về phương tiện (by a super car-boat…). \"How will you travel to work?\" hỏi cách thức đi lại.<br><strong>4. Tại sao loại A, B, C?</strong> A hỏi có đi hay không. B hỏi sở hữu. C hỏi định nghĩa, không hỏi cách đi làm.",
+      "sp2-e1": "<strong>1. Dịch ngữ cảnh:</strong> Lisa nói sẽ mua xe hơi khi lớn. Gavin đáp \"A car?\" (Một cái xe á?) rồi chỗ trống (1) và \"when we're older!\" (khi chúng ta lớn hơn!). Vậy (1) phải là một câu khẳng định về tương lai khi lớn lên.<br><strong>2. Liệt kê và dịch 6 đáp án:</strong> A. do you think we'll be taking a spaceship to work every day? (bạn có nghĩ chúng ta sẽ đi làm bằng tàu vũ trụ mỗi ngày không?) — B. why not? (tại sao không?) — C. we'll probably be flying around in spaceships (chúng ta có lẽ sẽ bay bằng tàu vũ trụ) — D. so we won't need oil (nên chúng ta sẽ không cần dầu) — E. where will we go on vacation? (chúng ta sẽ đi nghỉ ở đâu?) — F. how will we fly around in spaceships? (chúng ta sẽ bay bằng tàu vũ trụ như thế nào?).<br><strong>3. Tại sao đáp án đúng là C?</strong> Câu C \"we'll probably be flying around in spaceships\" là câu khẳng định, nối với \"when we're older!\" thành ý trọn: Khi lớn lên chúng ta có lẽ sẽ bay bằng tàu vũ trụ rồi (thay vì mua xe). Đúng với mạch Gavin đang gợi ý tương lai không cần xe.<br><strong>4. Tại sao các đáp án khác sai?</strong> A, E, F là câu hỏi, không thể đứng độc lập ở vị trí (1) trước \"when we're older!\". B \"why not?\" quá ngắn, không nói rõ \"sẽ làm gì khi lớn\". D nói về dầu, không liên quan \"A car? ... when we're older!\".",
+      "sp2-e2": "<strong>1. Dịch ngữ cảnh:</strong> Lisa hỏi tiếp sau \"So,\" (Vậy thì). Chỗ trống (2) là câu hỏi Lisa đặt ra về tương lai.<br><strong>2. Liệt kê và dịch 6 đáp án:</strong> A. do you think we'll be taking a spaceship to work every day? (bạn có nghĩ chúng ta sẽ đi làm bằng tàu vũ trụ mỗi ngày không?) — B. why not? (tại sao không?) — C. we'll probably be flying around in spaceships (chúng ta có lẽ sẽ bay bằng tàu vũ trụ) — D. so we won't need oil (nên chúng ta sẽ không cần dầu) — E. where will we go on vacation? (chúng ta sẽ đi nghỉ ở đâu?) — F. how will we fly around in spaceships? (chúng ta sẽ bay bằng tàu vũ trụ như thế nào?).<br><strong>3. Tại sao đáp án đúng là A?</strong> Lisa cần đặt một câu hỏi về tương lai; Gavin sẽ trả lời \"Why not? I'll be living in Tokyo...\". Câu A \"do you think we'll be taking a spaceship to work every day?\" là câu hỏi trực tiếp về việc đi làm bằng tàu vũ trụ, khớp với câu trả lời của Gavin.<br><strong>4. Tại sao các đáp án khác sai?</strong> B, C là câu trả lời/khẳng định, không phải câu hỏi Lisa đưa ra. D nói về dầu. E hỏi đi nghỉ, F hỏi cách bay; Gavin không trả lời hai câu đó ngay sau \"So,\" mà trả lời về việc đi làm và sống ở Tokyo/Mexico.",
+      "sp2-e3": "<strong>1. Dịch ngữ cảnh:</strong> Gavin trả lời chỗ trống (3) rồi nói \"I'll be living in Tokyo and working in Mexico\" (Tôi sẽ sống ở Tokyo và làm việc ở Mexico). Vậy (3) phải là lời đồng ý/ phản hồi ngắn trước khi đưa ví dụ.<br><strong>2. Liệt kê và dịch 6 đáp án:</strong> A. do you think we'll be taking... (bạn có nghĩ chúng ta sẽ đi làm bằng tàu vũ trụ... không?) — B. why not? (tại sao không?) — C. we'll probably be flying... (chúng ta có lẽ sẽ bay bằng tàu vũ trụ) — D. so we won't need oil (nên chúng ta sẽ không cần dầu) — E. where will we go on vacation? (chúng ta sẽ đi nghỉ ở đâu?) — F. how will we fly...? (chúng ta sẽ bay bằng tàu vũ trụ như thế nào?).<br><strong>3. Tại sao đáp án đúng là B?</strong> \"Why not?\" là câu đồng ý ngắn gọn (Đúng vậy / Tại sao không chứ?), sau đó Gavin đưa ví dụ cụ thể: sống Tokyo, làm Mexico. Đây là mạch hội thoại tự nhiên.<br><strong>4. Tại sao các đáp án khác sai?</strong> A, E, F là câu hỏi, không thể đứng trước \"I'll be living in Tokyo...\" như lời đồng ý. C là câu khẳng định dài, không phải phản hồi ngắn. D không liên quan ngữ cảnh.",
+      "sp2-e4": "<strong>1. Dịch ngữ cảnh:</strong> Lisa nói thế giới sắp hết dầu. \"If there's no oil, (4) ___\" — chỗ trống (4) là câu hỏi hoặc ý lo lắng về hậu quả (không có dầu thì sao?).<br><strong>2. Liệt kê và dịch 6 đáp án:</strong> A. do you think we'll be taking a spaceship to work every day? — B. why not? — C. we'll probably be flying around in spaceships — D. so we won't need oil — E. where will we go on vacation? — F. how will we fly around in spaceships? (chúng ta sẽ bay bằng tàu vũ trụ như thế nào?).<br><strong>3. Tại sao đáp án đúng là F?</strong> Lisa đang lo: không có dầu thì làm sao bay/ di chuyển? Câu F \"how will we fly around in spaceships?\" hỏi đúng vấn đề đó. Gavin trả lời: con người sẽ tìm nguồn nhiên liệu mới (trả lời câu \"làm sao bay được\").<br><strong>4. Tại sao các đáp án khác sai?</strong> A, E là câu hỏi không đúng trọng tâm \"no oil\". B, C không phải câu hỏi. D là kết quả (không cần dầu), không phải câu hỏi Lisa đặt ra.",
+      "sp2-e5": "<strong>1. Dịch ngữ cảnh:</strong> Gavin nói \"People will discover a new source of fuel\" (Con người sẽ tìm ra nguồn nhiên liệu mới), rồi chỗ trống (5). Vậy (5) phải là hệ quả/ kết quả của việc có nhiên liệu mới.<br><strong>2. Liệt kê và dịch 6 đáp án:</strong> A. do you think we'll be taking a spaceship to work every day? — B. why not? — C. we'll probably be flying around in spaceships — D. so we won't need oil (nên chúng ta sẽ không cần dầu nữa) — E. where will we go on vacation? — F. how will we fly around in spaceships?<br><strong>3. Tại sao đáp án đúng là D?</strong> \"So we won't need oil\" nối trực tiếp: có nguồn nhiên liệu mới → nên không cần dầu. Đây là cấu trúc so (nên) chỉ hệ quả, rất tự nhiên trong hội thoại.<br><strong>4. Tại sao các đáp án khác sai?</strong> A, E, F là câu hỏi, không phải hệ quả. B \"why not?\" không diễn tả kết quả. C là câu khẳng định khác, không phải hệ quả của \"discover a new source of fuel\".",
+      "sp2-e6": "<strong>1. Dịch ngữ cảnh:</strong> Lisa nói nếu ai cũng có tàu vũ trụ thì du lịch không còn thú vị. Chỗ trống (6) là câu hỏi tiếp theo (vậy thì...?). Gavin đáp \"Maybe we'll be vacationing in space!\" (Có lẽ chúng ta sẽ đi nghỉ trong không gian!).<br><strong>2. Liệt kê và dịch 6 đáp án:</strong> A. do you think we'll be taking a spaceship to work every day? — B. why not? — C. we'll probably be flying around in spaceships — D. so we won't need oil — E. where will we go on vacation? (chúng ta sẽ đi nghỉ ở đâu?) — F. how will we fly around in spaceships?<br><strong>3. Tại sao đáp án đúng là E?</strong> Lisa gợi ý vấn đề: đi đâu cũng dễ thì không còn đặc biệt. Câu E \"where will we go on vacation?\" hỏi đúng chủ đề \"đi nghỉ ở đâu\". Gavin trả lời trực tiếp: đi nghỉ trong không gian (vacationing in space) — trả lời \"where\".<br><strong>4. Tại sao các đáp án khác sai?</strong> A, F không hỏi về nơi nghỉ. B, C, D không phải câu hỏi hoặc không khớp với câu trả lời \"vacationing in space\"."
+    };
+  </script>
+  <script>
+    (function() {
+      const LETTERS = ['a','b','c','d','e','f'];
+      function shuffleArray(arr) {
+        const a = arr.slice();
+        for (let i = a.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [a[i], a[j]] = [a[j], a[i]];
+        }
+        return a;
+      }
+      function playDing() {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const o = ctx.createOscillator();
+        const g = ctx.createGain();
+        o.connect(g);
+        g.connect(ctx.destination);
+        o.frequency.value = 523;
+        o.type = 'sine';
+        g.gain.setValueAtTime(0.15, ctx.currentTime);
+        g.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.2);
+        o.start(ctx.currentTime);
+        o.stop(ctx.currentTime + 0.2);
+      }
+      function playBuzz() {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const o = ctx.createOscillator();
+        const g = ctx.createGain();
+        o.connect(g);
+        g.connect(ctx.destination);
+        o.frequency.value = 150;
+        o.type = 'square';
+        g.gain.setValueAtTime(0.08, ctx.currentTime);
+        g.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.15);
+        o.start(ctx.currentTime);
+        o.stop(ctx.currentTime + 0.15);
+      }
+      function confetti() {
+        const canvas = document.getElementById('confetti-canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        const colors = ['#FDCB6E','#00D26A','#8854C0','#FF4757','#00C9A7'];
+        const pieces = [];
+        for (let i = 0; i < 60; i++) {
+          pieces.push({
+            x: canvas.width / 2,
+            y: canvas.height / 2,
+            vx: (Math.random() - 0.5) * 14,
+            vy: (Math.random() - 0.5) * 14 - 4,
+            color: colors[Math.floor(Math.random() * colors.length)],
+            size: Math.random() * 8 + 4,
+            rot: Math.random() * 360
+          });
+        }
+        let anim = 0;
+        function draw() {
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          pieces.forEach(p => {
+            p.x += p.vx;
+            p.y += p.vy;
+            p.vy += 0.3;
+            p.rot += 4;
+            ctx.save();
+            ctx.translate(p.x, p.y);
+            ctx.rotate(p.rot * Math.PI / 180);
+            ctx.fillStyle = p.color;
+            ctx.fillRect(-p.size/2, -p.size/2, p.size, p.size);
+            ctx.restore();
+          });
+          anim++;
+          if (anim < 90) requestAnimationFrame(draw);
+        }
+        draw();
+      }
+
+      // Build MC options and bind
+      document.querySelectorAll('.q-block .options[data-options]').forEach(container => {
+        if (!container.dataset.options) return;
+        const block = container.closest('.q-block');
+        const correctIndex = (block.dataset.correct || 'a').toLowerCase().charCodeAt(0) - 97;
+        let options;
+        try { options = JSON.parse(container.dataset.options); } catch(e) { return; }
+        const shuffled = shuffleArray(options);
+        const newCorrect = LETTERS[shuffled.indexOf(options[correctIndex])];
+        block.dataset.correct = newCorrect;
+        container.innerHTML = '';
+        shuffled.forEach((text, i) => {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'opt-btn';
+          btn.textContent = LETTERS[i] + '. ' + text;
+          btn.dataset.value = LETTERS[i];
+          btn.addEventListener('click', function() {
+            if (block.classList.contains('answered')) return;
+            block.classList.add('answered');
+            const isCorrect = btn.dataset.value === block.dataset.correct;
+            block.querySelectorAll('.opt-btn').forEach(b => b.classList.add('locked'));
+            btn.classList.add(isCorrect ? 'correct' : 'wrong');
+            if (isCorrect) { playDing(); confetti(); } else playBuzz();
+            if (!isCorrect) {
+              block.querySelectorAll('.opt-btn').forEach(b => {
+                if (b.dataset.value === block.dataset.correct) b.classList.add('correct');
+              });
+            }
+            const eId = block.querySelector('.explanation').id;
+            if (window.showExplanation && window.showExplanation[eId]) {
+              const el = document.getElementById(eId);
+              el.innerHTML = window.showExplanation[eId];
+              el.classList.add('show');
+            }
+          });
+          container.appendChild(btn);
+        });
+      });
+
+      // Gap-fill: popup and options
+      document.querySelectorAll('.gap-btn[data-answer]').forEach(btn => {
+        const block = btn.closest('.q-block');
+        const answer = btn.dataset.answer;
+        let opts = ['on','in','by','with','to','for','of','at','like','as','In','On','At','For','above','about'];
+        if (answer === 'on') opts = ['on','in','by','with'];
+        else if (answer === 'like') opts = ['like','as','for','to'];
+        else if (answer === 'with') opts = ['with','for','to','at'];
+        else if (answer === 'of') opts = ['of','for','with','about'];
+        else if (answer === 'by') opts = ['by','in','on','with'];
+        else if (answer === 'In') opts = ['In','On','At','For'];
+        const uniq = [...new Set([answer].concat(opts))].slice(0, 8);
+        btn.textContent = ' ... ';
+        btn.addEventListener('click', function() {
+          if (btn.classList.contains('locked')) return;
+          const popup = document.getElementById('gap-popup');
+          document.getElementById('gap-popup-text').textContent = block ? block.querySelector('.q-text').textContent.replace(/\.\.\./g, '_______') : 'Choose the correct word from the box.';
+          const wrap = document.getElementById('gap-popup-options');
+          wrap.innerHTML = '';
+          shuffleArray(uniq).forEach(word => {
+            const b = document.createElement('button');
+            b.type = 'button';
+            b.className = 'opt-btn';
+            b.textContent = word;
+            b.addEventListener('click', function() {
+              popup.classList.remove('show');
+              const correct = answer.toLowerCase() === word.toLowerCase();
+              btn.textContent = word;
+              btn.classList.add('locked', correct ? 'correct' : 'wrong');
+              if (correct) { playDing(); confetti(); } else playBuzz();
+              const eId = block ? (block.querySelector('.explanation') || {}).id : null;
+              if (eId && window.showExplanation && window.showExplanation[eId]) {
+                const el = document.getElementById(eId);
+                if (el) { el.innerHTML = window.showExplanation[eId]; el.classList.add('show'); }
+              }
+            });
+            wrap.appendChild(b);
+          });
+          popup.classList.add('show');
+        });
+      });
+
+      // Submit & score
+      let totalItems = 0;
+      document.querySelectorAll('.q-block').forEach(b => {
+        const opts = b.querySelector('.options[data-options]');
+        if (opts) totalItems++;
+      });
+      totalItems += document.querySelectorAll('.gap-btn[data-answer]').length;
+      document.getElementById('submit-btn').addEventListener('click', function() {
+        let correct = 0;
+        document.querySelectorAll('.opt-btn.correct').forEach(() => correct++);
+        document.querySelectorAll('.gap-btn.correct').forEach(() => correct++);
+        const total = totalItems;
+        const pct = total ? Math.round((correct / total) * 100) : 0;
+        const messages = [
+          'Bạn làm rất xuất sắc! Cố gắng phát huy nhé!',
+          'Tuyệt vời! Bạn đã nắm bài rất tốt!',
+          'Rất tốt! Hãy ôn lại những câu sai để lần sau đạt điểm cao hơn!',
+          'Khá tốt! Ôn kỹ phần giải thích để nhớ lâu hơn nhé!',
+          'Cố lên! Ôn lại bài và làm lại để tiến bộ nhé!'
+        ];
+        let msg = messages[Math.min(4, Math.floor((100 - pct) / 25))];
+        if (pct >= 90) msg = messages[0];
+        else if (pct >= 70) msg = messages[1];
+        else if (pct >= 50) msg = messages[2];
+        else if (pct >= 30) msg = messages[3];
+        else msg = messages[4];
+        document.getElementById('result-score').textContent = correct + ' / ' + total;
+        document.getElementById('result-message').textContent = msg;
+        document.getElementById('result-popup').classList.add('show');
+      });
+      document.getElementById('result-popup').addEventListener('click', function(e) {
+        if (e.target === this) this.classList.remove('show');
+      });
+      document.getElementById('gap-popup').addEventListener('click', function(e) {
+        if (e.target === this) this.classList.remove('show');
+      });
+    })();
+  </script>
+</body>
+</html>

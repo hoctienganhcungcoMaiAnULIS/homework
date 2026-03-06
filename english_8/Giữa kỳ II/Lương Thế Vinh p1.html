@@ -1,0 +1,1481 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>English Interactive Test – Ms Mai An ULIS</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --pink: #8854C0;
+    --yellow: #FDCB6E;
+    --teal: #00C9A7;
+    --correct: #00D26A;
+    --wrong: #FF4757;
+    --card-bg: rgba(255,255,255,0.93);
+    --radius: 18px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Nunito', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+    background: #f0e6ff;
+  }
+  /* Animated gradient background */
+  .bg-gradient {
+    position: fixed; inset: 0; z-index: 0;
+    background: linear-gradient(135deg, #8854C0, #FDCB6E, #00C9A7, #ff6b9d, #8854C0);
+    background-size: 400% 400%;
+    animation: gradientShift 10s ease infinite;
+  }
+  @keyframes gradientShift {
+    0%{background-position:0% 50%}
+    50%{background-position:100% 50%}
+    100%{background-position:0% 50%}
+  }
+  /* SVG floating pattern */
+  .bg-pattern {
+    position: fixed; inset: 0; z-index: 1;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Ctext x='10' y='40' font-size='28' opacity='0.18'%3E🌸%3C/text%3E%3Ctext x='80' y='80' font-size='22' opacity='0.15'%3E⭐%3C/text%3E%3Ctext x='150' y='30' font-size='26' opacity='0.18'%3E🍎%3C/text%3E%3Ctext x='40' y='130' font-size='20' opacity='0.15'%3E🐱%3C/text%3E%3Ctext x='120' y='160' font-size='24' opacity='0.18'%3E🌈%3C/text%3E%3Ctext x='170' y='110' font-size='20' opacity='0.15'%3E🌟%3C/text%3E%3Ctext x='60' y='185' font-size='22' opacity='0.13'%3E🍋%3C/text%3E%3Ctext x='10' y='170' font-size='18' opacity='0.13'%3E💜%3C/text%3E%3C/svg%3E");
+    background-size: 200px 200px;
+    mix-blend-mode: overlay;
+    pointer-events: none;
+    animation: patternFloat 20s linear infinite;
+  }
+  @keyframes patternFloat {
+    0%{background-position:0 0} 100%{background-position:200px 200px}
+  }
+  /* Layout */
+  .page-wrapper { position: relative; z-index: 2; max-width: 820px; margin: 0 auto; padding: 16px 14px 40px; }
+
+  /* Header */
+  .header-card {
+    background: rgba(255,255,255,0.92);
+    border-radius: var(--radius);
+    padding: 14px 22px;
+    margin-bottom: 18px;
+    box-shadow: 0 6px 28px rgba(136,84,192,0.22);
+    text-align: center;
+    backdrop-filter: blur(6px);
+  }
+  .header-card h1 { font-size: 1.45rem; font-weight: 900; color: var(--pink); line-height: 1.3; }
+  .header-card .subtitle { font-size: 0.9rem; color: #555; font-weight: 600; margin-top: 3px; }
+
+  /* Score bar */
+  .score-bar {
+    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+    background: rgba(255,255,255,0.88);
+    border-radius: var(--radius);
+    padding: 10px 20px;
+    margin-bottom: 18px;
+    box-shadow: 0 4px 18px rgba(0,201,167,0.18);
+    font-size: 1rem; font-weight: 700;
+  }
+  .score-bar .score-label { color: var(--pink); }
+  .score-bar .score-val { font-size: 1.3rem; color: var(--teal); font-weight: 900; }
+  .score-bar .progress-wrap { flex: 1; min-width: 120px; background: #e8d8ff; border-radius: 20px; height: 12px; overflow: hidden; }
+  .score-bar .progress-fill { height: 100%; background: linear-gradient(90deg,var(--teal),var(--pink)); border-radius: 20px; transition: width 0.4s; }
+
+  /* Section header */
+  .section-header {
+    font-size: 1.08rem; font-weight: 900; color: #fff;
+    background: linear-gradient(90deg,var(--pink),#b06ae0);
+    border-radius: 12px; padding: 8px 18px;
+    margin: 22px 0 12px; box-shadow: 0 3px 12px rgba(136,84,192,0.3);
+    letter-spacing: 0.3px;
+  }
+  .sub-instruction { font-size: 0.9rem; color: #6d4c9e; font-weight: 700; margin: -4px 0 10px 4px; }
+
+  /* Question card */
+  .q-card {
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    padding: 18px 20px 14px;
+    margin-bottom: 14px;
+    box-shadow: 0 5px 22px rgba(136,84,192,0.12);
+    backdrop-filter: blur(4px);
+    transition: box-shadow 0.2s;
+  }
+  .q-card:hover { box-shadow: 0 8px 32px rgba(136,84,192,0.2); }
+  .q-number { font-size: 0.82rem; font-weight: 900; color: var(--pink); text-transform: uppercase; margin-bottom: 4px; letter-spacing: 0.5px; }
+  .q-text { font-size: 1.15rem; font-weight: 700; color: #2d1f4e; line-height: 1.5; margin-bottom: 12px; }
+  .q-text u { text-decoration: underline; text-decoration-color: var(--pink); font-weight: 900; }
+
+  /* MCQ Options */
+  .options-grid { display: grid; gap: 9px; }
+  .opt-btn {
+    display: flex; align-items: center; gap: 10px;
+    background: #f5edff;
+    border: 2.5px solid #d0b3f0;
+    border-radius: 15px;
+    padding: 10px 14px;
+    cursor: pointer;
+    font-size: 1.08rem; font-weight: 700;
+    color: #3d1f6e;
+    transition: transform 0.15s, box-shadow 0.15s, background 0.15s;
+    box-shadow: 0 4px 0 #c5a0e8, 0 6px 14px rgba(136,84,192,0.1);
+    text-align: left;
+    user-select: none;
+  }
+  .opt-btn:hover:not(:disabled) { transform: scale(1.025) translateY(-1px); box-shadow: 0 6px 0 #c5a0e8, 0 10px 18px rgba(136,84,192,0.18); background: #ede0ff; }
+  .opt-btn .opt-label {
+    background: var(--pink); color: #fff;
+    border-radius: 8px; padding: 2px 9px;
+    font-size: 0.9rem; font-weight: 900; min-width: 30px; text-align: center; flex-shrink: 0;
+  }
+  .opt-btn.correct { background: #d4fce8 !important; border-color: var(--correct) !important; color: #005c2b; box-shadow: 0 4px 0 #00b358, 0 6px 16px rgba(0,210,106,0.2) !important; }
+  .opt-btn.correct .opt-label { background: var(--correct); }
+  .opt-btn.wrong { background: #ffe4e7 !important; border-color: var(--wrong) !important; color: #7a0010; box-shadow: 0 4px 0 #c0000a, 0 6px 16px rgba(255,71,87,0.2) !important; }
+  .opt-btn.wrong .opt-label { background: var(--wrong); }
+  .opt-btn:disabled { cursor: default; }
+  @keyframes shake {
+    0%,100%{transform:translateX(0)} 20%{transform:translateX(-7px)} 40%{transform:translateX(7px)} 60%{transform:translateX(-5px)} 80%{transform:translateX(5px)}
+  }
+  .shake { animation: shake 0.4s ease; }
+
+  /* Explanation box */
+  .explanation {
+    display: none;
+    background: linear-gradient(135deg,#fff9e6,#f0fff9);
+    border-left: 4px solid var(--teal);
+    border-radius: 0 12px 12px 0;
+    padding: 12px 15px;
+    margin-top: 12px;
+    font-size: 1rem;
+    color: #2d4a3e;
+    line-height: 1.65;
+    animation: fadeIn 0.3s ease;
+  }
+  .explanation.show { display: block; }
+  .explanation strong { color: var(--pink); }
+  .explanation .answer-tag { display: inline-block; background: var(--correct); color: #fff; border-radius: 8px; padding: 2px 10px; font-weight: 900; font-size: 0.9rem; margin-bottom: 6px; }
+  @keyframes fadeIn { from{opacity:0;transform:translateY(-6px)} to{opacity:1;transform:translateY(0)} }
+
+  /* Gap fill */
+  .gap-sentence { font-size: 1.1rem; font-weight: 700; color: #2d1f4e; line-height: 2; }
+  .gap-btn {
+    display: inline-block; min-width: 72px; padding: 2px 10px;
+    background: #ede0ff; border: 2.5px dashed var(--pink);
+    border-radius: 10px; cursor: pointer; font-weight: 900; font-size: 1rem;
+    color: var(--pink); text-align: center; transition: all 0.2s;
+    vertical-align: middle; margin: 0 3px;
+  }
+  .gap-btn:hover { background: #d0b3f0; transform: scale(1.05); }
+  .gap-btn.filled-correct { background: #d4fce8; border-color: var(--correct); color: #005c2b; border-style: solid; cursor: default; }
+  .gap-btn.filled-wrong { background: #ffe4e7; border-color: var(--wrong); color: #7a0010; border-style: solid; }
+
+  /* Popup for gap fill */
+  .popup-overlay {
+    display: none; position: fixed; inset: 0; z-index: 1000;
+    background: rgba(0,0,0,0.45); backdrop-filter: blur(3px);
+    align-items: center; justify-content: center;
+  }
+  .popup-overlay.show { display: flex; }
+  .popup-box {
+    background: #fff; border-radius: 20px; padding: 22px 26px;
+    max-width: 340px; width: 90%; box-shadow: 0 16px 60px rgba(136,84,192,0.35);
+    text-align: center; animation: popIn 0.25s ease;
+  }
+  @keyframes popIn { from{transform:scale(0.8);opacity:0} to{transform:scale(1);opacity:1} }
+  .popup-box h3 { font-size: 1.05rem; color: var(--pink); margin-bottom: 14px; font-weight: 800; }
+  .popup-choices { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+  .popup-choice {
+    background: #f5edff; border: 2px solid #d0b3f0; border-radius: 12px;
+    padding: 8px 16px; cursor: pointer; font-weight: 800; font-size: 1rem; color: #3d1f6e;
+    transition: all 0.15s; box-shadow: 0 3px 0 #c5a0e8;
+  }
+  .popup-choice:hover { background: #ede0ff; transform: translateY(-2px); box-shadow: 0 5px 0 #c5a0e8; }
+  .popup-cancel { margin-top: 14px; font-size: 0.85rem; color: #999; cursor: pointer; font-weight: 700; }
+  .popup-cancel:hover { color: var(--wrong); }
+
+  /* Submit button */
+  .submit-wrap { text-align: center; margin-top: 28px; }
+  .submit-btn {
+    background: linear-gradient(135deg,var(--pink),#ff6b9d);
+    color: #fff; border: none; border-radius: 20px;
+    padding: 16px 50px; font-size: 1.25rem; font-weight: 900;
+    cursor: pointer; box-shadow: 0 6px 0 #5a2e8e, 0 10px 28px rgba(136,84,192,0.35);
+    transition: all 0.18s; letter-spacing: 0.5px;
+    font-family: 'Nunito', sans-serif;
+  }
+  .submit-btn:hover { transform: translateY(-3px); box-shadow: 0 9px 0 #5a2e8e, 0 14px 36px rgba(136,84,192,0.4); }
+  .submit-btn:active { transform: translateY(2px); box-shadow: 0 3px 0 #5a2e8e; }
+
+  /* Result popup */
+  .result-overlay {
+    display: none; position: fixed; inset: 0; z-index: 2000;
+    background: rgba(0,0,0,0.55); backdrop-filter: blur(4px);
+    align-items: center; justify-content: center;
+  }
+  .result-overlay.show { display: flex; }
+  .result-box {
+    background: linear-gradient(135deg,#fff,#f0e6ff);
+    border-radius: 24px; padding: 36px 32px;
+    max-width: 400px; width: 90%; text-align: center;
+    box-shadow: 0 20px 70px rgba(136,84,192,0.4);
+    animation: popIn 0.3s ease;
+  }
+  .result-box .trophy { font-size: 4rem; margin-bottom: 8px; }
+  .result-box h2 { font-size: 1.6rem; font-weight: 900; color: var(--pink); margin-bottom: 8px; }
+  .result-box .big-score { font-size: 3.5rem; font-weight: 900; color: var(--teal); line-height: 1; margin: 10px 0; }
+  .result-box .comment { font-size: 1.05rem; color: #444; font-weight: 700; margin: 10px 0 18px; }
+  .close-result {
+    background: linear-gradient(135deg,var(--teal),#00a87a);
+    color: #fff; border: none; border-radius: 14px;
+    padding: 12px 36px; font-size: 1.1rem; font-weight: 800;
+    cursor: pointer; font-family: 'Nunito', sans-serif;
+    box-shadow: 0 5px 0 #007a58;
+  }
+
+  /* Confetti canvas */
+  #confetti-canvas { position: fixed; inset: 0; z-index: 9999; pointer-events: none; }
+</style>
+</head>
+<body>
+<div class="bg-gradient"></div>
+<div class="bg-pattern"></div>
+<canvas id="confetti-canvas"></canvas>
+
+<div class="page-wrapper">
+  <div class="header-card">
+    <h1>🎓 ENGLISH INTERACTIVE TEST</h1>
+    <div class="subtitle">Giáo viên tạo: <strong>Ms Mai An – ULIS</strong> &nbsp;|&nbsp; Use of English</div>
+  </div>
+
+  <div class="score-bar">
+    <span class="score-label">⭐ Điểm của bạn:</span>
+    <span class="score-val" id="score-display">0 / 50</span>
+    <div class="progress-wrap"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+  </div>
+
+  <div id="quiz-container"></div>
+
+  <div class="submit-wrap">
+    <button class="submit-btn" onclick="submitQuiz()">🏆 Nộp Bài & Xem Kết Quả</button>
+  </div>
+</div>
+
+<!-- Popup for gap fill -->
+<div class="popup-overlay" id="popup-overlay">
+  <div class="popup-box">
+    <h3 id="popup-title">Chọn từ điền vào chỗ trống:</h3>
+    <div class="popup-choices" id="popup-choices"></div>
+    <div class="popup-cancel" onclick="closePopup()">✕ Đóng</div>
+  </div>
+</div>
+
+<!-- Result popup -->
+<div class="result-overlay" id="result-overlay">
+  <div class="result-box">
+    <div class="trophy" id="result-trophy">🏆</div>
+    <h2>Kết Quả Bài Thi!</h2>
+    <div class="big-score" id="result-score">0/50</div>
+    <div class="comment" id="result-comment"></div>
+    <button class="close-result" onclick="document.getElementById('result-overlay').classList.remove('show')">Đóng lại</button>
+  </div>
+</div>
+
+<script>
+// ========== AUDIO ==========
+const AudioCtx = window.AudioContext || window.webkitAudioContext;
+let audioCtx;
+function getAudioCtx() { if (!audioCtx) audioCtx = new AudioCtx(); return audioCtx; }
+function playCorrect() {
+  try {
+    const ctx = getAudioCtx();
+    const times = [523, 659, 784];
+    times.forEach((f,i) => {
+      const o = ctx.createOscillator(), g = ctx.createGain();
+      o.connect(g); g.connect(ctx.destination);
+      o.frequency.value = f; o.type = 'sine';
+      g.gain.setValueAtTime(0.25, ctx.currentTime + i*0.12);
+      g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i*0.12 + 0.25);
+      o.start(ctx.currentTime + i*0.12);
+      o.stop(ctx.currentTime + i*0.12 + 0.26);
+    });
+  } catch(e){}
+}
+function playWrong() {
+  try {
+    const ctx = getAudioCtx();
+    [300,250,200].forEach((f,i) => {
+      const o = ctx.createOscillator(), g = ctx.createGain();
+      o.connect(g); g.connect(ctx.destination);
+      o.frequency.value = f; o.type = 'sawtooth';
+      g.gain.setValueAtTime(0.18, ctx.currentTime + i*0.1);
+      g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i*0.1 + 0.18);
+      o.start(ctx.currentTime + i*0.1);
+      o.stop(ctx.currentTime + i*0.1 + 0.19);
+    });
+  } catch(e){}
+}
+
+// ========== CONFETTI ==========
+const canvas = document.getElementById('confetti-canvas');
+const ctxC = canvas.getContext('2d');
+let confettiPieces = [];
+function launchConfetti() {
+  canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+  for (let i = 0; i < 90; i++) {
+    confettiPieces.push({
+      x: Math.random()*canvas.width, y: -10,
+      w: 8+Math.random()*6, h: 12+Math.random()*8,
+      color: ['#8854C0','#FDCB6E','#00C9A7','#ff6b9d','#ff9f43','#54a0ff'][Math.floor(Math.random()*6)],
+      vx: (Math.random()-0.5)*4, vy: 3+Math.random()*4,
+      angle: Math.random()*360, spin: (Math.random()-0.5)*8
+    });
+  }
+  animateConfetti();
+}
+function animateConfetti() {
+  if (confettiPieces.length === 0) { ctxC.clearRect(0,0,canvas.width,canvas.height); return; }
+  ctxC.clearRect(0,0,canvas.width,canvas.height);
+  confettiPieces.forEach(p => {
+    ctxC.save(); ctxC.translate(p.x,p.y); ctxC.rotate(p.angle*Math.PI/180);
+    ctxC.fillStyle = p.color; ctxC.fillRect(-p.w/2,-p.h/2,p.w,p.h); ctxC.restore();
+    p.x+=p.vx; p.y+=p.vy; p.angle+=p.spin; p.vy+=0.08;
+  });
+  confettiPieces = confettiPieces.filter(p => p.y < canvas.height+20);
+  requestAnimationFrame(animateConfetti);
+}
+
+// ========== SHUFFLE ==========
+function shuffle(arr) { return arr.sort(() => Math.random()-0.5); }
+
+// ========== QUIZ DATA ==========
+const TOTAL = 50;
+let answered = {}; // qid -> {correct:bool}
+let score = 0;
+
+const quizData = [
+  // ===== SECTION A: PRONUNCIATION =====
+  {
+    section: "I. USE OF ENGLISH",
+    sectionSub: "A. PRONUNCIATION",
+    instruction: "Choose the word whose underlined part is pronounced differently from the others.",
+    questions: [
+      {
+        id: "a1",
+        text: "1.",
+        options: [
+          {key:"A", html:"est<u>a</u>blish"},
+          {key:"B", html:"cl<u>ea</u>r"},
+          {key:"C", html:"cl<u>ea</u>n"},
+          {key:"D", html:"cl<u>i</u>mate"}
+        ],
+        answer: "A",
+        explanation: `<span class='answer-tag'>✅ Đáp án: A</span><br>
+<strong>Phân tích phát âm:</strong><br>
+• A. est<u>a</u>blish: chữ "a" phát âm là <strong>/ə/</strong> (âm schwa, ngắn, không nhấn)<br>
+• B. cl<u>ea</u>r: chữ "ea" phát âm là <strong>/ɪə/</strong> (âm đôi, dài)<br>
+• C. cl<u>ea</u>n: chữ "ea" phát âm là <strong>/iː/</strong> (âm dài)<br>
+• D. cl<u>i</u>mate: chữ "i" phát âm là <strong>/aɪ/</strong> (âm đôi)<br>
+<strong>→ Chọn A</strong> vì "a" trong <em>establish</em> phát âm là /ə/ (ngắn, không nhấn), trong khi B, C, D đều là các nguyên âm dài hoặc âm đôi khác nhau. Trong bộ B, C, D thì "ea" ở B và C giống nhau hơn, còn "a" trong establish hoàn toàn khác biệt về chất lượng âm.`
+      },
+      {
+        id: "a2",
+        text: "2.",
+        options: [
+          {key:"A", html:"<u>sp</u>icy"},
+          {key:"B", html:"re<u>sp</u>ect"},
+          {key:"C", html:"new<u>s</u>paper"},
+          {key:"D", html:"<u>sp</u>oon"}
+        ],
+        answer: "C",
+        explanation: `<span class='answer-tag'>✅ Đáp án: C</span><br>
+<strong>Phân tích phát âm:</strong><br>
+• A. <u>sp</u>icy: "sp" phát âm là <strong>/sp/</strong><br>
+• B. re<u>sp</u>ect: "sp" phát âm là <strong>/sp/</strong><br>
+• C. new<u>s</u>paper: chữ "s" trong "news" phát âm là <strong>/z/</strong> (do đứng giữa hai nguyên âm và cuối từ)<br>
+• D. <u>sp</u>oon: "sp" phát âm là <strong>/sp/</strong><br>
+<strong>→ Chọn C</strong> vì "s" trong <em>newspaper</em> (thuộc phần "news" = /njuːz/) được phát âm là /z/, còn A, B, D đều có "sp" phát âm là /sp/.`
+      },
+      {
+        id: "a3",
+        text: "3.",
+        options: [
+          {key:"A", html:"danger<u>ous</u>"},
+          {key:"B", html:"person<u>al</u>"},
+          {key:"C", html:"fam<u>ous</u>"},
+          {key:"D", html:"previ<u>ous</u>"}
+        ],
+        answer: "B",
+        explanation: `<span class='answer-tag'>✅ Đáp án: B</span><br>
+<strong>Phân tích phát âm phần cuối từ:</strong><br>
+• A. danger<u>ous</u>: "-ous" phát âm là <strong>/əs/</strong><br>
+• B. person<u>al</u>: "-al" phát âm là <strong>/əl/</strong><br>
+• C. fam<u>ous</u>: "-ous" phát âm là <strong>/əs/</strong><br>
+• D. previ<u>ous</u>: "-ous" phát âm là <strong>/əs/</strong><br>
+<strong>→ Chọn B</strong> vì phần gạch chân "-al" trong <em>personal</em> phát âm là /əl/, trong khi A, C, D đều có "-ous" phát âm là /əs/.`
+      },
+      {
+        id: "a4",
+        text: "4.",
+        options: [
+          {key:"A", html:"<u>sp</u>ecial"},
+          {key:"B", html:"<u>h</u>onest"},
+          {key:"C", html:"<u>s</u>ister"},
+          {key:"D", html:"<u>st</u>aff"}
+        ],
+        answer: "B",
+        explanation: `<span class='answer-tag'>✅ Đáp án: B</span><br>
+<strong>Phân tích phát âm phụ âm đầu:</strong><br>
+• A. <u>sp</u>ecial: "sp" phát âm là <strong>/sp/</strong> → bắt đầu bằng /s/<br>
+• B. <u>h</u>onest: "h" phát âm là <strong>/ɒ/</strong> – chú ý: chữ "h" trong <em>honest</em> <strong>câm</strong> (silent h), phát âm là /ˈɒnɪst/<br>
+• C. <u>s</u>ister: "s" phát âm là <strong>/s/</strong><br>
+• D. <u>st</u>aff: "st" phát âm là <strong>/st/</strong> → bắt đầu bằng /s/<br>
+<strong>→ Chọn B</strong> vì chữ "h" trong <em>honest</em> là chữ câm (không phát âm), còn A, C, D đều có phần gạch chân bắt đầu bằng âm /s/.`
+      },
+      {
+        id: "a5",
+        text: "5.",
+        options: [
+          {key:"A", html:"<u>cl</u>imb"},
+          {key:"B", html:"<u>bl</u>ast"},
+          {key:"C", html:"<u>bl</u>ock"},
+          {key:"D", html:"<u>bl</u>ame"}
+        ],
+        answer: "A",
+        explanation: `<span class='answer-tag'>✅ Đáp án: A</span><br>
+<strong>Phân tích phụ âm đầu:</strong><br>
+• A. <u>cl</u>imb: "cl" phát âm là <strong>/kl/</strong><br>
+• B. <u>bl</u>ast: "bl" phát âm là <strong>/bl/</strong><br>
+• C. <u>bl</u>ock: "bl" phát âm là <strong>/bl/</strong><br>
+• D. <u>bl</u>ame: "bl" phát âm là <strong>/bl/</strong><br>
+<strong>→ Chọn A</strong> vì <em>climb</em> có phụ âm đầu là /kl/ (c+l), còn B, C, D đều có "bl" phát âm là /bl/ (b+l).`
+      }
+    ]
+  },
+  // ===== SECTION B: VOCABULARY =====
+  {
+    section: null,
+    sectionSub: "B. VOCABULARY",
+    instruction: null,
+    questions: [
+      {
+        id: "b1",
+        text: "1. To save our Earth, I use cloth bags for shopping, not ________ ones.",
+        options: [
+          {key:"A", html:"green"},
+          {key:"B", html:"paper"},
+          {key:"C", html:"cheap"},
+          {key:"D", html:"plastic"}
+        ],
+        answer: "D",
+        explanation: `<span class='answer-tag'>✅ Đáp án: D – plastic</span><br>
+<strong>Dịch câu:</strong> "Để bảo vệ Trái Đất, tôi dùng túi vải đi mua sắm, không dùng túi ________ nữa."<br>
+<strong>Phân tích 4 đáp án:</strong><br>
+• A. green (adj): màu xanh lá / thân thiện môi trường – dùng túi "green" thì không có nghĩa đối lập với "cloth bag"<br>
+• B. paper (adj): giấy – túi giấy không phải vấn đề môi trường nghiêm trọng nhất<br>
+• C. cheap (adj): rẻ tiền – không phù hợp ngữ cảnh bảo vệ môi trường<br>
+• D. <strong>plastic (adj): nhựa</strong> – <em>plastic bags</em> (túi nhựa) là loại túi gây ô nhiễm, đối lập với "cloth bags" (túi vải)<br>
+<strong>→ Chọn D</strong> vì từ khóa "save our Earth" và việc chuyển sang dùng túi vải cho thấy đây là hành động thay thế túi nhựa (plastic bags).`
+      },
+      {
+        id: "b2",
+        text: "2. In my family, we put food waste and objects for ________ in different bins.",
+        options: [
+          {key:"A", html:"purchasing"},
+          {key:"B", html:"recycling"},
+          {key:"C", html:"releasing"},
+          {key:"D", html:"reducing"}
+        ],
+        answer: "B",
+        explanation: `<span class='answer-tag'>✅ Đáp án: B – recycling</span><br>
+<strong>Dịch câu:</strong> "Trong gia đình tôi, chúng tôi để thức ăn thừa và các đồ dùng để ________ vào các thùng rác khác nhau."<br>
+<strong>Phân tích 4 đáp án:</strong><br>
+• A. purchasing (v-ing): mua sắm – không liên quan đến việc phân loại rác<br>
+• B. <strong>recycling (v-ing): tái chế</strong> – "objects for recycling" = đồ vật để tái chế, phù hợp khi phân loại rác<br>
+• C. releasing (v-ing): thả ra, phóng thích – không phù hợp ngữ cảnh<br>
+• D. reducing (v-ing): giảm thiểu – không phù hợp cụm "objects for reducing"<br>
+<strong>→ Chọn B</strong> vì "objects for recycling" là cụm từ chuẩn có nghĩa "đồ vật để tái chế", phù hợp hoàn toàn với ngữ cảnh phân loại rác.`
+      },
+      {
+        id: "b3",
+        text: "3. An example of ________ is the forest in which all the plants and animals work to form a suitable habitat for all.",
+        options: [
+          {key:"A", html:"habitat"},
+          {key:"B", html:"area"},
+          {key:"C", html:"ecosystem"},
+          {key:"D", html:"condition"}
+        ],
+        answer: "C",
+        explanation: `<span class='answer-tag'>✅ Đáp án: C – ecosystem</span><br>
+<strong>Dịch câu:</strong> "Một ví dụ về ________ là khu rừng nơi tất cả các loài thực vật và động vật phối hợp để tạo thành môi trường sống phù hợp cho tất cả."<br>
+<strong>Phân tích 4 đáp án:</strong><br>
+• A. habitat (n): môi trường sống (của một loài cụ thể) – quá hẹp, không bao gồm sự tương tác giữa các loài<br>
+• B. area (n): khu vực, vùng – chỉ nơi chốn, không đề cập mối quan hệ sinh thái<br>
+• C. <strong>ecosystem (n): hệ sinh thái</strong> – mô tả toàn bộ hệ thống sinh vật cùng môi trường tương tác với nhau<br>
+• D. condition (n): điều kiện – chỉ hoàn cảnh, không phải cấu trúc sinh thái<br>
+<strong>→ Chọn C</strong> vì mô tả "plants and animals work together to form a habitat" chính xác là định nghĩa của <em>ecosystem</em> (hệ sinh thái).`
+      },
+      {
+        id: "b4",
+        text: "4. People all over the world are working to help save ________ animals from extinction.",
+        options: [
+          {key:"A", html:"dangerous"},
+          {key:"B", html:"endangered"},
+          {key:"C", html:"single-use"},
+          {key:"D", html:"national"}
+        ],
+        answer: "B",
+        explanation: `<span class='answer-tag'>✅ Đáp án: B – endangered</span><br>
+<strong>Dịch câu:</strong> "Mọi người trên toàn thế giới đang nỗ lực giúp cứu các loài động vật ________ khỏi sự tuyệt chủng."<br>
+<strong>Phân tích 4 đáp án:</strong><br>
+• A. dangerous (adj): nguy hiểm – "dangerous animals" = động vật nguy hiểm (như sư tử), không liên quan đến tuyệt chủng<br>
+• B. <strong>endangered (adj): có nguy cơ tuyệt chủng</strong> – "endangered animals" = động vật bị đe dọa tuyệt chủng, phù hợp hoàn toàn<br>
+• C. single-use (adj): dùng một lần – chỉ dùng cho đồ vật, không dùng cho động vật<br>
+• D. national (adj): quốc gia – "national animals" không có nghĩa trong ngữ cảnh bảo tồn này<br>
+<strong>→ Chọn B</strong> vì "save endangered animals from extinction" là cụm cố định trong tiếng Anh về bảo tồn động vật.`
+      },
+      {
+        id: "b5",
+        text: "5. Around 8.7 million ________ of plants and animals exist on Earth.",
+        options: [
+          {key:"A", html:"means"},
+          {key:"B", html:"classes"},
+          {key:"C", html:"styles"},
+          {key:"D", html:"species"}
+        ],
+        answer: "D",
+        explanation: `<span class='answer-tag'>✅ Đáp án: D – species</span><br>
+<strong>Dịch câu:</strong> "Khoảng 8,7 triệu ________ thực vật và động vật tồn tại trên Trái Đất."<br>
+<strong>Phân tích 4 đáp án:</strong><br>
+• A. means (n): phương tiện, cách thức – không phù hợp khi đếm sinh vật<br>
+• B. classes (n): lớp học / loại – có thể dùng trong phân loại sinh học nhưng không phải từ chuẩn<br>
+• C. styles (n): phong cách – không liên quan đến sinh vật học<br>
+• D. <strong>species (n): loài</strong> – đây là từ chuyên ngành sinh học chỉ "loài" sinh vật. Lưu ý: "species" không có số nhiều đặc biệt (singular = plural)<br>
+<strong>→ Chọn D</strong> vì "8.7 million species" là con số được nhắc đến trong thực tế về đa dạng sinh học Trái Đất.`
+      },
+      {
+        id: "b6",
+        text: "6. The family sells their ________ vegetables at the local market.",
+        options: [
+          {key:"A", html:"home-grown"},
+          {key:"B", html:"home-made"},
+          {key:"C", html:"man-made"},
+          {key:"D", html:"convenient"}
+        ],
+        answer: "A",
+        explanation: `<span class='answer-tag'>✅ Đáp án: A – home-grown</span><br>
+<strong>Dịch câu:</strong> "Gia đình đó bán rau ________ của họ ở chợ địa phương."<br>
+<strong>Phân tích 4 đáp án:</strong><br>
+• A. <strong>home-grown (adj): tự trồng tại nhà</strong> – "home-grown vegetables" = rau tự trồng tại nhà, hoàn toàn phù hợp<br>
+• B. home-made (adj): tự làm tại nhà – thường dùng cho đồ thủ công/thức ăn chế biến, không dùng cho rau sống<br>
+• C. man-made (adj): nhân tạo (do con người tạo ra) – mang nghĩa nhân tạo, không tự nhiên<br>
+• D. convenient (adj): tiện lợi – không phù hợp ngữ cảnh (tính từ chỉ tính tiện dụng)<br>
+<strong>→ Chọn A</strong> vì "home-grown vegetables" là cụm từ chuẩn có nghĩa "rau tự trồng ở nhà/vườn".`
+      },
+      {
+        id: "b7",
+        text: "7. I don't know how to ________ for lower prices, so I shop in supermarkets as they have fixed prices.",
+        options: [
+          {key:"A", html:"browse"},
+          {key:"B", html:"bargain"},
+          {key:"C", html:"discuss"},
+          {key:"D", html:"pay"}
+        ],
+        answer: "B",
+        explanation: `<span class='answer-tag'>✅ Đáp án: B – bargain</span><br>
+<strong>Dịch câu:</strong> "Tôi không biết cách ________ để được giá thấp hơn, vì vậy tôi mua sắm ở siêu thị vì họ có giá cố định."<br>
+<strong>Phân tích 4 đáp án:</strong><br>
+• A. browse (v): lướt xem hàng – không có nghĩa thương lượng giá<br>
+• B. <strong>bargain (v): mặc cả, thương lượng giá</strong> – "bargain for lower prices" = mặc cả để được giá thấp hơn<br>
+• C. discuss (v): thảo luận – chung chung, không đặc trưng cho việc mặc cả<br>
+• D. pay (v): trả tiền – nghĩa ngược lại (trả tiền chứ không phải giảm giá)<br>
+<strong>→ Chọn B</strong> vì "bargain" (mặc cả) đối lập với "fixed prices" (giá cố định) trong câu.`
+      },
+      {
+        id: "b8",
+        text: "8. As a ________, Jane spends too much time and money shopping.",
+        options: [
+          {key:"A", html:"shopaholic"},
+          {key:"B", html:"shopkeeper"},
+          {key:"C", html:"shop assistant"},
+          {key:"D", html:"customer"}
+        ],
+        answer: "A",
+        explanation: `<span class='answer-tag'>✅ Đáp án: A – shopaholic</span><br>
+<strong>Dịch câu:</strong> "Là một ________, Jane dành quá nhiều thời gian và tiền bạc cho việc mua sắm."<br>
+<strong>Phân tích 4 đáp án:</strong><br>
+• A. <strong>shopaholic (n): người nghiện mua sắm</strong> – từ ghép "shop" + "-aholic" (giống alcoholic), chỉ người không thể kiểm soát hành vi mua sắm<br>
+• B. shopkeeper (n): chủ cửa hàng – người bán hàng, không phải người mua<br>
+• C. shop assistant (n): nhân viên bán hàng – người làm việc trong cửa hàng<br>
+• D. customer (n): khách hàng – chỉ là người đi mua sắm thông thường, không hàm ý "quá mức"<br>
+<strong>→ Chọn A</strong> vì "spends too much time and money shopping" = dấu hiệu điển hình của người nghiện mua sắm (shopaholic).`
+      },
+      {
+        id: "b9",
+        text: "9. Take your student card with you, you will get a ________ of 30%.",
+        options: [
+          {key:"A", html:"sale"},
+          {key:"B", html:"bargain"},
+          {key:"C", html:"decrease"},
+          {key:"D", html:"discount"}
+        ],
+        answer: "D",
+        explanation: `<span class='answer-tag'>✅ Đáp án: D – discount</span><br>
+<strong>Dịch câu:</strong> "Hãy mang theo thẻ học sinh, bạn sẽ được ________ 30%."<br>
+<strong>Phân tích 4 đáp án:</strong><br>
+• A. sale (n): đợt giảm giá, hàng sale – "on sale" = đang giảm giá, nhưng "a sale of 30%" không phải cụm chuẩn<br>
+• B. bargain (n): món hời, sự mặc cả – không dùng với cấu trúc "get a bargain of 30%"<br>
+• C. decrease (n): sự giảm sút – thường dùng trong kinh tế/thống kê, không dùng trong mua sắm<br>
+• D. <strong>discount (n): chiết khấu, giảm giá</strong> – "a discount of 30%" = giảm 30%, cấu trúc chuẩn và phổ biến<br>
+<strong>→ Chọn D</strong> vì "get a discount of 30%" là cụm cố định trong tiếng Anh thương mại.`
+      },
+      {
+        id: "b10",
+        text: "10. A(n) ________ is a small shop that sells food, drinks, etc. and is usually open until late.",
+        options: [
+          {key:"A", html:"convenience store"},
+          {key:"B", html:"farmers' market"},
+          {key:"C", html:"open-air market"},
+          {key:"D", html:"supermarket"}
+        ],
+        answer: "A",
+        explanation: `<span class='answer-tag'>✅ Đáp án: A – convenience store</span><br>
+<strong>Dịch câu:</strong> "________ là cửa hàng nhỏ bán thực phẩm, đồ uống, v.v. và thường mở cửa đến tận khuya."<br>
+<strong>Phân tích 4 đáp án:</strong><br>
+• A. <strong>convenience store (n): cửa hàng tiện lợi</strong> – nhỏ, mở đến khuya, bán đồ thiết yếu hàng ngày (ví dụ: 7-Eleven, Circle K)<br>
+• B. farmers' market (n): chợ nông sản – nơi nông dân bán trực tiếp, thường họp theo buổi/ngày cố định<br>
+• C. open-air market (n): chợ ngoài trời – quy mô lớn hơn, không phải cửa hàng nhỏ<br>
+• D. supermarket (n): siêu thị – quy mô lớn, không phải "small shop"<br>
+<strong>→ Chọn A</strong> vì định nghĩa "small shop... usually open until late" chính xác mô tả convenience store.`
+      },
+      {
+        id: "b11",
+        text: "11. A(n) ________ can save you in life-threatening situations because its sound can attract people's attention.",
+        options: [
+          {key:"A", html:"whistle"},
+          {key:"B", html:"emergency kit"},
+          {key:"C", html:"warning"},
+          {key:"D", html:"fear"}
+        ],
+        answer: "A",
+        explanation: `<span class='answer-tag'>✅ Đáp án: A – whistle</span><br>
+<strong>Dịch câu:</strong> "________ có thể cứu bạn trong những tình huống nguy hiểm đến tính mạng vì âm thanh của nó có thể thu hút sự chú ý của mọi người."<br>
+<strong>Phân tích 4 đáp án:</strong><br>
+• A. <strong>whistle (n): còi, tiếng còi</strong> – vật dụng tạo ra âm thanh to để thu hút sự chú ý khi gặp nguy hiểm<br>
+• B. emergency kit (n): bộ dụng cụ khẩn cấp – tập hợp nhiều đồ vật, không tạo âm thanh<br>
+• C. warning (n): lời cảnh báo – không phải vật dụng, không tạo âm thanh chủ động<br>
+• D. fear (n): nỗi sợ hãi – cảm xúc, không phải vật dụng<br>
+<strong>→ Chọn A</strong> vì whistle (còi) là vật dụng tạo âm thanh để thu hút sự chú ý trong tình huống nguy hiểm.`
+      },
+      {
+        id: "b12",
+        text: "12. The tornado caused a massive ________ to the town.",
+        options: [
+          {key:"A", html:"destruction"},
+          {key:"B", html:"extinction"},
+          {key:"C", html:"danger"},
+          {key:"D", html:"property"}
+        ],
+        answer: "A",
+        explanation: `<span class='answer-tag'>✅ Đáp án: A – destruction</span><br>
+<strong>Dịch câu:</strong> "Cơn lốc xoáy đã gây ra sự ________ khổng lồ cho thị trấn."<br>
+<strong>Phân tích 4 đáp án:</strong><br>
+• A. <strong>destruction (n): sự tàn phá, phá hủy</strong> – "cause destruction" = gây ra sự tàn phá, cụm từ chuẩn<br>
+• B. extinction (n): sự tuyệt chủng – thường dùng cho loài sinh vật, không dùng cho nhà cửa/thị trấn<br>
+• C. danger (n): nguy hiểm – "cause danger" ít phổ biến hơn "cause destruction"; danger là trạng thái, không phải kết quả<br>
+• D. property (n): tài sản, bất động sản – không phù hợp cấu trúc "cause property"<br>
+<strong>→ Chọn A</strong> vì "cause massive destruction" là cụm cố định mô tả hậu quả của thiên tai.`
+      },
+      {
+        id: "b13",
+        text: "13. Last night volcano Maui ________ and the large areas of land were affected.",
+        options: [
+          {key:"A", html:"trembled"},
+          {key:"B", html:"erupted"},
+          {key:"C", html:"predicted"},
+          {key:"D", html:"shook"}
+        ],
+        answer: "B",
+        explanation: `<span class='answer-tag'>✅ Đáp án: B – erupted</span><br>
+<strong>Dịch câu:</strong> "Đêm qua núi lửa Maui ________ và các vùng đất rộng lớn bị ảnh hưởng."<br>
+<strong>Phân tích 4 đáp án:</strong><br>
+• A. trembled (v-past): rung lắc – thường dùng cho mặt đất, cơ thể; không dùng cho núi lửa<br>
+• B. <strong>erupted (v-past): phun trào</strong> – "volcano erupted" = núi lửa phun trào, cụm từ chuẩn và đặc trưng<br>
+• C. predicted (v-past): dự đoán – hành động của con người/máy móc, không phải núi lửa<br>
+• D. shook (v-past): rung chuyển – thường dùng cho động đất; núi lửa "erupts" chứ không "shakes"<br>
+<strong>→ Chọn B</strong> vì "volcano erupted" là cụm từ chuyên dùng mô tả hoạt động của núi lửa.`
+      },
+      {
+        id: "b14",
+        text: "14. A ________ often occurs in the mountainous areas because many trees have been cut down.",
+        options: [
+          {key:"A", html:"forest fire"},
+          {key:"B", html:"flood"},
+          {key:"C", html:"tornado"},
+          {key:"D", html:"landslide"}
+        ],
+        answer: "D",
+        explanation: `<span class='answer-tag'>✅ Đáp án: D – landslide</span><br>
+<strong>Dịch câu:</strong> "________ thường xảy ra ở các vùng núi vì nhiều cây đã bị chặt hạ."<br>
+<strong>Phân tích 4 đáp án:</strong><br>
+• A. forest fire (n): cháy rừng – xảy ra khi có lửa, không liên quan đến việc chặt cây<br>
+• B. flood (n): lũ lụt – thường ở vùng thấp, ven sông; chặt cây → lũ nhưng không đặc trưng cho vùng núi<br>
+• C. tornado (n): lốc xoáy – hiện tượng khí tượng, không liên quan đến chặt cây<br>
+• D. <strong>landslide (n): lở đất, sạt lở đất</strong> – xảy ra ở vùng núi khi cây bị chặt → đất mất lớp giữ → sạt lở<br>
+<strong>→ Chọn D</strong> vì mất thảm thực vật rừng trên vùng núi là nguyên nhân chính dẫn đến sạt lở đất (landslide).`
+      },
+      {
+        id: "b15",
+        text: "15. My province has a ________ system to tell people when there is a danger of a landslide.",
+        options: [
+          {key:"A", html:"missing"},
+          {key:"B", html:"violent"},
+          {key:"C", html:"warning"},
+          {key:"D", html:"practical"}
+        ],
+        answer: "C",
+        explanation: `<span class='answer-tag'>✅ Đáp án: C – warning</span><br>
+<strong>Dịch câu:</strong> "Tỉnh tôi có hệ thống ________ để thông báo cho mọi người khi có nguy cơ lở đất."<br>
+<strong>Phân tích 4 đáp án:</strong><br>
+• A. missing (adj): bị mất, vắng mặt – không phù hợp ngữ cảnh hệ thống thông báo<br>
+• B. violent (adj): bạo lực, dữ dội – mô tả mức độ, không phải chức năng hệ thống<br>
+• C. <strong>warning (adj/n): cảnh báo</strong> – "warning system" = hệ thống cảnh báo, cụm từ chuẩn trong tiếng Anh<br>
+• D. practical (adj): thực tế, thực dụng – "practical system" không mang nghĩa thông báo nguy hiểm<br>
+<strong>→ Chọn C</strong> vì "warning system" (hệ thống cảnh báo) là cụm cố định, phù hợp với chức năng "tell people when there is danger".`
+      }
+    ]
+  },
+  // ===== SECTION C: PREPOSITIONS (GAP FILL) =====
+  {
+    section: null,
+    sectionSub: "C. PREPOSITIONS",
+    instruction: "Bấm vào ô trống để chọn giới từ phù hợp.",
+    isGapFill: true,
+    questions: [
+      {
+        id: "c1",
+        text: "1. We are going to pick",
+        gaps: [{ id:"c1g1", answer:"up", choices:["up","out","off","away"] }],
+        textAfter: "rubbish in the central park this weekend.",
+        explanation: `<span class='answer-tag'>✅ Đáp án: up</span><br>
+<strong>pick up</strong> (phrasal verb): nhặt lên, dọn dẹp<br>
+• <em>pick up rubbish</em> = nhặt rác lên<br>
+• Phân biệt: pick out = chọn lọc | pick off = bắn hạ | pick away = không tồn tại<br>
+<strong>Dịch:</strong> "Cuối tuần này chúng tôi sẽ đi nhặt rác ở công viên trung tâm."`
+      },
+      {
+        id: "c2",
+        text: "2. Recycling single-use products is better than throwing them",
+        gaps: [{ id:"c2g1", answer:"away", choices:["away","out","off","down"] }],
+        textAfter: ".",
+        explanation: `<span class='answer-tag'>✅ Đáp án: away</span><br>
+<strong>throw away</strong> (phrasal verb): vứt bỏ, ném đi<br>
+• <em>throwing them away</em> = vứt bỏ chúng<br>
+• Phân biệt: throw out = vứt ra ngoài (gần nghĩa) | throw off = thoát khỏi | throw down = ném xuống<br>
+<strong>Dịch:</strong> "Tái chế các sản phẩm dùng một lần tốt hơn là vứt chúng đi."`
+      },
+      {
+        id: "c3",
+        text: "3. Shopping centres offer a wide range",
+        gaps: [{ id:"c3g1", answer:"of", choices:["of","for","in","at"] }],
+        textAfter: "products to choose",
+        gaps2: [{ id:"c3g2", answer:"from", choices:["from","for","in","at"] }],
+        textAfter2: ".",
+        explanation: `<span class='answer-tag'>✅ Đáp án: of ... from</span><br>
+<strong>a wide range of</strong>: một phạm vi rộng của... (cụm cố định)<br>
+<strong>choose from</strong>: chọn từ (trong số những thứ có sẵn)<br>
+• <em>a range of products to choose from</em> = nhiều sản phẩm để lựa chọn<br>
+<strong>Dịch:</strong> "Các trung tâm mua sắm cung cấp nhiều loại sản phẩm để lựa chọn."`
+      },
+      {
+        id: "c4",
+        text: "4. You should try the shoes",
+        gaps: [{ id:"c4g1", answer:"on", choices:["on","out","up","in"] }],
+        textAfter: "before you buy them.",
+        explanation: `<span class='answer-tag'>✅ Đáp án: on</span><br>
+<strong>try on</strong> (phrasal verb): thử (quần áo, giày dép)<br>
+• <em>try the shoes on</em> = thử đôi giày<br>
+• Lưu ý: tân ngữ là đại từ (them) đặt giữa: "try them on"; tân ngữ là danh từ thì có thể đặt sau: "try on the shoes" hoặc "try the shoes on"<br>
+<strong>Dịch:</strong> "Bạn nên thử giày trước khi mua."`
+      },
+      {
+        id: "c5",
+        text: "5. These brands are rarely",
+        gaps: [{ id:"c5g1", answer:"on", choices:["on","for","in","at"] }],
+        textAfter: "sale, just once or twice a year.",
+        explanation: `<span class='answer-tag'>✅ Đáp án: on</span><br>
+<strong>on sale</strong>: đang được bán với giá ưu đãi / đang khuyến mãi<br>
+• <em>rarely on sale</em> = hiếm khi giảm giá<br>
+• Phân biệt: "for sale" = đang được rao bán (chưa bán được); "on sale" = đang bán với giá giảm<br>
+<strong>Dịch:</strong> "Những thương hiệu này hiếm khi giảm giá, chỉ một hoặc hai lần mỗi năm."`
+      },
+      {
+        id: "c6",
+        text: "6. Cutting",
+        gaps: [{ id:"c6g1", answer:"down", choices:["down","off","up","out"] }],
+        textAfter: "trees can cause flood in the area.",
+        explanation: `<span class='answer-tag'>✅ Đáp án: down</span><br>
+<strong>cut down</strong> (phrasal verb): chặt hạ (cây)<br>
+• <em>cutting down trees</em> = chặt hạ cây<br>
+• Phân biệt: cut off = cắt đứt | cut up = cắt nhỏ | cut out = cắt ra, loại bỏ<br>
+<strong>Dịch:</strong> "Việc chặt phá cây cối có thể gây ra lũ lụt trong khu vực."`
+      },
+      {
+        id: "c7",
+        text: "7. The tornado pulled",
+        gaps: [{ id:"c7g1", answer:"up", choices:["up","down","out","off"] }],
+        textAfter: "some trees in our yard yesterday afternoon.",
+        explanation: `<span class='answer-tag'>✅ Đáp án: up</span><br>
+<strong>pull up</strong> (phrasal verb): nhổ lên, bứng gốc<br>
+• <em>pulled up some trees</em> = nhổ bứng một số cây (do lốc xoáy)<br>
+• Lốc xoáy thường "nhổ bứng" cây khỏi mặt đất → pull up<br>
+• Phân biệt: pull down = kéo đổ (tòa nhà) | pull out = rút ra | pull off = giật ra<br>
+<strong>Dịch:</strong> "Cơn lốc xoáy đã nhổ bứng một số cây trong sân nhà chúng tôi vào chiều hôm qua."`
+      },
+      {
+        id: "c8",
+        text: "8. We should keep",
+        gaps: [{ id:"c8g1", answer:"away", choices:["away","out","off","back"] }],
+        textAfter: "from dangerous areas when there's a storm.",
+        explanation: `<span class='answer-tag'>✅ Đáp án: away</span><br>
+<strong>keep away from</strong>: tránh xa khỏi<br>
+• <em>keep away from dangerous areas</em> = tránh xa các khu vực nguy hiểm<br>
+• Phân biệt: keep out of = ở ngoài, không vào | keep off = tránh xa (bề mặt) | keep back = giữ khoảng cách<br>
+<strong>Dịch:</strong> "Chúng ta nên tránh xa các khu vực nguy hiểm khi có bão."`
+      },
+      {
+        id: "c9",
+        text: "9. Natural disasters can cause serious damage",
+        gaps: [{ id:"c9g1", answer:"to", choices:["to","for","on","at"] }],
+        textAfter: "human life.",
+        explanation: `<span class='answer-tag'>✅ Đáp án: to</span><br>
+<strong>cause damage to</strong>: gây ra thiệt hại cho...<br>
+• <em>damage to human life</em> = thiệt hại về sinh mạng con người<br>
+• Cấu trúc cố định: <strong>damage to + something</strong> (gây hại cho cái gì)<br>
+<strong>Dịch:</strong> "Thiên tai có thể gây ra thiệt hại nghiêm trọng cho cuộc sống con người."`
+      },
+      {
+        id: "c10",
+        text: "10. Carbon footprint is the amount",
+        gaps: [{ id:"c10g1", answer:"of", choices:["of","in","for","at"] }],
+        textAfter: "carbon dioxide we release",
+        gaps2: [{ id:"c10g2", answer:"into", choices:["into","to","in","onto"] }],
+        textAfter2: "the environment.",
+        explanation: `<span class='answer-tag'>✅ Đáp án: of ... into</span><br>
+<strong>the amount of</strong>: lượng... (cụm cố định)<br>
+<strong>release into</strong>: thải vào (môi trường)<br>
+• <em>the amount of carbon dioxide</em> = lượng CO₂<br>
+• <em>release CO₂ into the environment</em> = thải CO₂ vào môi trường<br>
+<strong>Dịch:</strong> "Dấu chân carbon là lượng CO₂ chúng ta thải vào môi trường."`
+      }
+    ]
+  },
+  // ===== SECTION D: ADVERB CLAUSES =====
+  {
+    section: null,
+    sectionSub: "D. ADVERB CLAUSES OF TIME",
+    instruction: null,
+    questions: [
+      {
+        id:"d1",
+        text:"1. He will send them an email ________ he arrives in London.",
+        options:[
+          {key:"A",html:"until"},{key:"B",html:"after"},{key:"C",html:"before"},{key:"D",html:"as soon as"}
+        ],
+        answer:"D",
+        explanation:`<span class='answer-tag'>✅ Đáp án: D – as soon as</span><br>
+<strong>Dịch câu:</strong> "Anh ấy sẽ gửi email cho họ ________ anh ấy đến London."<br>
+<strong>Phân tích 4 đáp án:</strong><br>
+• A. until: cho đến khi – "He will send... until he arrives" → không hợp lý (gửi email liên tục cho đến khi đến?)<br>
+• B. after: sau khi – "after he arrives" cũng có thể nhưng không nhấn mạnh ngay lập tức<br>
+• C. before: trước khi – mâu thuẫn (gửi email trước khi đến London nghĩa là chưa đến)<br>
+• D. <strong>as soon as: ngay khi</strong> – "as soon as he arrives" = ngay khi đến, phù hợp nhất (gửi email ngay lập tức)<br>
+<strong>→ Chọn D</strong> vì "as soon as" nhấn mạnh hành động xảy ra ngay lập tức khi có sự kiện khác.`
+      },
+      {
+        id:"d2",
+        text:"2. ________ you buy and use a plastic bag, ask yourself if you really need it.",
+        options:[
+          {key:"A",html:"Before"},{key:"B",html:"When"},{key:"C",html:"While"},{key:"D",html:"After"}
+        ],
+        answer:"A",
+        explanation:`<span class='answer-tag'>✅ Đáp án: A – Before</span><br>
+<strong>Dịch câu:</strong> "________ bạn mua và dùng túi nhựa, hãy tự hỏi bản thân xem bạn có thực sự cần nó không."<br>
+<strong>Phân tích:</strong><br>
+• A. <strong>Before: trước khi</strong> – "Before you buy... ask yourself" = trước khi mua, hãy suy nghĩ. Đây là lời khuyên về bảo vệ môi trường: hãy suy nghĩ TRƯỚC khi quyết định dùng túi nhựa<br>
+• B. When: khi – "When you buy" → đã quyết định rồi, lời khuyên đến muộn<br>
+• C. While: trong khi – dùng cho hành động song song, không phù hợp ngữ cảnh<br>
+• D. After: sau khi – đã mua rồi mới hỏi → lời khuyên vô nghĩa<br>
+<strong>→ Chọn A</strong> vì lời khuyên bảo vệ môi trường cần đến TRƯỚC khi hành động (before).`
+      },
+      {
+        id:"d3",
+        text:"3. The firefighters will keep on searching ________ they find the last victim.",
+        options:[
+          {key:"A",html:"till"},{key:"B",html:"before"},{key:"C",html:"after"},{key:"D",html:"while"}
+        ],
+        answer:"A",
+        explanation:`<span class='answer-tag'>✅ Đáp án: A – till</span><br>
+<strong>Dịch câu:</strong> "Những người lính cứu hỏa sẽ tiếp tục tìm kiếm ________ họ tìm thấy nạn nhân cuối cùng."<br>
+<strong>Phân tích:</strong><br>
+• A. <strong>till (= until): cho đến khi</strong> – "keep on searching till they find" = tiếp tục tìm kiếm cho đến khi tìm thấy. Dùng với "keep on" để diễn tả hành động liên tục đến một thời điểm<br>
+• B. before: trước khi – "keep searching before they find" → không hợp lý<br>
+• C. after: sau khi – không thể tiếp tục tìm khi đã tìm thấy rồi<br>
+• D. while: trong khi – diễn tả hai hành động song song, không phù hợp<br>
+<strong>→ Chọn A</strong> vì "till/until" đi với "keep on + V-ing" để diễn tả hành động kéo dài đến thời điểm kết thúc.`
+      },
+      {
+        id:"d4",
+        text:"4. Will we be able to address climate change ________ it is too late?",
+        options:[
+          {key:"A",html:"when"},{key:"B",html:"before"},{key:"C",html:"after"},{key:"D",html:"until"}
+        ],
+        answer:"B",
+        explanation:`<span class='answer-tag'>✅ Đáp án: B – before</span><br>
+<strong>Dịch câu:</strong> "Liệu chúng ta có thể giải quyết vấn đề biến đổi khí hậu ________ quá muộn không?"<br>
+<strong>Phân tích:</strong><br>
+• A. when: khi – "address climate change when it's too late" → đã muộn rồi<br>
+• B. <strong>before: trước khi</strong> – "address climate change before it is too late" = giải quyết trước khi quá muộn. Đây là cấu trúc cảnh báo rất phổ biến<br>
+• C. after: sau khi – đã muộn rồi mới giải quyết → không có ý nghĩa tích cực<br>
+• D. until: cho đến khi – "address climate change until it's too late" → không hợp lý<br>
+<strong>→ Chọn B</strong> vì "before it is too late" là cụm thành ngữ cố định có nghĩa "trước khi quá muộn".`
+      },
+      {
+        id:"d5",
+        text:"5. Harry met an old friend ________ he was vacationing in California.",
+        options:[
+          {key:"A",html:"Until"},{key:"B",html:"during"},{key:"C",html:"While"},{key:"D",html:"As soon as"}
+        ],
+        answer:"C",
+        explanation:`<span class='answer-tag'>✅ Đáp án: C – While</span><br>
+<strong>Dịch câu:</strong> "Harry gặp một người bạn cũ ________ anh ấy đang nghỉ mát ở California."<br>
+<strong>Phân tích:</strong><br>
+• A. Until: cho đến khi – không phù hợp hai hành động song song<br>
+• B. during: trong suốt (+ danh từ, KHÔNG + mệnh đề) – "during he was vacationing" sai ngữ pháp<br>
+• C. <strong>while: trong khi</strong> – "while he was vacationing" = trong khi đang nghỉ mát. Dùng "while + Past Continuous" cho hành động nền, hành động ngắn hơn ở Simple Past<br>
+• D. As soon as: ngay khi – "as soon as he was vacationing" sai logic<br>
+<strong>→ Chọn C</strong> vì "while + Past Continuous" diễn tả hành động đang diễn ra (nghỉ mát) trong khi một hành động khác xảy ra (gặp bạn).`
+      },
+      {
+        id:"d6",
+        text:"6. ________ I get to school, I will show you my writing about the habitat of polar bears.",
+        options:[
+          {key:"A",html:"While"},{key:"B",html:"As soon as"},{key:"C",html:"Till"},{key:"D",html:"Until"}
+        ],
+        answer:"B",
+        explanation:`<span class='answer-tag'>✅ Đáp án: B – As soon as</span><br>
+<strong>Dịch câu:</strong> "________ tôi đến trường, tôi sẽ cho bạn xem bài viết của tôi về môi trường sống của gấu Bắc Cực."<br>
+<strong>Phân tích:</strong><br>
+• A. While: trong khi – "while I get to school" không hợp lý (không thể vừa đến vừa làm việc khác)<br>
+• B. <strong>As soon as: ngay khi</strong> – "As soon as I get to school, I will show you" = ngay khi đến trường, tôi sẽ cho bạn xem<br>
+• C. Till / D. Until: cho đến khi – "till/until I get to school, I will show you" → sai logic<br>
+<strong>→ Chọn B</strong> vì "as soon as" nhấn mạnh hành động xảy ra ngay lập tức, phù hợp với ý nghĩa câu.`
+      },
+      {
+        id:"d7",
+        text:"7. He felt much calmer ________ the storm passed.",
+        options:[
+          {key:"A",html:"after"},{key:"B",html:"while"},{key:"C",html:"until"},{key:"D",html:"before"}
+        ],
+        answer:"A",
+        explanation:`<span class='answer-tag'>✅ Đáp án: A – after</span><br>
+<strong>Dịch câu:</strong> "Anh ấy cảm thấy bình tĩnh hơn nhiều ________ cơn bão qua đi."<br>
+<strong>Phân tích:</strong><br>
+• A. <strong>after: sau khi</strong> – "felt calmer after the storm passed" = bình tĩnh hơn sau khi bão qua, hợp lý về mặt thời gian<br>
+• B. while: trong khi – cảm thấy bình tĩnh hơn TRONG KHI bão đang xảy ra? Không hợp lý<br>
+• C. until: cho đến khi – "felt calmer until the storm passed" = bình tĩnh cho đến khi bão qua → nghĩa là bão qua rồi lại không bình tĩnh? Vô lý<br>
+• D. before: trước khi – cảm thấy bình tĩnh trước khi bão đến? Không phù hợp<br>
+<strong>→ Chọn A</strong> vì "after the storm passed" (sau khi bão qua) tạo quan hệ nhân-quả hợp lý.`
+      },
+      {
+        id:"d8",
+        text:"8. Hurry up! We need to leave ________ the traffic gets worse.",
+        options:[
+          {key:"A",html:"while"},{key:"B",html:"before"},{key:"C",html:"until"},{key:"D",html:"after"}
+        ],
+        answer:"B",
+        explanation:`<span class='answer-tag'>✅ Đáp án: B – before</span><br>
+<strong>Dịch câu:</strong> "Nhanh lên! Chúng ta cần rời đi ________ giao thông trở nên tệ hơn."<br>
+<strong>Phân tích:</strong><br>
+• A. while: trong khi – "leave while the traffic gets worse" = rời đi trong khi đang tệ hơn → không hợp lý<br>
+• B. <strong>before: trước khi</strong> – "leave before the traffic gets worse" = rời đi trước khi kẹt xe. Đây là lời nhắc khẩn cấp hợp lý<br>
+• C. until: cho đến khi – "leave until the traffic gets worse" sai ngữ pháp/logic<br>
+• D. after: sau khi – rời đi sau khi đã kẹt xe? Không có ý nghĩa cảnh báo<br>
+<strong>→ Chọn B</strong> vì "before" tạo nghĩa khuyến cáo: hãy hành động trước khi có điều xấu xảy ra.`
+      },
+      {
+        id:"d9",
+        text:"9. We left for the beach ________ packing our bags.",
+        options:[
+          {key:"A",html:"when we finish"},
+          {key:"B",html:"until we will finish"},
+          {key:"C",html:"as soon as we finished"},
+          {key:"D",html:"while we were finishing"}
+        ],
+        answer:"C",
+        explanation:`<span class='answer-tag'>✅ Đáp án: C – as soon as we finished</span><br>
+<strong>Dịch câu:</strong> "Chúng tôi đi đến bãi biển ________ đóng gói túi xách."<br>
+<strong>Phân tích:</strong><br>
+• A. when we finish: thì hiện tại – không dùng trong mệnh đề thời gian trong quá khứ (câu chính ở quá khứ)<br>
+• B. until we will finish: sai ngữ pháp – mệnh đề thời gian không dùng thì tương lai<br>
+• C. <strong>as soon as we finished: ngay khi chúng tôi đóng gói xong</strong> – "We left... as soon as we finished packing" = chúng tôi đi ngay khi đóng gói xong. Cả hai vế đều ở quá khứ<br>
+• D. while we were finishing: trong khi đang đóng gói – "we left while we were finishing" → vừa đi vừa đóng gói? Không hợp lý<br>
+<strong>→ Chọn C</strong> vì "as soon as + Past Simple" diễn tả hai hành động xảy ra liên tiếp trong quá khứ.`
+      },
+      {
+        id:"d10",
+        text:"10. Only run your dishwasher or washing machine ________.",
+        options:[
+          {key:"A",html:"when it's full"},
+          {key:"B",html:"while they're full"},
+          {key:"C",html:"until full"},
+          {key:"D",html:"after being full"}
+        ],
+        answer:"A",
+        explanation:`<span class='answer-tag'>✅ Đáp án: A – when it's full</span><br>
+<strong>Dịch câu:</strong> "Chỉ chạy máy rửa bát hoặc máy giặt ________ (khi đầy)."<br>
+<strong>Phân tích:</strong><br>
+• A. <strong>when it's full: khi (máy) đầy</strong> – mệnh đề thời gian điều kiện, dùng đại từ "it" cho một máy (dishwasher OR washing machine)<br>
+• B. while they're full: trong khi chúng đầy – "they" dùng cho số nhiều nhưng vế trước là "dishwasher OR washing machine" (số ít, chỉ một trong hai)<br>
+• C. until full: thiếu chủ từ, không phải cấu trúc chuẩn với "run machine"<br>
+• D. after being full: sau khi đầy – không hợp lý (chạy máy sau khi đầy = đã đầy rồi mới chạy → đúng nhưng "when" hợp lý và tự nhiên hơn)<br>
+<strong>→ Chọn A</strong> vì "when it's full" là lời khuyên tiết kiệm điện/nước: chỉ chạy máy khi đã đầy.`
+      }
+    ]
+  },
+  // ===== SECTION E: ADVERBS OF FREQUENCY =====
+  {
+    section: null,
+    sectionSub: "E. ADVERBS OF FREQUENCY",
+    instruction: null,
+    questions: [
+      {
+        id:"e1",
+        text:"1. Linh _______ lunch with her best friend.",
+        options:[
+          {key:"A",html:"always have"},
+          {key:"B",html:"always has"},
+          {key:"C",html:"has always"},
+          {key:"D",html:"have always"}
+        ],
+        answer:"B",
+        explanation:`<span class='answer-tag'>✅ Đáp án: B – always has</span><br>
+<strong>Dịch câu:</strong> "Linh _______ ăn trưa với người bạn thân nhất của mình."<br>
+<strong>Phân tích:</strong><br>
+• Chủ ngữ "Linh" là ngôi thứ ba số ít → động từ thêm "s/es": <strong>has</strong> (không phải "have")<br>
+• Trạng từ tần suất (always) đứng TRƯỚC động từ thường: <strong>always has</strong><br>
+• A. always have: sai (have không chia ngôi 3 số ít)<br>
+• C. has always: sai vị trí (always đặt sau "has" chỉ dùng với trợ động từ, ví dụ "has always eaten")<br>
+• D. have always: sai cả "have" lẫn vị trí<br>
+<strong>Quy tắc:</strong> Trạng từ tần suất + Động từ thường (always/usually/often/sometimes/rarely/never + verb).`
+      },
+      {
+        id:"e2",
+        text:"2. We _______ shuttlecock at break time.",
+        options:[
+          {key:"A",html:"often plays"},
+          {key:"B",html:"play often"},
+          {key:"C",html:"often play"},
+          {key:"D",html:"plays often"}
+        ],
+        answer:"C",
+        explanation:`<span class='answer-tag'>✅ Đáp án: C – often play</span><br>
+<strong>Dịch câu:</strong> "Chúng tôi _______ chơi cầu lông vào giờ ra chơi."<br>
+<strong>Phân tích:</strong><br>
+• Chủ ngữ "We" → động từ không chia (no s/es): <strong>play</strong> (không phải plays)<br>
+• Vị trí "often": đứng TRƯỚC động từ thường → <strong>often play</strong><br>
+• A. often plays: sai (plays dùng cho ngôi 3 số ít)<br>
+• B. play often: sai vị trí (often đặt cuối câu chỉ dùng trong một số trường hợp không phổ biến)<br>
+• D. plays often: sai cả chia động từ lẫn vị trí<br>
+<strong>Quy tắc:</strong> Subject + adverb of frequency + main verb.`
+      },
+      {
+        id:"e3",
+        text:"3. The food in the canteen _______ quite good.",
+        options:[
+          {key:"A",html:"usually are"},
+          {key:"B",html:"are usually"},
+          {key:"C",html:"usually is"},
+          {key:"D",html:"is usually"}
+        ],
+        answer:"D",
+        explanation:`<span class='answer-tag'>✅ Đáp án: D – is usually</span><br>
+<strong>Dịch câu:</strong> "Thức ăn trong căng tin _______ khá ngon."<br>
+<strong>Phân tích:</strong><br>
+• "The food" = danh từ không đếm được, số ít → động từ "to be": <strong>is</strong> (không phải "are")<br>
+• Với động từ "to be", trạng từ tần suất đứng SAU "be": <strong>is usually</strong><br>
+• A. usually are: sai (are dùng cho số nhiều; usually sai vị trí nếu đặt trước be)<br>
+• B. are usually: sai (are dùng cho số nhiều)<br>
+• C. usually is: sai vị trí (usually phải đứng SAU "to be", không đứng trước)<br>
+<strong>Quy tắc:</strong> Với "to be": Subject + to be + adverb of frequency.`
+      },
+      {
+        id:"e4",
+        text:"4. Julia _______ excited when a new school year _______.",
+        options:[
+          {key:"A",html:"feels always - starts"},
+          {key:"B",html:"feel always - start"},
+          {key:"C",html:"always feels - start"},
+          {key:"D",html:"always feels - starts"}
+        ],
+        answer:"D",
+        explanation:`<span class='answer-tag'>✅ Đáp án: D – always feels - starts</span><br>
+<strong>Dịch câu:</strong> "Julia _______ hào hứng khi một năm học mới _______."<br>
+<strong>Phân tích:</strong><br>
+• "Julia" = ngôi 3 số ít → "feel" chia: <strong>feels</strong>; "start" chia: <strong>starts</strong><br>
+• "always" là trạng từ tần suất đứng TRƯỚC động từ thường: <strong>always feels</strong><br>
+• A. feels always: sai vị trí (always phải đứng trước feels)<br>
+• B. feel always - start: sai chia động từ (thiếu s cho ngôi 3 số ít)<br>
+• C. always feels - start: sai "start" (thiếu s)<br>
+<strong>→ Chọn D</strong> vì cả hai động từ đều chia đúng ngôi 3 số ít và "always" đứng đúng vị trí.`
+      },
+      {
+        id:"e5",
+        text:"5. _______ worried about my results at school.",
+        options:[
+          {key:"A",html:"I never am"},
+          {key:"B",html:"Never I am"},
+          {key:"C",html:"I am never"},
+          {key:"D",html:"I'm not never"}
+        ],
+        answer:"C",
+        explanation:`<span class='answer-tag'>✅ Đáp án: C – I am never</span><br>
+<strong>Dịch câu:</strong> "Tôi không bao giờ lo lắng về kết quả học tập của mình."<br>
+<strong>Phân tích:</strong><br>
+• Với động từ "to be", trạng từ tần suất đứng SAU "am/is/are": <strong>I am never</strong><br>
+• A. I never am: sai vị trí (never đứng trước "am" khi dùng với be là sai)<br>
+• B. Never I am: đảo ngữ sai (đảo ngữ với "never" cần trợ động từ: Never am I...)<br>
+• D. I'm not never: sai ngữ pháp – "not never" = phủ định kép (double negative), không chấp nhận trong tiếng Anh chuẩn<br>
+<strong>→ Chọn C</strong> vì cấu trúc chuẩn: Subject + be + adverb of frequency.`
+      },
+      {
+        id:"e6",
+        text:"6. I _______ my cousin by his real name.",
+        options:[
+          {key:"A",html:"usually don't call"},
+          {key:"B",html:"don't call usually"},
+          {key:"C",html:"don't usually call"},
+          {key:"D",html:"doesn't usually call"}
+        ],
+        answer:"C",
+        explanation:`<span class='answer-tag'>✅ Đáp án: C – don't usually call</span><br>
+<strong>Dịch câu:</strong> "Tôi _______ gọi anh họ của mình bằng tên thật của anh ấy."<br>
+<strong>Phân tích:</strong><br>
+• "I" → trợ động từ phủ định: <strong>don't</strong> (không phải "doesn't" của ngôi 3 số ít)<br>
+• Với câu phủ định có trợ động từ: trạng từ tần suất đứng giữa "don't/doesn't" và động từ chính: <strong>don't usually call</strong><br>
+• A. usually don't call: sai vị trí (usually đứng trước don't – không chuẩn)<br>
+• B. don't call usually: sai vị trí (usually ở cuối câu – ít dùng)<br>
+• D. doesn't usually call: sai (doesn't dùng cho ngôi 3 số ít, "I" dùng "don't")<br>
+<strong>Quy tắc:</strong> don't/doesn't + adverb of frequency + main verb.`
+      },
+      {
+        id:"e7",
+        text:"7. Many women ________ shopping alone in the shopping mall.",
+        options:[
+          {key:"A",html:"don't go usually"},
+          {key:"B",html:"don't usually go"},
+          {key:"C",html:"usually doesn't go"},
+          {key:"D",html:"won't go usually"}
+        ],
+        answer:"B",
+        explanation:`<span class='answer-tag'>✅ Đáp án: B – don't usually go</span><br>
+<strong>Dịch câu:</strong> "Nhiều phụ nữ ________ mua sắm một mình trong trung tâm thương mại."<br>
+<strong>Phân tích:</strong><br>
+• "Many women" = chủ ngữ số nhiều → trợ động từ: <strong>don't</strong> (không phải "doesn't")<br>
+• Vị trí "usually": giữa "don't" và "go" → <strong>don't usually go</strong><br>
+• A. don't go usually: sai vị trí<br>
+• C. usually doesn't go: sai ("doesn't" cho số ít, "women" số nhiều)<br>
+• D. won't go usually: sai (won't = will not, dùng cho tương lai, không phải thói quen hiện tại)<br>
+<strong>→ Chọn B</strong> vì đúng chia số nhiều và đúng vị trí trạng từ.`
+      },
+      {
+        id:"e8",
+        text:"8. I ________ eat fast food, maybe just a few times a year. I prefer cooking at home.",
+        options:[
+          {key:"A",html:"never"},
+          {key:"B",html:"rarely"},
+          {key:"C",html:"always"},
+          {key:"D",html:"usually"}
+        ],
+        answer:"B",
+        explanation:`<span class='answer-tag'>✅ Đáp án: B – rarely</span><br>
+<strong>Dịch câu:</strong> "Tôi ________ ăn đồ ăn nhanh, có lẽ chỉ vài lần một năm. Tôi thích nấu ăn tại nhà."<br>
+<strong>Phân tích:</strong><br>
+• Từ khóa: "maybe just a few times a year" = chỉ vài lần một năm → tần suất rất thấp<br>
+• A. never (0%): không bao giờ – mâu thuẫn với "a few times a year"<br>
+• B. <strong>rarely (~10%): hiếm khi</strong> – "a few times a year" = hiếm khi, hoàn toàn phù hợp<br>
+• C. always (100%): luôn luôn – mâu thuẫn với "a few times a year"<br>
+• D. usually (~80%): thường xuyên – mâu thuẫn vì đã nói thích nấu ăn tại nhà<br>
+<strong>→ Chọn B</strong> vì "rarely" phù hợp với "a few times a year" (tần suất rất thấp).`
+      },
+      {
+        id:"e9",
+        text:"9. We ________ walk to school, because our school is very close.",
+        options:[
+          {key:"A",html:"never"},
+          {key:"B",html:"usually"},
+          {key:"C",html:"rarely"},
+          {key:"D",html:"occasionally"}
+        ],
+        answer:"B",
+        explanation:`<span class='answer-tag'>✅ Đáp án: B – usually</span><br>
+<strong>Dịch câu:</strong> "Chúng tôi ________ đi bộ đến trường, vì trường của chúng tôi rất gần."<br>
+<strong>Phân tích:</strong><br>
+• Lý do: "our school is very close" = trường rất gần → hành động tự nhiên là ĐI BỘ thường xuyên<br>
+• A. never: không bao giờ – mâu thuẫn (trường gần mà không bao giờ đi bộ?)<br>
+• B. <strong>usually (~80%): thường xuyên</strong> – trường gần → thường xuyên đi bộ, hợp lý<br>
+• C. rarely: hiếm khi – mâu thuẫn với lý do "trường rất gần"<br>
+• D. occasionally: thỉnh thoảng – ít hơn "usually", không phù hợp lý do đưa ra<br>
+<strong>→ Chọn B</strong> vì "trường rất gần" là lý do để "usually walk" (thường đi bộ).`
+      },
+      {
+        id:"e10",
+        text:"10. I usually take a bus to work, but ________ my brother gives me a ride.",
+        options:[
+          {key:"A",html:"always"},
+          {key:"B",html:"sometimes"},
+          {key:"C",html:"never"},
+          {key:"D",html:"rarely"}
+        ],
+        answer:"B",
+        explanation:`<span class='answer-tag'>✅ Đáp án: B – sometimes</span><br>
+<strong>Dịch câu:</strong> "Tôi thường đi xe buýt đến chỗ làm, nhưng ________ anh trai tôi chở tôi đi."<br>
+<strong>Phân tích:</strong><br>
+• Cấu trúc "usually... but ________ ..." → "nhưng" cho thấy có ngoại lệ đôi khi xảy ra<br>
+• A. always: luôn luôn – mâu thuẫn với "usually take a bus" (không thể LUÔN LUÔN được chở)<br>
+• B. <strong>sometimes: đôi khi</strong> – "usually... but sometimes" = thường thì... nhưng đôi khi, cấu trúc đối lập hoàn hảo<br>
+• C. never: không bao giờ – "but never" = nhưng không bao giờ → vô lý<br>
+• D. rarely: hiếm khi – quá nhấn mạnh sự hiếm hoi, "sometimes" tự nhiên hơn trong cấu trúc này<br>
+<strong>→ Chọn B</strong> vì "usually... but sometimes" là cấu trúc đối lập chuẩn, thể hiện ngoại lệ thỉnh thoảng.`
+      }
+    ]
+  }
+];
+
+// ===== STATE =====
+let totalQuestions = 0;
+let correctCount = 0;
+let answeredCount = 0;
+const userAnswers = {}; // id -> {correct, answered}
+
+// Count total
+quizData.forEach(sec => { totalQuestions += sec.questions.length; });
+
+// ===== RENDER =====
+function renderQuiz() {
+  const container = document.getElementById('quiz-container');
+  let html = '';
+  let sectionPrinted = new Set();
+
+  quizData.forEach(sec => {
+    if (sec.section && !sectionPrinted.has(sec.section)) {
+      html += `<div class="section-header">📚 ${sec.section}</div>`;
+      sectionPrinted.add(sec.section);
+    }
+    html += `<div class="section-header" style="background:linear-gradient(90deg,#00C9A7,#00a87a);margin-top:10px;">✏️ ${sec.sectionSub}</div>`;
+    if (sec.instruction) html += `<div class="sub-instruction">👉 ${sec.instruction}</div>`;
+
+    if (sec.isGapFill) {
+      sec.questions.forEach(q => {
+        html += renderGapFill(q);
+      });
+    } else {
+      sec.questions.forEach(q => {
+        html += renderMCQ(q);
+      });
+    }
+  });
+  container.innerHTML = html;
+  updateScore();
+}
+
+function renderMCQ(q) {
+  const shuffled = shuffle([...q.options]);
+  let optsHtml = '';
+  shuffled.forEach(opt => {
+    optsHtml += `<button class="opt-btn" onclick="checkMCQ('${q.id}','${opt.key}','${q.answer}',this)" id="opt_${q.id}_${opt.key}">
+      <span class="opt-label">${opt.key}</span>
+      <span>${opt.html}</span>
+    </button>`;
+  });
+  return `<div class="q-card" id="qcard_${q.id}">
+    <div class="q-number">Câu ${q.id.toUpperCase()}</div>
+    <div class="q-text">${q.text}</div>
+    <div class="options-grid">${optsHtml}</div>
+    <div class="explanation" id="exp_${q.id}">${q.explanation}</div>
+  </div>`;
+}
+
+function renderGapFill(q) {
+  let sentence = q.text;
+  // Build gap HTML for first gap
+  let gapHtml = '';
+  if (q.gaps) {
+    q.gaps.forEach(g => {
+      gapHtml += `<span class="gap-btn" id="gap_${g.id}" onclick="openPopup('${g.id}','${q.id}')" data-answer="${g.answer}" data-choices='${JSON.stringify(g.choices)}'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>`;
+    });
+  }
+  let mid = q.textAfter || '';
+  let gapHtml2 = '';
+  if (q.gaps2) {
+    q.gaps2.forEach(g => {
+      gapHtml2 += `<span class="gap-btn" id="gap_${g.id}" onclick="openPopup('${g.id}','${q.id}')" data-answer="${g.answer}" data-choices='${JSON.stringify(g.choices)}'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>`;
+    });
+  }
+  let end = q.textAfter2 || '';
+
+  return `<div class="q-card" id="qcard_${q.id}">
+    <div class="q-number">Câu ${q.id.toUpperCase()}</div>
+    <div class="gap-sentence">${sentence} ${gapHtml} ${mid} ${gapHtml2} ${end}</div>
+    <div class="explanation" id="exp_${q.id}">${q.explanation}</div>
+  </div>`;
+}
+
+// ===== MCQ LOGIC =====
+function checkMCQ(qid, selected, correct, btn) {
+  if (userAnswers[qid] && userAnswers[qid].answered) return;
+  
+  // Disable all buttons in this question
+  const card = document.getElementById('qcard_' + qid);
+  card.querySelectorAll('.opt-btn').forEach(b => { b.disabled = true; });
+
+  const isCorrect = selected === correct;
+  if (isCorrect) {
+    btn.classList.add('correct');
+    playCorrect();
+    launchConfetti();
+  } else {
+    btn.classList.add('wrong');
+    btn.classList.add('shake');
+    setTimeout(() => btn.classList.remove('shake'), 500);
+    // Highlight correct
+    const correctBtn = document.getElementById('opt_' + qid + '_' + correct);
+    if (correctBtn) correctBtn.classList.add('correct');
+    playWrong();
+  }
+
+  userAnswers[qid] = { answered: true, correct: isCorrect };
+  if (isCorrect) correctCount++;
+  answeredCount++;
+
+  // Show explanation
+  document.getElementById('exp_' + qid).classList.add('show');
+  updateScore();
+}
+
+// ===== GAP FILL LOGIC =====
+let currentGapId = null;
+let currentQid = null;
+
+function openPopup(gapId, qid) {
+  const gapEl = document.getElementById('gap_' + gapId);
+  if (gapEl.classList.contains('filled-correct') || gapEl.classList.contains('filled-wrong')) return;
+  
+  currentGapId = gapId;
+  currentQid = qid;
+  const choices = JSON.parse(gapEl.dataset.choices);
+  const shuffledChoices = shuffle([...choices]);
+
+  document.getElementById('popup-title').textContent = 'Chọn từ điền vào chỗ trống:';
+  let choicesHtml = '';
+  shuffledChoices.forEach(c => {
+    choicesHtml += `<div class="popup-choice" onclick="selectGapAnswer('${c}')">${c}</div>`;
+  });
+  document.getElementById('popup-choices').innerHTML = choicesHtml;
+  document.getElementById('popup-overlay').classList.add('show');
+}
+
+function selectGapAnswer(chosen) {
+  closePopup();
+  const gapEl = document.getElementById('gap_' + currentGapId);
+  const correct = gapEl.dataset.answer;
+  const isCorrect = chosen.toLowerCase() === correct.toLowerCase();
+
+  gapEl.textContent = chosen;
+  gapEl.onclick = null;
+
+  if (isCorrect) {
+    gapEl.classList.add('filled-correct');
+    playCorrect();
+    launchConfetti();
+  } else {
+    gapEl.classList.add('filled-wrong');
+    gapEl.classList.add('shake');
+    setTimeout(() => gapEl.classList.remove('shake'), 500);
+    playWrong();
+    // Show correct answer
+    setTimeout(() => {
+      gapEl.textContent = chosen + ' ✗ → ' + correct;
+    }, 600);
+  }
+
+  // Check if all gaps in this question are filled
+  checkGapFillComplete(currentQid);
+}
+
+function checkGapFillComplete(qid) {
+  if (userAnswers[qid] && userAnswers[qid].answered) return;
+  
+  // Find all gaps belonging to this question
+  const q = findQuestion(qid);
+  if (!q) return;
+  
+  const allGaps = [...(q.gaps || []), ...(q.gaps2 || [])];
+  const allFilled = allGaps.every(g => {
+    const el = document.getElementById('gap_' + g.id);
+    return el && (el.classList.contains('filled-correct') || el.classList.contains('filled-wrong'));
+  });
+
+  if (allFilled) {
+    const allCorrect = allGaps.every(g => {
+      const el = document.getElementById('gap_' + g.id);
+      return el && el.classList.contains('filled-correct');
+    });
+
+    userAnswers[qid] = { answered: true, correct: allCorrect };
+    if (allCorrect) correctCount++;
+    answeredCount++;
+    document.getElementById('exp_' + qid).classList.add('show');
+    updateScore();
+  }
+}
+
+function findQuestion(qid) {
+  for (const sec of quizData) {
+    if (sec.isGapFill) {
+      const found = sec.questions.find(q => q.id === qid);
+      if (found) return found;
+    }
+  }
+  return null;
+}
+
+function closePopup() {
+  document.getElementById('popup-overlay').classList.remove('show');
+}
+
+// ===== SCORE =====
+function updateScore() {
+  document.getElementById('score-display').textContent = correctCount + ' / ' + totalQuestions;
+  const pct = (answeredCount / totalQuestions) * 100;
+  document.getElementById('progress-fill').style.width = pct + '%';
+}
+
+// ===== SUBMIT =====
+function submitQuiz() {
+  const comments = [
+    {min:45, emoji:'🏆', text:'Xuất sắc! Bạn là ngôi sao sáng! Tiếp tục tỏa sáng nhé! ⭐⭐⭐'},
+    {min:40, emoji:'🎉', text:'Giỏi lắm! Bạn làm rất tốt! Cố gắng thêm nữa nhé! 🌟'},
+    {min:30, emoji:'😊', text:'Khá tốt! Cần ôn thêm một chút nữa là hoàn hảo! 💪'},
+    {min:20, emoji:'📚', text:'Cố lên! Ôn lại bài và thử lại, bạn sẽ tiến bộ! 🌈'},
+    {min:0,  emoji:'💜', text:'Đừng nản lòng nhé! Mỗi lần học là một bước tiến! 🚀'}
+  ];
+  const comment = comments.find(c => correctCount >= c.min);
+  document.getElementById('result-trophy').textContent = comment.emoji;
+  document.getElementById('result-score').textContent = correctCount + ' / ' + totalQuestions;
+  document.getElementById('result-comment').textContent = comment.text;
+  document.getElementById('result-overlay').classList.add('show');
+  launchConfetti();
+  playCorrect();
+}
+
+// ===== INIT =====
+renderQuiz();
+</script>
+</body>
+</html>

@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bài Kiểm Tra Tương Tác - Ms Mai An ULIS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        :root {
+            /* Theme Nature/Zen Pastel */
+            --primary: #43A047; /* Xanh lá */
+            --secondary: #FBC02D; /* Vàng ấm */
+            --accent: #00ACC1; /* Xanh mòng két */
+            --correct: #2E7D32; 
+            --wrong: #D32F2F;
+            --glass-bg: rgba(255, 255, 255, 0.4);
+            --glass-border: rgba(255, 255, 255, 0.6);
+            --text-dark: #2c3e50;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Quicksand', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(-45deg, #A8E6CF, #DCEDC1, #FFD3B6, #4DD0E1);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            color: var(--text-dark);
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Tự động tạo nền SVG Emoji động */
+        .bg-pattern {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            z-index: -1;
+            background-image: url("data:image/svg+xml,%3Csvg width='150' height='150' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Ctext x='10' y='30' font-size='20'%3E🌿%3C/text%3E%3Ctext x='60' y='80' font-size='20'%3E🧘%3C/text%3E%3Ctext x='80' y='20' font-size='20'%3E🥗%3C/text%3E%3Ctext x='20' y='90' font-size='20'%3E📚%3C/text%3E%3C/svg%3E");
+            opacity: 0.5;
+            animation: float 25s linear infinite;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0) rotate(0deg); }
+            100% { transform: translateY(-500px) rotate(360deg); }
+        }
+
+        header {
+            text-align: center;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(12px);
+            border-bottom: 2px solid var(--glass-border);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            z-index: 10;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+
+        h2 { font-size: 1.3rem; color: #1e824c; font-weight: bold; }
+
+        .timer-btn {
+            background: linear-gradient(135deg, #FFD54F, #FFF176);
+            border: 2px solid #FBC02D;
+            padding: 10px 25px;
+            border-radius: 20px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: var(--text-dark);
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            transition: transform 0.2s;
+        }
+        .timer-btn:hover { transform: scale(1.05); }
+
+        .container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+            padding: 20px;
+            gap: 20px;
+        }
+
+        .panel {
+            flex: 1;
+            background: var(--glass-bg);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border-radius: 20px;
+            border: 2px solid var(--glass-border);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
+            padding: 25px;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .panel::-webkit-scrollbar { width: 8px; }
+        .panel::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.2); border-radius: 10px; }
+
+        /* Left Panel - Reading */
+        .passage-block {
+            margin-bottom: 30px;
+            background: rgba(255,255,255,0.6);
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+        .passage-block p {
+            font-size: 1.15rem;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+        .translate-btn {
+            background: #81D4FA;
+            color: #01579B;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 0 #29B6F6;
+            transition: all 0.1s;
+            margin-bottom: 10px;
+        }
+        .translate-btn:active { transform: translateY(4px); box-shadow: 0 0 0; }
+        .translation-box {
+            background: rgba(255,255,255,0.8);
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 1.05rem;
+            color: #333;
+            display: none;
+            border-left: 5px solid var(--accent);
+            margin-bottom: 15px;
+        }
+
+        .glossary {
+            background: rgba(255,255,255,0.7);
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 30px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+        .glossary h3 { text-align: center; margin-bottom: 15px; color: var(--primary); }
+        .glossary table { width: 100%; border-collapse: collapse; }
+        .glossary th, .glossary td { padding: 12px; border-bottom: 1px solid rgba(0,0,0,0.1); text-align: left; }
+        .glossary th { background: rgba(255,255,255,0.8); color: var(--primary); }
+
+        /* Right Panel - Exercises */
+        .question-card {
+            background: rgba(255,255,255,0.7);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            border: 1px solid rgba(255,255,255,0.5);
+        }
+        .question-text {
+            font-size: 1.15rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #1a252f;
+        }
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+        }
+        .option-btn {
+            background: white;
+            border: 2px solid #CFD8DC;
+            padding: 15px;
+            border-radius: 15px;
+            font-size: 1.08rem;
+            font-weight: bold;
+            text-align: left;
+            cursor: pointer;
+            box-shadow: 0 4px 0 #CFD8DC;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            color: #34495e;
+        }
+        .option-btn:hover:not(:disabled) {
+            transform: scale(1.02);
+            border-color: var(--primary);
+        }
+        .option-btn:active:not(:disabled) {
+            transform: translateY(4px) scale(1.02);
+            box-shadow: 0 0 0;
+        }
+        .option-btn.correct { background: var(--correct); color: white; border-color: var(--correct); box-shadow: 0 4px 0 #1B5E20; }
+        .option-btn.wrong { background: var(--wrong); color: white; border-color: var(--wrong); box-shadow: 0 4px 0 #B71C1C; }
+        
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            50% { transform: translateX(5px); }
+            75% { transform: translateX(-5px); }
+            100% { transform: translateX(0); }
+        }
+        .shake { animation: shake 0.4s; }
+
+        .explanation-box {
+            margin-top: 15px;
+            background: #FAFAFA;
+            padding: 18px;
+            border-radius: 12px;
+            font-size: 1rem;
+            line-height: 1.6;
+            display: none;
+            border-left: 6px solid var(--accent);
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.05);
+        }
+
+        .submit-btn {
+            width: 100%;
+            background: linear-gradient(45deg, var(--primary), #81C784);
+            color: white;
+            border: none;
+            padding: 18px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            border-radius: 20px;
+            cursor: pointer;
+            box-shadow: 0 6px 0 #2E7D32;
+            margin-top: 20px;
+            transition: transform 0.2s;
+            text-transform: uppercase;
+        }
+        .submit-btn:hover { transform: scale(1.02); }
+        .submit-btn:active { transform: translateY(6px); box-shadow: 0 0 0; }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(8px);
+            display: none; justify-content: center; align-items: center; z-index: 100;
+        }
+        .modal-content {
+            background: white;
+            padding: 40px;
+            border-radius: 25px;
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 15px 50px rgba(0,0,0,0.3);
+            animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border: 4px solid var(--primary);
+        }
+        @keyframes popIn { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+        .modal-content h1 { font-size: 2.5rem; color: var(--primary); margin-bottom: 10px; }
+        .modal-content p { font-size: 1.5rem; margin-bottom: 20px; font-weight: bold; }
+        .modal-content img { width: 100%; max-height: 250px; object-fit: contain; border-radius: 15px; margin-bottom: 20px; }
+        .close-modal-btn {
+            background: var(--accent); color: white; border: none; padding: 12px 35px;
+            font-size: 1.2rem; border-radius: 15px; cursor: pointer; font-weight: bold;
+            box-shadow: 0 4px 0 #00838F;
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="bg-pattern"></div>
+
+<header>
+    <h2>👩‍🏫 Ms Mai An ULIS - Bài Tập Chủ Đề Sức Khỏe & Đời Sống 🌿</h2>
+    <button class="timer-btn" id="timerBtn" onclick="toggleTimer()">BẮT ĐẦU TÍNH GIỜ: 10:00</button>
+</header>
+
+<div class="container">
+    <div class="panel" id="leftPanel">
+        
+        <div class="passage-block">
+            <h3>📚 Library Announcement</h3>
+            <p>Attention Students! All students are required to follow the new library rules to ensure an orderly environment for study and research. First, students must (13) ________ their student ID cards at the entrance. This measure helps us monitor library usage and maintain security.</p>
+            <button class="translate-btn" onclick="toggleTranslation(this)">Mở dịch đoạn này 🌟</button>
+            <div class="translation-box">Chú ý các bạn sinh viên! Tất cả sinh viên được yêu cầu tuân thủ các nội quy thư viện mới để đảm bảo một môi trường trật tự cho việc học tập và nghiên cứu. Đầu tiên, sinh viên phải (13) ________ thẻ sinh viên của mình tại lối vào. Biện pháp này giúp chúng tôi theo dõi việc sử dụng thư viện và duy trì an ninh.</div>
+
+            <p>Second, food and drinks (14) ________ strictly prohibited inside the library to protect books and equipment. In addition, all borrowed materials should be returned on time to avoid late (15) ________, which will be added automatically to your account. Lastly, group study rooms can only be reserved (16) ________ the library website or mobile app.</p>
+            <button class="translate-btn" onclick="toggleTranslation(this)">Mở dịch đoạn này 🌟</button>
+            <div class="translation-box">Thứ hai, đồ ăn và thức uống (14) ________ bị nghiêm cấm trong thư viện để bảo vệ sách và thiết bị. Ngoài ra, tất cả các tài liệu đã mượn phải được trả đúng hạn để tránh (15) ________ muộn, khoản phí này sẽ được tự động cộng vào tài khoản của bạn. Cuối cùng, các phòng học nhóm chỉ có thể được đặt trước (16) ________ trang web hoặc ứng dụng di động của thư viện.</div>
+        </div>
+
+        <div class="passage-block">
+            <h3>🥑 A Healthy Lifestyle</h3>
+            <p>A healthy lifestyle is essential for a long-term health, and one of the most important aspects of maintaining a healthy lifestyle is ensuring that you (19) ________ a balanced diet. This means consuming a variety of foods that provide the necessary nutrients your body needs (20) ________. Fruits, vegetables, lean proteins, and whole grains should form a significant portion of your meals.</p>
+            <button class="translate-btn" onclick="toggleTranslation(this)">Mở dịch đoạn này 🌟</button>
+            <div class="translation-box">Một lối sống lành mạnh là điều cần thiết cho sức khỏe lâu dài, và một trong những khía cạnh quan trọng nhất của việc duy trì lối sống lành mạnh là đảm bảo rằng bạn (19) ________ một chế độ ăn uống cân bằng. Điều này có nghĩa là tiêu thụ nhiều loại thực phẩm cung cấp các chất dinh dưỡng cần thiết mà cơ thể bạn cần (20) ________. Trái cây, rau quả, protein nạc và ngũ cốc nguyên hạt nên chiếm một phần đáng kể trong bữa ăn của bạn.</div>
+
+            <p>(21) ________, it's crucial to stay hydrated by drinking plenty of water throughout the day. Regular physical activity is another key component. Whether it's walking, running, or engaging (22) ________ sports, exercise helps improve your physical and mental well-being. Sleep is equally vital, as it allows your body (23) ________ and heal for the next day. Finally, managing stress through relaxation techniques such as meditation or yoga can have (24) ________ on your overall health.</p>
+            <button class="translate-btn" onclick="toggleTranslation(this)">Mở dịch đoạn này 🌟</button>
+            <div class="translation-box">(21) ________, việc giữ cho cơ thể đủ nước bằng cách uống nhiều nước suốt cả ngày là rất quan trọng. Hoạt động thể chất thường xuyên là một thành phần then chốt khác. Cho dù đó là đi bộ, chạy, hoặc tham gia (22) ________ các môn thể thao, tập thể dục giúp cải thiện sức khỏe thể chất và tinh thần của bạn. Giấc ngủ cũng quan trọng không kém, vì nó cho phép cơ thể bạn (23) ________ và chữa lành cho ngày hôm sau. Cuối cùng, quản lý căng thẳng thông qua các kỹ thuật thư giãn như thiền hoặc yoga có thể có (24) ________ đối với sức khỏe tổng thể của bạn.</div>
+        </div>
+
+        <div class="passage-block">
+            <h3>🥗 Vietnamese vs Western Cuisine</h3>
+            <p>Eating and drinking in Viet Nam is quite different from what many foreign students may be used to. The dishes and beverages have a distinct flavour profile compared to Western cuisine. For example, the popular Vietnamese dish pho is a savoury noodle soup, quite different from the creamy pasta dishes common in Europe. Likewise, the Vietnamese love for strong, sweet iced coffee is very different from the mild, milky coffee drinks enjoyed in North America.</p>
+            <button class="translate-btn" onclick="toggleTranslation(this)">Mở dịch đoạn này 🌟</button>
+            <div class="translation-box">Ăn uống ở Việt Nam khá khác biệt so với những gì nhiều sinh viên nước ngoài có thể quen thuộc. Các món ăn và đồ uống có một hồ sơ hương vị riêng biệt so với ẩm thực phương Tây. Ví dụ, món phở nổi tiếng của Việt Nam là một món súp mì đậm đà, khá khác với các món mì ống sốt kem phổ biến ở Châu Âu. Tương tự, sở thích của người Việt Nam đối với cà phê đá ngọt và đậm đặc rất khác với các đồ uống cà phê nhẹ, nhiều sữa được ưa chuộng ở Bắc Mỹ.</div>
+
+            <p>Another key difference is the prominence of fresh herbs and vegetables in Vietnamese meals. While salads are common in the West, they often contain just a few leaves. In contrast, Vietnamese dishes like bun cha are piled high with an assortment of fresh herbs, greens, and vegetables that are meant to be mixed into the main dish. This makes Vietnamese food feel much lighter and healthier compared to the heavy, meat-focused meals of Europe and North America.</p>
+            <button class="translate-btn" onclick="toggleTranslation(this)">Mở dịch đoạn này 🌟</button>
+            <div class="translation-box">Một sự khác biệt chính nữa là sự nổi bật của các loại rau thơm và rau xanh tươi trong bữa ăn Việt Nam. Trong khi salad phổ biến ở phương Tây, chúng thường chỉ chứa vài chiếc lá. Ngược lại, các món ăn Việt Nam như bún chả được chất cao với đủ loại rau thơm, rau xanh và các loại rau củ được trộn vào món chính. Điều này làm cho thức ăn Việt Nam mang lại cảm giác nhẹ nhàng và tốt cho sức khỏe hơn rất nhiều so với các bữa ăn nặng nề, tập trung vào thịt của Châu Âu và Bắc Mỹ.</div>
+
+            <p>The prominence of fish and seafood in the Vietnamese diet is another major distinction. As a coastal country, fish and shrimp feature regularly, whether in stir-fries, soups, or as the main protein. This is quite unlike the beef and chicken that dominate Western diets. Overall, the cuisine of Viet Nam offers a delightfully fresh and flavourful alternative to the fare that international students may be more accustomed to.</p>
+            <button class="translate-btn" onclick="toggleTranslation(this)">Mở dịch đoạn này 🌟</button>
+            <div class="translation-box">Sự nổi bật của cá và hải sản trong chế độ ăn uống của người Việt Nam là một sự khác biệt lớn khác. Là một quốc gia ven biển, cá và tôm xuất hiện thường xuyên, cho dù trong các món xào, món súp hay đóng vai trò là protein chính. Điều này hoàn toàn không giống với thịt bò và thịt gà thống trị chế độ ăn phương Tây. Nhìn chung, ẩm thực Việt Nam mang đến một sự thay thế tươi mới và đầy hương vị tuyệt vời so với những món ăn mà sinh viên quốc tế có thể đã quen thuộc hơn.</div>
+        </div>
+
+        <div class="passage-block">
+            <h3>🧘 The Power of Meditation</h3>
+            <p>The practice of meditation has become increasingly popular over the past few years. Many people are turning to meditation as a way to relax, reduce stress, and improve their overall well-being. (37) ________. One of the key benefits of meditation is that it helps individuals to focus and concentrate better.</p>
+            <button class="translate-btn" onclick="toggleTranslation(this)">Mở dịch đoạn này 🌟</button>
+            <div class="translation-box">Thực hành thiền định đã trở nên ngày càng phổ biến trong vài năm qua. Nhiều người đang tìm đến thiền định như một cách để thư giãn, giảm bớt căng thẳng và cải thiện sức khỏe tổng thể của họ. (37) ________. Một trong những lợi ích chính của thiền định là nó giúp các cá nhân tập trung và chú ý tốt hơn.</div>
+
+            <p>It is not only a way to clear the mind, (38) ________. For instance, studies have shown that regular meditators experience less anxiety and can manage their emotions more effectively. (39) ________. People also report feeling more connected to themselves and others after a session of deep meditation. (40) ________ over their thoughts and emotions. It is clear that meditation can have a positive impact on mental and physical health.</p>
+            <button class="translate-btn" onclick="toggleTranslation(this)">Mở dịch đoạn này 🌟</button>
+            <div class="translation-box">Nó không chỉ là một cách để giải tỏa tâm trí, (38) ________. Ví dụ, các nghiên cứu đã chỉ ra rằng những người thiền định thường xuyên ít bị lo âu hơn và có thể quản lý cảm xúc của họ hiệu quả hơn. (39) ________. Mọi người cũng báo cáo cảm thấy kết nối hơn với bản thân và những người khác sau một phiên thiền sâu. (40) ________ đối với suy nghĩ và cảm xúc của họ. Rõ ràng là thiền định có thể có tác động tích cực đến sức khỏe tinh thần và thể chất.</div>
+        </div>
+
+        <div class="glossary">
+            <h3>📖 Bảng Từ Vựng Cốt Lõi (Glossary)</h3>
+            <table>
+                <tr><th>Từ vựng</th><th>Loại từ</th><th>Nghĩa Tiếng Việt</th></tr>
+                <tr><td>Prohibit</td><td>(v)</td><td>Nghiêm cấm, cấm chỉ</td></tr>
+                <tr><td>Nutrient</td><td>(n)</td><td>Chất dinh dưỡng</td></tr>
+                <tr><td>Hydrate</td><td>(v)</td><td>Cung cấp đủ nước cho cơ thể</td></tr>
+                <tr><td>Distinct</td><td>(adj)</td><td>Khác biệt, dễ nhận thấy</td></tr>
+                <tr><td>Prominence</td><td>(n)</td><td>Sự nổi bật, sự quan trọng</td></tr>
+                <tr><td>Assortment</td><td>(n)</td><td>Sự đa dạng, tập hợp nhiều loại</td></tr>
+                <tr><td>Cognitive</td><td>(adj)</td><td>Thuộc về nhận thức/tư duy</td></tr>
+                <tr><td>Savoury</td><td>(adj)</td><td>Đậm đà, có vị mặn (không ngọt)</td></tr>
+                <tr><td>Dominate</td><td>(v)</td><td>Thống trị, chiếm ưu thế</td></tr>
+                <tr><td>Reflection</td><td>(n)</td><td>Sự suy ngẫm, tự nhìn nhận lại</td></tr>
+            </table>
+        </div>
+    </div>
+
+    <div class="panel" id="rightPanel">
+        <div id="questionsContainer"></div>
+        <button class="submit-btn" onclick="submitTest()">🚀 NỘP BÀI NHẬN ĐIỂM 🚀</button>
+    </div>
+</div>
+
+<div class="modal-overlay" id="resultModal">
+    <div class="modal-content">
+        <h1>Kết Quả Của Bạn</h1>
+        <p id="scoreText">0 / 20</p>
+        <p id="feedbackText" style="font-size: 1.2rem; color: #555;"></p>
+        <img id="memeImg" src="" alt="Meme">
+        <br>
+        <button class="close-modal-btn" onclick="closeModal()">Xem Lại Bài</button>
+    </div>
+</div>
+
+<script>
+    // --- AUDIO SYSTEM (Native Web Audio API) ---
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    const audioCtx = new AudioContext();
+
+    function playCorrectSound() {
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(800, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.1);
+        gain.gain.setValueAtTime(0.5, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.5);
+    }
+
+    function playWrongSound() {
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.3);
+        gain.gain.setValueAtTime(0.5, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.3);
+    }
+
+    // --- TIMER SYSTEM ---
+    let timerInterval;
+    let timeRemaining = 600; // 10 minutes
+    let isTimerRunning = false;
+
+    function formatTime(seconds) {
+        const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+        const s = (seconds % 60).toString().padStart(2, '0');
+        return `${m}:${s}`;
+    }
+
+    function toggleTimer() {
+        const btn = document.getElementById('timerBtn');
+        if (!isTimerRunning) {
+            isTimerRunning = true;
+            timerInterval = setInterval(() => {
+                timeRemaining--;
+                btn.innerText = `⏳ THỜI GIAN: ${formatTime(timeRemaining)}`;
+                if (timeRemaining <= 0) {
+                    clearInterval(timerInterval);
+                    btn.innerText = "HẾT GIỜ!";
+                    btn.style.background = "var(--wrong)";
+                    btn.style.color = "white";
+                    alert("Đã hết giờ làm bài. Bạn vẫn có thể tiếp tục làm, nhưng nhớ là trong phòng thi thật, bạn chỉ nên làm một bài như thế này trong 10 phút thôi nha.");
+                }
+            }, 1000);
+            btn.innerText = `⏳ THỜI GIAN: ${formatTime(timeRemaining)}`;
+        } else {
+            isTimerRunning = false;
+            clearInterval(timerInterval);
+            btn.innerText = `▶️ TẠM DỪNG: ${formatTime(timeRemaining)}`;
+        }
+    }
+
+    // --- TRANSLATION TOGGLE ---
+    function toggleTranslation(btn) {
+        const box = btn.nextElementSibling;
+        if (box.style.display === "block") {
+            box.style.display = "none";
+            btn.innerText = "Mở dịch đoạn này 🌟";
+        } else {
+            box.style.display = "block";
+            btn.innerText = "Đóng bản dịch 🙈";
+        }
+    }
+
+    // --- QUESTIONS DATA ---
+    const questionsData = [
+        {
+            id: 13, text: "Question 13. First, students must (13) ________ their student ID cards at the entrance.",
+            options: [{ text: "A. show", correct: true }, { text: "B. bring", correct: false }, { text: "C. display", correct: false }, { text: "D. leave", correct: false }],
+            explanation: `<b>Dịch:</b> "Đầu tiên, sinh viên phải (13) ________ thẻ sinh viên của mình tại lối vào."<br><br><b>Phân tích:</b><br>A. show (xuất trình) ✅ Đúng hành động xuất trình giấy tờ ở cổng kiểm soát.<br>B. bring (mang theo) ❌ Nghĩa hơi chung chung, "show" hợp lý hơn tại lối vào.<br>C. display (trưng bày) ❌ Sai nghĩa.<br>D. leave (để lại) ❌ Sai nghĩa.<br><br>🔍 <b>Dẫn chứng:</b> "at the entrance" 👉 Tại cửa ra vào thì cần phải <span style="color:red; font-weight:bold">xuất trình (show)</span> thẻ.`
+        },
+        {
+            id: 14, text: "Question 14. Second, food and drinks (14) ________ strictly prohibited inside the library...",
+            options: [{ text: "A. is", correct: false }, { text: "B. are", correct: true }, { text: "C. will", correct: false }, { text: "D. have", correct: false }],
+            explanation: `<b>Dịch:</b> "Thứ hai, đồ ăn và đồ uống (14) ________ bị nghiêm cấm bên trong thư viện..."<br><br><b>Phân tích:</b><br>Chủ ngữ là "food and drinks" (đồ ăn và thức uống) -> Đây là chủ ngữ số nhiều.<br>A. is ❌ Sai vì dùng cho số ít.<br>B. are ✅ Đúng vì tobe đi với chủ ngữ số nhiều.<br>C, D ❌ Sai cấu trúc bị động (are prohibited = bị cấm).<br><br>🔍 <b>Dẫn chứng:</b> Chủ ngữ <span style="color:red; font-weight:bold">"food and drinks"</span> là số nhiều nên động từ to-be phải là <span style="color:red; font-weight:bold">"are"</span>.`
+        },
+        {
+            id: 15, text: "Question 15. ...all borrowed materials should be returned on time to avoid late (15) ________",
+            options: [{ text: "A. money", correct: false }, { text: "B. accounts", correct: false }, { text: "C. fees", correct: true }, { text: "D. cash", correct: false }],
+            explanation: `<b>Dịch:</b> "...tất cả tài liệu mượn nên được trả đúng hạn để tránh (15) ________ muộn..."<br><br><b>Phân tích:</b><br>A. money (tiền) ❌ Tiếng Anh không dùng "late money".<br>B. accounts (tài khoản) ❌ Sai nghĩa.<br>C. fees (phí) ✅ Cụm từ cố định: "late fees" (phí phạt trả muộn).<br>D. cash (tiền mặt) ❌ Sai từ vựng.<br><br>🔍 <b>Dẫn chứng:</b> Tránh bị phạt khi trả đồ muộn, ta dùng cụm <span style="color:red; font-weight:bold">late fees (phí phạt muộn)</span>.`
+        },
+        {
+            id: 16, text: "Question 16. ...group study rooms can only be reserved (16) ________ the library website or mobile app.",
+            options: [{ text: "A. for", correct: false }, { text: "B. with", correct: false }, { text: "C. by", correct: false }, { text: "D. on", correct: true }],
+            explanation: `<b>Dịch:</b> "...phòng học nhóm chỉ có thể được đặt trước (16) ________ trang web hoặc ứng dụng di động..."<br><br><b>Phân tích:</b><br>Để chỉ hành động thực hiện trên một nền tảng internet (website, ứng dụng, internet), ta luôn dùng giới từ "on".<br>D. on ✅ Đúng ngữ pháp (on the website/ on the app).<br><br>🔍 <b>Dẫn chứng:</b> Đi kèm với "the library website or mobile app" bắt buộc dùng giới từ <span style="color:red; font-weight:bold">on (trên)</span>.`
+        },
+        {
+            id: 19, text: "Question 19. ...ensuring that you (19) ________ a balanced diet.",
+            options: [{ text: "A. follow", correct: true }, { text: "B. include", correct: false }, { text: "C. skip", correct: false }, { text: "D. avoid", correct: false }],
+            explanation: `<b>Dịch:</b> "...đảm bảo rằng bạn (19) ________ một chế độ ăn uống cân bằng."<br><br><b>Phân tích:</b><br>A. follow (tuân theo) ✅ Đúng cụm "follow a diet" (tuân theo một chế độ ăn).<br>B. include (bao gồm) ❌ Sai nghĩa.<br>C. skip (bỏ qua) ❌ Sai nghĩa.<br>D. avoid (tránh) ❌ Sai nghĩa.<br><br>🔍 <b>Dẫn chứng:</b> Chế độ ăn cân bằng là thứ tốt, nên ta phải <span style="color:red; font-weight:bold">tuân theo (follow)</span> nó.`
+        },
+        {
+            id: 20, text: "Question 20. ...nutrients your body needs (20) ________.",
+            options: [{ text: "A. function proper", correct: false }, { text: "B. functioning proper", correct: false }, { text: "C. to function properly", correct: true }, { text: "D. functioning properly", correct: false }],
+            explanation: `<b>Dịch:</b> "...các chất dinh dưỡng mà cơ thể bạn cần (20) ________."<br><br><b>Phân tích:</b><br>1. Động từ "need" mang nghĩa chỉ mục đích -> dùng "to V" (để làm gì).<br>2. Bổ nghĩa cho động từ "function" (hoạt động) cần một Trạng từ (properly) chứ không phải Tính từ (proper).<br>C. to function properly ✅ Thỏa mãn cả 2 điều kiện.<br><br>🔍 <b>Dẫn chứng:</b> Cần cấu trúc <span style="color:red; font-weight:bold">"need to V"</span> (mục đích) và <span style="color:red; font-weight:bold">Trạng từ (properly)</span> bổ nghĩa cho động từ.`
+        },
+        {
+            id: 21, text: "Question 21. [Liệt kê các đồ ăn] (21) ________, it's crucial to stay hydrated by drinking plenty of water...",
+            options: [{ text: "A. Negatively", correct: false }, { text: "B. Additionally", correct: true }, { text: "C. Therefore", correct: false }, { text: "D. However", correct: false }],
+            explanation: `<b>Dịch:</b> "... (21) ________, việc giữ cơ thể đủ nước... là rất quan trọng."<br><br><b>Phân tích:</b><br>Câu trước khuyên ăn nhiều hoa quả, ngũ cốc. Câu sau khuyên uống nhiều nước. Hai câu bổ sung ý nghĩa cho nhau (cùng liệt kê lợi ích/lời khuyên).<br>B. Additionally (Thêm vào đó / Ngoài ra) ✅ Phù hợp logic bổ sung ý.<br>C. Therefore (Vì vậy) ❌ Không phải quan hệ nhân-quả.<br>D. However (Tuy nhiên) ❌ Không phải quan hệ đối lập.<br><br>🔍 <b>Dẫn chứng:</b> Cả hai câu đều đang đưa ra lời khuyên về sức khỏe, nên dùng liên từ bổ sung <span style="color:red; font-weight:bold">Additionally (Ngoài ra)</span>.`
+        },
+        {
+            id: 22, text: "Question 22. Whether it's walking, running, or engaging (22) ________ sports...",
+            options: [{ text: "A. of", correct: false }, { text: "B. from", correct: false }, { text: "C. on", correct: false }, { text: "D. in", correct: true }],
+            explanation: `<b>Dịch:</b> "Dù là đi bộ, chạy, hay tham gia (22) ________ các môn thể thao..."<br><br><b>Phân tích:</b><br>Động từ "engage" (tham gia vào việc gì đó) luôn đi kèm với một giới từ cố định.<br>D. in ✅ Đúng cấu trúc: "engage in sth" (tham gia vào việc gì).<br><br>🔍 <b>Dẫn chứng:</b> Học thuộc cụm từ cố định: <span style="color:red; font-weight:bold">engage IN (tham gia vào)</span>.`
+        },
+        {
+            id: 23, text: "Question 23. ...Sleep is equally vital, as it allows your body (23) ________ and heal...",
+            options: [{ text: "A. rest", correct: false }, { text: "B. to rest", correct: true }, { text: "C. rested", correct: false }, { text: "D. resting", correct: false }],
+            explanation: `<b>Dịch:</b> "...Giấc ngủ cũng quan trọng không kém, vì nó cho phép cơ thể bạn (23) ________ và chữa lành..."<br><br><b>Phân tích:</b><br>Cấu trúc của động từ "allow" là: "allow sb/sth TO DO sth" (cho phép ai/cái gì làm gì).<br>B. to rest ✅ Đúng cấu trúc ngữ pháp.<br><br>🔍 <b>Dẫn chứng:</b> Theo sau "allows your body" bắt buộc phải là một <span style="color:red; font-weight:bold">động từ nguyên thể có "to" (to rest)</span>.`
+        },
+        {
+            id: 24, text: "Question 24. ...managing stress... can have (24) ________ on your overall health.",
+            options: [{ text: "A. positive an impact", correct: false }, { text: "B. a positive impact", correct: true }, { text: "C. an impact positive", correct: false }, { text: "D. positive impact a", correct: false }],
+            explanation: `<b>Dịch:</b> "...quản lý căng thẳng... có thể có (24) ________ đối với sức khỏe tổng thể của bạn."<br><br><b>Phân tích:</b><br>Trật tự cụm danh từ trong tiếng Anh: Mạo từ (a/an) + Tính từ (positive) + Danh từ (impact).<br>B. a positive impact ✅ Xếp đúng trật tự từ: mạo từ -> tính từ -> danh từ.<br><br>🔍 <b>Dẫn chứng:</b> Cấu trúc cụm danh từ chuẩn: <span style="color:red; font-weight:bold">a positive impact (một tác động tích cực)</span>.`
+        },
+        {
+            id: 31, text: "Question 31. The word 'mild' in the passage is OPPOSITE in meaning to ________.",
+            options: [{ text: "A. different", correct: false }, { text: "B. healthy", correct: false }, { text: "C. strong", correct: true }, { text: "D. spicy", correct: false }],
+            explanation: `<b>Dịch:</b> Từ 'mild' (nhạt/nhẹ) trong bài TRÁI NGHĨA với ________.<br><br><b>Phân tích:</b><br>A. different (khác biệt) ❌ Sai.<br>B. healthy (khỏe mạnh) ❌ Sai.<br>C. strong (mạnh/đậm đặc) ✅ Đúng, 'mild coffee' (cà phê nhẹ) trái ngược với 'strong coffee' (cà phê đậm).<br>D. spicy (cay) ❌ Sai.<br><br>🔍 <b>Dẫn chứng:</b> Đoạn 1 viết: "...strong, sweet iced coffee is very different from the <span style="color:red; font-weight:bold">mild</span>, milky coffee..." 👉 Vậy trái nghĩa của 'mild' là <span style="color:red; font-weight:bold">strong</span>.`
+        },
+        {
+            id: 32, text: "Question 32. Vietnamese coffee is ________ compared to Western coffee.",
+            options: [{ text: "A. less sweet and more flavoured", correct: false }, { text: "B. stronger and sweeter", correct: true }, { text: "C. milder and more milky", correct: false }, { text: "D. much more expensive", correct: false }],
+            explanation: `<b>Dịch:</b> Cà phê Việt Nam thì ________ so với cà phê phương Tây.<br><br><b>Phân tích:</b><br>A. (ít ngọt và đậm đà hơn) ❌ Sai ý "ít ngọt".<br>B. stronger and sweeter (đậm hơn và ngọt hơn) ✅ Đúng theo bài viết.<br>C. (nhạt hơn và nhiều sữa hơn) ❌ Đây là đặc điểm của cà phê Tây.<br>D. (đắt hơn nhiều) ❌ Không được nhắc đến.<br><br>🔍 <b>Dẫn chứng:</b> "...the Vietnamese love for <span style="color:red; font-weight:bold">strong, sweet</span> iced coffee..." 👉 Cà phê VN thì <span style="color:red; font-weight:bold">đậm và ngọt hơn (stronger and sweeter)</span>.`
+        },
+        {
+            id: 33, text: "Question 33. Which of the following statements is NOT true about Vietnamese cuisine?",
+            options: [{ text: "A. It features more heavy, meat-focused meals compared to Western cuisine.", correct: true }, { text: "B. It often includes an assortment of fresh herbs, greens, and vegetables.", correct: false }, { text: "C. It prominently features fish and seafood.", correct: false }, { text: "D. It has a distinct flavour profile compared to Western cuisine.", correct: false }],
+            explanation: `<b>Dịch:</b> Câu nào KHÔNG ĐÚNG về ẩm thực Việt Nam?<br><br><b>Phân tích:</b><br>A. (Nó có nhiều bữa ăn nặng nề, tập trung vào thịt hơn phương Tây) ✅ ĐÂY LÀ CÂU SAI. Bài đọc nói ẩm thực Tây mới nặng nề về thịt.<br>B. (Bao gồm nhiều rau tươi) - Đúng sự thật trong bài.<br>C. (Nổi bật hải sản và cá) - Đúng sự thật trong bài.<br>D. (Hương vị riêng biệt) - Đúng sự thật trong bài.<br><br>🔍 <b>Dẫn chứng:</b> Bài viết ghi: "...<span style="color:red; font-weight:bold">heavy, meat-focused meals</span> of Europe and North America." 👉 Đây là đặc điểm của đồ Tây, không phải đồ Việt.`
+        },
+        {
+            id: 34, text: "Question 34. Which Vietnamese dish is described as being 'piled high with an assortment of fresh herbs...?",
+            options: [{ text: "A. Pho", correct: false }, { text: "B. Bun cha", correct: true }, { text: "C. Stir-fries", correct: false }, { text: "D. Soups", correct: false }],
+            explanation: `<b>Dịch:</b> Món Việt nào được miêu tả là "được chất cao với đủ loại rau thơm tươi..."?<br><br><b>Phân tích:</b><br>Chỉ cần quét (scan) cụm từ trong ngoặc kép ở đoạn văn số 2.<br>B. Bun cha ✅ Chính xác theo văn bản.<br><br>🔍 <b>Dẫn chứng:</b> "...Vietnamese dishes like <span style="color:red; font-weight:bold">bun cha</span> are piled high with an assortment of fresh herbs..."`
+        },
+        {
+            id: 35, text: "Question 35. A synonym for 'prominence' as used in the passage is ________.",
+            options: [{ text: "A. scarcity", correct: false }, { text: "B. alternative", correct: false }, { text: "C. rarity", correct: false }, { text: "D. importance", correct: true }],
+            explanation: `<b>Dịch:</b> Từ đồng nghĩa với 'prominence' (sự nổi bật/tầm quan trọng) trong bài là ________.<br><br><b>Phân tích:</b><br>A. scarcity (sự khan hiếm) ❌ Trái nghĩa.<br>B. alternative (sự thay thế) ❌ Sai.<br>C. rarity (sự hiếm có) ❌ Trái nghĩa.<br>D. importance (sự quan trọng) ✅ Đúng nghĩa.<br><br>🔍 <b>Dẫn chứng:</b> "The <span style="color:red; font-weight:bold">prominence</span> of fish and seafood..." 👉 Việc sử dụng nhiều cá và hải sản đóng vai trò vô cùng <span style="color:red; font-weight:bold">quan trọng/nổi bật (importance)</span>.`
+        },
+        {
+            id: 36, text: "Question 36. What is the main protein found in Western diets, according to the passage?",
+            options: [{ text: "A. Beef and chicken", correct: true }, { text: "B. Herbs and leaves", correct: false }, { text: "C. Fish and shrimp", correct: false }, { text: "D. Savoury foods", correct: false }],
+            explanation: `<b>Dịch:</b> Đâu là nguồn protein chính trong chế độ ăn phương Tây theo đoạn văn?<br><br><b>Phân tích:</b><br>A. Beef and chicken (Thịt bò và gà) ✅ Đúng thông tin.<br>B. Herbs (Rau) ❌ Đây không phải protein chính.<br>C. Fish and shrimp (Cá tôm) ❌ Đây là của Việt Nam.<br><br>🔍 <b>Dẫn chứng:</b> "...quite unlike the <span style="color:red; font-weight:bold">beef and chicken</span> that dominate Western diets." 👉 Thịt bò và gà thống trị chế độ ăn Tây.`
+        },
+        
+        /* PHẦN ĐÃ FIX LỖI: HIỂN THỊ 100% ĐÁP ÁN KHÔNG DÙNG DẤU BA CHẤM */
+        {
+            id: 37, text: "Question 37. Many people are turning to meditation as a way to relax, reduce stress, and improve their overall well-being. (37) ________. One of the key benefits of meditation is that it helps individuals to focus...",
+            options: [
+                { text: "A. Meditation allows individuals to gain greater control", correct: false }, 
+                { text: "B. Furthermore, it encourages deep thinking and self-reflection", correct: false }, 
+                { text: "C. but it also enhances cognitive function", correct: false }, 
+                { text: "D. Many people find it beneficial for overcoming various emotional struggles", correct: true }
+            ],
+            explanation: `<b>Dịch đoạn ghép:</b> Nhiều người tìm đến thiền như một cách để thư giãn, giảm stress và cải thiện sức khỏe. (37) Nhiều người thấy nó có ích trong việc vượt qua các đấu tranh tâm lý khác nhau. Một trong những lợi ích chính...<br><br><b>Phân tích:</b><br>D ✅ Rất logic vì câu trước đang bàn về việc giảm stress, cải thiện sức khỏe tinh thần, nên ghép ý "giải quyết các đấu tranh cảm xúc" vào đây là mượt nhất trước khi chuyển sang chủ đề mới là sự tập trung (focus).<br><br>🔍 <b>Dẫn chứng:</b> Liên kết mạch văn: Đang nói về <span style="color:red; font-weight:bold">"reduce stress" (giảm căng thẳng)</span> -> chuyển tiếp bằng ý <span style="color:red; font-weight:bold">"overcoming emotional struggles" (vượt qua trở ngại cảm xúc)</span>.`
+        },
+        {
+            id: 38, text: "Question 38. It is not only a way to clear the mind, (38) ________. For instance, studies have shown that regular meditators experience less anxiety...",
+            options: [
+                { text: "A. Meditation allows individuals to gain greater control", correct: false }, 
+                { text: "B. Furthermore, it encourages deep thinking and self-reflection", correct: false }, 
+                { text: "C. but it also enhances cognitive function", correct: true }, 
+                { text: "D. Many people find it beneficial for overcoming various emotional struggles", correct: false }
+            ],
+            explanation: `<b>Dịch đoạn ghép:</b> Nó KHÔNG CHỈ là một cách làm sạch tâm trí, (38) MÀ NÓ CÒN tăng cường chức năng nhận thức.<br><br><b>Phân tích:</b><br>C ✅ Có dấu hiệu ngữ pháp rõ ràng của cặp liên từ "not only... but also..." (không những... mà còn...).<br><br>🔍 <b>Dẫn chứng:</b> Sự xuất hiện của từ <span style="color:red; font-weight:bold">"not only"</span> phía trước bắt buộc vế sau phải đi kèm với <span style="color:red; font-weight:bold">"but also"</span>.`
+        },
+        {
+            id: 39, text: "Question 39. ...and can manage their emotions more effectively. (39) ________. People also report feeling more connected to themselves...",
+            options: [
+                { text: "A. Meditation allows individuals to gain greater control", correct: false }, 
+                { text: "B. Furthermore, it encourages deep thinking and self-reflection", correct: true }, 
+                { text: "C. but it also enhances cognitive function", correct: false }, 
+                { text: "D. Many people find it beneficial for overcoming various emotional struggles", correct: false }
+            ],
+            explanation: `<b>Dịch đoạn ghép:</b> ...và có thể quản lý cảm xúc hiệu quả hơn. (39) Hơn thế nữa, nó khuyến khích suy nghĩ sâu sắc và tự nhìn nhận lại bản thân. Mọi người cũng báo cáo cảm thấy kết nối hơn với chính mình...<br><br><b>Phân tích:</b><br>B ✅ Rất hợp lý vì câu sau nói về việc "kết nối với chính mình" (connected to themselves), điều này là kết quả trực tiếp của việc "tự nhìn nhận lại bản thân" (self-reflection).<br><br>🔍 <b>Dẫn chứng:</b> Sự liên kết ý nghĩa giữa <span style="color:red; font-weight:bold">"self-reflection" (tự suy ngẫm)</span> và hệ quả <span style="color:red; font-weight:bold">"connected to themselves" (kết nối với chính mình)</span>.`
+        },
+        {
+            id: 40, text: "Question 40. (40) ________ over their thoughts and emotions. It is clear that meditation can have a positive impact...",
+            options: [
+                { text: "A. Meditation allows individuals to gain greater control", correct: true }, 
+                { text: "B. Furthermore, it encourages deep thinking and self-reflection", correct: false }, 
+                { text: "C. but it also enhances cognitive function", correct: false }, 
+                { text: "D. Many people find it beneficial for overcoming various emotional struggles", correct: false }
+            ],
+            explanation: `<b>Dịch đoạn ghép:</b> (40) Thiền định cho phép các cá nhân giành được quyền kiểm soát lớn hơn đối với suy nghĩ và cảm xúc của họ.<br><br><b>Phân tích:</b><br>A ✅ Ở đây ta có giới từ "over". Trong tiếng Anh, cụm từ đi với nó hoàn hảo nhất là "gain control OVER sth" (đạt được sự kiểm soát đối với cái gì).<br><br>🔍 <b>Dẫn chứng:</b> Cấu trúc ngữ pháp cố định: <span style="color:red; font-weight:bold">gain control + OVER</span> (giành quyền kiểm soát đối với...).`
+        }
+    ];
+
+    // --- RENDER LOGIC ---
+    let userAnswers = {}; 
+    let hasAnswered = {}; 
+
+    function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+    }
+
+    const container = document.getElementById('questionsContainer');
+
+    questionsData.forEach((q, index) => {
+        let optionsHtml = '';
+        let shuffledOptions = [...q.options];
+        shuffleArray(shuffledOptions);
+
+        shuffledOptions.forEach((opt, optIndex) => {
+            optionsHtml += `<button class="option-btn" onclick="handleAnswer(this, ${q.id}, ${opt.correct})">${opt.text}</button>`;
+        });
+
+        const card = document.createElement('div');
+        card.className = 'question-card';
+        card.innerHTML = `
+            <div class="question-text">${q.text}</div>
+            <div class="options-grid" id="opts-${q.id}">
+                ${optionsHtml}
+            </div>
+            <div class="explanation-box" id="exp-${q.id}">${q.explanation}</div>
+        `;
+        container.appendChild(card);
+    });
+
+    // --- INTERACTION LOGIC ---
+    function handleAnswer(btn, qId, isCorrect) {
+        const grid = document.getElementById(`opts-${qId}`);
+        const expBox = document.getElementById(`exp-${qId}`);
+        const allBtns = grid.querySelectorAll('button');
+
+        if (hasAnswered[qId] === 'done') return;
+
+        if (isCorrect) {
+            btn.classList.add('correct');
+            playCorrectSound();
+            confetti({
+                particleCount: 50,
+                spread: 60,
+                origin: { y: 0.8 },
+                colors: ['#43A047', '#FBC02D', '#00ACC1']
+            });
+            
+            if (!hasAnswered[qId]) userAnswers[qId] = 1;
+            hasAnswered[qId] = 'done';
+            
+            allBtns.forEach(b => b.disabled = true);
+            expBox.style.display = 'block';
+
+        } else {
+            btn.classList.add('wrong');
+            btn.classList.add('shake');
+            playWrongSound();
+            setTimeout(() => btn.classList.remove('shake'), 400);
+
+            if (!hasAnswered[qId]) userAnswers[qId] = 0;
+            hasAnswered[qId] = 'failed';
+
+            allBtns.forEach(b => { b.disabled = true; });
+            
+            const qData = questionsData.find(x => x.id === qId);
+            const correctOptText = qData.options.find(x => x.correct).text;
+            allBtns.forEach(b => {
+                if(b.innerText === correctOptText) {
+                    b.classList.add('correct');
+                }
+            });
+
+            expBox.style.display = 'block';
+        }
+    }
+
+    // --- SUBMIT LOGIC ---
+    function submitTest() {
+        if (isTimerRunning) {
+            clearInterval(timerInterval);
+            isTimerRunning = false;
+        }
+
+        const totalQuestions = questionsData.length;
+        let score = 0;
+        
+        for (let key in userAnswers) {
+            if (userAnswers[key] === 1) score++;
+        }
+
+        const percentage = score / totalQuestions;
+        let feedback = "";
+        let gifUrl = "";
+
+        // UPDATE MEME/GIFS
+        if (percentage === 1) {
+            feedback = "🏆 TUYỆT ĐỈNH! Bạn đúng 100% không trượt câu nào!";
+            gifUrl = "https://media.giphy.com/media/artj92V8o75VPL7AeQ/giphy.gif"; // Minions Cheering
+            confetti({ particleCount: 200, spread: 100 });
+        } else if (percentage >= 0.6) {
+            feedback = "👍 LÀM RẤT TỐT! Khả năng đọc hiểu của bạn khá xịn đó!";
+            gifUrl = "https://media.giphy.com/media/26gsjCZpPolPr3sBy/giphy.gif"; // Nick Offerman Nod
+            confetti({ particleCount: 100, spread: 80 });
+        } else {
+            feedback = "💪 CỐ LÊN NHÉ! Đọc kỹ giải thích để phục thù lần sau nha!";
+            gifUrl = "https://media.giphy.com/media/l378giAZgxPw3eO52/giphy.gif"; // Michael Scott crying
+        }
+
+        document.getElementById('scoreText').innerText = `${score} / ${totalQuestions} Câu Đúng`;
+        document.getElementById('feedbackText').innerText = feedback;
+        document.getElementById('memeImg').src = gifUrl;
+        document.getElementById('resultModal').style.display = 'flex';
+    }
+
+    function closeModal() {
+        document.getElementById('resultModal').style.display = 'none';
+    }
+
+</script>
+
+</body>
+</html>

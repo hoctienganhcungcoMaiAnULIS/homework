@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Practice - Ms Mai An ULIS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #8854C0;
+            --secondary: #00C9A7;
+            --accent: #FDCB6E;
+            --correct: #00D26A;
+            --wrong: #FF4757;
+            --text: #2D3436;
+            --glass-bg: rgba(255, 255, 255, 0.45);
+            --glass-border: rgba(255, 255, 255, 0.6);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Nunito', sans-serif;
+        }
+
+        body {
+            height: 100vh;
+            overflow: hidden;
+            color: var(--text);
+            /* Nền loang Gradient pastel chuyển động */
+            background: linear-gradient(-45deg, #FF9A9E, #FECFEF, #8854C0, #00C9A7, #FDCB6E);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            position: relative;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Lớp pattern SVG lơ lửng */
+        body::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            background-image: url('data:image/svg+xml;utf8,<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg"><text x="20" y="40" font-size="24" opacity="0.3">🌳</text><text x="120" y="80" font-size="24" opacity="0.3">🌍</text><text x="40" y="160" font-size="24" opacity="0.3">🚴</text><text x="160" y="180" font-size="24" opacity="0.3">🏛️</text><text x="90" y="120" font-size="24" opacity="0.3">✨</text></svg>');
+            background-size: 200px 200px;
+            animation: floatPattern 40s linear infinite;
+        }
+
+        @keyframes floatPattern {
+            from { background-position: 0 0; }
+            to { background-position: 400px 400px; }
+        }
+
+        /* HEADER */
+        header {
+            position: relative;
+            z-index: 10;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 30px;
+            background: rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(10px);
+            border-bottom: 2px solid var(--glass-border);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+
+        h2.title {
+            font-size: 1.2rem;
+            color: #fff;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.3);
+            font-weight: 800;
+        }
+
+        .timer-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        #timer {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #fff;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.3);
+            background: rgba(0,0,0,0.2);
+            padding: 5px 15px;
+            border-radius: 20px;
+            letter-spacing: 2px;
+        }
+
+        .btn-control {
+            padding: 10px 20px;
+            font-size: 1rem;
+            font-weight: 700;
+            color: #fff;
+            background: var(--primary);
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            box-shadow: 0 4px 0px #5e3b8a, 0 5px 10px rgba(0,0,0,0.2);
+            transition: all 0.2s;
+        }
+
+        .btn-control:active {
+            transform: translateY(4px);
+            box-shadow: 0 0px 0px #5e3b8a, 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        /* SPLIT SCREEN LAYOUT */
+        .main-container {
+            display: flex;
+            height: calc(100vh - 70px);
+            position: relative;
+            z-index: 5;
+            padding: 20px;
+            gap: 20px;
+        }
+
+        .panel {
+            flex: 1;
+            background: var(--glass-bg);
+            backdrop-filter: blur(15px);
+            border: 1px solid var(--glass-border);
+            border-radius: 25px;
+            padding: 30px;
+            overflow-y: auto;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        /* Scrollbar styling */
+        .panel::-webkit-scrollbar { width: 8px; }
+        .panel::-webkit-scrollbar-track { background: transparent; }
+        .panel::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); border-radius: 10px; }
+
+        /* READING PANEL STYLES */
+        .passage-section {
+            background: rgba(255, 255, 255, 0.6);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+            border: 2px dashed rgba(136, 84, 192, 0.3);
+        }
+
+        .passage-text {
+            font-size: 1.15rem;
+            line-height: 1.8;
+            margin-bottom: 15px;
+        }
+
+        .gap-blank {
+            display: inline-block;
+            min-width: 60px;
+            border-bottom: 2px solid var(--primary);
+            color: var(--primary);
+            font-weight: bold;
+            text-align: center;
+            padding: 0 5px;
+        }
+
+        .btn-translate {
+            background: #FF9A9E;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 3px 0 #d9787c;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .btn-translate:active { transform: translateY(3px); box-shadow: none; }
+
+        .translation-box {
+            display: none;
+            margin-top: 15px;
+            padding: 15px;
+            background: rgba(253, 203, 110, 0.2);
+            border-left: 5px solid var(--accent);
+            border-radius: 0 10px 10px 0;
+            font-size: 1.05rem;
+            color: #444;
+            font-style: italic;
+            line-height: 1.6;
+        }
+
+        /* GLOSSARY TABLE */
+        .glossary-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: rgba(255,255,255,0.7);
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+        .glossary-table th {
+            background: var(--primary);
+            color: white;
+            padding: 12px;
+            font-size: 1.1rem;
+        }
+        .glossary-table td {
+            padding: 12px;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+            font-size: 1.05rem;
+        }
+        .glossary-table tr:last-child td { border-bottom: none; }
+        .glossary-table tr:hover { background: rgba(255,255,255,0.9); }
+
+        /* EXERCISE PANEL STYLES */
+        .question-card {
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .question-text {
+            font-size: 1.15rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: var(--primary);
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+        }
+
+        .option-btn {
+            background: white;
+            border: 2px solid rgba(0,0,0,0.1);
+            padding: 15px;
+            border-radius: 15px;
+            font-size: 1.08rem;
+            font-weight: 600;
+            text-align: left;
+            cursor: pointer;
+            box-shadow: 0 4px 0 rgba(0,0,0,0.1);
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            color: var(--text);
+            line-height: 1.4;
+        }
+
+        .option-btn:hover {
+            transform: scale(1.02);
+            border-color: var(--primary);
+        }
+
+        .option-btn:active {
+            transform: translateY(4px) scale(1);
+            box-shadow: 0 0px 0 rgba(0,0,0,0.1);
+        }
+
+        .option-btn.correct {
+            background: var(--correct) !important;
+            color: white !important;
+            border-color: var(--correct) !important;
+            box-shadow: 0 4px 0 #00994d !important;
+        }
+
+        .option-btn.wrong {
+            background: var(--wrong) !important;
+            color: white !important;
+            border-color: var(--wrong) !important;
+            box-shadow: 0 4px 0 #cc3945 !important;
+            animation: shake 0.5s;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-5px); }
+            40%, 80% { transform: translateX(5px); }
+        }
+
+        .explanation-box {
+            display: none;
+            margin-top: 20px;
+            background: #fff;
+            padding: 20px;
+            border-radius: 15px;
+            border: 2px dashed var(--correct);
+            font-size: 1rem;
+            line-height: 1.7;
+            animation: fadeIn 0.5s;
+        }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .explain-q { font-weight: bold; margin-bottom: 10px; color: var(--primary); }
+        .explain-opt { margin-bottom: 8px; }
+        .explain-evidence {
+            margin-top: 15px;
+            background: rgba(0, 201, 167, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 4px solid var(--secondary);
+        }
+        .highlight-red { color: red; font-weight: bold; }
+
+        .submit-btn {
+            width: 100%;
+            background: var(--correct);
+            color: white;
+            font-size: 1.3rem;
+            font-weight: 800;
+            padding: 15px;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            box-shadow: 0 6px 0 #00994d;
+            margin-top: 20px;
+            transition: all 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .submit-btn:hover { transform: scale(1.02); }
+        .submit-btn:active { transform: translateY(6px); box-shadow: none; }
+
+        /* MODAL RESULTS */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(5px);
+            display: none; justify-content: center; align-items: center; z-index: 100;
+        }
+        .modal-content {
+            background: white; padding: 40px; border-radius: 30px; text-align: center;
+            max-width: 500px; width: 90%;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+            animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        @keyframes popIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        
+        .modal-score { font-size: 3rem; font-weight: 900; color: var(--primary); margin: 15px 0; }
+        .modal-msg { font-size: 1.5rem; font-weight: 700; margin-bottom: 20px; }
+        .modal-gif { width: 100%; max-height: 250px; object-fit: cover; border-radius: 15px; margin-bottom: 20px; }
+        
+        .close-btn {
+            background: var(--accent); color: #333; font-size: 1.2rem; font-weight: bold;
+            padding: 10px 30px; border: none; border-radius: 15px; cursor: pointer;
+            box-shadow: 0 4px 0 #d9a040;
+        }
+        .close-btn:active { transform: translateY(4px); box-shadow: none; }
+
+        /* CONFETTI */
+        .confetti {
+            position: fixed; width: 12px; height: 12px; top: -10px; z-index: 9999;
+            animation: fall linear forwards;
+        }
+        @keyframes fall { to { transform: translateY(100vh) rotate(720deg); } }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .main-container { flex-direction: column; height: auto; overflow: visible; }
+            .panel { overflow-y: visible; }
+            body { overflow-y: auto; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h2 class="title">👩‍🏫 Ms Mai An ULIS - Reading Practice</h2>
+        <div class="timer-container">
+            <div id="timer">10:00</div>
+            <button class="btn-control" id="startBtn" onclick="toggleTimer()">BẮT ĐẦU TÍNH GIỜ</button>
+        </div>
+    </header>
+
+    <div class="main-container">
+        <div class="panel left-panel">
+            <h2 style="color: var(--primary); margin-bottom: 20px;">📖 Reading Passages</h2>
+            
+            <div id="passages-container">
+                </div>
+
+            <h3 style="color: var(--primary); margin-top: 30px; margin-bottom: 10px;">📚 Glossary (Bảng từ vựng khó)</h3>
+            <table class="glossary-table">
+                <thead>
+                    <tr><th>Từ vựng</th><th>Loại từ</th><th>Nghĩa Tiếng Việt</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td>Artifact</td><td>(n)</td><td>Hiện vật (lịch sử)</td></tr>
+                    <tr><td>Equipment</td><td>(n)</td><td>Trang thiết bị</td></tr>
+                    <tr><td>Bravery</td><td>(n)</td><td>Sự dũng cảm</td></tr>
+                    <tr><td>Heritage</td><td>(n)</td><td>Di sản</td></tr>
+                    <tr><td>Leisure</td><td>(n)</td><td>Thời gian rảnh rỗi</td></tr>
+                    <tr><td>Essential</td><td>(adj)</td><td>Thiết yếu, quan trọng</td></tr>
+                    <tr><td>Responsibility</td><td>(n)</td><td>Trách nhiệm</td></tr>
+                    <tr><td>Respiratory</td><td>(adj)</td><td>Thuộc về hô hấp</td></tr>
+                    <tr><td>Toxic</td><td>(adj)</td><td>Độc hại</td></tr>
+                    <tr><td>Emission</td><td>(n)</td><td>Khí thải</td></tr>
+                    <tr><td>Combat</td><td>(v)</td><td>Chiến đấu, chống lại</td></tr>
+                    <tr><td>Memorable</td><td>(adj)</td><td>Đáng nhớ</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="panel right-panel">
+            <h2 style="color: var(--primary); margin-bottom: 20px;">🎯 Exercises</h2>
+            <div id="questions-container">
+                </div>
+            <button class="submit-btn" onclick="submitTest()">🚀 Nộp Bài Ngay!</button>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="resultModal">
+        <div class="modal-content">
+            <img src="" alt="Meme Reaction" class="modal-gif" id="modalGif">
+            <h2 class="modal-msg" id="modalMsg">Tuyệt vời!</h2>
+            <div class="modal-score" id="modalScore">0/20</div>
+            <p style="margin-bottom: 20px; font-size: 1.1rem; color: #666;" id="modalFeedback">Cùng xem lại các câu sai để rút kinh nghiệm nhé!</p>
+            <button class="close-btn" onclick="closeModal()">Đóng lại</button>
+        </div>
+    </div>
+
+    <script>
+        // --- DỮ LIỆU BÀI ĐỌC ---
+        const passages = [
+            {
+                text: "Explore Viet Nam's history at the Military Museum. See real artifacts, war equipment, and battle models that (13) <span class='gap-blank' id='gap-13'>...</span> the bravery of the past. Perfect for families and students, this museum offers an exciting and easy way to learn (14) <span class='gap-blank' id='gap-14'>...</span> Viet Nam's heritage. Come and discover (15) <span class='gap-blank' id='gap-15'>...</span> nation's heroic history! Don't miss out – visit the Military Museum in Xuan Phuong, Ha Noi today for a (16) <span class='gap-blank' id='gap-16'>...</span> experience!",
+                translation: "Khám phá lịch sử Việt Nam tại Bảo tàng Lịch sử Quân sự. Xem các hiện vật thực tế, thiết bị chiến tranh và mô hình trận chiến thể hiện sự dũng cảm của quá khứ. Rất phù hợp cho các gia đình và học sinh, bảo tàng này mang đến một cách thú vị và dễ dàng để tìm hiểu về di sản của Việt Nam. Hãy đến và khám phá lịch sử hào hùng của dân tộc! Đừng bỏ lỡ – hãy ghé thăm Bảo tàng Quân sự ở Xuân Phương, Hà Nội ngay hôm nay để có một trải nghiệm đáng nhớ!"
+            },
+            {
+                text: "Leisure time is an important part of our lives. It's the time when we can relax, have fun, and do things we enjoy outside of work or school. People spend their leisure time in many different ways, (19) <span class='gap-blank' id='gap-19'>...</span> their interests and lifestyle. Some people enjoy outdoor activities, like hiking, cycling, or playing sports. Being active outdoors is a great way to stay healthy and connect with nature. (20) <span class='gap-blank' id='gap-20'>...</span> prefer indoor hobbies, such as reading, watching movies, or playing video games. These activities allow (21) <span class='gap-blank' id='gap-21'>...</span> after a busy day.<br><br>Many people also spend their leisure time with friends and family. Going out for a meal, watching a movie together, (22) <span class='gap-blank' id='gap-22'>...</span> simply chatting over coffee can strengthen relationships and create happy memories.<br><br>Leisure time is essential for mental health because it gives us a break from daily (23) <span class='gap-blank' id='gap-23'>...</span>. It helps reduce stress and makes us feel happier. No matter how busy life gets, it's important to take time for yourself and do something (24) <span class='gap-blank' id='gap-24'>...</span>. Whether it's a hobby or spending time with loved ones, leisure time brings balance to our lives.",
+                translation: "Thời gian rảnh rỗi là một phần quan trọng trong cuộc sống của chúng ta. Đó là lúc chúng ta có thể thư giãn, vui chơi và làm những điều mình thích ngoài công việc hay trường học. Mọi người dành thời gian rảnh theo nhiều cách khác nhau, tùy thuộc vào sở thích và lối sống của họ. Một số người thích các hoạt động ngoài trời, như đi bộ đường dài, đạp xe hoặc chơi thể thao. Hoạt động ngoài trời là cách tuyệt vời để giữ gìn sức khỏe và hòa mình với thiên nhiên. Những người khác thích những sở thích trong nhà, chẳng hạn như đọc sách, xem phim hoặc chơi trò chơi điện tử. Những hoạt động này cho phép mọi người thư giãn sau một ngày bận rộn.<br><br>Nhiều người cũng dành thời gian rảnh rỗi cho bạn bè và gia đình. Ra ngoài ăn uống, cùng nhau xem phim hoặc đơn giản là trò chuyện bên tách cà phê có thể củng cố các mối quan hệ và tạo ra những kỷ niệm vui vẻ.<br><br>Thời gian rảnh rỗi rất cần thiết cho sức khỏe tinh thần vì nó giúp chúng ta thoát khỏi những trách nhiệm hàng ngày. Nó giúp giảm căng thẳng và làm chúng ta cảm thấy hạnh phúc hơn. Dù cuộc sống có bận rộn đến đâu, điều quan trọng là phải dành thời gian cho bản thân và làm điều gì đó thú vị. Cho dù đó là một sở thích hay dành thời gian cho những người thân yêu, thời gian rảnh rỗi mang lại sự cân bằng cho cuộc sống của chúng ta."
+            },
+            {
+                text: "Pollution is now the world's biggest killer, affecting millions of people every year. It comes from many sources, including factories, cars, and waste. These pollutants harm the air, water, and land, making it dangerous for humans and animals. People who live in cities, where pollution is often higher, are especially at risk.<br><br>Air pollution, which includes harmful gases and particles, can lead to serious health problems. Many people suffer from respiratory diseases, which make it hard to breathe. Water pollution, caused by chemicals and waste, can also make people very sick. It affects the food we eat and the water we drink. Land pollution, often caused by trash and toxic materials, damages the soil and harms plants and animals, making the environment unsafe for communities.<br><br>Governments and organisations around the world are working to reduce pollution. They are creating laws to limit harmful emissions and promote cleaner energy sources. People can help by using public transport or cycling instead of driving. Recycling and reducing waste are also important.<br><br>In conclusion, pollution is a major threat to global health, and everyone must take action to combat it. By working together, we can create a cleaner and healthier world for future generations.",
+                translation: "Ô nhiễm hiện là nguyên nhân gây tử vong lớn nhất thế giới, ảnh hưởng đến hàng triệu người mỗi năm. Nó đến từ nhiều nguồn, bao gồm nhà máy, ô tô và chất thải. Những chất gây ô nhiễm này gây hại cho không khí, nước và đất đai, gây nguy hiểm cho con người và động vật. Những người sống ở các thành phố, nơi ô nhiễm thường cao hơn, đặc biệt có nguy cơ.<br><br>Ô nhiễm không khí, bao gồm các loại khí và hạt độc hại, có thể dẫn đến các vấn đề sức khỏe nghiêm trọng. Nhiều người mắc các bệnh về đường hô hấp, khiến việc hít thở trở nên khó khăn. Ô nhiễm nước, do hóa chất và chất thải gây ra, cũng có thể khiến con người mắc bệnh nặng. Nó ảnh hưởng đến thức ăn chúng ta ăn và nước chúng ta uống. Ô nhiễm đất đai, thường do rác và vật liệu độc hại gây ra, làm hỏng đất và gây hại cho thực vật, động vật, khiến môi trường trở nên không an toàn cho các cộng đồng.<br><br>Các chính phủ và tổ chức trên toàn thế giới đang nỗ lực giảm thiểu ô nhiễm. Họ đang tạo ra các luật để hạn chế khí thải độc hại và thúc đẩy các nguồn năng lượng sạch hơn. Mọi người có thể giúp đỡ bằng cách sử dụng phương tiện giao thông công cộng hoặc đạp xe thay vì lái xe. Tái chế và giảm thiểu chất thải cũng rất quan trọng.<br><br>Tóm lại, ô nhiễm là một mối đe dọa lớn đối với sức khỏe toàn cầu và mọi người phải hành động để chống lại nó. Bằng cách làm việc cùng nhau, chúng ta có thể tạo ra một thế giới sạch hơn và khỏe mạnh hơn cho các thế hệ tương lai."
+            },
+            {
+                text: "On the weekend, many people like to visit the park. The park is a great place to relax, have fun, and enjoy nature. (37) <span class='gap-blank' id='gap-37'>...</span>. Some parks also have lakes or rivers, which make the area even more beautiful. People can walk, run, or ride bicycles on the paths. It is a peaceful place to spend time alone or with friends and family.<br><br>Children enjoy playing in the park. They can play games, run around, or use the playground equipment like swings, slides, and climbing frames. Sometimes, there are also people who bring their pets (38) <span class='gap-blank' id='gap-38'>...</span>. It's important to keep pets on a leash to make sure everyone is safe.<br><br>In some parks, there are benches where people can sit and rest. Some parks even have cafés (39) <span class='gap-blank' id='gap-39'>...</span>. Many people bring a picnic to the park and enjoy lunch on a blanket.<br><br>The park is a wonderful place for everyone. (40) <span class='gap-blank' id='gap-40'>...</span>. Whether you want to exercise, enjoy nature, or spend time with others, a visit to the park is always a good idea.",
+                translation: "Vào cuối tuần, nhiều người thích đến thăm công viên. Công viên là một nơi tuyệt vời để thư giãn, vui chơi và tận hưởng thiên nhiên. Thường có nhiều cây cối, hoa và cỏ. Một số công viên còn có hồ hoặc sông, khiến khu vực này càng trở nên xinh đẹp hơn. Mọi người có thể đi bộ, chạy hoặc đạp xe trên các con đường. Đó là một nơi yên bình để dành thời gian một mình hoặc với bạn bè và gia đình.<br><br>Trẻ em thích chơi trong công viên. Các em có thể chơi trò chơi, chạy nhảy xung quanh hoặc sử dụng các thiết bị sân chơi như xích đu, cầu trượt và khung leo trèo. Đôi khi, cũng có những người mang theo thú cưng để chơi và chạy trong các không gian mở. Điều quan trọng là phải xích thú cưng lại để đảm bảo mọi người đều an toàn.<br><br>Ở một số công viên, có những chiếc ghế dài nơi mọi người có thể ngồi và nghỉ ngơi. Một số công viên thậm chí còn có các quán cà phê nơi du khách có thể mua cà phê, đồ ăn nhẹ hoặc kem. Nhiều người mang theo đồ dã ngoại đến công viên và thưởng thức bữa trưa trên một tấm thảm.<br><br>Công viên là một nơi tuyệt vời cho tất cả mọi người. Đó là một nơi tốt để gặp gỡ bạn bè, nói chuyện và thư giãn. Cho dù bạn muốn tập thể dục, tận hưởng thiên nhiên hay dành thời gian cho người khác, một chuyến thăm công viên luôn là một ý tưởng hay."
+            }
+        ];
+
+        // --- DỮ LIỆU CÂU HỎI & GIẢI THÍCH CHI TIẾT ---
+        const questionsData = [
+            {
+                id: 13, text: "Question 13. See real artifacts, war equipment, and battle models that (13) ________ the bravery of the past.", qTrans: "Khám phá lịch sử... xem các hiện vật (13) ________ sự dũng cảm...",
+                options: [
+                    { text: "A. give", isCorrect: false, exp: "❌ Sai vì 'give' (cho, tặng) không dùng cho sự vật để truyền tải tính chất." },
+                    { text: "B. show", isCorrect: true, exp: "✅ Đúng vì 'show' (thể hiện/cho thấy) hợp lý khi nói hiện vật thể hiện sự dũng cảm." },
+                    { text: "C. appear", isCorrect: false, exp: "❌ Sai vì 'appear' (xuất hiện) là nội động từ, không cộng tân ngữ trực tiếp." },
+                    { text: "D. examine", isCorrect: false, exp: "❌ Sai vì 'examine' (kiểm tra) là hành động của người, không phải hiện vật." }
+                ],
+                evidence: "See real artifacts, war equipment, and battle models that show the bravery of the past.",
+                evidenceTrans: "Xem các hiện vật thực tế, thiết bị chiến tranh và mô hình trận chiến mà <span class='highlight-red'>thể hiện</span> sự dũng cảm của quá khứ."
+            },
+            {
+                id: 14, text: "Question 14. offers an exciting and easy way to learn (14) ________ Viet Nam's heritage.", qTrans: "Cung cấp cách dễ dàng để học (14) ________ di sản Việt Nam.",
+                options: [
+                    { text: "A. about", isCorrect: true, exp: "✅ Đúng. Cụm từ cố định 'learn about something' nghĩa là tìm hiểu/học về điều gì đó." },
+                    { text: "B. up", isCorrect: false, exp: "❌ Sai cấu trúc." },
+                    { text: "C. by", isCorrect: false, exp: "❌ Sai vì 'learn by' là học thông qua phương pháp nào đó." },
+                    { text: "D. over", isCorrect: false, exp: "❌ Sai cấu trúc." }
+                ],
+                evidence: "offers an exciting and easy way to learn about Viet Nam's heritage.",
+                evidenceTrans: "mang đến một cách thú vị và dễ dàng để <span class='highlight-red'>tìm hiểu về</span> di sản của Việt Nam."
+            },
+            {
+                id: 15, text: "Question 15. Come and discover (15) ________ nation's heroic history!", qTrans: "Hãy đến và khám phá lịch sử hào hùng của (15) ________ dân tộc!",
+                options: [
+                    { text: "A. the", isCorrect: true, exp: "✅ Đúng. Dùng mạo từ xác định 'the' vì 'nation' ở đây đã được xác định rõ là đất nước Việt Nam." },
+                    { text: "B. an", isCorrect: false, exp: "❌ Sai vì 'nation' bắt đầu bằng phụ âm." },
+                    { text: "C. a", isCorrect: false, exp: "❌ Sai vì danh từ đã được xác định cụ thể." },
+                    { text: "D. Ø", isCorrect: false, exp: "❌ Sai ngữ pháp, danh từ số ít đếm được cần mạo từ." }
+                ],
+                evidence: "Come and discover the nation's heroic history!",
+                evidenceTrans: "Hãy đến và khám phá lịch sử hào hùng của <span class='highlight-red'>đất nước (đã xác định)</span>!"
+            },
+            {
+                id: 16, text: "Question 16. visit the Military Museum in Xuan Phuong, Ha Noi today for a (16) ________ experience!", qTrans: "Đến thăm bảo tàng hôm nay để có một trải nghiệm (16) ________!",
+                options: [
+                    { text: "A. memory", isCorrect: false, exp: "❌ Sai vì đây là danh từ (kỷ niệm). Sau mạo từ 'a' và trước danh từ 'experience' cần tính từ." },
+                    { text: "B. memorise", isCorrect: false, exp: "❌ Sai vì đây là động từ (ghi nhớ)." },
+                    { text: "C. memorable", isCorrect: true, exp: "✅ Đúng vì đây là tính từ (đáng nhớ), bổ nghĩa hoàn hảo cho danh từ 'experience'." },
+                    { text: "D. memorably", isCorrect: false, exp: "❌ Sai vì đây là trạng từ." }
+                ],
+                evidence: "for a memorable experience!",
+                evidenceTrans: "để có một trải nghiệm <span class='highlight-red'>đáng nhớ</span>!"
+            },
+            {
+                id: 19, text: "Question 19. People spend their leisure time in many different ways, (19) ________ their interests and lifestyle.", qTrans: "Mọi người dùng thời gian rảnh theo nhiều cách, (19) ________ vào sở thích và lối sống.",
+                options: [
+                    { text: "A. depend of", isCorrect: false, exp: "❌ Sai giới từ (phải là on)." },
+                    { text: "B. depending on", isCorrect: true, exp: "✅ Đúng. Rút gọn mệnh đề trạng ngữ chủ động, 'depending on' mang nghĩa 'tùy thuộc vào'." },
+                    { text: "C. depended out", isCorrect: false, exp: "❌ Sai ngữ pháp và giới từ." },
+                    { text: "D. dependent over", isCorrect: false, exp: "❌ Sai cấu trúc." }
+                ],
+                evidence: "People spend their leisure time in many different ways, depending on their interests and lifestyle.",
+                evidenceTrans: "Mọi người dành thời gian rảnh theo nhiều cách khác nhau, <span class='highlight-red'>tùy thuộc vào</span> sở thích và lối sống."
+            },
+            {
+                id: 20, text: "Question 20. Some people enjoy outdoor activities, like hiking, cycling, or playing sports... (20) ________ prefer indoor hobbies, such as reading...", qTrans: "Một số người thích hoạt động ngoài trời... (20) ________ thích sở thích trong nhà...",
+                options: [
+                    { text: "A. Other", isCorrect: false, exp: "❌ Sai vì 'Other' phải đi kèm danh từ số nhiều (Other people)." },
+                    { text: "B. The other", isCorrect: false, exp: "❌ Sai vì 'The other' dùng cho những người còn lại cuối cùng trong 1 nhóm xác định." },
+                    { text: "C. Others", isCorrect: true, exp: "✅ Đúng. 'Others' đóng vai trò làm đại từ, thay thế cho 'Other people' (Những người khác)." },
+                    { text: "D. The ones", isCorrect: false, exp: "❌ Sai ngữ cảnh." }
+                ],
+                evidence: "Some people enjoy outdoor activities... Others prefer indoor hobbies",
+                evidenceTrans: "Một số người thích các hoạt động ngoài trời... <span class='highlight-red'>Những người khác</span> thích những sở thích trong nhà."
+            },
+            {
+                id: 21, text: "Question 21. These activities allow (21) ________ after a busy day.", qTrans: "Những hoạt động này cho phép (21) ________ sau một ngày bận rộn.",
+                options: [
+                    { text: "A. people to relax", isCorrect: true, exp: "✅ Đúng. Cấu trúc: allow + Object + to V (Cho phép ai đó làm gì)." },
+                    { text: "B. people relaxing", isCorrect: false, exp: "❌ Sai cấu trúc." },
+                    { text: "C. to relax people", isCorrect: false, exp: "❌ Sai trật tự từ." },
+                    { text: "D. relaxing people", isCorrect: false, exp: "❌ Sai ý nghĩa và ngữ pháp." }
+                ],
+                evidence: "These activities allow people to relax after a busy day.",
+                evidenceTrans: "Những hoạt động này cho phép <span class='highlight-red'>mọi người thư giãn</span> sau một ngày bận rộn."
+            },
+            {
+                id: 22, text: "Question 22. Going out for a meal, watching a movie together, (22) ________ simply chatting over coffee can strengthen relationships...", qTrans: "Ra ngoài ăn, cùng xem phim, (22) ________ đơn giản là trò chuyện...",
+                options: [
+                    { text: "A. either", isCorrect: false, exp: "❌ Sai vì 'either... or', không đứng lẻ như thế này liệt kê." },
+                    { text: "B. but", isCorrect: false, exp: "❌ Sai vì mang nghĩa đối lập (nhưng)." },
+                    { text: "C. so", isCorrect: false, exp: "❌ Sai vì mang nghĩa kết quả (vì vậy)." },
+                    { text: "D. or", isCorrect: true, exp: "✅ Đúng. Dùng để liệt kê các sự lựa chọn (hoặc)." }
+                ],
+                evidence: "Going out for a meal, watching a movie together, or simply chatting...",
+                evidenceTrans: "Ra ngoài ăn uống, cùng nhau xem phim, <span class='highlight-red'>hoặc</span> đơn giản là trò chuyện..."
+            },
+            {
+                id: 23, text: "Question 23. Leisure time is essential for mental health because it gives us a break from daily (23) ________.", qTrans: "nó cho chúng ta sự nghỉ ngơi khỏi (23) ________ hàng ngày.",
+                options: [
+                    { text: "A. opportunities", isCorrect: false, exp: "❌ Sai nghĩa (cơ hội)." },
+                    { text: "B. responsibilities", isCorrect: true, exp: "✅ Đúng. Nghỉ ngơi khỏi những 'trách nhiệm' (responsibilities) hàng ngày." },
+                    { text: "C. functions", isCorrect: false, exp: "❌ Sai nghĩa (chức năng)." },
+                    { text: "D. factors", isCorrect: false, exp: "❌ Sai nghĩa (yếu tố)." }
+                ],
+                evidence: "it gives us a break from daily responsibilities.",
+                evidenceTrans: "nó giúp chúng ta thoát khỏi những <span class='highlight-red'>trách nhiệm</span> hàng ngày."
+            },
+            {
+                id: 24, text: "Question 24. No matter how busy life gets, it's important to take time for yourself and do something (24) ________.", qTrans: "quan trọng là dành thời gian cho bản thân và làm điều gì đó (24) ________.",
+                options: [
+                    { text: "A. enjoyable", isCorrect: true, exp: "✅ Đúng. Cần một tính từ mô tả tính chất sự vật (thú vị/mang lại niềm vui)." },
+                    { text: "B. satisfied", isCorrect: false, exp: "❌ Sai vì đuôi -ed dùng để tả cảm xúc con người." },
+                    { text: "C. excited", isCorrect: false, exp: "❌ Sai vì đuôi -ed tả cảm xúc." },
+                    { text: "D. charming", isCorrect: false, exp: "❌ Sai nghĩa (quyến rũ, dùng cho người/cảnh)." }
+                ],
+                evidence: "do something enjoyable.",
+                evidenceTrans: "làm điều gì đó <span class='highlight-red'>thú vị</span>."
+            },
+            {
+                id: 31, text: "Question 31. What is the main idea of the passage?", qTrans: "Ý chính của đoạn văn là gì?",
+                options: [
+                    { text: "A. The problem of pollution as the world's biggest killer and solutions to it", isCorrect: true, exp: "✅ Đúng. Đoạn đầu nói về vấn đề ô nhiễm (biggest killer), các đoạn sau phân tích và đoạn cuối đưa ra giải pháp/kêu gọi hành động." },
+                    { text: "B. The harmful effects of pollution and the threat to natural ecosystems", isCorrect: false, exp: "❌ Thiếu ý về giải pháp." },
+                    { text: "C. The contribution of factories to pollution and their role in environmental damage", isCorrect: false, exp: "❌ Quá chi tiết, không bao quát toàn bài." },
+                    { text: "D. The danger level of air pollution and its long-term health effects", isCorrect: false, exp: "❌ Chỉ nhắc đến 1 phần (ô nhiễm không khí)." }
+                ],
+                evidence: "Pollution is now the world's biggest killer... Governments and organisations around the world are working to reduce pollution.",
+                evidenceTrans: "Ô nhiễm hiện là nguyên nhân gây tử vong lớn nhất... Các chính phủ và tổ chức đang nỗ lực <span class='highlight-red'>giảm thiểu ô nhiễm (giải pháp)</span>."
+            },
+            {
+                id: 32, text: "Question 32. The word 'dangerous' in the passage is OPPOSITE in meaning to:", qTrans: "Từ 'dangerous' (nguy hiểm) TRÁI NGHĨA với từ nào?",
+                options: [
+                    { text: "A. wasteful", isCorrect: false, exp: "❌ Lãng phí." },
+                    { text: "B. harmful", isCorrect: false, exp: "❌ Có hại (đồng nghĩa)." },
+                    { text: "C. clean", isCorrect: false, exp: "❌ Sạch sẽ." },
+                    { text: "D. safe", isCorrect: true, exp: "✅ Đúng. Safe (an toàn) là trái nghĩa của dangerous (nguy hiểm)." }
+                ],
+                evidence: "making it dangerous for humans and animals.",
+                evidenceTrans: "gây <span class='highlight-red'>nguy hiểm</span> cho con người và động vật."
+            },
+            {
+                id: 33, text: "Question 33. Which of the following statements is TRUE, according to the passage?", qTrans: "Khẳng định nào sau đây ĐÚNG theo đoạn văn?",
+                options: [
+                    { text: "A. Noise pollution is serious in big cities.", isCorrect: false, exp: "❌ Không được đề cập (Not Given)." },
+                    { text: "B. Water pollution can make people sick.", isCorrect: true, exp: "✅ Đúng. Có dẫn chứng rõ ràng trong bài." },
+                    { text: "C. Pollution hardly does harm to humans.", isCorrect: false, exp: "❌ Sai sự thật (False)." },
+                    { text: "D. Factories rarely contribute to pollution.", isCorrect: false, exp: "❌ Sai sự thật (False)." }
+                ],
+                evidence: "Water pollution, caused by chemicals and waste, can also make people very sick.",
+                evidenceTrans: "Ô nhiễm nước... cũng có thể <span class='highlight-red'>khiến con người mắc bệnh nặng</span>."
+            },
+            {
+                id: 34, text: "Question 34. Which of the following describes air pollution?", qTrans: "Điều nào sau đây mô tả ô nhiễm không khí?",
+                options: [
+                    { text: "A. Air pollution is caused mainly by waste.", isCorrect: false, exp: "❌ Sai, đó là ô nhiễm nước/đất." },
+                    { text: "B. Air pollution is a problem only in factories.", isCorrect: false, exp: "❌ Sai, có cả ô tô..." },
+                    { text: "C. Air pollution includes harmful gases and particles.", isCorrect: true, exp: "✅ Đúng y hệt câu trong bài." },
+                    { text: "D. Air pollution helps people breathe better.", isCorrect: false, exp: "❌ Sai hoàn toàn." }
+                ],
+                evidence: "Air pollution, which includes harmful gases and particles, can lead to serious health problems.",
+                evidenceTrans: "Ô nhiễm không khí, <span class='highlight-red'>bao gồm các loại khí và hạt độc hại</span>..."
+            },
+            {
+                id: 35, text: "Question 35. The word 'affects' in the passage is CLOSEST in meaning to:", qTrans: "Từ 'affects' (ảnh hưởng) ĐỒNG NGHĨA nhất với:",
+                options: [
+                    { text: "A. helps", isCorrect: false, exp: "❌ Giúp đỡ." },
+                    { text: "B. stops", isCorrect: false, exp: "❌ Dừng lại." },
+                    { text: "C. creates", isCorrect: false, exp: "❌ Tạo ra." },
+                    { text: "D. influences", isCorrect: true, exp: "✅ Đúng. Influences = Affects (ảnh hưởng/tác động đến)." }
+                ],
+                evidence: "It affects the food we eat and the water we drink.",
+                evidenceTrans: "Nó <span class='highlight-red'>ảnh hưởng</span> đến thức ăn chúng ta ăn..."
+            },
+            {
+                id: 36, text: "Question 36. What can people do to help reduce pollution, according to the passage?", qTrans: "Mọi người có thể làm gì để giảm ô nhiễm?",
+                options: [
+                    { text: "A. Consume less energy at home", isCorrect: false, exp: "❌ Ý hay nhưng không có trong bài." },
+                    { text: "B. Cook less and eat out more", isCorrect: false, exp: "❌ Không có trong bài." },
+                    { text: "C. Use public transport or cycle", isCorrect: true, exp: "✅ Đúng. Được đề cập rõ ràng." },
+                    { text: "D. Ignore pollution problems", isCorrect: false, exp: "❌ Sai hoàn toàn (phớt lờ)." }
+                ],
+                evidence: "People can help by using public transport or cycling instead of driving.",
+                evidenceTrans: "Mọi người có thể giúp đỡ bằng cách <span class='highlight-red'>sử dụng phương tiện giao thông công cộng hoặc đạp xe</span>..."
+            },
+            {
+                id: 37, text: "Question 37. The park is a great place to relax, have fun, and enjoy nature. (37) ________. Some parks also have lakes or rivers, which make the area even more beautiful.", qTrans: "Công viên là nơi tuyệt vời để thư giãn... (37) ________. Một số công viên còn có hồ...",
+                options: [
+                    { text: "A. where visitors can buy coffee, snacks, or ice cream", isCorrect: false, exp: "❌ Sai ngữ cảnh (đang tả thiên nhiên, chưa nhắc đến quán cafe)." },
+                    { text: "B. to play and run in the open spaces", isCorrect: false, exp: "❌ Sai ngữ pháp nếu ghép vào." },
+                    { text: "C. It's a good place to meet friends, talk, and relax", isCorrect: false, exp: "❌ Không liên kết chặt chẽ với ý 'tận hưởng thiên nhiên' bằng câu D." },
+                    { text: "D. There are usually many trees, flowers, and grass", isCorrect: true, exp: "✅ Đúng. Đang nói về nature (thiên nhiên), ghép câu tả cây, hoa, cỏ là logic nhất." }
+                ],
+                evidence: "enjoy nature. (37) D. There are usually many trees, flowers, and grass. Some parks also have lakes...",
+                evidenceTrans: "tận hưởng thiên nhiên. <span class='highlight-red'>Thường có nhiều cây cối, hoa và cỏ.</span> Một số công viên còn có hồ..."
+            },
+            {
+                id: 38, text: "Question 38. Sometimes, there are also people who bring their pets (38) ________. It's important to keep pets on a leash to make sure everyone is safe.", qTrans: "Đôi khi, có những người mang theo thú cưng (38) ________.",
+                options: [
+                    { text: "A. where visitors can buy coffee, snacks, or ice cream", isCorrect: false, exp: "❌ Sai ngữ cảnh." },
+                    { text: "B. to play and run in the open spaces", isCorrect: true, exp: "✅ Đúng. Thú cưng được mang đến 'để chơi và chạy trong không gian rộng'." },
+                    { text: "C. It's a good place to meet friends, talk, and relax", isCorrect: false, exp: "❌ Sai ngữ pháp khi ghép." },
+                    { text: "D. There are usually many trees, flowers, and grass", isCorrect: false, exp: "❌ Sai cấu trúc." }
+                ],
+                evidence: "bring their pets to play and run in the open spaces.",
+                evidenceTrans: "mang theo thú cưng <span class='highlight-red'>để chơi và chạy trong các không gian mở</span>."
+            },
+            {
+                id: 39, text: "Question 39. Some parks even have cafés (39) ________. Many people bring a picnic to the park and enjoy lunch on a blanket.", qTrans: "Một số công viên thậm chí có quán cà phê (39) ________.",
+                options: [
+                    { text: "A. where visitors can buy coffee, snacks, or ice cream", isCorrect: true, exp: "✅ Đúng. Mệnh đề quan hệ 'where...' bổ nghĩa hoàn hảo cho từ 'cafés'." },
+                    { text: "B. to play and run in the open spaces", isCorrect: false, exp: "❌ Sai nghĩa." },
+                    { text: "C. It's a good place to meet friends, talk, and relax", isCorrect: false, exp: "❌ Sai cấu trúc (dư chủ ngữ)." },
+                    { text: "D. There are usually many trees, flowers, and grass", isCorrect: false, exp: "❌ Sai ngữ cảnh." }
+                ],
+                evidence: "have cafés where visitors can buy coffee, snacks, or ice cream.",
+                evidenceTrans: "có các quán cà phê <span class='highlight-red'>nơi du khách có thể mua cà phê, đồ ăn nhẹ hoặc kem</span>."
+            },
+            {
+                id: 40, text: "Question 40. The park is a wonderful place for everyone. (40) ________. Whether you want to exercise, enjoy nature, or spend time with others, a visit to the park is always a good idea.", qTrans: "Công viên là nơi tuyệt vời cho mọi người. (40) ________. Cho dù bạn muốn tập thể dục...",
+                options: [
+                    { text: "A. where visitors can buy coffee, snacks, or ice cream", isCorrect: false, exp: "❌ Sai cấu trúc." },
+                    { text: "B. to play and run in the open spaces", isCorrect: false, exp: "❌ Sai cấu trúc." },
+                    { text: "C. It's a good place to meet friends, talk, and relax", isCorrect: true, exp: "✅ Đúng. Câu chốt lại lợi ích của công viên, mở đường cho câu kết 'Whether you want to exercise... or spend time with others...'." },
+                    { text: "D. There are usually many trees, flowers, and grass", isCorrect: false, exp: "❌ Sai mạch lạc đoạn kết." }
+                ],
+                evidence: "The park is a wonderful place for everyone. It's a good place to meet friends, talk, and relax.",
+                evidenceTrans: "Công viên là một nơi tuyệt vời cho tất cả mọi người. <span class='highlight-red'>Đó là một nơi tốt để gặp gỡ bạn bè, nói chuyện và thư giãn.</span>"
+            }
+        ];
+
+        // --- HỆ THỐNG ÂM THANH WEBAUDIO API ---
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playSound(isCorrect) {
+            if(audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            if(isCorrect) {
+                // Tiếng 'Ding' vút lên
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(523.25, audioCtx.currentTime); // C5
+                osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.1); // A5
+                gain.gain.setValueAtTime(0.5, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.3);
+            } else {
+                // Tiếng 'Téo tèo tèo' rớt xuống
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(300, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(150, audioCtx.currentTime + 0.3);
+                gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.4);
+            }
+        }
+
+        // --- HIỆU ỨNG PHÁO GIẤY CONFETTI ---
+        function shootConfetti() {
+            const colors = ['#00D26A', '#FDCB6E', '#FF9A9E', '#8854C0', '#00C9A7'];
+            for(let i=0; i<40; i++) {
+                let conf = document.createElement('div');
+                conf.classList.add('confetti');
+                conf.style.left = Math.random() * 100 + 'vw';
+                conf.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                conf.style.animationDuration = (Math.random() * 2 + 1) + 's';
+                document.body.appendChild(conf);
+                setTimeout(() => conf.remove(), 3000);
+            }
+        }
+
+        // --- RENDER DỮ LIỆU ---
+        let totalAnswered = 0;
+        let correctCount = 0;
+        let userAnswers = {};
+
+        // Xáo trộn mảng (Fisher-Yates)
+        function shuffle(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function toggleTranslate(index) {
+            const box = document.getElementById(`trans-${index}`);
+            if(box.style.display === 'block') {
+                box.style.display = 'none';
+            } else {
+                box.style.display = 'block';
+            }
+        }
+
+        function renderPassages() {
+            const container = document.getElementById('passages-container');
+            passages.forEach((p, index) => {
+                const div = document.createElement('div');
+                div.className = 'passage-section';
+                div.innerHTML = `
+                    <div class="passage-text">${p.text}</div>
+                    <button class="btn-translate" onclick="toggleTranslate(${index})">🌟 Mở dịch đoạn này</button>
+                    <div class="translation-box" id="trans-${index}">${p.translation}</div>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        function renderQuestions() {
+            const container = document.getElementById('questions-container');
+            questionsData.forEach((q, qIndex) => {
+                // Shuffle options
+                const shuffledOptions = shuffle([...q.options]);
+
+                const card = document.createElement('div');
+                card.className = 'question-card';
+                card.id = `q-card-${q.id}`;
+                
+                let html = `<div class="question-text">${q.text}</div><div class="options-grid" id="options-${q.id}">`;
+                
+                shuffledOptions.forEach((opt, optIndex) => {
+                    html += `<button class="option-btn" id="btn-${q.id}-${optIndex}" onclick="checkAnswer(${q.id}, ${optIndex}, ${opt.isCorrect})">${opt.text}</button>`;
+                });
+                
+                html += `</div>
+                <div class="explanation-box" id="exp-${q.id}">
+                    <div class="explain-q">📝 Dịch: ${q.qTrans}</div>`;
+                
+                // Giữ đúng thứ tự A,B,C,D khi giải thích để dễ đọc
+                q.options.forEach(o => {
+                    html += `<div class="explain-opt"><strong>${o.text.substring(0,2)}</strong> ${o.text.substring(3)}<br>${o.exp}</div>`;
+                });
+                
+                html += `<div class="explain-evidence">
+                            <strong>🔍 Dẫn chứng trong bài:</strong><br>
+                            <em>"${q.evidence}"</em><br>
+                            👉 <strong>Dịch:</strong> ${q.evidenceTrans}
+                         </div>
+                </div>`;
+                
+                card.innerHTML = html;
+                container.appendChild(card);
+            });
+        }
+
+        function checkAnswer(qId, optIndex, isCorrect) {
+            // Không cho chọn lại
+            if(userAnswers[qId] !== undefined) return;
+            userAnswers[qId] = isCorrect;
+            totalAnswered++;
+
+            const btn = document.getElementById(`btn-${qId}-${optIndex}`);
+            const qData = questionsData.find(x => x.id === qId);
+
+            // Điền đáp án vào bài đọc bên trái
+            const gap = document.getElementById(`gap-${qId}`);
+            if(gap) {
+                // Lấy nút chứa text đáp án để điền
+                const selectedText = document.getElementById(`btn-${qId}-${optIndex}`).innerText.substring(3); // Cắt "A. "
+                gap.innerText = selectedText;
+                gap.style.color = isCorrect ? 'var(--correct)' : 'var(--wrong)';
+                gap.style.borderColor = isCorrect ? 'var(--correct)' : 'var(--wrong)';
+            }
+
+            if(isCorrect) {
+                btn.classList.add('correct');
+                playSound(true);
+                shootConfetti();
+                correctCount++;
+            } else {
+                btn.classList.add('wrong');
+                playSound(false);
+                // Hiển thị đáp án đúng màu xanh
+                const optionsDiv = document.getElementById(`options-${qId}`);
+                const allBtns = optionsDiv.querySelectorAll('.option-btn');
+                allBtns.forEach(b => {
+                    const text = b.innerText;
+                    const originalOpt = qData.options.find(o => text.includes(o.text));
+                    if(originalOpt && originalOpt.isCorrect) {
+                        b.classList.add('correct');
+                    }
+                });
+            }
+
+            // Mở giải thích
+            document.getElementById(`exp-${qId}`).style.display = 'block';
+        }
+
+        // --- HỆ THỐNG ĐẾM GIỜ ---
+        let timerInterval;
+        let timeRemaining = 600; // 10 phút
+        let isRunning = false;
+
+        function toggleTimer() {
+            const btn = document.getElementById('startBtn');
+            if(!isRunning) {
+                isRunning = true;
+                btn.innerText = "TẠM DỪNG";
+                btn.style.background = "#FF9A9E";
+                timerInterval = setInterval(() => {
+                    timeRemaining--;
+                    updateTimerDisplay();
+                    if(timeRemaining <= 0) {
+                        clearInterval(timerInterval);
+                        alert("⏰ Đã hết giờ làm bài! Bạn vẫn có thể tiếp tục làm, nhưng nhớ là trong phòng thi thật, bạn chỉ nên làm một bài như thế này trong 10 phút thôi nha.");
+                    }
+                }, 1000);
+            } else {
+                isRunning = false;
+                clearInterval(timerInterval);
+                btn.innerText = "TIẾP TỤC";
+                btn.style.background = "var(--primary)";
+            }
+        }
+
+        function updateTimerDisplay() {
+            const m = Math.floor(timeRemaining / 60).toString().padStart(2, '0');
+            const s = (timeRemaining % 60).toString().padStart(2, '0');
+            document.getElementById('timer').innerText = `${m}:${s}`;
+        }
+
+        // --- NỘP BÀI & MODAL ---
+        function submitTest() {
+            if(totalAnswered < questionsData.length) {
+                const confirmSubmit = confirm("Bạn chưa làm hết các câu hỏi. Vẫn muốn nộp bài chứ?");
+                if(!confirmSubmit) return;
+            }
+
+            const percent = (correctCount / questionsData.length) * 100;
+            const modal = document.getElementById('resultModal');
+            const gif = document.getElementById('modalGif');
+            const msg = document.getElementById('modalMsg');
+            const scoreText = document.getElementById('modalScore');
+
+            scoreText.innerText = `${correctCount}/${questionsData.length}`;
+
+            if(percent === 100) {
+                msg.innerText = "🎉 THIÊN TÀI XUẤT HIỆN! Xuất sắc luôn!";
+                msg.style.color = "#00D26A";
+                gif.src = "https://media.giphy.com/media/11sBLVxNs7v6WA/giphy.gif";
+                shootConfetti(); shootConfetti();
+            } else if(percent >= 60) {
+                msg.innerText = "👍 LÀM TỐT LẮM! Cố thêm chút nữa nha!";
+                msg.style.color = "#FDCB6E";
+                gif.src = "https://media.giphy.com/media/3o7abKhOpu0NwenH3O/giphy.gif";
+                shootConfetti();
+            } else {
+                msg.innerText = "💪 ĐỪNG BUỒN NHÉ! Thất bại là mẹ thành công!";
+                msg.style.color = "#FF4757";
+                gif.src = "https://media.giphy.com/media/OPU6wzx8JrHna/giphy.gif";
+            }
+
+            modal.style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('resultModal').style.display = 'none';
+        }
+
+        // Khởi tạo
+        renderPassages();
+        renderQuestions();
+    </script>
+</body>
+</html>

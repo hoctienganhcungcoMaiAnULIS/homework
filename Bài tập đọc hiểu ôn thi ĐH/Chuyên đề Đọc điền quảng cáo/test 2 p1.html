@@ -1,0 +1,941 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TEST 2 - ĐỌC ĐIỀN QUẢNG CÁO</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Palette rực rỡ Pastel pha Neon */
+            --primary: #8854C0;
+            --secondary: #00C9A7;
+            --accent: #FDCB6E;
+            --correct: #00D26A;
+            --wrong: #FF4757;
+            --text-dark: #2D3436;
+            --text-light: #FFFFFF;
+            --glass-bg: rgba(255, 255, 255, 0.65);
+            --glass-border: rgba(255, 255, 255, 0.4);
+            --shadow-3d: 0 6px 0 rgba(0,0,0,0.15);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Nunito', sans-serif;
+        }
+
+        body {
+            height: 100vh;
+            overflow: hidden;
+            color: var(--text-dark);
+            /* Gradient loang mượt mà và chuyển động */
+            background: linear-gradient(-45deg, #ff9a9e, #fecfef, #a18cd1, #fbc2eb, #8fd3f4, #00C9A7);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            position: relative;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Lớp pattern họa tiết SVG lơ lửng - Sinh tự động theo chủ đề bài (Robot, Sách, Ca nhạc) */
+        body::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            pointer-events: none;
+            z-index: 0;
+            /* SVG Background pattern với các Emoji: 🤖, 📚, 🎵, 🚀, 🌟 */
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="300" height="300" viewBox="0 0 300 300"><text x="30" y="50" font-size="24" opacity="0.3">🤖</text><text x="200" y="80" font-size="30" opacity="0.3">📚</text><text x="80" y="180" font-size="28" opacity="0.3">🎵</text><text x="250" y="220" font-size="20" opacity="0.3">🚀</text><text x="130" y="270" font-size="26" opacity="0.3">🌟</text></svg>');
+            background-repeat: repeat;
+            animation: floatPattern 40s linear infinite;
+        }
+
+        @keyframes floatPattern {
+            from { background-position: 0 0; }
+            to { background-position: 600px 600px; }
+        }
+
+        /* Top Bar */
+        .top-bar {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            height: 60px;
+            background: rgba(255, 255, 255, 0.4);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border-bottom: 1px solid var(--glass-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 30px;
+            z-index: 100;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+
+        .teacher-info {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--primary);
+            background: rgba(255,255,255,0.8);
+            padding: 5px 15px;
+            border-radius: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .timer-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .time-display {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--wrong);
+            background: rgba(255,255,255,0.8);
+            padding: 5px 20px;
+            border-radius: 20px;
+            box-shadow: 0 3px 0 rgba(0,0,0,0.1);
+            min-width: 110px;
+            text-align: center;
+        }
+
+        .btn-timer {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 15px;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            box-shadow: 0 4px 0 #6c4298;
+            transition: all 0.2s;
+        }
+        .btn-timer:active {
+            transform: translateY(4px);
+            box-shadow: 0 0 0 transparent;
+        }
+
+        /* Split Screen Layout */
+        .container {
+            display: flex;
+            width: 100%;
+            height: calc(100vh - 60px);
+            margin-top: 60px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .pane {
+            flex: 1;
+            padding: 25px;
+            overflow-y: auto;
+            /* Tùy chỉnh thanh cuộn */
+        }
+        .pane::-webkit-scrollbar { width: 8px; }
+        .pane::-webkit-scrollbar-track { background: transparent; }
+        .pane::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.2); border-radius: 10px; }
+
+        .left-pane {
+            border-right: 2px solid rgba(255,255,255,0.5);
+        }
+
+        /* Glassmorphism Cards */
+        .glass-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            border-radius: 25px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+        }
+
+        .section-title {
+            color: var(--primary);
+            font-size: 1.6rem;
+            font-weight: 800;
+            margin-bottom: 15px;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            text-shadow: 1px 1px 0px #fff;
+        }
+
+        .reading-text {
+            font-size: 1.15rem;
+            line-height: 1.8;
+            margin-bottom: 15px;
+            text-align: justify;
+        }
+
+        .gap {
+            display: inline-block;
+            min-width: 60px;
+            text-align: center;
+            font-weight: 800;
+            color: var(--primary);
+            border-bottom: 2px dashed var(--primary);
+            margin: 0 5px;
+        }
+
+        /* Nút dịch và Khung dịch */
+        .btn-translate {
+            background: var(--accent);
+            color: #d35400;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 15px;
+            font-weight: 800;
+            font-size: 0.95rem;
+            cursor: pointer;
+            box-shadow: 0 4px 0 #e1b15c;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+            margin-bottom: 15px;
+        }
+        .btn-translate:hover { transform: scale(1.03); }
+        .btn-translate:active { transform: translateY(4px); box-shadow: 0 0 0 transparent; }
+
+        .translation-box {
+            display: none;
+            background: rgba(255,255,255,0.8);
+            border-left: 5px solid var(--accent);
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 1.05rem;
+            line-height: 1.6;
+            margin-bottom: 20px;
+            color: #444;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Glossary Table */
+        .glossary-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            background: rgba(255,255,255,0.7);
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            margin-top: 15px;
+        }
+        .glossary-table th {
+            background: var(--primary);
+            color: white;
+            padding: 12px;
+            font-size: 1.1rem;
+        }
+        .glossary-table td {
+            padding: 10px 15px;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+            font-size: 1.05rem;
+        }
+        .glossary-table tr:last-child td { border-bottom: none; }
+        .word-col { font-weight: 800; color: var(--primary); }
+        .type-col { font-style: italic; color: #666; font-size: 0.95rem; }
+
+        /* Questions */
+        .question-card { margin-bottom: 25px; }
+        .question-text {
+            font-size: 1.15rem;
+            font-weight: 800;
+            margin-bottom: 15px;
+            color: var(--text-dark);
+            background: rgba(255,255,255,0.6);
+            padding: 10px 15px;
+            border-radius: 10px;
+            border-left: 5px solid var(--primary);
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+        }
+
+        .option-btn {
+            background: white;
+            border: 2px solid transparent;
+            padding: 15px 20px;
+            border-radius: 15px;
+            font-size: 1.08rem;
+            font-weight: 700;
+            text-align: left;
+            cursor: pointer;
+            box-shadow: var(--shadow-3d);
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            color: var(--text-dark);
+            position: relative;
+        }
+        .option-btn:hover:not(:disabled) {
+            transform: scale(1.02);
+            border-color: var(--secondary);
+        }
+        .option-btn:active:not(:disabled) {
+            transform: translateY(6px);
+            box-shadow: 0 0 0 transparent;
+        }
+        
+        /* Trạng thái đúng/sai */
+        .option-btn.correct {
+            background: var(--correct) !important;
+            color: white !important;
+            border-color: #00b058 !important;
+            box-shadow: 0 6px 0 #00b058 !important;
+        }
+        .option-btn.wrong {
+            background: var(--wrong) !important;
+            color: white !important;
+            border-color: #d13643 !important;
+            box-shadow: 0 6px 0 #d13643 !important;
+            animation: shake 0.4s ease;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-8px); }
+            40%, 80% { transform: translateX(8px); }
+        }
+
+        /* Phần giải thích chi tiết */
+        .explanation-box {
+            display: none;
+            background: #fff;
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 15px;
+            font-size: 1rem;
+            line-height: 1.6;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.05);
+            border: 2px dashed var(--secondary);
+            animation: fadeIn 0.5s ease;
+        }
+        .explanation-box b { color: var(--primary); }
+        .exp-quote {
+            background: #f0f8ff;
+            padding: 10px;
+            border-radius: 8px;
+            margin: 10px 0;
+            font-style: italic;
+            border-left: 4px solid var(--secondary);
+        }
+        .keyword { color: var(--wrong); font-weight: 800; }
+
+        /* Nút Nộp Bài */
+        .submit-btn {
+            display: block;
+            width: 100%;
+            background: linear-gradient(45deg, #FF416C, #FF4B2B);
+            color: white;
+            font-size: 1.4rem;
+            font-weight: 800;
+            padding: 18px;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            box-shadow: 0 8px 0 #c2293e;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-top: 30px;
+            transition: all 0.2s;
+        }
+        .submit-btn:hover { filter: brightness(1.1); transform: scale(1.02); }
+        .submit-btn:active { transform: translateY(8px); box-shadow: 0 0 0 transparent; }
+
+        /* Modal Kết Quả */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(5px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .modal-content {
+            background: white;
+            padding: 40px;
+            border-radius: 30px;
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.2);
+            animation: bounceIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        @keyframes bounceIn {
+            0% { transform: scale(0.5); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .modal-title { font-size: 2.2rem; color: var(--primary); margin-bottom: 15px; font-weight: 800; }
+        .modal-score { font-size: 3rem; color: var(--correct); font-weight: 900; margin-bottom: 15px; }
+        .meme-img {
+            width: 100%;
+            max-height: 250px;
+            object-fit: cover;
+            border-radius: 15px;
+            margin: 15px 0;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        .modal-btn {
+            background: var(--primary); color: white; border: none; padding: 12px 30px;
+            border-radius: 15px; font-size: 1.2rem; font-weight: 800; cursor: pointer;
+            margin-top: 15px; box-shadow: 0 5px 0 #6c4298;
+        }
+        .modal-btn:active { transform: translateY(5px); box-shadow: none; }
+
+        /* Confetti Container */
+        #confetti-container {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; z-index: 999; overflow: hidden;
+        }
+        .confetti {
+            position: absolute; width: 10px; height: 10px;
+            animation: fall linear forwards;
+        }
+        @keyframes fall {
+            to { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+        }
+
+    </style>
+</head>
+<body>
+
+    <div id="confetti-container"></div>
+
+    <div class="top-bar">
+        <div class="teacher-info">👑 Giáo viên tạo: Ms Mai An ULIS</div>
+        <div class="timer-container">
+            <div class="time-display" id="time-display">10:00</div>
+            <button class="btn-timer" id="btn-timer" onclick="toggleTimer()">BẮT ĐẦU TÍNH GIỜ</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="pane left-pane" id="reading-pane">
+            </div>
+
+        <div class="pane right-pane" id="exercise-pane">
+            <button class="submit-btn" onclick="submitQuiz()">🎉 NỘP BÀI 🎉</button>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="result-modal">
+        <div class="modal-content">
+            <h2 class="modal-title" id="modal-title">TUYỆT VỜI!</h2>
+            <div class="modal-score" id="modal-score">18/18</div>
+            <img class="meme-img" id="meme-img" src="" alt="Meme">
+            <p id="modal-comment" style="font-size: 1.1rem; color: #555; font-weight: 600; margin-bottom: 20px;"></p>
+            <button class="modal-btn" onclick="closeModal()">Xem Lại Bài Chữa</button>
+        </div>
+    </div>
+
+    <script>
+        // Dữ liệu nội dung siêu chi tiết
+        const data = [
+            {
+                title: "TEST 2 - ĐỌC ĐIỀN QUẢNG CÁO",
+                partTitle: "Exercise 1: Discover the Smart Robot Vacuum Cleaner",
+                paragraphs: [
+                    {
+                        text: "Introducing the Smart Robot Vacuum Cleaner, a <span class='gap'>(1) .........</span> designed to keep your home spotless with ease. Many users are <span class='gap'>(2) .........</span> by its cutting-edge technology, which allows it to navigate your home and clean every corner, even in hard-to-reach places. Instead of <span class='gap'>(3) .........</span> the trouble to manually clean your floors, this device works autonomously, <span class='gap'>(4) .........</span> you time and effort. The Smart Robot Vacuum Cleaner is equipped <span class='gap'>(5) .........</span> intelligent sensors, which ensure it avoids obstacles and transitions smoothly between different surfaces. With its advanced mapping system, it can clean every room thoroughly, enabling you <span class='gap'>(6) .........</span> a cleaner home without the hassle. Let this smart solution do the hard work for you!",
+                        translation: "Giới thiệu Robot hút bụi thông minh, một giải pháp làm sạch nhỏ gọn được thiết kế để giữ cho ngôi nhà của bạn sạch không tì vết một cách dễ dàng. Nhiều người dùng bị cuốn hút bởi công nghệ tiên tiến của nó, cho phép nó điều hướng ngôi nhà của bạn và làm sạch mọi ngóc ngách, ngay cả ở những nơi khó tiếp cận. Thay vì phải chịu đựng sự phiền toái để lau sàn nhà theo cách thủ công, thiết bị này hoạt động tự động, tiết kiệm thời gian và công sức cho bạn. Robot hút bụi thông minh được trang bị các cảm biến thông minh, đảm bảo nó tránh được các chướng ngại vật và di chuyển trơn tru giữa các bề mặt khác nhau. Với hệ thống lập bản đồ tiên tiến, nó có thể làm sạch mọi căn phòng một cách kỹ lưỡng, cho phép bạn tận hưởng một ngôi nhà sạch sẽ hơn mà không gặp rắc rối. Hãy để giải pháp thông minh này làm công việc khó khăn thay bạn!"
+                    }
+                ],
+                glossary: [
+                    { word: "spotless", type: "adj", meaning: "sạch không tì vết" },
+                    { word: "cutting-edge", type: "adj", meaning: "tiên tiến, hiện đại nhất" },
+                    { word: "navigate", type: "v", meaning: "điều hướng, di chuyển" },
+                    { word: "hard-to-reach", type: "adj", meaning: "khó tiếp cận" },
+                    { word: "autonomously", type: "adv", meaning: "một cách tự động, độc lập" },
+                    { word: "equip", type: "v", meaning: "trang bị" },
+                    { word: "obstacle", type: "n", meaning: "chướng ngại vật" },
+                    { word: "transition", type: "v", meaning: "chuyển tiếp, di chuyển đổi" },
+                    { word: "thoroughly", type: "adv", meaning: "một cách kỹ lưỡng" },
+                    { word: "hassle", type: "n", meaning: "sự rắc rối, phiền toái" }
+                ],
+                questions: [
+                    {
+                        id: 1, text: "Question 1",
+                        options: [
+                            { text: "A. solution compact cleaning", isCorrect: false, expl: "❌ Sai trật tự từ tiếng Anh." },
+                            { text: "B. compact cleaning solution", isCorrect: true, expl: "✅ Đúng. 'compact' (nhỏ gọn) là tính từ bổ nghĩa cho cụm danh từ 'cleaning solution' (giải pháp làm sạch)." },
+                            { text: "C. compact solution cleaning", isCorrect: false, expl: "❌ Sai trật tự từ." },
+                            { text: "D. cleaning compact solution", isCorrect: false, expl: "❌ Sai trật tự từ." }
+                        ],
+                        explanation: "<b>Dịch câu hỏi:</b> Chọn cụm từ phù hợp điền vào chỗ trống (1).<br/><b>Giải thích:</b> Cụm từ 'compact cleaning solution' nghĩa là giải pháp làm sạch nhỏ gọn là cụm từ đúng cấu trúc ngữ pháp.<br/><div class='exp-quote'>🔍 Dẫn chứng: 'Introducing the Smart Robot Vacuum Cleaner, a (1) ________ designed to keep your home spotless...'</div>👉 Dịch: 'Giới thiệu Robot hút bụi thông minh, một <span class='keyword'>giải pháp làm sạch nhỏ gọn</span> được thiết kế để giữ cho ngôi nhà sạch không tì vết...'"
+                    },
+                    {
+                        id: 2, text: "Question 2",
+                        options: [
+                            { text: "A. fascinating", isCorrect: false, expl: "❌ Sai. Phân từ hiện tại (-ing) dùng để chỉ bản chất của sự vật gây ra cảm giác cho người khác." },
+                            { text: "B. fascinate", isCorrect: false, expl: "❌ Sai ngữ pháp sau động từ to be 'are'." },
+                            { text: "C. fascination", isCorrect: false, expl: "❌ Sai từ loại (danh từ)." },
+                            { text: "D. fascinated", isCorrect: true, expl: "✅ Đúng. Cấu trúc bị động/tính từ chỉ cảm xúc của con người (bị cuốn hút)." }
+                        ],
+                        explanation: "<b>Dịch câu hỏi:</b> Chọn dạng từ phù hợp của 'fascinate' điền vào (2).<br/><b>Giải thích:</b> Vị trí cần điền một tính từ (be + adj). 'Many users are fascinated' sử dụng dạng bị động, nghĩa là 'bị cuốn hút' bởi công nghệ tiên tiến.<br/><div class='exp-quote'>🔍 Dẫn chứng: 'Many users are (2) ________ by its cutting-edge technology...'</div>👉 Dịch: 'Nhiều người dùng <span class='keyword'>bị cuốn hút</span> bởi công nghệ tiên tiến của nó...'"
+                    },
+                    {
+                        id: 3, text: "Question 3",
+                        options: [
+                            { text: "A. taking", isCorrect: true, expl: "✅ Đúng. Cấu trúc: take the trouble to V (chịu đựng phiền toái làm gì)." },
+                            { text: "B. getting", isCorrect: false, expl: "❌ Sai cụm từ cố định (collocation)." },
+                            { text: "C. turning", isCorrect: false, expl: "❌ Sai collocation." },
+                            { text: "D. paying", isCorrect: false, expl: "❌ Sai collocation." }
+                        ],
+                        explanation: "<b>Dịch câu hỏi:</b> Chọn động từ đi với 'the trouble'.<br/><b>Giải thích:</b> Ta có cụm cố định <b>Take the trouble to V</b>: Chịu đựng sự phiền toái để làm gì. Vì đứng sau giới từ 'of' nên động từ thêm -ing thành 'taking'.<br/><div class='exp-quote'>🔍 Dẫn chứng: 'Instead of (3) ________ the trouble to manually clean your floors...'</div>👉 Dịch: 'Thay vì <span class='keyword'>phải chịu đựng sự phiền toái</span> để lau sàn nhà theo cách thủ công...'"
+                    },
+                    {
+                        id: 4, text: "Question 4",
+                        options: [
+                            { text: "A. saving", isCorrect: true, expl: "✅ Đúng. Rút gọn mệnh đề quan hệ dạng chủ động (which saves -> saving)." },
+                            { text: "B. to save", isCorrect: false, expl: "❌ Sai ngữ pháp, không dùng to V ở đây." },
+                            { text: "C. saved", isCorrect: false, expl: "❌ Sai vì đây mang nghĩa bị động, nhưng thiết bị này tự nó 'tiết kiệm' (chủ động) thời gian cho bạn." },
+                            { text: "D. is saved", isCorrect: false, expl: "❌ Sai cấu trúc câu." }
+                        ],
+                        explanation: "<b>Dịch câu hỏi:</b> Chọn dạng động từ phù hợp cho vế sau dấu phẩy.<br/><b>Giải thích:</b> Vị trí đáp án cần điền một từ ở dạng rút gọn mệnh đề quan hệ thể chủ động. Cụm từ gốc 'which saves' rút gọn thành 'saving'.<br/><div class='exp-quote'>🔍 Dẫn chứng: '...this device works autonomously, (4) ________ you time and effort.'</div>👉 Dịch: '...thiết bị này hoạt động tự động, <span class='keyword'>tiết kiệm</span> thời gian và công sức cho bạn.'"
+                    },
+                    {
+                        id: 5, text: "Question 5",
+                        options: [
+                            { text: "A. for", isCorrect: false, expl: "❌ Sai giới từ." },
+                            { text: "B. with", isCorrect: true, expl: "✅ Đúng. Cấu trúc cố định: be equipped with (được trang bị cái gì)." },
+                            { text: "C. to", isCorrect: false, expl: "❌ Sai giới từ." },
+                            { text: "D. in", isCorrect: false, expl: "❌ Sai giới từ." }
+                        ],
+                        explanation: "<b>Dịch câu hỏi:</b> Chọn giới từ đi kèm với 'equipped'.<br/><b>Giải thích:</b> Ta có cụm từ cố định <b>Be equipped with sth</b>: Được trang bị với cái gì.<br/><div class='exp-quote'>🔍 Dẫn chứng: 'The Smart Robot Vacuum Cleaner is equipped (5) ________ intelligent sensors...'</div>👉 Dịch: 'Robot hút bụi thông minh <span class='keyword'>được trang bị</span> các cảm biến thông minh...'"
+                    },
+                    {
+                        id: 6, text: "Question 6",
+                        options: [
+                            { text: "A. to enjoying", isCorrect: false, expl: "❌ Sai ngữ pháp (to + V-ing)." },
+                            { text: "B. enjoy", isCorrect: false, expl: "❌ Sai ngữ pháp." },
+                            { text: "C. to enjoy", isCorrect: true, expl: "✅ Đúng. Cấu trúc: enable sb to V (cho phép ai làm gì)." },
+                            { text: "D. enjoying", isCorrect: false, expl: "❌ Sai ngữ pháp." }
+                        ],
+                        explanation: "<b>Dịch câu hỏi:</b> Chọn dạng động từ đi sau cấu trúc 'enable you'.<br/><b>Giải thích:</b> Động từ 'enable' luôn đi theo cấu trúc: <b>Enable sb to V</b>: Cho phép ai làm gì đó.<br/><div class='exp-quote'>🔍 Dẫn chứng: '...enabling you (6) ________ a cleaner home without the hassle.'</div>👉 Dịch: '...cho phép bạn <span class='keyword'>tận hưởng</span> một ngôi nhà sạch sẽ hơn mà không gặp rắc rối.'"
+                    }
+                ]
+            },
+            {
+                partTitle: "Exercise 2: Unlock the World of Learning",
+                paragraphs: [
+                    {
+                        text: "Explore our comprehensive collection of <span class='gap'>(7) .........</span> carefully curated to cater to every student's unique needs. Our resources are free <span class='gap'>(8) .........</span> bias, ensuring an inclusive and equitable learning experience for all. Many educators have been <span class='gap'>(9) .........</span> by the transformative impact these materials have had on student engagement and understanding. By incorporating our resources, you can <span class='gap'>(10) .........</span> insights into various subjects, <span class='gap'>(11) .........</span> both teaching and learning. Each material is designed to be accessible and effective, which has been proven to improve educational outcomes. Remember <span class='gap'>(12) .........</span> these tools to create a more dynamic and inclusive classroom environment.",
+                        translation: "Khám phá bộ sưu tập toàn diện các tài liệu học tập đa dạng của chúng tôi, được tuyển chọn kỹ lưỡng để đáp ứng nhu cầu riêng của từng học sinh. Các tài nguyên của chúng tôi không có sự thiên vị, đảm bảo trải nghiệm học tập hòa nhập và công bằng cho tất cả mọi người. Nhiều nhà giáo dục đã bị làm cho bất ngờ trước tác động thay đổi to lớn mà những tài liệu này mang lại đối với sự tham gia và hiểu biết của học sinh. Bằng cách kết hợp các tài nguyên của chúng tôi, bạn có thể có thêm hiểu biết sâu sắc về các môn học khác nhau, nâng cao cả việc dạy và học. Mỗi tài liệu được thiết kế để dễ tiếp cận và hiệu quả, điều đã được chứng minh là cải thiện kết quả giáo dục. Nhớ là phải sử dụng những công cụ này để tạo ra một môi trường lớp học năng động và hòa nhập hơn."
+                    }
+                ],
+                glossary: [
+                    { word: "comprehensive", type: "adj", meaning: "toàn diện" },
+                    { word: "curate", type: "v", meaning: "tuyển chọn, tổ chức" },
+                    { word: "cater to", type: "v", meaning: "đáp ứng, phục vụ cho" },
+                    { word: "bias", type: "n", meaning: "sự thiên vị, thành kiến" },
+                    { word: "inclusive", type: "adj", meaning: "hòa nhập, bao hàm" },
+                    { word: "equitable", type: "adj", meaning: "công bằng" },
+                    { word: "transformative", type: "adj", meaning: "có tính thay đổi to lớn" },
+                    { word: "engagement", type: "n", meaning: "sự tham gia, sự gắn kết" },
+                    { word: "incorporate", type: "v", meaning: "kết hợp, sáp nhập" },
+                    { word: "accessible", type: "adj", meaning: "có thể tiếp cận, dễ sử dụng" }
+                ],
+                questions: [
+                    {
+                        id: 7, text: "Question 7",
+                        options: [
+                            { text: "A. learning materials diverse", isCorrect: false, expl: "❌ Sai trật tự từ." },
+                            { text: "B. learning diverse materials", isCorrect: false, expl: "❌ Sai trật tự từ." },
+                            { text: "C. diverse materials learning", isCorrect: false, expl: "❌ Sai trật tự từ." },
+                            { text: "D. diverse learning materials", isCorrect: true, expl: "✅ Đúng. Tính từ 'diverse' phải đứng trước cụm danh từ 'learning materials'." }
+                        ],
+                        explanation: "<b>Dịch câu hỏi:</b> Chọn cụm danh từ đúng vị trí.<br/><b>Giải thích:</b> Cụm từ 'diverse learning materials' nghĩa là tài liệu học tập đa dạng, trong đó tính từ 'diverse' (đa dạng) đứng trước danh từ 'learning materials' (tài liệu học tập).<br/><div class='exp-quote'>🔍 Dẫn chứng: 'Explore our comprehensive collection of (7) ________ carefully curated...'</div>👉 Dịch: 'Khám phá bộ sưu tập toàn diện các <span class='keyword'>tài liệu học tập đa dạng</span> của chúng tôi...'"
+                    },
+                    {
+                        id: 8, text: "Question 8",
+                        options: [
+                            { text: "A. of", isCorrect: false, expl: "❌ Sai giới từ." },
+                            { text: "B. from", isCorrect: true, expl: "✅ Đúng. Cấu trúc: free from sth (không có/không bị ảnh hưởng bởi cái gì)." },
+                            { text: "C. with", isCorrect: false, expl: "❌ Sai giới từ." },
+                            { text: "D. beyond", isCorrect: false, expl: "❌ Sai giới từ." }
+                        ],
+                        explanation: "<b>Dịch câu hỏi:</b> Chọn giới từ đi sau tính từ 'free'.<br/><b>Giải thích:</b> Ta có cụm cố định <b>Be free from sth</b>: Không có cái gì (không bị điều đó ảnh hưởng).<br/><div class='exp-quote'>🔍 Dẫn chứng: 'Our resources are free (8) ________ bias...'</div>👉 Dịch: 'Các tài nguyên của chúng tôi <span class='keyword'>không có</span> sự thiên vị...'"
+                    },
+                    {
+                        id: 9, text: "Question 9",
+                        options: [
+                            { text: "A. shock", isCorrect: false, expl: "❌ Sai ngữ pháp (đây là động từ/danh từ gốc)." },
+                            { text: "B. shocking", isCorrect: false, expl: "❌ Sai. Phân từ hiện tại (-ing) dùng để chỉ bản chất sự việc (gây sốc)." },
+                            { text: "C. shocked", isCorrect: true, expl: "✅ Đúng. Dạng bị động/tính từ chỉ cảm xúc con người (bị sốc, bất ngờ)." },
+                            { text: "D. shockingly", isCorrect: false, expl: "❌ Sai từ loại (trạng từ)." }
+                        ],
+                        explanation: "<b>Dịch câu hỏi:</b> Chọn dạng từ của 'shock' phù hợp chỉ cảm xúc.<br/><b>Giải thích:</b> Vị trí cần điền một tính từ (be + adj). 'Many educators have been shocked' sử dụng dạng bị động, nghĩa là 'nhiều nhà giáo dục đã bị làm cho bất ngờ/bị sốc'.<br/><div class='exp-quote'>🔍 Dẫn chứng: 'Many educators have been (9) ________ by the transformative impact...'</div>👉 Dịch: 'Nhiều nhà giáo dục đã <span class='keyword'>bị làm cho bất ngờ</span> trước tác động thay đổi to lớn...'"
+                    },
+                    {
+                        id: 10, text: "Question 10",
+                        options: [
+                            { text: "A. take", isCorrect: false, expl: "❌ Không đi thành cụm nghĩa phù hợp." },
+                            { text: "B. catch", isCorrect: false, expl: "❌ Không đi thành cụm nghĩa phù hợp." },
+                            { text: "C. gain", isCorrect: true, expl: "✅ Đúng. Cấu trúc cố định: Gain insights into (có thêm hiểu biết sâu sắc về)." },
+                            { text: "D. bring", isCorrect: false, expl: "❌ Không đi thành cụm nghĩa phù hợp." }
+                        ],
+                        explanation: "<b>Dịch câu hỏi:</b> Chọn động từ đi với 'insights into'.<br/><b>Giải thích:</b> Ta có cụm từ cố định <b>Gain insights into</b>: Có thêm hiểu biết sâu sắc về vấn đề gì đó.<br/><div class='exp-quote'>🔍 Dẫn chứng: 'By incorporating our resources, you can (10) ________ insights into various subjects...'</div>👉 Dịch: 'Bằng cách kết hợp các tài nguyên của chúng tôi, bạn có thể <span class='keyword'>có thêm hiểu biết sâu sắc</span> về các môn học khác nhau...'"
+                    },
+                    {
+                        id: 11, text: "Question 11",
+                        options: [
+                            { text: "A. to enhance", isCorrect: false, expl: "❌ Không dùng to V rút gọn trong trường hợp này." },
+                            { text: "B. enhancing", isCorrect: true, expl: "✅ Đúng. Rút gọn mệnh đề quan hệ thể chủ động (which enhances -> enhancing)." },
+                            { text: "C. enhanced", isCorrect: false, expl: "❌ Sai vì đây mang nghĩa bị động, nhưng việc 'có thêm hiểu biết' chủ động nâng cao (enhance) việc học." },
+                            { text: "D. are enhancing", isCorrect: false, expl: "❌ Sai cấu trúc câu sau dấu phẩy." }
+                        ],
+                        explanation: "<b>Dịch câu hỏi:</b> Chọn dạng động từ phù hợp để nối mệnh đề.<br/><b>Giải thích:</b> Vị trí đáp án cần điền một từ ở dạng rút gọn mệnh đề quan hệ thể chủ động (mang ý nghĩa: điều đó giúp nâng cao...). Cụm từ gốc 'which enhances' rút gọn thành 'enhancing'.<br/><div class='exp-quote'>🔍 Dẫn chứng: '...you can gain insights into various subjects, (11) ________ both teaching and learning.'</div>👉 Dịch: '...bạn có thể có thêm hiểu biết... từ đó <span class='keyword'>nâng cao</span> cả việc dạy và học.'"
+                    },
+                    {
+                        id: 12, text: "Question 12",
+                        options: [
+                            { text: "A. to utilizing", isCorrect: false, expl: "❌ Sai ngữ pháp." },
+                            { text: "B. utilize", isCorrect: false, expl: "❌ Sai ngữ pháp." },
+                            { text: "C. to utilize", isCorrect: true, expl: "✅ Đúng. Remember to V (Nhớ phải làm gì trong tương lai)." },
+                            { text: "D. utilizing", isCorrect: false, expl: "❌ Sai. Remember V-ing là 'nhớ đã làm gì trong quá khứ', không phù hợp ngữ cảnh lời khuyên." }
+                        ],
+                        explanation: "<b>Dịch câu hỏi:</b> Chọn dạng động từ sau 'Remember'.<br/><b>Giải thích:</b> Cấu trúc <b>Remember to V</b>: Nhớ là phải làm gì (như một lời nhắc nhở, mệnh lệnh).<br/><div class='exp-quote'>🔍 Dẫn chứng: 'Remember (12) ________ these tools to create a more dynamic...'</div>👉 Dịch: '<span class='keyword'>Nhớ là phải sử dụng</span> những công cụ này để tạo ra một môi trường...'"
+                    }
+                ]
+            },
+            {
+                partTitle: "Exercise 3: Anh Trai Say Hi Concert 4: A Night to Remember",
+                paragraphs: [
+                    {
+                        text: "Get ready for an unforgettable evening at the Anh Trai Say Hi Concert 4, <span class='gap'>(13) .........</span> the talented Duong Domic and other members of the Anh Trai Say Hi program. This <span class='gap'>(14) .........</span> event will <span class='gap'>(15) .........</span> place on December 9, 2024, at My Dinh National Stadium in Hanoi. Tickets will be available <span class='gap'>(16) .........</span> purchase starting at 9:00 AM on November 28, 2024. Fans can expect a dynamic performance from Duong Domic, who has previously captivated audiences with his <span class='gap'>(17) .........</span>. The concert seeks <span class='gap'>(18) .........</span> a fresh standard in the Vietnamese music scene by highlighting the group's versatility and creativity. Don't miss out on this opportunity to experience a night of exceptional music and entertainment.",
+                        translation: "Hãy sẵn sàng cho một buổi tối khó quên tại Concert Anh Trai Say Hi 4, với sự góp mặt của tài năng Dương Domic và các thành viên khác của chương trình Anh Trai Say Hi. Sự kiện đầy hào hứng này sẽ diễn ra vào ngày 9 tháng 12 năm 2024, tại Sân vận động Quốc gia Mỹ Đình, Hà Nội. Vé sẽ được mở bán bắt đầu từ 9:00 sáng ngày 28 tháng 11 năm 2024. Người hâm mộ có thể mong đợi một màn trình diễn bùng nổ từ Dương Domic, người trước đó đã làm say đắm khán giả với phong cách xuất hiện trên sân khấu đầy năng lượng của mình. Buổi hòa nhạc nhằm thiết lập một tiêu chuẩn mới trong nền âm nhạc Việt Nam bằng cách làm nổi bật sự đa năng và sáng tạo của nhóm. Đừng bỏ lỡ cơ hội trải nghiệm một đêm nhạc và giải trí đặc biệt này."
+                    }
+                ],
+                glossary: [
+                    { word: "unforgettable", type: "adj", meaning: "không thể nào quên" },
+                    { word: "feature", type: "v", meaning: "có sự góp mặt của, bao gồm" },
+                    { word: "dynamic", type: "adj", meaning: "năng động, bùng nổ" },
+                    { word: "captivate", type: "v", meaning: "làm say đắm, quyến rũ" },
+                    { word: "presence", type: "n", meaning: "sự hiện diện, phong thái xuất hiện" },
+                    { word: "versatility", type: "n", meaning: "sự đa năng, linh hoạt" },
+                    { word: "creativity", type: "n", meaning: "sự sáng tạo" },
+                    { word: "exceptional", type: "adj", meaning: "đặc biệt, xuất chúng" }
+                ],
+                questions: [
+                    {
+                        id: 13, text: "Question 13",
+                        options: [
+                            { text: "A. featuring", isCorrect: true, expl: "✅ Đúng. Rút gọn mệnh đề quan hệ chủ động (which features -> featuring)." },
+                            { text: "B. to feature", isCorrect: false, expl: "❌ Không dùng to V để rút gọn ở đây." },
+                            { text: "C. featured", isCorrect: false, expl: "❌ Sai vì đây mang nghĩa bị động." },
+                            { text: "D. is featured", isCorrect: false, expl: "❌ Sai cấu trúc câu." }
+                        ],
+                        explanation: "<b>Dịch câu hỏi:</b> Chọn dạng động từ rút gọn.<br/><b>Giải thích:</b> Vị trí đáp án cần điền một từ ở dạng rút gọn mệnh đề quan hệ thể chủ động (sự kiện này CÓ SỰ GÓP MẶT của ai). Cụm từ gốc 'which features' rút gọn thành 'featuring'.<br/><div class='exp-quote'>🔍 Dẫn chứng: '...at the Anh Trai Say Hi Concert 4, (13) ________ the talented Duong Domic...'</div>👉 Dịch: '...tại Concert Anh Trai Say Hi 4, <span class='keyword'>với sự góp mặt của</span> tài năng Dương Domic...'"
+                    },
+                    {
+                        id: 14, text: "Question 14",
+                        options: [
+                            { text: "A. excite", isCorrect: false, expl: "❌ Động từ nguyên mẫu, sai ngữ pháp." },
+                            { text: "B. excited", isCorrect: false, expl: "❌ Tính từ đuôi -ed dùng để tả cảm xúc con người." },
+                            { text: "C. exciting", isCorrect: true, expl: "✅ Đúng. Tính từ đuôi -ing dùng để tả tính chất của sự vật (sự kiện thú vị, hào hứng)." },
+                            { text: "D. excitement", isCorrect: false, expl: "❌ Danh từ, sai vị trí." }
+                        ],
+                        explanation: "<b>Dịch câu hỏi:</b> Chọn dạng từ phù hợp của 'excite' để bổ nghĩa cho 'event'.<br/><b>Giải thích:</b> Vị trí cần điền một tính từ (Adj + N). 'This exciting event' sử dụng tính từ chủ động (đuôi -ing) để miêu tả bản chất của sự kiện là thú vị, gây hào hứng.<br/><div class='exp-quote'>🔍 Dẫn chứng: 'This (14) ________ event will take place on December 9...'</div>👉 Dịch: '<span class='keyword'>Sự kiện đầy hào hứng</span> này sẽ diễn ra vào ngày 9 tháng 12...'"
+                    },
+                    {
+                        id: 15, text: "Question 15",
+                        options: [
+                            { text: "A. put", isCorrect: false, expl: "❌ Không tạo thành cụm từ có nghĩa ở đây." },
+                            { text: "B. take", isCorrect: true, expl: "✅ Đúng. Take place = Diễn ra." },
+                            { text: "C. make", isCorrect: false, expl: "❌ Không dùng Make place." },
+                            { text: "D. give", isCorrect: false, expl: "❌ Give place to sb/sth mang nghĩa khác (nhường chỗ cho)." }
+                        ],
+                        explanation: "<b>Dịch câu hỏi:</b> Chọn động từ đi với 'place' để tạo nghĩa 'diễn ra'.<br/><b>Giải thích:</b> Ta có cụm cố định <b>Take place</b>: diễn ra, xảy ra (thường dùng cho các sự kiện có kế hoạch).<br/><div class='exp-quote'>🔍 Dẫn chứng: 'This exciting event will (15) ________ place on December 9...'</div>👉 Dịch: 'Sự kiện đầy hào hứng này sẽ <span class='keyword'>diễn ra</span> vào ngày 9 tháng 12...'"
+                    },
+                    {
+                        id: 16, text: "Question 16",
+                        options: [
+                            { text: "A. in", isCorrect: false, expl: "❌ Sai giới từ." },
+                            { text: "B. for", isCorrect: true, expl: "✅ Đúng. For purchase = Để mua." },
+                            { text: "C. on", isCorrect: false, expl: "❌ Sai giới từ." },
+                            { text: "D. with", isCorrect: false, expl: "❌ Sai giới từ." }
+                        ],
+                        explanation: "<b>Dịch câu hỏi:</b> Chọn giới từ đi kèm với 'purchase'.<br/><b>Giải thích:</b> 'for purchase' là cụm từ cố định trong thương mại, nghĩa là 'để mua, sẵn sàng để được mua'.<br/><div class='exp-quote'>🔍 Dẫn chứng: 'Tickets will be available (16) ________ purchase starting at 9:00 AM...'</div>👉 Dịch: 'Vé sẽ được mở bán (<span class='keyword'>sẵn sàng để mua</span>) bắt đầu từ 9:00 sáng...'"
+                    },
+                    {
+                        id: 17, text: "Question 17",
+                        options: [
+                            { text: "A. energetic stage presence", isCorrect: true, expl: "✅ Đúng. Trật tự từ: Tính từ (energetic) + Danh từ ghép (stage presence)." },
+                            { text: "B. energetic presence stage", isCorrect: false, expl: "❌ Sai trật tự danh từ." },
+                            { text: "C. stage energetic presence", isCorrect: false, expl: "❌ Sai vị trí tính từ." },
+                            { text: "D. presence energetic stage", isCorrect: false, expl: "❌ Sai trật tự." }
+                        ],
+                        explanation: "<b>Dịch câu hỏi:</b> Sắp xếp trật tự từ đúng cho cụm danh từ.<br/><b>Giải thích:</b> 'Energetic stage presence' nghĩa là sự xuất hiện/phong thái sân khấu đầy năng lượng, trong đó tính từ 'energetic' (đầy năng lượng) bổ nghĩa cho cụm danh từ 'stage presence' (phong thái sân khấu).<br/><div class='exp-quote'>🔍 Dẫn chứng: '...who has previously captivated audiences with his (17) ________.'</div>👉 Dịch: '...người trước đó đã làm say đắm khán giả với <span class='keyword'>phong thái sân khấu đầy năng lượng</span> của mình.'"
+                    },
+                    {
+                        id: 18, text: "Question 18",
+                        options: [
+                            { text: "A. to set", isCorrect: true, expl: "✅ Đúng. Cấu trúc Seek to V (Nhằm làm gì/Tìm cách làm gì)." },
+                            { text: "B. setting", isCorrect: false, expl: "❌ Sai ngữ pháp." },
+                            { text: "C. set", isCorrect: false, expl: "❌ Sai ngữ pháp." },
+                            { text: "D. to setting", isCorrect: false, expl: "❌ Sai ngữ pháp." }
+                        ],
+                        explanation: "<b>Dịch câu hỏi:</b> Chọn dạng động từ đi sau 'seek'.<br/><b>Giải thích:</b> Cấu trúc <b>Seek to V</b>: Nhằm mục đích làm gì đó, tìm cách để làm gì đó.<br/><div class='exp-quote'>🔍 Dẫn chứng: 'The concert seeks (18) ________ a fresh standard...'</div>👉 Dịch: 'Buổi hòa nhạc <span class='keyword'>nhằm thiết lập</span> một tiêu chuẩn mới...'"
+                    }
+                ]
+            }
+        ];
+
+        // Âm thanh Web Audio API (Không cần link ngoài)
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        
+        function playCorrectSound() {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(523.25, audioCtx.currentTime); // C5
+            osc.frequency.exponentialRampToValueAtTime(1046.50, audioCtx.currentTime + 0.1); // C6
+            gain.gain.setValueAtTime(0.5, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+            osc.start(audioCtx.currentTime);
+            osc.stop(audioCtx.currentTime + 0.3);
+        }
+
+        function playWrongSound() {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(80, audioCtx.currentTime + 0.3);
+            gain.gain.setValueAtTime(0.5, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+            osc.start(audioCtx.currentTime);
+            osc.stop(audioCtx.currentTime + 0.3);
+        }
+
+        // Tạo hiệu ứng pháo giấy
+        function createConfetti() {
+            const container = document.getElementById('confetti-container');
+            const colors = ['#FF416C', '#FF4B2B', '#00C9A7', '#FDCB6E', '#8854C0'];
+            for(let i = 0; i < 50; i++) {
+                const conf = document.createElement('div');
+                conf.classList.add('confetti');
+                conf.style.left = Math.random() * 100 + 'vw';
+                conf.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                conf.style.animationDuration = (Math.random() * 2 + 1) + 's';
+                container.appendChild(conf);
+                setTimeout(() => conf.remove(), 3000);
+            }
+        }
+
+        // Xáo trộn mảng (Shuffle array)
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        let score = 0;
+        let answeredQuestions = new Set();
+        const totalQuestions = 18;
+
+        // Render Data
+        function renderContent() {
+            const readPane = document.getElementById('reading-pane');
+            const exePane = document.getElementById('exercise-pane');
+            let readHTML = `<div class="glass-card"><h1 class="section-title">✨ ${data[0].title} ✨</h1></div>`;
+            let exeHTML = '';
+
+            data.forEach((part, partIndex) => {
+                // Render Reading Part
+                readHTML += `<div class="glass-card">
+                    <h2 style="color:var(--primary); margin-bottom:15px;">${part.partTitle}</h2>`;
+                
+                part.paragraphs.forEach((p, pIndex) => {
+                    const transId = `trans-${partIndex}-${pIndex}`;
+                    readHTML += `
+                        <p class="reading-text">${p.text}</p>
+                        <button class="btn-translate" onclick="toggleTranslate('${transId}')">🌟 Mở dịch đoạn này 🌟</button>
+                        <div class="translation-box" id="${transId}">${p.translation}</div>
+                    `;
+                });
+
+                // Render Glossary
+                if(part.glossary && part.glossary.length > 0) {
+                    readHTML += `
+                        <h3 style="margin-top:20px; color:var(--text-dark);">📚 Bảng từ vựng (Glossary)</h3>
+                        <table class="glossary-table">
+                            <tr><th>Từ vựng</th><th>Loại từ</th><th>Nghĩa tiếng Việt</th></tr>`;
+                    part.glossary.forEach(g => {
+                        readHTML += `<tr><td class="word-col">${g.word}</td><td class="type-col">(${g.type})</td><td>${g.meaning}</td></tr>`;
+                    });
+                    readHTML += `</table>`;
+                }
+                readHTML += `</div>`;
+
+                // Render Exercises
+                part.questions.forEach(q => {
+                    const shuffledOptions = shuffleArray([...q.options]);
+                    exeHTML += `
+                        <div class="glass-card question-card" id="q-card-${q.id}">
+                            <div class="question-text">${q.text}</div>
+                            <div class="options-grid">`;
+                    shuffledOptions.forEach((opt, oIndex) => {
+                        // Lưu thông tin đúng sai vào dataset
+                        exeHTML += `<button class="option-btn" 
+                                        data-qid="${q.id}" 
+                                        data-correct="${opt.isCorrect}" 
+                                        onclick="checkAnswer(this, ${q.id})">
+                                        ${opt.text}
+                                    </button>`;
+                    });
+                    exeHTML += `    </div>
+                            <div class="explanation-box" id="expl-${q.id}">${q.explanation}</div>
+                        </div>`;
+                });
+            });
+
+            readPane.innerHTML = readHTML;
+            // Chèn câu hỏi vào TRƯỚC nút Nộp Bài
+            const submitBtn = document.querySelector('.submit-btn');
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = exeHTML;
+            while (tempDiv.firstChild) {
+                exePane.insertBefore(tempDiv.firstChild, submitBtn);
+            }
+        }
+
+        // Logic ẩn hiện bản dịch
+        function toggleTranslate(id) {
+            const el = document.getElementById(id);
+            if(el.style.display === 'block') {
+                el.style.display = 'none';
+            } else {
+                el.style.display = 'block';
+            }
+        }
+
+        // Kiểm tra câu trả lời
+        function checkAnswer(btn, qId) {
+            if (answeredQuestions.has(qId)) return; // Đã trả lời thì không cho bấm lại
+            answeredQuestions.add(qId);
+
+            const isCorrect = btn.getAttribute('data-correct') === 'true';
+            const allBtns = btn.parentElement.querySelectorAll('.option-btn');
+            const explBox = document.getElementById(`expl-${qId}`);
+
+            // Khóa tất cả các nút trong câu này
+            allBtns.forEach(b => b.disabled = true);
+
+            if (isCorrect) {
+                btn.classList.add('correct');
+                playCorrectSound();
+                createConfetti();
+                score++;
+            } else {
+                btn.classList.add('wrong');
+                playWrongSound();
+                // Tìm nút đúng và tô xanh
+                allBtns.forEach(b => {
+                    if(b.getAttribute('data-correct') === 'true') {
+                        b.classList.add('correct');
+                        b.style.boxShadow = '0 0 20px rgba(0,210,106,0.6)'; // Hiệu ứng làm nổi bật đáp án đúng
+                    }
+                });
+            }
+            // Hiện ngay giải thích chi tiết
+            explBox.style.display = 'block';
+        }
+
+        // Timer Logic
+        let timerInterval;
+        let timeRemaining = 600; // 10 minutes
+        let isRunning = false;
+
+        function updateTimerDisplay() {
+            let m = Math.floor(timeRemaining / 60);
+            let s = timeRemaining % 60;
+            document.getElementById('time-display').innerText = `${m < 10 ? '0':''}${m}:${s < 10 ? '0':''}${s}`;
+        }
+
+        function toggleTimer() {
+            const btn = document.getElementById('btn-timer');
+            if(isRunning) {
+                clearInterval(timerInterval);
+                btn.innerText = "TIẾP TỤC TÍNH GIỜ";
+                isRunning = false;
+            } else {
+                btn.innerText = "TẠM DỪNG";
+                isRunning = true;
+                timerInterval = setInterval(() => {
+                    if(timeRemaining > 0) {
+                        timeRemaining--;
+                        updateTimerDisplay();
+                    } else {
+                        clearInterval(timerInterval);
+                        alert("⏰ Đã hết giờ làm bài! Bạn vẫn có thể tiếp tục làm, nhưng nhớ là trong phòng thi thật, bạn chỉ nên làm một bài như thế này trong 10 phút thôi nha.");
+                        btn.innerText = "HẾT GIỜ";
+                        btn.disabled = true;
+                    }
+                }, 1000);
+            }
+        }
+
+        // Logic Nộp bài
+        function submitQuiz() {
+            const percent = (score / totalQuestions) * 100;
+            const modal = document.getElementById('result-modal');
+            const img = document.getElementById('meme-img');
+            const comment = document.getElementById('modal-comment');
+            
+            document.getElementById('modal-score').innerText = `${score} / ${totalQuestions}`;
+
+            if (percent === 100) {
+                document.getElementById('modal-title').innerText = "THIÊN TÀI XUẤT HIỆN! 👑";
+                img.src = "https://media.giphy.com/media/11sBLVxNs7v6WA/giphy.gif";
+                comment.innerText = "Quá đỉnh! Điểm tuyệt đối luôn. Thầy cô tự hào về em!";
+            } else if (percent >= 60) {
+                document.getElementById('modal-title').innerText = "LÀM TỐT LẮM! 👏";
+                img.src = "https://media.giphy.com/media/3o7abKhOpu0NwenH3O/giphy.gif";
+                comment.innerText = "Khá lắm! Cố gắng ôn tập lại các câu sai ở phần giải thích nhé!";
+            } else {
+                document.getElementById('modal-title').innerText = "CỐ LÊN NHÉ! 💪";
+                img.src = "https://media.giphy.com/media/OPU6wzx8JrHna/giphy.gif";
+                comment.innerText = "Đừng buồn, hãy đọc kỹ bảng từ vựng và phần dịch để làm tốt hơn ở lần sau!";
+            }
+
+            modal.style.display = "flex";
+            createConfetti();
+        }
+
+        function closeModal() {
+            document.getElementById('result-modal').style.display = "none";
+        }
+
+        // Khởi tạo ứng dụng
+        window.onload = () => {
+            renderContent();
+            updateTimerDisplay();
+        };
+
+    </script>
+</body>
+</html>

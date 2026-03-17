@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TEST 4 & 5 - ĐỌC ĐIỀN QUẢNG CÁO</title>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700;800&family=Nunito:wght@400;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Palette rực rỡ Pastel: Cam đào, Đỏ san hô và Tím */
+            --primary: #FF6B6B;     /* Đỏ san hô */
+            --secondary: #9B59B6;   /* Tím mộng mơ */
+            --accent: #FFA502;      /* Vàng cam */
+            --correct: #1DD1A1;     /* Xanh Mint */
+            --wrong: #FF4757;       /* Đỏ cảnh báo */
+            --text-dark: #2C3A47;
+            --text-light: #FFFFFF;
+            --glass-bg: rgba(255, 255, 255, 0.75);
+            --glass-border: rgba(255, 255, 255, 0.5);
+            --shadow-3d: 0 8px 0 rgba(0,0,0,0.12);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Quicksand', 'Nunito', sans-serif;
+        }
+
+        body {
+            height: 100vh;
+            overflow: hidden;
+            color: var(--text-dark);
+            /* Gradient loang mượt mà tông Sunset / Cozy */
+            background: linear-gradient(-45deg, #ff9a44, #fc6076, #ff9966, #ff5e62, #9B59B6, #FF6B6B);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            position: relative;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Lớp pattern họa tiết SVG lơ lửng */
+        body::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            pointer-events: none;
+            z-index: 0;
+            /* SVG Background pattern với các Emoji: 🌪️, 🏫, ❤️, 🍿, 🎬, 📺 */
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="350" height="350" viewBox="0 0 350 350"><text x="40" y="60" font-size="28" opacity="0.3">🌪️</text><text x="220" y="90" font-size="32" opacity="0.3">🍿</text><text x="90" y="200" font-size="30" opacity="0.3">🏫</text><text x="280" y="250" font-size="24" opacity="0.3">🎬</text><text x="150" y="300" font-size="26" opacity="0.3">❤️</text><text x="20" y="280" font-size="25" opacity="0.3">📺</text></svg>');
+            background-repeat: repeat;
+            animation: floatPattern 45s linear infinite;
+        }
+
+        @keyframes floatPattern {
+            from { background-position: 0 0; }
+            to { background-position: 700px 700px; }
+        }
+
+        /* Top Bar */
+        .top-bar {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            height: 65px;
+            background: rgba(255, 255, 255, 0.4);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 2px solid var(--glass-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 40px;
+            z-index: 100;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+
+        .teacher-info {
+            font-size: 1rem;
+            font-weight: 800;
+            color: var(--secondary);
+            background: rgba(255,255,255,0.9);
+            padding: 8px 20px;
+            border-radius: 25px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .timer-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .time-display {
+            font-size: 1.6rem;
+            font-weight: 800;
+            color: var(--wrong);
+            background: rgba(255,255,255,0.9);
+            padding: 5px 25px;
+            border-radius: 25px;
+            box-shadow: inset 0 3px 5px rgba(0,0,0,0.05);
+            min-width: 120px;
+            text-align: center;
+            letter-spacing: 2px;
+        }
+
+        .btn-timer {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 25px;
+            border-radius: 20px;
+            font-weight: 800;
+            font-size: 1.1rem;
+            cursor: pointer;
+            box-shadow: 0 5px 0 #d9534f;
+            transition: all 0.2s;
+        }
+        .btn-timer:active {
+            transform: translateY(5px);
+            box-shadow: 0 0 0 transparent;
+        }
+
+        /* Split Screen Layout */
+        .container {
+            display: flex;
+            width: 100%;
+            height: calc(100vh - 65px);
+            margin-top: 65px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .pane {
+            flex: 1;
+            padding: 30px;
+            overflow-y: auto;
+            scroll-behavior: smooth;
+        }
+        .pane::-webkit-scrollbar { width: 10px; }
+        .pane::-webkit-scrollbar-track { background: transparent; }
+        .pane::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.6); border-radius: 10px; }
+        .pane::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.9); }
+
+        .left-pane { border-right: 3px dashed rgba(255,255,255,0.6); }
+
+        /* Glassmorphism Cards */
+        .glass-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 2px solid var(--glass-border);
+            border-radius: 25px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+        .glass-card:hover { transform: translateY(-3px); }
+
+        .section-title {
+            color: var(--secondary);
+            font-size: 1.8rem;
+            font-weight: 900;
+            margin-bottom: 20px;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            text-shadow: 2px 2px 0px #fff;
+        }
+
+        /* Khung chứa đoạn văn nhỏ */
+        .paragraph-block {
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 20px;
+            padding: 15px 20px;
+            margin-bottom: 20px;
+            border-left: 6px solid var(--primary);
+        }
+
+        .reading-text {
+            font-size: 1.25rem;
+            line-height: 1.8;
+            font-weight: 600;
+            margin-bottom: 15px;
+            text-align: justify;
+        }
+
+        .gap {
+            display: inline-block;
+            min-width: 70px;
+            text-align: center;
+            font-weight: 900;
+            color: var(--primary);
+            border-bottom: 3px dashed var(--primary);
+            margin: 0 5px;
+            padding: 0 5px;
+        }
+
+        /* Nút dịch và Khung dịch */
+        .btn-translate {
+            background: linear-gradient(135deg, var(--accent), #ff7f50);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 15px;
+            font-weight: 800;
+            font-size: 1rem;
+            cursor: pointer;
+            box-shadow: 0 5px 0 #cc8400;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+        .btn-translate:hover { filter: brightness(1.1); transform: scale(1.03); }
+        .btn-translate:active { transform: translateY(5px); box-shadow: 0 0 0 transparent; }
+
+        .translation-box {
+            display: none;
+            background: rgba(255,255,255,0.9);
+            border: 2px dashed var(--accent);
+            padding: 15px;
+            border-radius: 15px;
+            font-size: 1.15rem;
+            font-weight: 600;
+            line-height: 1.6;
+            margin-top: 15px;
+            color: #d35400;
+            animation: fadeIn 0.4s ease;
+        }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Glossary Table */
+        .glossary-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            background: rgba(255,255,255,0.8);
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+            margin-top: 20px;
+        }
+        .glossary-table th {
+            background: var(--secondary);
+            color: white;
+            padding: 15px;
+            font-size: 1.2rem;
+            font-weight: 800;
+            text-transform: uppercase;
+        }
+        .glossary-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+            font-size: 1.15rem;
+            font-weight: 600;
+        }
+        .glossary-table tr:last-child td { border-bottom: none; }
+        .glossary-table tr:hover td { background: rgba(155, 89, 182, 0.1); }
+        .word-col { font-weight: 800; color: var(--secondary); font-size: 1.2rem;}
+        .type-col { font-style: italic; color: #7f8c8d; font-size: 1rem; }
+
+        /* Questions */
+        .question-card { margin-bottom: 25px; padding: 25px; }
+        .question-text {
+            font-size: 1.25rem;
+            font-weight: 800;
+            margin-bottom: 20px;
+            color: var(--secondary);
+            background: rgba(255,255,255,0.7);
+            padding: 15px 20px;
+            border-radius: 15px;
+            border-left: 6px solid var(--accent);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+        }
+
+        .option-btn {
+            background: white;
+            border: 2px solid transparent;
+            padding: 16px 22px;
+            border-radius: 18px;
+            font-size: 1.15rem;
+            font-weight: 700;
+            text-align: left;
+            cursor: pointer;
+            box-shadow: var(--shadow-3d);
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            color: var(--text-dark);
+        }
+        .option-btn:hover:not(:disabled) {
+            transform: scale(1.02);
+            border-color: var(--primary);
+        }
+        .option-btn:active:not(:disabled) {
+            transform: translateY(8px);
+            box-shadow: 0 0 0 transparent;
+        }
+        
+        /* Trạng thái đúng/sai */
+        .option-btn.correct {
+            background: var(--correct) !important;
+            color: white !important;
+            border-color: #0fb98c !important;
+            box-shadow: 0 8px 0 #0fb98c !important;
+        }
+        .option-btn.wrong {
+            background: var(--wrong) !important;
+            color: white !important;
+            border-color: #d13643 !important;
+            box-shadow: 0 8px 0 #d13643 !important;
+            animation: shake 0.4s ease;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-10px); }
+            40%, 80% { transform: translateX(10px); }
+        }
+
+        /* Phần giải thích chi tiết */
+        .explanation-box {
+            display: none;
+            background: rgba(255,255,255,0.95);
+            border-radius: 20px;
+            padding: 25px;
+            margin-top: 20px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            line-height: 1.7;
+            box-shadow: inset 0 0 15px rgba(0,0,0,0.05);
+            border: 3px dashed var(--correct);
+            animation: fadeIn 0.5s ease;
+        }
+        .explanation-box b { color: var(--secondary); font-size: 1.15rem;}
+        .exp-quote {
+            background: #fff0f5;
+            padding: 15px;
+            border-radius: 12px;
+            margin: 15px 0;
+            font-style: italic;
+            border-left: 5px solid var(--primary);
+            color: #333;
+        }
+        .keyword { color: var(--primary); font-weight: 900; text-decoration: underline; }
+
+        /* Nút Nộp Bài */
+        .submit-btn {
+            display: block;
+            width: 100%;
+            background: linear-gradient(45deg, var(--secondary), var(--primary));
+            color: white;
+            font-size: 1.6rem;
+            font-weight: 900;
+            padding: 20px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            box-shadow: 0 10px 0 #8e44ad;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            margin-top: 40px;
+            transition: all 0.2s;
+        }
+        .submit-btn:hover { filter: brightness(1.1); transform: scale(1.02); }
+        .submit-btn:active { transform: translateY(10px); box-shadow: 0 0 0 transparent; }
+
+        /* Modal Kết Quả */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(8px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .modal-content {
+            background: linear-gradient(to bottom, #ffffff, #fdfbfb);
+            padding: 40px;
+            border-radius: 35px;
+            text-align: center;
+            max-width: 550px;
+            width: 90%;
+            box-shadow: 0 25px 60px rgba(0,0,0,0.3);
+            border: 4px solid var(--accent);
+            animation: bounceIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        @keyframes bounceIn {
+            0% { transform: scale(0.5); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .modal-title { font-size: 2.5rem; color: var(--secondary); margin-bottom: 15px; font-weight: 900; text-transform: uppercase; }
+        .modal-score { font-size: 3.5rem; color: var(--primary); font-weight: 900; margin-bottom: 20px; text-shadow: 2px 2px 0px #ffeaa7;}
+        .meme-img {
+            width: 100%;
+            max-height: 280px;
+            object-fit: cover;
+            border-radius: 20px;
+            margin: 15px 0;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+        }
+        .modal-btn {
+            background: var(--primary); color: white; border: none; padding: 15px 35px;
+            border-radius: 20px; font-size: 1.3rem; font-weight: 800; cursor: pointer;
+            margin-top: 20px; box-shadow: 0 6px 0 #c0392b; width: 100%; text-transform: uppercase;
+        }
+        .modal-btn:active { transform: translateY(6px); box-shadow: none; }
+
+        /* Confetti Container */
+        #confetti-container {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; z-index: 999; overflow: hidden;
+        }
+        .confetti {
+            position: absolute; width: 12px; height: 12px;
+            border-radius: 50%;
+            animation: fall linear forwards;
+        }
+        @keyframes fall {
+            to { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+        }
+
+    </style>
+</head>
+<body>
+
+    <div id="confetti-container"></div>
+
+    <div class="top-bar">
+        <div class="teacher-info">👑 Giáo viên tạo: Ms Mai An ULIS</div>
+        <div class="timer-container">
+            <div class="time-display" id="time-display">10:00</div>
+            <button class="btn-timer" id="btn-timer" onclick="toggleTimer()">BẮT ĐẦU TÍNH GIỜ</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="pane left-pane" id="reading-pane">
+            </div>
+
+        <div class="pane right-pane" id="exercise-pane">
+            <button class="submit-btn" onclick="submitQuiz()">🎉 NỘP BÀI 🎉</button>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="result-modal">
+        <div class="modal-content">
+            <h2 class="modal-title" id="modal-title">TUYỆT VỜI!</h2>
+            <div class="modal-score" id="modal-score">12/12</div>
+            <img class="meme-img" id="meme-img" src="" alt="Meme">
+            <p id="modal-comment" style="font-size: 1.25rem; color: #555; font-weight: 700; margin-bottom: 20px;"></p>
+            <button class="modal-btn" onclick="closeModal()">Xem Lại Bài Chữa</button>
+        </div>
+    </div>
+
+    <script>
+        // Dữ liệu nội dung siêu chi tiết đã chia đoạn nhỏ
+        const data = [
+            {
+                title: "TEST 4: SUPPORT NU VILLAGE",
+                partTitle: "Exercise 4: Support the Rebuilding of Nu Village School",
+                paragraphs: [
+                    {
+                        text: "Are you <span class='gap'>(19) .........</span> by the impact of Super Typhoon Yagi? In the aftermath of Super Typhoon Yagi, which wreaked havoc <span class='gap'>(20) .........</span> Nu Village, the community is rallying to rebuild the local school <span class='gap'>(21) .........</span> by the storm.",
+                        translation: "Bạn có bị sốc trước tác động của Siêu bão Yagi không? Sau hậu quả của Siêu bão Yagi, cơn bão đã tàn phá Làng Nủ, cộng đồng đang tập hợp lại để xây dựng lại ngôi trường địa phương đã bị phá hủy bởi cơn bão."
+                    },
+                    {
+                        text: "The typhoon <span class='gap'>(22) .........</span> the lives of many villagers and left many children without access to education. In response, local residents have volunteered <span class='gap'>(23) .........</span> fundraising events, including charity runs and donation drives, to support the reconstruction efforts.",
+                        translation: "Cơn bão đã cướp đi sinh mạng của nhiều dân làng và khiến nhiều trẻ em không được tiếp cận với giáo dục. Để đáp lại, cư dân địa phương đã tình nguyện tổ chức các sự kiện gây quỹ, bao gồm các buổi chạy từ thiện và các đợt quyên góp, để hỗ trợ những nỗ lực tái thiết."
+                    },
+                    {
+                        text: "These initiatives aim to provide a <span class='gap'>(24) .........</span> for the children, who are eager to return to their studies. Be part of the change - join us in making Nu Village's future brighter!",
+                        translation: "Những sáng kiến này nhằm mục đích cung cấp một môi trường học tập thuận lợi cho trẻ em, những người đang háo hức được trở lại với việc học của mình. Hãy trở thành một phần của sự thay đổi - tham gia cùng chúng tôi để làm cho tương lai của Làng Nủ tươi sáng hơn!"
+                    }
+                ],
+                glossary: [
+                    { word: "aftermath", type: "n", meaning: "hậu quả (thường là của một thảm họa)" },
+                    { word: "wreak havoc", type: "v", meaning: "tàn phá, gây thiệt hại nặng nề" },
+                    { word: "rally", type: "v", meaning: "tập hợp lại, đoàn kết lại" },
+                    { word: "devastate", type: "v", meaning: "phá hủy hoàn toàn, tàn phá" },
+                    { word: "claim lives", type: "v", meaning: "cướp đi sinh mạng" },
+                    { word: "volunteer", type: "v", meaning: "tình nguyện làm việc gì" },
+                    { word: "fundraising", type: "n", meaning: "hoạt động gây quỹ" },
+                    { word: "reconstruction", type: "n", meaning: "sự tái thiết, xây dựng lại" },
+                    { word: "initiative", type: "n", meaning: "sáng kiến, bước khởi đầu" },
+                    { word: "conducive", type: "adj", meaning: "có ích, tạo điều kiện thuận lợi" }
+                ],
+                questions: [
+                    {
+                        id: 19, text: "Question 19",
+                        options: [
+                            { text: "A. shock", isCorrect: false, expl: "❌ Sai vì đây là động từ/danh từ gốc, không đứng sau 'are' để chỉ cảm xúc." },
+                            { text: "B. shocked", isCorrect: true, expl: "✅ Đúng. Vị trí cần điền một tính từ (be + adj). 'Shocked' (bị sốc) đuôi -ed phù hợp diễn tả cảm giác của người đọc trước tác động của siêu bão." },
+                            { text: "C. shocking", isCorrect: false, expl: "❌ Sai. Tính từ đuôi -ing dùng để chỉ bản chất của sự vật gây ra (ví dụ: cơn bão shocking)." },
+                            { text: "D. shockingly", isCorrect: false, expl: "❌ Sai từ loại (trạng từ)." }
+                        ],
+                        explanation: "<b>Dịch câu hỏi:</b> Chọn dạng từ phù hợp của 'shock' điền vào (19).<br/><b>Phân tích:</b> Cần điền tính từ chỉ cảm xúc của con người. Ta chọn tính từ đuôi -ed.<br/><div class='exp-quote'>🔍 Dẫn chứng: 'Are you (19) ________ by the impact of Super Typhoon Yagi?'</div>👉 Dịch: 'Bạn có <span class='keyword'>bị sốc</span> trước tác động của Siêu bão Yagi không?'"
+                    },
+                    {
+                        id: 20, text: "Question 20",
+                        options: [
+                            { text: "A. to", isCorrect: false, expl: "❌ Sai giới từ." },
+                            { text: "B. in", isCorrect: false, expl: "❌ Sai giới từ." },
+                            { text: "C. on", isCorrect: true, expl: "✅ Đúng. Cụm cố định: Wreak havoc on (Gây ra sự tàn phá tới cái gì)." },
+                            { text: "D. for", isCorrect: false, expl: "❌ Sai giới từ." }
+                        ],
+                        explanation: "<b>Dịch câu hỏi:</b> Chọn giới từ đi kèm với 'wreak havoc'.<br/><b>Phân tích:</b> Đây là cụm từ (collocation) cố định: <b>Wreak havoc on something</b>: Tàn phá, gây thiệt hại nghiêm trọng cho cái gì.<br/><div class='exp-quote'>🔍 Dẫn chứng: '...which wreaked havoc (20) ________ Nu Village...'</div>👉 Dịch: '...cơn bão đã <span class='keyword'>tàn phá</span> Làng Nủ...'"
+                    },
+                    {
+                        id: 21, text: "Question 21",
+                        options: [
+                            { text: "A. devastated", isCorrect: true, expl: "✅ Đúng. Rút gọn mệnh đề quan hệ thể bị động (which was devastated -> devastated)." },
+                            { text: "B. to devastate", isCorrect: false, expl: "❌ Sai ngữ pháp, không dùng to V ở đây." },
+                            { text: "C. devastating", isCorrect: false, expl: "❌ Sai vì đây là dạng chủ động, trong khi ngôi trường 'bị tàn phá' bởi cơn bão." },
+                            { text: "D. is devastated", isCorrect: false, expl: "❌ Sai vì đây là một cụm bổ nghĩa (mệnh đề quan hệ rút gọn), không thể chia động từ chính 'is' ở đây." }
+                        ],
+                        explanation: "<b>Dịch câu hỏi:</b> Chọn dạng động từ rút gọn bổ nghĩa cho 'the local school'.<br/><b>Phân tích:</b> Ngôi trường BỊ phá hủy bởi cơn bão, nên phải dùng phân từ hai (V-ed/P2) để rút gọn thể bị động.<br/><div class='exp-quote'>🔍 Dẫn chứng: '...rebuild the local school (21) ________ by the storm.'</div>👉 Dịch: '...xây dựng lại ngôi trường địa phương <span class='keyword'>đã bị phá hủy</span> bởi cơn bão.'"
+                    },
+                    {
+                        id: 22, text: "Question 22",
+                        options: [
+                            { text: "A. dropped", isCorrect: false, expl: "❌ Không ghép thành cụm nghĩa phù hợp (làm rơi)." },
+                            { text: "B. claimed", isCorrect: true, expl: "✅ Đúng. Cụm cố định: Claim the lives of sb = Cướp đi sinh mạng của ai." },
+                            { text: "C. pushed", isCorrect: false, expl: "❌ Không ghép thành cụm nghĩa phù hợp (đẩy)." },
+                            { text: "D. stole", isCorrect: false, expl: "❌ Không dùng 'steal' cho mạng sống trong ngữ cảnh thiên tai." }
+                        ],
+                        explanation: "<b>Dịch câu hỏi:</b> Chọn động từ đi với 'the lives' mang nghĩa làm chết người.<br/><b>Phân tích:</b> <b>Claim lives</b> là một cách diễn đạt trang trọng thường dùng trong bản tin báo chí để nói về việc thảm họa, tai nạn cướp đi sinh mạng của con người.<br/><div class='exp-quote'>🔍 Dẫn chứng: 'The typhoon (22) ________ the lives of many villagers...'</div>👉 Dịch: 'Cơn bão đã <span class='keyword'>cướp đi sinh mạng</span> của nhiều dân làng...'"
+                    },
+                    {
+                        id: 23, text: "Question 23",
+                        options: [
+                            { text: "A. organizing", isCorrect: false, expl: "❌ Sai cấu trúc." },
+                            { text: "B. organize", isCorrect: false, expl: "❌ Sai cấu trúc." },
+                            { text: "C. to organize", isCorrect: true, expl: "✅ Đúng. Cấu trúc: Volunteer to V (Tình nguyện làm gì đó)." },
+                            { text: "D. to organizing", isCorrect: false, expl: "❌ Sai cấu trúc." }
+                        ],
+                        explanation: "<b>Dịch câu hỏi:</b> Chọn dạng động từ đi sau 'volunteer'.<br/><b>Phân tích:</b> Động từ 'volunteer' theo sau bởi động từ nguyên thể có 'to' (to V): <b>Volunteer to V</b>.<br/><div class='exp-quote'>🔍 Dẫn chứng: '...local residents have volunteered (23) ________ fundraising events...'</div>👉 Dịch: '...cư dân địa phương đã tình nguyện <span class='keyword'>tổ chức</span> các sự kiện gây quỹ...'"
+                    },
+                    {
+                        id: 24, text: "Question 24",
+                        options: [
+                            { text: "A. conducive learning environment", isCorrect: true, expl: "✅ Đúng. Tính từ 'conducive' đứng trước bổ nghĩa cho cụm danh từ 'learning environment'." },
+                            { text: "B. environment conducive learning", isCorrect: false, expl: "❌ Sai trật tự từ." },
+                            { text: "C. learning conducive environment", isCorrect: false, expl: "❌ Sai trật tự từ." },
+                            { text: "D. conducive environment learning", isCorrect: false, expl: "❌ Sai trật tự từ." }
+                        ],
+                        explanation: "<b>Dịch câu hỏi:</b> Sắp xếp các từ thành một cụm danh từ có nghĩa.<br/><b>Phân tích:</b> 'Conducive learning environment' nghĩa là môi trường học tập thuận lợi. Quy tắc: Tính từ (Conducive) + Danh từ ghép (Learning environment).<br/><div class='exp-quote'>🔍 Dẫn chứng: 'These initiatives aim to provide a (24) ________ for the children...'</div>👉 Dịch: 'Những sáng kiến này nhằm mục đích cung cấp một <span class='keyword'>môi trường học tập thuận lợi</span> cho trẻ em...'"
+                    }
+                ]
+            },
+            {
+                title: "TEST 5: NETFLIX MAGIC",
+                partTitle: "Exercise 5: Experience the Magic of Netflix",
+                paragraphs: [
+                    {
+                        text: "Step into a <span class='gap'>(25) .........</span> world of entertainment with Netflix, the leading platform that offers a <span class='gap'>(26) .........</span>.",
+                        translation: "Bước vào một thế giới giải trí đầy hấp dẫn với Netflix, nền tảng hàng đầu cung cấp một trải nghiệm phát trực tuyến cao cấp."
+                    },
+                    {
+                        text: "Whether you're into thrilling dramas or laugh-out-loud comedies, the service features a vast library of content, <span class='gap'>(27) .........</span> original shows which have captivated millions worldwide.",
+                        translation: "Cho dù bạn thích những bộ phim truyền hình ly kỳ hay những bộ phim hài khiến bạn cười lớn, dịch vụ này có một thư viện nội dung khổng lồ, bao gồm cả các chương trình gốc đã làm say đắm hàng triệu người trên toàn thế giới."
+                    },
+                    {
+                        text: "While some may disagree <span class='gap'>(28) .........</span> a certain extent about the growing number of platforms, it's clear Netflix continues to inspire viewers <span class='gap'>(29) .........</span> new genres and stories. Its personalized recommendations make it easy to <span class='gap'>(30) .........</span> the difference between good content and truly exceptional entertainment. Sign up today and immerse yourself in the magic of Netflix!",
+                        translation: "Mặc dù một số người có thể không đồng ý ở một mức độ nào đó về số lượng nền tảng ngày càng tăng, nhưng rõ ràng Netflix vẫn tiếp tục truyền cảm hứng cho người xem khám phá các thể loại và câu chuyện mới. Các đề xuất được cá nhân hóa của nó giúp bạn dễ dàng nhận thấy sự khác biệt giữa nội dung hay và chương trình giải trí thực sự xuất chúng. Hãy đăng ký ngay hôm nay và đắm mình vào thế giới kỳ diệu của Netflix!"
+                    }
+                ],
+                glossary: [
+                    { word: "fascinating", type: "adj", meaning: "hấp dẫn, lôi cuốn, thú vị" },
+                    { word: "leading", type: "adj", meaning: "hàng đầu, dẫn đầu" },
+                    { word: "premium", type: "adj", meaning: "chất lượng cao, cao cấp" },
+                    { word: "streaming", type: "n", meaning: "phát trực tuyến" },
+                    { word: "thrilling", type: "adj", meaning: "kịch tính, ly kỳ" },
+                    { word: "vast", type: "adj", meaning: "rộng lớn, khổng lồ" },
+                    { word: "captivate", type: "v", meaning: "làm say đắm, thu hút" },
+                    { word: "inspire", type: "v", meaning: "truyền cảm hứng" },
+                    { word: "personalized", type: "adj", meaning: "được cá nhân hóa" },
+                    { word: "exceptional", type: "adj", meaning: "xuất chúng, đặc biệt xuất sắc" },
+                    { word: "immerse", type: "v", meaning: "đắm chìm vào" }
+                ],
+                questions: [
+                    {
+                        id: 25, text: "Question 25",
+                        options: [
+                            { text: "A. fascinated", isCorrect: false, expl: "❌ Đuôi -ed dùng để tả cảm xúc người bị tác động (bị hấp dẫn)." },
+                            { text: "B. fascinate", isCorrect: false, expl: "❌ Sai từ loại (động từ nguyên mẫu)." },
+                            { text: "C. fascinating", isCorrect: true, expl: "✅ Đúng. Vị trí đáp án cần điền tính từ (adj + N). 'Fascinating' (hấp dẫn, lôi cuốn) phù hợp diễn tả tính chất của thế giới giải trí." },
+                            { text: "D. fascination", isCorrect: false, expl: "❌ Sai từ loại (danh từ)." }
+                        ],
+                        explanation: "<b>Dịch câu hỏi:</b> Chọn tính từ bổ nghĩa cho 'world'.<br/><b>Phân tích:</b> Cần dùng tính từ chủ động (V-ing) để miêu tả bản chất của sự vật. Thế giới này gây ra sự hấp dẫn cho người khác.<br/><div class='exp-quote'>🔍 Dẫn chứng: 'Step into a (25) ________ world of entertainment with Netflix...'</div>👉 Dịch: 'Bước vào một <span class='keyword'>thế giới đầy hấp dẫn</span> của ngành giải trí cùng Netflix...'"
+                    },
+                    {
+                        id: 26, text: "Question 26",
+                        options: [
+                            { text: "A. streaming premium experience", isCorrect: false, expl: "❌ Sai trật tự tính từ." },
+                            { text: "B. premium experience streaming", isCorrect: false, expl: "❌ Sai trật tự danh từ ghép." },
+                            { text: "C. premium streaming experience", isCorrect: true, expl: "✅ Đúng. 'Premium' (cao cấp) bổ nghĩa cho danh từ ghép 'streaming experience' (trải nghiệm phát trực tuyến)." },
+                            { text: "D. experience premium streaming", isCorrect: false, expl: "❌ Sai trật tự." }
+                        ],
+                        explanation: "<b>Dịch câu hỏi:</b> Sắp xếp trật tự từ đúng.<br/><b>Phân tích:</b> Quy tắc: Tính từ chỉ chất lượng (Premium) + Danh từ ghép (Streaming experience).<br/><div class='exp-quote'>🔍 Dẫn chứng: '...the leading platform that offers a (26) ________.'</div>👉 Dịch: '...nền tảng hàng đầu cung cấp một <span class='keyword'>trải nghiệm phát trực tuyến cao cấp</span>.'"
+                    },
+                    {
+                        id: 27, text: "Question 27",
+                        options: [
+                            { text: "A. included", isCorrect: false, expl: "❌ Sai vì mang nghĩa bị động." },
+                            { text: "B. to include", isCorrect: false, expl: "❌ Không dùng to V rút gọn ở đây." },
+                            { text: "C. including", isCorrect: true, expl: "✅ Đúng. Rút gọn mệnh đề quan hệ thể chủ động (which includes -> including)." },
+                            { text: "D. is included", isCorrect: false, expl: "❌ Sai cấu trúc ngữ pháp mệnh đề." }
+                        ],
+                        explanation: "<b>Dịch câu hỏi:</b> Chọn dạng rút gọn phù hợp nối câu.<br/><b>Phân tích:</b> Thư viện nội dung này 'bao gồm' các chương trình gốc (chủ động). Cụm từ gốc 'which includes' rút gọn thành 'including' (bao gồm cả).<br/><div class='exp-quote'>🔍 Dẫn chứng: '...the service features a vast library of content, (27) ________ original shows...'</div>👉 Dịch: '...dịch vụ này có một thư viện nội dung khổng lồ, <span class='keyword'>bao gồm cả</span> các chương trình gốc...'"
+                    },
+                    {
+                        id: 28, text: "Question 28",
+                        options: [
+                            { text: "A. about", isCorrect: false, expl: "❌ Sai giới từ." },
+                            { text: "B. at", isCorrect: false, expl: "❌ Sai giới từ." },
+                            { text: "C. to", isCorrect: true, expl: "✅ Đúng. Cụm cố định: To a certain extent (Tới một mức độ nhất định)." },
+                            { text: "D. with", isCorrect: false, expl: "❌ Sai giới từ." }
+                        ],
+                        explanation: "<b>Dịch câu hỏi:</b> Chọn giới từ đi kèm 'a certain extent'.<br/><b>Phân tích:</b> <b>To a certain extent</b> là một idiom mang nghĩa 'ở một chừng mực nào đó, tới một mức độ nhất định'.<br/><div class='exp-quote'>🔍 Dẫn chứng: 'While some may disagree (28) ________ a certain extent about the growing number...'</div>👉 Dịch: 'Mặc dù một số người có thể không đồng ý <span class='keyword'>ở một mức độ nào đó</span> về số lượng ngày càng tăng...'"
+                    },
+                    {
+                        id: 29, text: "Question 29",
+                        options: [
+                            { text: "A. to explore", isCorrect: true, expl: "✅ Đúng. Cấu trúc Inspire sb to V (Truyền cảm hứng cho ai làm gì)." },
+                            { text: "B. exploring", isCorrect: false, expl: "❌ Sai cấu trúc." },
+                            { text: "C. explore", isCorrect: false, expl: "❌ Sai cấu trúc." },
+                            { text: "D. to exploring", isCorrect: false, expl: "❌ Sai cấu trúc." }
+                        ],
+                        explanation: "<b>Dịch câu hỏi:</b> Chọn dạng động từ đi sau 'inspire viewers'.<br/><b>Phân tích:</b> Động từ 'inspire' theo sau bởi tân ngữ và động từ nguyên thể có 'to': <b>Inspire sb to V</b>.<br/><div class='exp-quote'>🔍 Dẫn chứng: '...Netflix continues to inspire viewers (29) ________ new genres and stories.'</div>👉 Dịch: '...Netflix vẫn tiếp tục truyền cảm hứng cho người xem <span class='keyword'>khám phá</span> các thể loại và câu chuyện mới.'"
+                    },
+                    {
+                        id: 30, text: "Question 30",
+                        options: [
+                            { text: "A. keep", isCorrect: false, expl: "❌ Không ghép thành cụm nghĩa phù hợp." },
+                            { text: "B. tell", isCorrect: true, expl: "✅ Đúng. Cụm cố định: Tell the difference (Nhận ra/thấy được sự khác biệt)." },
+                            { text: "C. split", isCorrect: false, expl: "❌ Không ghép thành cụm nghĩa phù hợp." },
+                            { text: "D. gain", isCorrect: false, expl: "❌ Không ghép thành cụm nghĩa phù hợp." }
+                        ],
+                        explanation: "<b>Dịch câu hỏi:</b> Chọn động từ đi với 'the difference'.<br/><b>Phân tích:</b> Ta có cụm từ cố định <b>Tell the difference (between A and B)</b>: Phân biệt được, nhận ra sự khác biệt (giữa A và B).<br/><div class='exp-quote'>🔍 Dẫn chứng: '...recommendations make it easy to (30) ________ the difference between good content and truly exceptional entertainment.'</div>👉 Dịch: '...các đề xuất giúp bạn dễ dàng <span class='keyword'>nhận thấy sự khác biệt</span> giữa nội dung hay và chương trình giải trí thực sự xuất sắc.'"
+                    }
+                ]
+            }
+        ];
+
+        // Âm thanh Web Audio API tự động
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        
+        function playCorrectSound() {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(600, audioCtx.currentTime); // Âm cao trong trẻo
+            osc.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.1); 
+            gain.gain.setValueAtTime(0.5, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+            osc.start(audioCtx.currentTime);
+            osc.stop(audioCtx.currentTime + 0.3);
+        }
+
+        function playWrongSound() {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.type = 'square';
+            osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(80, audioCtx.currentTime + 0.4);
+            gain.gain.setValueAtTime(0.4, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+            osc.start(audioCtx.currentTime);
+            osc.stop(audioCtx.currentTime + 0.4);
+        }
+
+        // Tạo hiệu ứng pháo giấy Confetti
+        function createConfetti() {
+            const container = document.getElementById('confetti-container');
+            const colors = ['#FF6B6B', '#9B59B6', '#FFA502', '#1DD1A1', '#ffeaa7'];
+            for(let i = 0; i < 70; i++) {
+                const conf = document.createElement('div');
+                conf.classList.add('confetti');
+                conf.style.left = Math.random() * 100 + 'vw';
+                conf.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                conf.style.animationDuration = (Math.random() * 2 + 1.5) + 's';
+                container.appendChild(conf);
+                setTimeout(() => conf.remove(), 4000);
+            }
+        }
+
+        // Xáo trộn mảng (Shuffle array)
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        let score = 0;
+        let answeredQuestions = new Set();
+        const totalQuestions = 12; // Tổng số câu hỏi của Bài 4 & 5
+
+        // Render Data
+        function renderContent() {
+            const readPane = document.getElementById('reading-pane');
+            const exePane = document.getElementById('exercise-pane');
+            let readHTML = ``;
+            let exeHTML = '';
+
+            data.forEach((part, partIndex) => {
+                // Render Reading Part
+                readHTML += `<div class="glass-card">
+                    <h2 class="section-title">✨ ${part.title} ✨</h2>
+                    <h3 style="color:var(--primary); margin-bottom:20px; font-weight:800; font-size:1.3rem;">${part.partTitle}</h3>`;
+                
+                part.paragraphs.forEach((p, pIndex) => {
+                    const transId = `trans-${partIndex}-${pIndex}`;
+                    readHTML += `
+                        <div class="paragraph-block">
+                            <p class="reading-text">${p.text}</p>
+                            <button class="btn-translate" onclick="toggleTranslate('${transId}')">🌟 Mở dịch đoạn này</button>
+                            <div class="translation-box" id="${transId}">${p.translation}</div>
+                        </div>
+                    `;
+                });
+
+                // Render Glossary
+                if(part.glossary && part.glossary.length > 0) {
+                    readHTML += `
+                        <h3 style="margin-top:25px; color:var(--text-dark); font-size:1.4rem;">📚 Bảng từ vựng (Glossary)</h3>
+                        <table class="glossary-table">
+                            <tr><th>Từ vựng</th><th>Loại từ</th><th>Nghĩa tiếng Việt</th></tr>`;
+                    part.glossary.forEach(g => {
+                        readHTML += `<tr><td class="word-col">${g.word}</td><td class="type-col">(${g.type})</td><td>${g.meaning}</td></tr>`;
+                    });
+                    readHTML += `</table>`;
+                }
+                readHTML += `</div>`;
+
+                // Render Exercises
+                part.questions.forEach(q => {
+                    const shuffledOptions = shuffleArray([...q.options]);
+                    exeHTML += `
+                        <div class="glass-card question-card" id="q-card-${q.id}">
+                            <div class="question-text">${q.text}</div>
+                            <div class="options-grid">`;
+                    shuffledOptions.forEach((opt, oIndex) => {
+                        exeHTML += `<button class="option-btn" 
+                                        data-qid="${q.id}" 
+                                        data-correct="${opt.isCorrect}" 
+                                        onclick="checkAnswer(this, ${q.id})">
+                                        ${opt.text}
+                                    </button>`;
+                    });
+                    exeHTML += `    </div>
+                            <div class="explanation-box" id="expl-${q.id}">${q.explanation}</div>
+                        </div>`;
+                });
+            });
+
+            readPane.innerHTML = readHTML;
+            // Chèn câu hỏi vào TRƯỚC nút Nộp Bài
+            const submitBtn = document.querySelector('.submit-btn');
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = exeHTML;
+            while (tempDiv.firstChild) {
+                exePane.insertBefore(tempDiv.firstChild, submitBtn);
+            }
+        }
+
+        // Logic ẩn hiện bản dịch
+        function toggleTranslate(id) {
+            const el = document.getElementById(id);
+            if(el.style.display === 'block') {
+                el.style.display = 'none';
+            } else {
+                el.style.display = 'block';
+            }
+        }
+
+        // Kiểm tra câu trả lời
+        function checkAnswer(btn, qId) {
+            if (answeredQuestions.has(qId)) return; // Đã trả lời thì không cho bấm lại
+            answeredQuestions.add(qId);
+
+            const isCorrect = btn.getAttribute('data-correct') === 'true';
+            const allBtns = btn.parentElement.querySelectorAll('.option-btn');
+            const explBox = document.getElementById(`expl-${qId}`);
+
+            // Khóa tất cả các nút trong câu này
+            allBtns.forEach(b => b.disabled = true);
+
+            if (isCorrect) {
+                btn.classList.add('correct');
+                playCorrectSound();
+                createConfetti();
+                score++;
+            } else {
+                btn.classList.add('wrong');
+                playWrongSound();
+                // Tìm nút đúng và tô xanh nổi bật
+                allBtns.forEach(b => {
+                    if(b.getAttribute('data-correct') === 'true') {
+                        b.classList.add('correct');
+                        b.style.boxShadow = '0 0 25px rgba(29, 209, 161, 0.7)'; 
+                    }
+                });
+            }
+            // Hiện ngay giải thích chi tiết
+            explBox.style.display = 'block';
+        }
+
+        // Timer Logic
+        let timerInterval;
+        let timeRemaining = 600; // 10 minutes
+        let isRunning = false;
+
+        function updateTimerDisplay() {
+            let m = Math.floor(timeRemaining / 60);
+            let s = timeRemaining % 60;
+            document.getElementById('time-display').innerText = `${m < 10 ? '0':''}${m}:${s < 10 ? '0':''}${s}`;
+        }
+
+        function toggleTimer() {
+            const btn = document.getElementById('btn-timer');
+            if(isRunning) {
+                clearInterval(timerInterval);
+                btn.innerText = "TIẾP TỤC TÍNH GIỜ";
+                isRunning = false;
+            } else {
+                btn.innerText = "TẠM DỪNG";
+                isRunning = true;
+                timerInterval = setInterval(() => {
+                    if(timeRemaining > 0) {
+                        timeRemaining--;
+                        updateTimerDisplay();
+                    } else {
+                        clearInterval(timerInterval);
+                        alert("⏰ Đã hết giờ làm bài! Bạn vẫn có thể tiếp tục làm, nhưng nhớ là trong phòng thi thật, bạn chỉ nên làm một bài như thế này trong 10 phút thôi nha.");
+                        btn.innerText = "HẾT GIỜ";
+                        btn.disabled = true;
+                    }
+                }, 1000);
+            }
+        }
+
+        // Logic Nộp bài & Meme
+        function submitQuiz() {
+            const percent = (score / totalQuestions) * 100;
+            const modal = document.getElementById('result-modal');
+            const img = document.getElementById('meme-img');
+            const comment = document.getElementById('modal-comment');
+            
+            document.getElementById('modal-score').innerText = `${score} / ${totalQuestions}`;
+
+            // Link Meme đã cập nhật mới theo yêu cầu
+            if (percent === 100) {
+                document.getElementById('modal-title').innerText = "THIÊN TÀI XUẤT HIỆN! 🏆";
+                img.src = "https://media.giphy.com/media/xT0xezQGU5xCDJuCPe/giphy.gif"; // Cúp Leonardo DiCaprio / Chúc mừng
+                comment.innerText = "Tuyệt đỉnh! Không sai một câu nào. Em quả là bậc thầy tiếng Anh!";
+            } else if (percent >= 60) {
+                document.getElementById('modal-title').innerText = "LÀM RẤT TỐT! 👏";
+                img.src = "https://media.giphy.com/media/l3q2XhfQ8oCkm1Ts4/giphy.gif"; // Nodding approval
+                comment.innerText = "Điểm khá cao đấy! Cố gắng ôn tập lại các câu sai ở phần giải thích nhé!";
+            } else {
+                document.getElementById('modal-title').innerText = "CỐ LÊN NHÉ! 💪";
+                img.src = "https://media.giphy.com/media/ISOckXUybVfQ4/giphy.gif"; // Sad meme
+                comment.innerText = "Đừng buồn, hãy học kỹ bảng từ vựng và xem lại bản dịch để làm tốt hơn ở lần sau nha!";
+            }
+
+            modal.style.display = "flex";
+            createConfetti();
+        }
+
+        function closeModal() {
+            document.getElementById('result-modal').style.display = "none";
+        }
+
+        // Khởi tạo ứng dụng
+        window.onload = () => {
+            renderContent();
+            updateTimerDisplay();
+        };
+
+    </script>
+</body>
+</html>

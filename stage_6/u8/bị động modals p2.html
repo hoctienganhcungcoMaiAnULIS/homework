@@ -1,0 +1,870 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Summer Gamification Quiz - Ms Mai An ULIS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-text: #2c3e50;
+            --correct: #00D26A;
+            --wrong: #FF4757;
+            --card-bg: rgba(255, 255, 255, 0.95);
+            --shadow: 0 6px 0 rgba(0,0,0,0.15);
+            --accent: #FF6B6B; /* Summer Coral/Red */
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: 'Quicksand', sans-serif;
+        }
+
+        /* --- SUMMER GRADIENT BACKGROUND --- */
+        @keyframes summerGradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        body {
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            /* Gradient Mùa Hè: Vàng nắng - Cam đào - Hồng dâu */
+            background: linear-gradient(-45deg, #ff9a9e, #fecfef, #f6d365, #fda085, #ffecd2);
+            background-size: 400% 400%;
+            animation: summerGradient 15s ease infinite;
+            color: var(--primary-text);
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* --- HIỆU ỨNG BAY BỔNG MÙA HÈ --- */
+        .summer-container {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        .floating-item {
+            position: absolute;
+            bottom: -100px;
+            opacity: 0.6;
+            animation: floatUp linear infinite;
+        }
+
+        @keyframes floatUp {
+            0% { transform: translateY(0) rotate(0deg) scale(0.8); opacity: 0; }
+            10% { opacity: 0.6; }
+            90% { opacity: 0.6; }
+            100% { transform: translateY(-120vh) rotate(360deg) scale(1.2); opacity: 0; }
+        }
+
+        /* --- UI COMPONENTS --- */
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header {
+            text-align: center;
+            background: var(--card-bg);
+            padding: 15px;
+            border-radius: 20px;
+            box-shadow: var(--shadow);
+            margin-bottom: 30px;
+            border: 3px solid #f6d365;
+        }
+
+        .header h3 {
+            margin: 0;
+            font-size: 1.3rem;
+            color: #FF6B6B;
+            font-weight: 800;
+            text-transform: uppercase;
+        }
+
+        .section-title {
+            background: #f6d365;
+            color: #d35400;
+            padding: 12px 25px;
+            border-radius: 15px;
+            display: inline-block;
+            font-weight: 800;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 0 #e67e22;
+            font-size: 1.15rem;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: var(--shadow);
+            transition: transform 0.3s;
+            border: 2px solid #fff;
+        }
+
+        .question-text {
+            font-size: 1.15rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            line-height: 1.5;
+            color: #2c3e50;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        @media (max-width: 600px) {
+            .options-grid { grid-template-columns: 1fr; }
+        }
+
+        .btn-option {
+            background: #ffffff;
+            border: 3px solid #ffecd2;
+            border-radius: 15px;
+            padding: 15px;
+            font-size: 1.08rem;
+            font-weight: 700;
+            color: var(--primary-text);
+            cursor: pointer;
+            box-shadow: 0 5px 0 #ffecd2;
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            text-align: left;
+            display: flex;
+            align-items: center;
+        }
+
+        .btn-option:hover:not(:disabled) {
+            transform: scale(1.03) translateY(-3px);
+            box-shadow: 0 8px 0 #f6d365;
+            border-color: #f6d365;
+        }
+
+        .btn-option:active:not(:disabled) {
+            transform: translateY(2px);
+            box-shadow: 0 3px 0 #f6d365;
+        }
+
+        .btn-option.correct { background: var(--correct); border-color: #00b35a; box-shadow: 0 5px 0 #00b35a; color: white; }
+        .btn-option.wrong { background: var(--wrong); border-color: #d63031; box-shadow: 0 5px 0 #d63031; color: white; }
+
+        .gap-fill-btn {
+            display: inline-block;
+            min-width: 110px;
+            height: 38px;
+            border: 3px dashed #FF6B6B;
+            border-radius: 10px;
+            background: #ffeaa7;
+            cursor: pointer;
+            vertical-align: middle;
+            margin: 0 5px;
+            transition: all 0.2s;
+            text-align: center;
+            line-height: 32px;
+            font-weight: 800;
+            color: #d63031;
+        }
+
+        .gap-fill-btn:hover { background: #f6e58d; transform: scale(1.05); }
+        .gap-fill-btn.filled-correct { background: var(--correct); border-color: #00b35a; border-style: solid; color: white; }
+        .gap-fill-btn.filled-wrong { background: var(--wrong); border-color: #d63031; border-style: solid; color: white; }
+
+        .explanation {
+            display: none;
+            margin-top: 20px;
+            padding: 20px;
+            background: #fff9e6;
+            border-left: 5px solid #FF6B6B;
+            border-radius: 10px;
+            font-size: 1rem;
+            line-height: 1.6;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes shake { 0%, 100% {transform: translateX(0);} 20%, 60% {transform: translateX(-5px);} 40%, 80% {transform: translateX(5px);} }
+
+        .shake { animation: shake 0.4s ease; }
+
+        .text-red { color: #d63031; font-weight: bold; }
+        .text-green { color: #00b35a; font-weight: bold; }
+
+        /* Popup cho Gap Fill */
+        #gapPopup {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(253, 160, 133, 0.85); /* Summer overlay */
+            backdrop-filter: blur(5px);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .popup-content {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 500px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            border: 4px solid #f6d365;
+            animation: scaleIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        #popupQuestionText {
+            background: #fff4e6;
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            font-size: 1.1rem;
+            line-height: 1.5;
+            border-left: 5px solid #FF6B6B;
+            text-align: left;
+            color: #d35400;
+            font-weight: bold;
+        }
+
+        .close-popup-btn {
+            margin-top: 20px;
+            padding: 12px;
+            width: 100%;
+            background: #ffeaa7;
+            color: #d35400;
+            border: none;
+            border-radius: 12px;
+            font-weight: bold;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .close-popup-btn:hover { background: #f6e58d; }
+
+        @keyframes scaleIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+        /* Submit Button */
+        .submit-btn {
+            display: block;
+            width: 100%;
+            background: #FF6B6B;
+            color: white;
+            font-size: 1.5rem;
+            font-weight: 800;
+            padding: 20px;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            box-shadow: 0 8px 0 #d63031;
+            margin-top: 40px;
+            margin-bottom: 50px;
+            transition: all 0.2s;
+        }
+
+        .submit-btn:hover { transform: translateY(-5px); box-shadow: 0 13px 0 #d63031; }
+
+        /* Modal Kết quả */
+        #resultModal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .result-box {
+            background: white;
+            padding: 40px;
+            border-radius: 25px;
+            text-align: center;
+            width: 90%;
+            max-width: 450px;
+            box-shadow: 0 15px 50px rgba(0,0,0,0.5);
+            border: 5px solid #f6d365;
+        }
+
+        .result-box img { max-width: 100%; border-radius: 15px; margin: 20px 0; border: 4px solid #FF6B6B; }
+        .result-score { font-size: 2.5rem; font-weight: 800; color: #d35400; margin-bottom: 10px; }
+        
+        /* --- TRANG TRÍ RIÊNG CHO CÂU 29 & 30 --- */
+        .q-invite {
+            background: #fff0f5;
+            border: 3px dashed #ff69b4;
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 3px 3px 10px rgba(255,105,180,0.2);
+            margin: 10px 0;
+            color: #c71585;
+            font-weight: bold;
+        }
+        .q-invite::before { content: '💌 THIỆP MỜI SINH NHẬT 💌'; display: block; margin-bottom: 10px; font-size: 1.2rem; color: #ff1493; }
+
+        .q-garden {
+            background: #e8f5e9;
+            border: 4px solid #4caf50;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            position: relative;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            font-weight: 800;
+            color: #2e7d32;
+            display: inline-block;
+            margin: 10px 0;
+            width: 100%;
+        }
+        .q-garden::before { content: '🌱 KHU VƯỜN TRƯỜNG HỌC 🌱'; display: block; margin-bottom: 10px; font-size: 1.2rem; color: #1b5e20; }
+
+        canvas#confetti { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 999; }
+    </style>
+</head>
+<body>
+
+<div class="summer-container" id="summer-bg"></div>
+
+<canvas id="confetti"></canvas>
+
+<div class="container">
+    <div class="header">
+        <h3 class="teacher-title">🌻 MÙA HÈ RỰC RỠ CÙNG MS MAI AN ULIS 🌻</h3>
+    </div>
+
+    <div id="quiz-container">
+        </div>
+
+    <button class="submit-btn" onclick="submitQuiz()">NỘP BÀI NHẬN QUÀ MÙA HÈ 🍦</button>
+</div>
+
+<div id="gapPopup">
+    <div class="popup-content">
+        <h3 style="margin-top:0; color:#d35400;">Chọn từ để điền vào ô trống:</h3>
+        <div id="popupQuestionText"></div>
+        <div class="options-grid" id="gapOptionsGrid"></div>
+        <button class="close-popup-btn" onclick="document.getElementById('gapPopup').style.display='none'">ĐÓNG LẠI XEM ĐỀ</button>
+    </div>
+</div>
+
+<div id="resultModal">
+    <div class="result-box">
+        <h2 style="color: #00D26A; margin-top:0; font-size: 2rem;">KẾT QUẢ CỦA BẠN!</h2>
+        <div class="result-score" id="finalScore">0 / 30</div>
+        <div id="praiseText" style="font-size: 1.2rem; font-weight: bold; color: #555;"></div>
+        <img id="memeImg" src="" alt="Result Meme">
+        <button class="submit-btn" style="margin-top: 20px; margin-bottom: 0; padding: 15px; font-size: 1.2rem;" onclick="location.reload()">CHƠI LẠI LẦN NỮA 🔄</button>
+    </div>
+</div>
+
+<script>
+// --- TẠO HIỆU ỨNG BAY MÙA HÈ ---
+const summerIcons = ['🍦', '☀️', '🏖️', '🍉', '🌴', '🌻'];
+function createSummerEffects() {
+    const bg = document.getElementById('summer-bg');
+    for (let i = 0; i < 25; i++) {
+        let item = document.createElement('div');
+        item.className = 'floating-item';
+        item.innerText = summerIcons[Math.floor(Math.random() * summerIcons.length)];
+        item.style.fontSize = (Math.random() * 30 + 20) + 'px';
+        item.style.left = Math.random() * 100 + 'vw';
+        item.style.animationDuration = (Math.random() * 10 + 8) + 's';
+        item.style.animationDelay = (Math.random() * 10) + 's';
+        bg.appendChild(item);
+    }
+}
+createSummerEffects();
+
+// --- WEB AUDIO API ---
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+function playDing() {
+    if(audioCtx.state === 'suspended') audioCtx.resume();
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'sine';
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.frequency.setValueAtTime(880, audioCtx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(1760, audioCtx.currentTime + 0.1);
+    gain.gain.setValueAtTime(0.5, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+    osc.start(); osc.stop(audioCtx.currentTime + 0.4);
+}
+
+function playBuzz() {
+    if(audioCtx.state === 'suspended') audioCtx.resume();
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'sawtooth';
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.3);
+    gain.gain.setValueAtTime(0.5, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+    osc.start(); osc.stop(audioCtx.currentTime + 0.3);
+}
+
+// --- DỮ LIỆU CÂU HỎI SIÊU CHI TIẾT ---
+const quizData = [
+    // DẠNG 1
+    {
+        type: "gap", section: "Dạng 1: Viết lại các câu sau sang dạng bị động",
+        question: "We can see many cute animals in the zoo.<br>➔ Many cute animals <span class='gap-fill-btn' data-id='0'> BẤM CHỌN </span> in the zoo.",
+        options: [
+            {t: "can be seen", c: true}, {t: "can see", c: false}, {t: "can be see", c: false}, {t: "can seen", c: false}
+        ],
+        exp: "<b>1. Dịch câu hỏi:</b> Chúng ta có thể nhìn thấy nhiều con vật đáng yêu trong sở thú.<br><b>2. Phân tích 4 đáp án:</b><br>A. can be seen: có thể được nhìn thấy.<br>B. can see: có thể nhìn thấy (Chủ động).<br>C. can be see: Sai (chưa chia cột 3).<br>D. can seen: Sai (thiếu be).<br><b>3. Tại sao đúng:</b> Động vật (animals) là vật bị tác động, nên ta dùng bị động của Modal Verb (can): <span class='text-red'>S + can + be + V3/ed</span> (see -> saw -> seen).<br><b>4. Tại sao sai:</b> Các con vật ở đây là đối tượng 'được' con người nhìn thấy, nên không thể dùng chủ động (B)."
+    },
+    {
+        type: "gap", section: "",
+        question: "Super Mario could save the princess in the game.<br>➔ The princess <span class='gap-fill-btn' data-id='1'> BẤM CHỌN </span> (by Super Mario) in the game.",
+        options: [
+            {t: "could save", c: false}, {t: "could be saved", c: true}, {t: "could saved", c: false}, {t: "could be save", c: false}
+        ],
+        exp: "<b>1. Dịch câu hỏi:</b> Super Mario đã có thể cứu công chúa trong trò chơi.<br><b>2. Phân tích 4 đáp án:</b><br>A. could save: có thể cứu.<br>B. could be saved: có thể được cứu.<br>C. could saved: Sai cấu trúc.<br>D. could be save: Sai (chưa chia ed).<br><b>3. Tại sao đúng:</b> Công chúa (the princess) là người nhận hành động 'cứu' -> Bị động. Cấu trúc: <span class='text-red'>could + be + V3/ed</span> (save thêm d thành saved).<br><b>4. Tại sao sai:</b> A mang nghĩa chủ động (công chúa đi cứu người khác). C và D thiếu thành phần cấu tạo bị động cơ bản."
+    },
+    {
+        type: "gap", section: "",
+        question: "The teacher may check our English homework tomorrow.<br>➔ Our English homework <span class='gap-fill-btn' data-id='2'> BẤM CHỌN </span> (by the teacher) tomorrow.",
+        options: [
+            {t: "may check", c: false}, {t: "may checked", c: false}, {t: "may be check", c: false}, {t: "may be checked", c: true}
+        ],
+        exp: "<b>1. Dịch câu hỏi:</b> Cô giáo có thể sẽ kiểm tra bài tập tiếng Anh của chúng ta vào ngày mai.<br><b>2. Phân tích 4 đáp án:</b><br>A. may check: có thể kiểm tra.<br>B. may checked: Sai cấu trúc.<br>C. may be check: Sai (thiếu ed).<br>D. may be checked: có thể được kiểm tra.<br><b>3. Tại sao đúng:</b> Bài tập (homework) không tự kiểm tra được -> Bị động. Cấu trúc: <span class='text-red'>may + be + V3/ed</span>.<br><b>4. Tại sao sai:</b> Các lỗi cực phổ biến: quên chữ 'be' (như B) hoặc quên thêm đuôi '-ed' cho động từ chính (như C)."
+    },
+    {
+        type: "gap", section: "",
+        question: "Mom might bake a big chocolate cake for my birthday.<br>➔ A big chocolate cake <span class='gap-fill-btn' data-id='3'> BẤM CHỌN </span> for my birthday.",
+        options: [
+            {t: "might be baked", c: true}, {t: "might bake", c: false}, {t: "might baked", c: false}, {t: "might be bake", c: false}
+        ],
+        exp: "<b>1. Dịch câu hỏi:</b> Mẹ có thể sẽ nướng một chiếc bánh sô-cô-la lớn cho sinh nhật của mình.<br><b>2. Phân tích 4 đáp án:</b><br>A. might be baked: có thể được nướng.<br>B. might bake: có thể nướng.<br>C. might baked: Sai (thiếu be).<br>D. might be bake: Sai (thiếu d).<br><b>3. Tại sao đúng:</b> Bánh (sự vật) nhận hành động nướng -> Bị động với Might: <span class='text-red'>might + be + V3/ed</span>.<br><b>4. Tại sao sai:</b> Câu B sai hoàn toàn vì bánh không thể tự nướng được. C và D sai ngữ pháp cơ bản."
+    },
+    {
+        type: "gap", section: "",
+        question: "You should brush your teeth every night.<br>➔ Your teeth <span class='gap-fill-btn' data-id='4'> BẤM CHỌN </span> every night.",
+        options: [
+            {t: "should brush", c: false}, {t: "should be brush", c: false}, {t: "should be brushed", c: true}, {t: "should brushed", c: false}
+        ],
+        exp: "<b>1. Dịch câu hỏi:</b> Bạn nên đánh răng mỗi tối.<br><b>2. Phân tích 4 đáp án:</b><br>A. should brush: nên đánh.<br>B. should be brush: Sai (thiếu đuôi ed).<br>C. should be brushed: nên được đánh.<br>D. should brushed: Sai (thiếu be).<br><b>3. Tại sao đúng:</b> Răng (teeth) nhận hành động 'đánh/chải' -> Bị động: <span class='text-red'>should + be + V3/ed</span>.<br><b>4. Tại sao sai:</b> Các phương án còn lại vi phạm cấu trúc thể bị động. Từ 'brush' là động từ có quy tắc, chỉ cần thêm -ed."
+    },
+    {
+        type: "gap", section: "",
+        question: "Children ought to drink milk every morning.<br>➔ Milk <span class='gap-fill-btn' data-id='5'> BẤM CHỌN </span> every morning.",
+        options: [
+            {t: "ought to drink", c: false}, {t: "ought to be drunk", c: true}, {t: "ought be drunk", c: false}, {t: "ought to be drank", c: false}
+        ],
+        exp: "<b>1. Dịch câu hỏi:</b> Trẻ em nên uống sữa mỗi buổi sáng.<br><b>2. Phân tích 4 đáp án:</b><br>A. ought to drink: nên uống.<br>B. ought to be drunk: nên được uống.<br>C. ought be drunk: Sai (thiếu to).<br>D. ought to be drank: Sai (drank là V2).<br><b>3. Tại sao đúng:</b> Cấu trúc bị động của ought to: <span class='text-red'>ought to + be + V3</span>. Động từ bất quy tắc: drink - drank - drunk. Ta phải dùng V3 là 'drunk'.<br><b>4. Tại sao sai:</b> Lỗi bẫy rất hay gặp: quên chữ 'to' (đáp án C) hoặc dùng nhầm V2 (đáp án D)."
+    },
+    {
+        type: "gap", section: "",
+        question: "We must feed the hungry cat right now.<br>➔ The hungry cat <span class='gap-fill-btn' data-id='6'> BẤM CHỌN </span> right now.",
+        options: [
+            {t: "must feed", c: false}, {t: "must be feed", c: false}, {t: "must fed", c: false}, {t: "must be fed", c: true}
+        ],
+        exp: "<b>1. Dịch câu hỏi:</b> Chúng ta phải cho chú mèo đói ăn ngay bây giờ.<br><b>2. Phân tích 4 đáp án:</b><br>A. must feed: phải cho ăn.<br>B. must be feed: Sai (chưa chia cột 3).<br>C. must fed: Sai (thiếu be).<br>D. must be fed: phải được cho ăn.<br><b>3. Tại sao đúng:</b> Chú mèo nhận hành động 'được cho ăn' -> Bị động. Cấu trúc: <span class='text-red'>must + be + V3</span>. Động từ: feed - fed - fed.<br><b>4. Tại sao sai:</b> Dùng chủ động (A) sẽ mang nghĩa chú mèo tự đi lấy thức ăn cho người khác. B chưa chuyển V3."
+    },
+    {
+        type: "gap", section: "",
+        question: "Lan has to finish her math exercises today.<br>➔ Her math exercises <span class='gap-fill-btn' data-id='7'> BẤM CHỌN </span> today.",
+        options: [
+            {t: "have to be finished", c: true}, {t: "has to be finished", c: false}, {t: "has to finish", c: false}, {t: "have to finish", c: false}
+        ],
+        exp: "<b>1. Dịch câu hỏi:</b> Lan phải hoàn thành các bài tập toán của cô ấy hôm nay.<br><b>2. Phân tích 4 đáp án:</b><br>A. have to be finished: phải được hoàn thành (Số nhiều - Đúng).<br>B. has to be finished: (Sai vì dùng has cho số nhiều).<br>C. has to finish: (Chủ động).<br>D. have to finish: (Chủ động).<br><b>3. Tại sao đúng:</b> Chủ ngữ mới 'exercises' có 's' (số nhiều) nên ta phải dùng 'have to'. Cấu trúc: <span class='text-red'>have to + be + V3/ed</span>.<br><b>4. Tại sao sai:</b> Bẫy to đùng! Dù câu gốc dùng 'has to' (vì Lan số ít), nhưng khi xuống bị động, chủ ngữ mới là 'exercises' số nhiều, buộc phải đổi thành 'have to'."
+    },
+    {
+        type: "gap", section: "",
+        question: "They will build a new playground for the kids.<br>➔ A new playground <span class='gap-fill-btn' data-id='8'> BẤM CHỌN </span> for the kids.",
+        options: [
+            {t: "will built", c: false}, {t: "will be build", c: false}, {t: "will be built", c: true}, {t: "will build", c: false}
+        ],
+        exp: "<b>1. Dịch câu hỏi:</b> Họ sẽ xây một sân chơi mới cho bọn trẻ.<br><b>2. Phân tích 4 đáp án:</b><br>A. will built: Sai (thiếu be).<br>B. will be build: Sai (chưa chia cột 3).<br>C. will be built: sẽ được xây.<br>D. will build: sẽ xây (Chủ động).<br><b>3. Tại sao đúng:</b> Sân chơi phải 'được' xây -> Cấu trúc: <span class='text-red'>will + be + V3</span>. (build -> built).<br><b>4. Tại sao sai:</b> Sân chơi là vật, không tự xây được nên không dùng chủ động (D). A và B sai công thức."
+    },
+    {
+        type: "gap", section: "",
+        question: "My dad is going to buy a new bike for me.<br>➔ A new bike <span class='gap-fill-btn' data-id='9'> BẤM CHỌN </span> for me.",
+        options: [
+            {t: "are going to be bought", c: false}, {t: "is going to be bought", c: true}, {t: "is going to buy", c: false}, {t: "are going to buy", c: false}
+        ],
+        exp: "<b>1. Dịch câu hỏi:</b> Bố tôi dự định sẽ mua một chiếc xe đạp mới cho tôi.<br><b>2. Phân tích 4 đáp án:</b><br>A. are going to be bought: (Sai tobe 'are' vì xe đạp số ít).<br>B. is going to be bought: dự định được mua (Đúng).<br>C. is going to buy: dự định mua (Chủ động).<br>D. are going to buy: (Chủ động).<br><b>3. Tại sao đúng:</b> 'A new bike' là 1 chiếc xe (số ít) -> Tobe dùng 'is'. Bị động: <span class='text-red'>is + going to + be + V3</span> (buy -> bought).<br><b>4. Tại sao sai:</b> Xe đạp không tự đi mua được, phải dùng bị động. Chú ý số ít/nhiều để chọn tobe cho đúng."
+    },
+    // DẠNG 2: TRẮC NGHIỆM ABCD
+    {
+        type: "mcq", section: "Dạng 2: Chọn đáp án đúng nhất",
+        question: "English ______ easily on the internet.",
+        options: [
+            {t: "A. can learn", c: false}, {t: "B. can be learned", c: true}, {t: "C. can learned", c: false}, {t: "D. can be learn", c: false}
+        ],
+        exp: "<b>1. Dịch câu hỏi:</b> Tiếng Anh có thể được học dễ dàng trên internet.<br><b>2. Phân tích 4 đáp án:</b><br>A. có thể học (Chủ động).<br>B. có thể được học (Bị động).<br>C. Sai ngữ pháp (thiếu be).<br>D. Sai ngữ pháp (learn chưa thêm ed).<br><b>3. Tại sao đúng:</b> Tiếng Anh (môn học/ngôn ngữ) là sự vật, phải 'được học'. Dùng bị động: <span class='text-red'>can + be + V3/ed</span>.<br><b>4. Tại sao sai:</b> Loại A vì mang nghĩa chủ động. C và D thiếu thành tố tạo nên câu bị động."
+    },
+    {
+        type: "mcq", section: "",
+        question: "The puzzle ______ by my little brother yesterday.",
+        options: [
+            {t: "A. could solve", c: false}, {t: "B. could solved", c: false}, {t: "C. could be solved", c: true}, {t: "D. could be solve", c: false}
+        ],
+        exp: "<b>1. Dịch câu hỏi:</b> Câu đố xếp hình đã có thể được giải bởi em trai tôi ngày hôm qua.<br><b>2. Phân tích 4 đáp án:</b><br>A. có thể giải.<br>B. Sai (thiếu be).<br>C. có thể được giải.<br>D. Sai (chưa thêm d).<br><b>3. Tại sao đúng:</b> Có dấu hiệu 'by my little brother' -> chắc chắn là bị động. Cấu trúc: <span class='text-red'>could + be + V3/ed</span>.<br><b>4. Tại sao sai:</b> Đồ chơi xếp hình (puzzle) không tự giải được, loại A. Solve có quy tắc, chỉ cần thêm 'd' thành solved."
+    },
+    {
+        type: "mcq", section: "",
+        question: "A funny cartoon ______ on TV tonight.",
+        options: [
+            {t: "A. may show", c: false}, {t: "B. may be shown", c: true}, {t: "C. may be show", c: false}, {t: "D. may shown", c: false}
+        ],
+        exp: "<b>1. Dịch câu hỏi:</b> Một bộ phim hoạt hình vui nhộn có thể sẽ được chiếu trên TV tối nay.<br><b>2. Phân tích 4 đáp án:</b><br>A. có thể chiếu.<br>B. có thể được chiếu (Đúng).<br>C. Sai (chưa chia V3).<br>D. Sai (thiếu be).<br><b>3. Tại sao đúng:</b> Phim hoạt hình phải 'được chiếu'. Cấu trúc bị động: <span class='text-red'>may + be + V3</span> (show - showed - shown).<br><b>4. Tại sao sai:</b> Dùng V1 'show' ở đáp án C là sai quy tắc bị động. Phim không tự chiếu được nên loại A."
+    },
+    {
+        type: "mcq", section: "",
+        question: "The class picnic ______ because it is raining.",
+        options: [
+            {t: "A. might be canceled", c: true}, {t: "B. might cancel", c: false}, {t: "C. might canceled", c: false}, {t: "D. might be cancel", c: false}
+        ],
+        exp: "<b>1. Dịch câu hỏi:</b> Chuyến dã ngoại của lớp có thể bị hủy vì trời đang mưa.<br><b>2. Phân tích 4 đáp án:</b><br>A. có thể bị hủy (Bị động).<br>B. có thể hủy (Chủ động).<br>C. Sai (thiếu be).<br>D. Sai (chưa thêm ed).<br><b>3. Tại sao đúng:</b> Chuyến dã ngoại (sự việc) chịu tác động nên bị hủy. <span class='text-red'>might + be + V3/ed</span>.<br><b>4. Tại sao sai:</b> Cancelled (hoặc canceled) là bắt buộc, không được để nguyên mẫu như D."
+    },
+    {
+        type: "mcq", section: "",
+        question: "Your hands ______ before eating.",
+        options: [
+            {t: "A. should wash", c: false}, {t: "B. should be washed", c: true}, {t: "C. should be wash", c: false}, {t: "D. should washed", c: false}
+        ],
+        exp: "<b>1. Dịch câu hỏi:</b> Đôi tay của bạn nên được rửa sạch trước khi ăn.<br><b>2. Phân tích 4 đáp án:</b><br>A. nên rửa.<br>B. nên được rửa.<br>C. Sai (wash là V1).<br>D. Sai (thiếu be).<br><b>3. Tại sao đúng:</b> Tay (bộ phận cơ thể) phải 'được rửa' -> Bị động. <span class='text-red'>should + be + V3/ed</span>.<br><b>4. Tại sao sai:</b> Wash thêm -ed là có quy tắc. Không được giữ nguyên V1 sau 'be'."
+    },
+    {
+        type: "mcq", section: "",
+        question: "Old toys ______ to poor children.",
+        options: [
+            {t: "A. ought to give", c: false}, {t: "B. ought to given", c: false}, {t: "C. ought to be given", c: true}, {t: "D. ought be given", c: false}
+        ],
+        exp: "<b>1. Dịch câu hỏi:</b> Đồ chơi cũ nên được tặng cho trẻ em nghèo.<br><b>2. Phân tích 4 đáp án:</b><br>A. nên tặng.<br>B. Sai (thiếu be).<br>C. nên được tặng.<br>D. Sai (thiếu to).<br><b>3. Tại sao đúng:</b> Đồ chơi (vật) phải 'được tặng đi'. <span class='text-red'>ought to + be + V3</span> (give -> gave -> given).<br><b>4. Tại sao sai:</b> D thiếu chữ 'to' trong cụm Modal verb 'ought to'. B thiếu 'be'."
+    },
+    {
+        type: "mcq", section: "",
+        question: "The classroom ______ every day.",
+        options: [
+            {t: "A. must be cleaned", c: true}, {t: "B. must clean", c: false}, {t: "C. must cleaned", c: false}, {t: "D. must be clean", c: false}
+        ],
+        exp: "<b>1. Dịch câu hỏi:</b> Lớp học phải được dọn dẹp mỗi ngày.<br><b>2. Phân tích 4 đáp án:</b><br>A. phải được dọn dẹp.<br>B. phải dọn (Chủ động).<br>C. Sai (thiếu be).<br>D. Sai (chưa thêm ed).<br><b>3. Tại sao đúng:</b> Lớp học không tự nó quét dọn được -> dùng bị động <span class='text-red'>must + be + V3/ed</span>.<br><b>4. Tại sao sai:</b> Clean là động từ có quy tắc, phải thêm -ed. Loại B vì mang nghĩa chủ động."
+    },
+    {
+        type: "mcq", section: "",
+        question: "These books ______ to the library today.",
+        options: [
+            {t: "A. have to be returned", c: true}, {t: "B. has to be returned", c: false}, {t: "C. have to return", c: false}, {t: "D. has to return", c: false}
+        ],
+        exp: "<b>1. Dịch câu hỏi:</b> Những cuốn sách này phải được trả lại cho thư viện hôm nay.<br><b>2. Phân tích 4 đáp án:</b><br>A. phải được trả (Số nhiều).<br>B. phải được trả (Số ít).<br>C. phải trả (Chủ động).<br>D. phải trả (Chủ động, Số ít).<br><b>3. Tại sao đúng:</b> 'books' có 's' là danh từ số nhiều, nên phải dùng 'have to'. Cấu trúc bị động: <span class='text-red'>have to + be + V3/ed</span>.<br><b>4. Tại sao sai:</b> Bẫy chia số ít/số nhiều! B sai vì dùng 'has' cho chủ ngữ số nhiều. C và D sai vì dùng chủ động."
+    },
+    {
+        type: "mcq", section: "",
+        question: "A big teddy bear ______ to the winner.",
+        options: [
+            {t: "A. will give", c: false}, {t: "B. will be given", c: true}, {t: "C. will given", c: false}, {t: "D. will be give", c: false}
+        ],
+        exp: "<b>1. Dịch câu hỏi:</b> Một chú gấu bông lớn sẽ được tặng cho người chiến thắng.<br><b>2. Phân tích 4 đáp án:</b><br>A. sẽ tặng.<br>B. sẽ được tặng.<br>C. Sai (thiếu be).<br>D. Sai (chưa chia V3).<br><b>3. Tại sao đúng:</b> Gấu bông (teddy bear) 'nhận' hành động trao tặng -> Bị động <span class='text-red'>will + be + V3</span> (give -> given).<br><b>4. Tại sao sai:</b> Nếu chọn A, câu sẽ có nghĩa 'gấu bông tự đi tặng (ai đó)' -> Sai logic."
+    },
+    {
+        type: "mcq", section: "",
+        question: "A beautiful song ______ by the students on Teachers' Day.",
+        options: [
+            {t: "A. is going to be sung", c: true}, {t: "B. are going to be sung", c: false}, {t: "C. is going to sing", c: false}, {t: "D. are going to sing", c: false}
+        ],
+        exp: "<b>1. Dịch câu hỏi:</b> Một bài hát hay dự định sẽ được hát bởi học sinh vào Ngày Nhà Giáo.<br><b>2. Phân tích 4 đáp án:</b><br>A. dự định được hát (Số ít).<br>B. dự định được hát (Số nhiều).<br>C. dự định hát (Chủ động).<br>D. dự định hát (Chủ động, Số nhiều).<br><b>3. Tại sao đúng:</b> 'A beautiful song' là 1 bài hát (số ít) -> Tobe dùng 'is'. Bị động của Be going to: <span class='text-red'>am/is/are + going to + be + V3</span> (sing -> sang -> sung).<br><b>4. Tại sao sai:</b> B sai tobe 'are'. C và D dùng thể chủ động (bài hát không tự nó cất tiếng hát được)."
+    },
+    // DẠNG 3: TÌM LỖI SAI (Thiết kế dạng Gap Fill sửa lỗi)
+    {
+        type: "gap", section: "Dạng 3: Tìm và sửa lỗi sai trong các câu sau",
+        question: "Trash <u>must put</u> in the bin.<br>➔ Sửa thành: Trash <span class='gap-fill-btn' data-id='20'> BẤM CHỌN </span> in the bin.",
+        options: [
+            {t: "must be put", c: true}, {t: "must put", c: false}, {t: "must be putted", c: false}, {t: "must to put", c: false}
+        ],
+        exp: "<b>1. Dịch câu hỏi:</b> Rác phải được bỏ vào thùng.<br><b>2. Phân tích 4 đáp án:</b><br>A. must be put: phải được bỏ (Bị động đúng).<br>B. must put: phải bỏ (Chủ động).<br>C. must be putted: Sai V3.<br>D. must to put: Sai ngữ pháp.<br><b>3. Tại sao đúng:</b> Đề gốc 'must put' thiếu 'be'. Sửa lại theo đúng công thức: <span class='text-red'>must + be + V3</span>. (Động từ bất quy tắc: put - put - put).<br><b>4. Tại sao sai:</b> Rác không tự đi bỏ vào thùng được. Từ 'put' giữ nguyên ở cả 3 cột, không có 'putted'."
+    },
+    {
+        type: "gap", section: "",
+        question: "A fairy tale <u>will be tell</u> by the teacher.<br>➔ Sửa thành: A fairy tale <span class='gap-fill-btn' data-id='21'> BẤM CHỌN </span> by the teacher.",
+        options: [
+            {t: "will be told", c: true}, {t: "will tell", c: false}, {t: "will be telling", c: false}, {t: "will told", c: false}
+        ],
+        exp: "<b>1. Dịch câu hỏi:</b> Một câu chuyện cổ tích sẽ được kể bởi cô giáo.<br><b>2. Phân tích 4 đáp án:</b><br>A. will be told: sẽ được kể.<br>B. will tell: sẽ kể.<br>C. will be telling: sẽ đang kể.<br>D. will told: Sai cấu trúc.<br><b>3. Tại sao đúng:</b> Lỗi sai ở đề bài là động từ 'tell' để ở V1. Sửa lại: <span class='text-red'>will + be + V3</span> (tell - told - told).<br><b>4. Tại sao sai:</b> Truyện cổ tích bị tác động nên phải dùng bị động. Không dùng B hay C."
+    },
+    {
+        type: "gap", section: "",
+        question: "The rules of the game <u>can't break</u>.<br>➔ Sửa thành: The rules of the game <span class='gap-fill-btn' data-id='22'> BẤM CHỌN </span>.",
+        options: [
+            {t: "can't break", c: false}, {t: "can't be broken", c: true}, {t: "can't be break", c: false}, {t: "can't broken", c: false}
+        ],
+        exp: "<b>1. Dịch câu hỏi:</b> Luật của trò chơi không thể bị phá vỡ.<br><b>2. Phân tích 4 đáp án:</b><br>A. can't break: không thể phá vỡ (Chủ động).<br>B. can't be broken: không thể bị phá vỡ.<br>C. can't be break: Sai V3.<br>D. can't broken: Sai (thiếu be).<br><b>3. Tại sao đúng:</b> Đề gốc sai vì 'rules' không tự phá luật được. Đổi sang V3 của break là 'broken'. <span class='text-red'>can't + be + V3</span>.<br><b>4. Tại sao sai:</b> Lỗi V3 rất dễ sai: break - broke - broken."
+    },
+    {
+        type: "gap", section: "",
+        question: "The broken toy <u>should be throw</u> away.<br>➔ Sửa thành: The broken toy <span class='gap-fill-btn' data-id='23'> BẤM CHỌN </span> away.",
+        options: [
+            {t: "should be thrown", c: true}, {t: "should thrown", c: false}, {t: "should be threw", c: false}, {t: "should throw", c: false}
+        ],
+        exp: "<b>1. Dịch câu hỏi:</b> Món đồ chơi bị hỏng nên được vứt đi.<br><b>2. Phân tích 4 đáp án:</b><br>A. should be thrown: nên được vứt (Đúng).<br>B. should thrown: Sai (thiếu be).<br>C. should be threw: Sai (threw là V2).<br>D. should throw: Chủ động.<br><b>3. Tại sao đúng:</b> Đề gốc sai V1 (throw). Sửa thành cấu trúc: <span class='text-red'>should + be + V3</span> (throw - threw - thrown).<br><b>4. Tại sao sai:</b> Đồ chơi (vật) nên không thể dùng chủ động (D). C dùng V2 (threw) là sai ngữ pháp."
+    },
+    {
+        type: "gap", section: "",
+        question: "This heavy box <u>have to be carried</u> carefully.<br>➔ Sửa thành: This heavy box <span class='gap-fill-btn' data-id='24'> BẤM CHỌN </span> carefully.",
+        options: [
+            {t: "has to be carry", c: false}, {t: "have to be carried", c: false}, {t: "has to be carried", c: true}, {t: "has to carry", c: false}
+        ],
+        exp: "<b>1. Dịch câu hỏi:</b> Chiếc hộp nặng này phải được bê cẩn thận.<br><b>2. Phân tích 4 đáp án:</b><br>A. Sai (chưa thêm ed).<br>B. Sai hòa hợp chủ ngữ (dùng have cho số ít).<br>C. has to be carried: phải được bê (Đúng).<br>D. has to carry: Chủ động.<br><b>3. Tại sao đúng:</b> Đề gốc sai vì 'This heavy box' là ngôi thứ 3 SỐ ÍT -> phải đổi 'have to' thành 'has to'. Cấu trúc: <span class='text-red'>has to + be + V3/ed</span>.<br><b>4. Tại sao sai:</b> Lỗi hòa hợp S-V cực hay gặp. Hộp không tự bê mình được nên không dùng D."
+    },
+    // DẠNG 4: CHO DẠNG ĐÚNG CỦA ĐỘNG TỪ
+    {
+        type: "gap", section: "Dạng 4: Cho dạng đúng của động từ trong ngoặc",
+        question: "(Ought to / eat) Fruits and vegetables <span class='gap-fill-btn' data-id='25'> BẤM CHỌN </span> every day.",
+        options: [
+            {t: "ought to eat", c: false}, {t: "ought to be eaten", c: true}, {t: "ought be eaten", c: false}, {t: "ought to be eat", c: false}
+        ],
+        exp: "<b>1. Dịch câu hỏi:</b> Trái cây và rau củ nên được ăn mỗi ngày.<br><b>2. Phân tích 4 đáp án:</b><br>A. ought to eat: nên ăn (Chủ động).<br>B. ought to be eaten: nên được ăn (Bị động).<br>C. ought be eaten: Sai (thiếu to).<br>D. ought to be eat: Sai (chưa chia V3).<br><b>3. Tại sao đúng:</b> Trái cây, rau củ không tự ăn được -> Bị động. <span class='text-red'>ought to + be + V3</span> (eat -> ate -> eaten).<br><b>4. Tại sao sai:</b> Cẩn thận bẫy thiếu chữ 'to' của đáp án C. Phải dùng phân từ 2 là 'eaten'."
+    },
+    {
+        type: "gap", section: "",
+        question: "(Might / find) The lost puppy <span class='gap-fill-btn' data-id='26'> BẤM CHỌN </span> in the park.",
+        options: [
+            {t: "might be found", c: true}, {t: "might find", c: false}, {t: "might be find", c: false}, {t: "might found", c: false}
+        ],
+        exp: "<b>1. Dịch câu hỏi:</b> Chú cún bị lạc có thể được tìm thấy trong công viên.<br><b>2. Phân tích 4 đáp án:</b><br>A. might be found: có thể được tìm thấy.<br>B. might find: Chủ động.<br>C. might be find: Sai (chưa chia V3).<br>D. might found: Sai (thiếu be).<br><b>3. Tại sao đúng:</b> Chú cún nhận hành động 'tìm thấy' -> Bị động. Động từ bất quy tắc: find -> found. <span class='text-red'>might + be + V3</span>.<br><b>4. Tại sao sai:</b> B là thể chủ động. C và D sai do thiếu thành phần cấu tạo bị động."
+    },
+    {
+        type: "gap", section: "",
+        question: "(Could / draw) A beautiful picture <span class='gap-fill-btn' data-id='27'> BẤM CHỌN </span> by Anna yesterday.",
+        options: [
+            {t: "could draw", c: false}, {t: "could drawn", c: false}, {t: "could be drawn", c: true}, {t: "could be draw", c: false}
+        ],
+        exp: "<b>1. Dịch câu hỏi:</b> Một bức tranh đẹp đã có thể được vẽ bởi Anna ngày hôm qua.<br><b>2. Phân tích 4 đáp án:</b><br>A. could draw: Chủ động.<br>B. could drawn: Sai (thiếu be).<br>C. could be drawn: có thể được vẽ.<br>D. could be draw: Sai (chưa chia V3).<br><b>3. Tại sao đúng:</b> Dấu hiệu 'by Anna' -> Bị động. <span class='text-red'>could + be + V3</span> (draw - drew - drawn).<br><b>4. Tại sao sai:</b> Cần phải có 'be' và động từ 'draw' phải chuyển sang V3. Các lựa chọn khác đều vi phạm luật này."
+    },
+    {
+        type: "gap", section: "",
+        question: "<div class='q-invite'>(May / invite) Tom <span class='gap-fill-btn' data-id='28'> BẤM CHỌN </span> to Mary's birthday party.</div>",
+        options: [
+            {t: "may invite", c: false}, {t: "may be invited", c: true}, {t: "may be invite", c: false}, {t: "may invited", c: false}
+        ],
+        exp: "<b>1. Dịch câu hỏi:</b> Tom có thể sẽ được mời tới tiệc sinh nhật của Mary.<br><b>2. Phân tích 4 đáp án:</b><br>A. may invite: có thể mời (Chủ động).<br>B. may be invited: có thể được mời (Bị động).<br>C. may be invite: Sai (thiếu d).<br>D. may invited: Sai (thiếu be).<br><b>3. Tại sao đúng:</b> Tom là người 'được' Mary mời tới tiệc (nhận hành động). Dùng bị động: <span class='text-red'>may + be + V3/ed</span>.<br><b>4. Tại sao sai:</b> Rất dễ nhầm lẫn! Đừng thấy Chủ ngữ chỉ người là tự động dùng dạng Chủ động. Ở đây Tom là người được nhận lời mời!"
+    },
+    {
+        type: "gap", section: "",
+        question: "<div class='q-garden'>(Be going to / plant) Many trees <span class='gap-fill-btn' data-id='29'> BẤM CHỌN </span> in the school garden next week.</div>",
+        options: [
+            {t: "are going to be planted", c: true}, {t: "is going to be planted", c: false}, {t: "is going to plant", c: false}, {t: "are going to plant", c: false}
+        ],
+        exp: "<b>1. Dịch câu hỏi:</b> Nhiều cây xanh dự định sẽ được trồng trong vườn trường vào tuần tới.<br><b>2. Phân tích 4 đáp án:</b><br>A. are going to be planted: dự định được trồng (Đúng số nhiều).<br>B. is going to be planted: (Sai tobe).<br>C. is going to plant: Chủ động.<br>D. are going to plant: Chủ động.<br><b>3. Tại sao đúng:</b> 'Many trees' là danh từ đếm được SỐ NHIỀU -> dùng tobe 'are'. Cây cối phải 'được trồng' -> Bị động. <span class='text-red'>are + going to + be + V3/ed</span>.<br><b>4. Tại sao sai:</b> Cây không tự trồng mình được. Phải chú ý chủ ngữ 'trees' có 's' để chọn tobe 'are' cho chính xác."
+    }
+];
+
+function shuffleArray(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+}
+
+function renderQuiz() {
+    const container = document.getElementById("quiz-container");
+    let html = "";
+    
+    quizData.forEach((item, index) => {
+        if (item.section) {
+            html += `<div class="section-title">${item.section}</div>`;
+        }
+        
+        html += `<div class="card" id="card-${index}">`;
+        html += `<div class="question-text">Câu ${index + 1}: ${item.question}</div>`;
+        
+        if (item.type === "mcq") {
+            const shuffledOptions = shuffleArray([...item.options]);
+            html += `<div class="options-grid">`;
+            shuffledOptions.forEach((opt) => {
+                const isCorrStr = opt.c ? "true" : "false";
+                html += `<button class="btn-option" onclick="checkMCQ(this, ${index}, ${isCorrStr})">${opt.t}</button>`;
+            });
+            html += `</div>`;
+        }
+        
+        html += `<div class="explanation" id="exp-${index}">${item.exp}</div>`;
+        html += `</div>`;
+    });
+    
+    container.innerHTML = html;
+
+    document.querySelectorAll('.gap-fill-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            if(this.classList.contains('filled-correct') || this.classList.contains('filled-wrong')) return;
+            openGapPopup(this.getAttribute('data-id'));
+        });
+    });
+}
+
+function checkMCQ(btn, qIndex, isCorrect) {
+    if (btn.parentNode.hasAttribute('data-answered')) return;
+    btn.parentNode.setAttribute('data-answered', 'true');
+    
+    const buttons = btn.parentNode.querySelectorAll('button');
+    buttons.forEach(b => b.disabled = true);
+    
+    if (isCorrect) {
+        btn.classList.add('correct');
+        playDing();
+        fireConfetti();
+        score++;
+    } else {
+        btn.classList.add('wrong');
+        btn.closest('.card').classList.add('shake');
+        playBuzz();
+        buttons.forEach(b => {
+            const optText = b.innerText;
+            const originalOption = quizData[qIndex].options.find(o => o.t === optText);
+            if(originalOption && originalOption.c) b.style.border = "3px solid #00D26A";
+        });
+        setTimeout(() => btn.closest('.card').classList.remove('shake'), 400);
+    }
+    
+    document.getElementById(`exp-${qIndex}`).style.display = "block";
+    answeredCount++;
+}
+
+let score = 0;
+let answeredCount = 0;
+
+function openGapPopup(qIndex) {
+    const popup = document.getElementById("gapPopup");
+    const grid = document.getElementById("gapOptionsGrid");
+    const qTextDisplay = document.getElementById("popupQuestionText");
+    
+    grid.innerHTML = "";
+    
+    let rawQuestion = quizData[qIndex].question;
+    let displayQuestion = rawQuestion.replace(/<span class='gap-fill-btn'.*?<\/span>/g, "<span style='color: #FF6B6B;'> [ _________ ] </span>");
+    qTextDisplay.innerHTML = `Câu ${parseInt(qIndex) + 1}: ` + displayQuestion;
+
+    const shuffledOptions = shuffleArray([...quizData[qIndex].options]);
+    shuffledOptions.forEach(opt => {
+        const btn = document.createElement("button");
+        btn.className = "btn-option";
+        btn.innerText = opt.t;
+        btn.onclick = () => selectGapOption(opt.t, opt.c, qIndex);
+        grid.appendChild(btn);
+    });
+    
+    popup.style.display = "flex";
+}
+
+function selectGapOption(text, isCorrect, qIndex) {
+    document.getElementById("gapPopup").style.display = "none";
+    const gapBtn = document.querySelector(`.gap-fill-btn[data-id="${qIndex}"]`);
+    
+    gapBtn.innerText = text;
+    
+    if (isCorrect) {
+        gapBtn.classList.add('filled-correct');
+        playDing();
+        fireConfetti();
+        score++;
+    } else {
+        gapBtn.classList.add('filled-wrong');
+        gapBtn.closest('.card').classList.add('shake');
+        playBuzz();
+        setTimeout(() => gapBtn.closest('.card').classList.remove('shake'), 400);
+    }
+    
+    document.getElementById(`exp-${qIndex}`).style.display = "block";
+    answeredCount++;
+}
+
+function submitQuiz() {
+    if (answeredCount < quizData.length) {
+        alert("Em hãy làm hết các câu hỏi mùa hè rồi hẵng nộp bài nha! 🌻");
+        return;
+    }
+    
+    const modal = document.getElementById("resultModal");
+    const scoreDiv = document.getElementById("finalScore");
+    const memeImg = document.getElementById("memeImg");
+    const praiseText = document.getElementById("praiseText");
+    
+    const percentage = score / quizData.length;
+    scoreDiv.innerText = `${score} / ${quizData.length}`;
+    
+    if (percentage === 1) {
+        praiseText.innerText = "TUYỆT VỜI! Em xứng đáng với một ly kem khổng lồ cho sự hoàn hảo này! 🏆🍦";
+        memeImg.src = "https://media.giphy.com/media/11sBLVxNs7v6WA/giphy.gif"; 
+    } else if (percentage >= 0.6) {
+        praiseText.innerText = "Giỏi lắm! Kiến thức của em đã sạc đầy như năng lượng Mặt Trời rồi! 👏☀️";
+        memeImg.src = "https://media.giphy.com/media/3o7abKhOpu0NwenH3O/giphy.gif"; 
+    } else {
+        praiseText.innerText = "Trượt vỏ chuối mất rồi! Nhưng không sao, mình vừa học vừa chơi mà, cố lên nhé! 💪🌴";
+        memeImg.src = "https://media.giphy.com/media/OPU6wzx8JrHna/giphy.gif"; 
+    }
+    
+    modal.style.display = "flex";
+}
+
+const canvas = document.getElementById('confetti');
+const ctx = canvas.getContext('2d');
+let particles = [];
+
+function resizeCanvas() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+}
+window.addEventListener('resize', resizeCanvas);
+resizeCanvas();
+
+function createConfetti() {
+    for (let i = 0; i < 50; i++) {
+        particles.push({
+            x: Math.random() * canvas.width,
+            y: canvas.height + Math.random() * 50,
+            r: Math.random() * 6 + 2,
+            dx: Math.random() * 4 - 2,
+            dy: Math.random() * -10 - 5,
+            color: `hsl(${Math.random() * 360}, 100%, 50%)`,
+            tilt: Math.random() * 10
+        });
+    }
+}
+
+function animateConfetti() {
+    requestAnimationFrame(animateConfetti);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    particles.forEach((p, index) => {
+        p.dy += 0.3; 
+        p.x += p.dx;
+        p.y += p.dy;
+        p.tilt += 0.1;
+        
+        ctx.beginPath();
+        ctx.lineWidth = p.r;
+        ctx.strokeStyle = p.color;
+        ctx.moveTo(p.x + p.tilt + p.r, p.y);
+        ctx.lineTo(p.x + p.tilt, p.y + p.tilt + p.r);
+        ctx.stroke();
+        
+        if (p.y > canvas.height) particles.splice(index, 1);
+    });
+}
+animateConfetti();
+
+function fireConfetti() {
+    createConfetti();
+}
+
+window.onload = renderQuiz;
+
+</script>
+</body>
+</html>

@@ -228,6 +228,90 @@
             opacity: 0.7;
         }
 
+        /* --- STYLES MỚI CHO Ô NHẬP TEXT BÀI 3 --- */
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 15px;
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 15px;
+            border: 2px solid #e1e8ed;
+        }
+        
+        .input-row {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .input-row label {
+            font-weight: 800;
+            color: var(--primary);
+            min-width: 80px;
+        }
+
+        .text-input {
+            flex: 1;
+            padding: 12px 15px;
+            border: 2px solid #dfe4ea;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-family: inherit;
+            outline: none;
+            transition: all 0.3s;
+        }
+
+        .text-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 8px rgba(136, 84, 192, 0.3);
+        }
+
+        .text-input.correct-input {
+            background-color: #d1ffd6;
+            border-color: var(--correct);
+            color: #00994d;
+            font-weight: bold;
+        }
+
+        .text-input.wrong-input {
+            background-color: #ffe0e0;
+            border-color: var(--wrong);
+            color: #cc0000;
+            font-weight: bold;
+        }
+
+        .check-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 15px;
+            font-size: 1.1rem;
+            font-weight: 800;
+            border-radius: 10px;
+            cursor: pointer;
+            box-shadow: 0 4px 0 #5f368c;
+            transition: all 0.2s;
+            margin-top: 5px;
+        }
+
+        .check-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 0 #5f368c;
+        }
+
+        .check-btn:active:not(:disabled) {
+            transform: translateY(4px);
+            box-shadow: 0 0px 0 #5f368c;
+        }
+
+        .check-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        /* --- KẾT THÚC STYLES MỚI --- */
+
         .explanation-box {
             display: none;
             margin-top: 25px;
@@ -365,6 +449,7 @@
             .options-grid { grid-template-columns: 1fr; }
             .theory-section th, .theory-section td { font-size: 0.9rem; padding: 8px; }
             .question-text { font-size: 1.1rem; }
+            .input-row { flex-direction: column; align-items: flex-start; gap: 5px; }
         }
     </style>
 </head>
@@ -440,7 +525,7 @@
     </div>
 
     <script>
-        // WEB AUDIO API cho Gamification (Không cần link file)
+        // WEB AUDIO API cho Gamification
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         
         function playCorrectSound() {
@@ -448,7 +533,7 @@
             const osc = audioCtx.createOscillator();
             const gainNode = audioCtx.createGain();
             osc.type = 'sine';
-            osc.frequency.setValueAtTime(800, audioCtx.currentTime); // Âm cao trong trẻo
+            osc.frequency.setValueAtTime(800, audioCtx.currentTime);
             osc.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.1);
             gainNode.gain.setValueAtTime(0.5, audioCtx.currentTime);
             gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
@@ -463,7 +548,7 @@
             const osc = audioCtx.createOscillator();
             const gainNode = audioCtx.createGain();
             osc.type = 'sawtooth';
-            osc.frequency.setValueAtTime(150, audioCtx.currentTime); // Âm trầm buzz
+            osc.frequency.setValueAtTime(150, audioCtx.currentTime);
             osc.frequency.exponentialRampToValueAtTime(80, audioCtx.currentTime + 0.3);
             gainNode.gain.setValueAtTime(0.5, audioCtx.currentTime);
             gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
@@ -516,471 +601,269 @@
         // TOGGLE THEORY
         function toggleTheory() {
             const content = document.getElementById('theoryContent');
-            if (content.style.display === 'block') {
-                content.style.display = 'none';
-            } else {
-                content.style.display = 'block';
-            }
+            content.style.display = content.style.display === 'block' ? 'none' : 'block';
         }
 
-        // DỮ LIỆU CÂU HỎI VÀ GIẢI THÍCH SIÊU CHI TIẾT
+        // DỮ LIỆU CÂU HỎI VÀ GIẢI THÍCH (Kết hợp Trắc nghiệm & Tự luận)
         const quizData = [
             // BÀI 1: TRẮC NGHIỆM
             {
-                part: "Bài 1: Chọn đáp án đúng nhất (Trắc nghiệm)",
+                type: 'choice', part: "Bài 1: Chọn đáp án đúng nhất (Trắc nghiệm)",
                 text: "Question 1: Mary ______ me that she liked reading books.",
                 options: [
-                    { text: "A. told", correct: true },
-                    { text: "B. said", correct: false },
-                    { text: "C. asked", correct: false },
-                    { text: "D. wondered", correct: false }
+                    { text: "A. told", correct: true }, { text: "B. said", correct: false },
+                    { text: "C. asked", correct: false }, { text: "D. wondered", correct: false }
                 ],
-                exp: `
-                <div class="exp-step"><strong>1. Dịch câu hỏi:</strong> "Mary ______ tôi rằng cô ấy thích đọc sách."</div>
-                <div class="exp-step"><strong>2. Phân tích 4 đáp án:</strong><br>A. told (v): kể, bảo.<br>B. said (v): nói.<br>C. asked (v): hỏi.<br>D. wondered (v): tự hỏi.</div>
-                <div class="exp-step"><strong>3. Tại sao chọn A đúng?</strong> Dựa vào cấu trúc ngữ pháp: Chỗ trống đứng trước tân ngữ chỉ người "me". Theo lý thuyết, động từ <b>"tell"</b> (quá khứ là told) bắt buộc phải đi kèm tân ngữ trực tiếp (told sb that...).</div>
-                <div class="exp-step"><strong>4. Tại sao các đáp án khác sai?</strong><br>- B sai vì "said" không được đi thẳng với tân ngữ (phải là said TO me).<br>- C và D sai vì mệnh đề phía sau là câu trần thuật khẳng định "that she liked...", không phải câu hỏi (if/whether).</div>`
+                exp: `<div class="exp-step"><strong>Giải thích:</strong> Chỗ trống đứng trước tân ngữ "me". Động từ <b>"tell"</b> (told) bắt buộc đi kèm tân ngữ trực tiếp (told sb that...). "said" phải đi với "to me".</div>`
             },
             {
-                part: "Bài 1: Chọn đáp án đúng nhất (Trắc nghiệm)",
+                type: 'choice', part: "Bài 1: Chọn đáp án đúng nhất (Trắc nghiệm)",
                 text: "Question 2: 'I am doing my homework now.' -> He said that he was doing his homework ______.",
                 options: [
-                    { text: "A. now", correct: false },
-                    { text: "B. then", correct: true },
-                    { text: "C. today", correct: false },
-                    { text: "D. the day before", correct: false }
+                    { text: "A. now", correct: false }, { text: "B. then", correct: true },
+                    { text: "C. today", correct: false }, { text: "D. the day before", correct: false }
                 ],
-                exp: `
-                <div class="exp-step"><strong>1. Dịch câu hỏi:</strong> "'Tôi đang làm bài tập bây giờ.' -> Anh ấy nói rằng anh ấy đang làm bài tập ______."</div>
-                <div class="exp-step"><strong>2. Phân tích 4 đáp án:</strong><br>A. now (adv): bây giờ.<br>B. then (adv): lúc đó, khi đó.<br>C. today (adv): hôm nay.<br>D. the day before (adv): ngày hôm trước.</div>
-                <div class="exp-step"><strong>3. Tại sao chọn B đúng?</strong> Quy tắc đổi trạng từ chỉ thời gian trong câu gián tiếp: Từ <b>"now"</b> trong câu trực tiếp bắt buộc phải đổi thành <b>"then"</b>.</div>
-                <div class="exp-step"><strong>4. Tại sao các đáp án khác sai?</strong><br>- A sai vì chưa đổi trạng từ.<br>- C và D sai hoàn toàn về mặt ngữ nghĩa so với từ gốc "now".</div>`
+                exp: `<div class="exp-step"><strong>Giải thích:</strong> Từ <b>"now"</b> trong câu trực tiếp phải đổi thành <b>"then"</b> trong câu gián tiếp.</div>`
             },
             {
-                part: "Bài 1: Chọn đáp án đúng nhất (Trắc nghiệm)",
+                type: 'choice', part: "Bài 1: Chọn đáp án đúng nhất (Trắc nghiệm)",
                 text: "Question 3: The teacher says: 'I have just finished my work.' -> The teacher says that she ______ just finished her work.",
                 options: [
-                    { text: "A. have", correct: false },
-                    { text: "B. had", correct: false },
-                    { text: "C. has", correct: true },
-                    { text: "D. having", correct: false }
+                    { text: "A. have", correct: false }, { text: "B. had", correct: false },
+                    { text: "C. has", correct: true }, { text: "D. having", correct: false }
                 ],
-                exp: `
-                <div class="exp-step"><strong>1. Dịch câu hỏi:</strong> "Giáo viên nói: 'Tôi vừa mới làm xong việc.' -> Giáo viên nói rằng cô ấy ______ vừa mới làm xong việc."</div>
-                <div class="exp-step"><strong>2. Phân tích 4 đáp án:</strong><br>A. have: Trợ động từ HTHT (ngôi I, you, we, they).<br>B. had: Trợ động từ QKHT.<br>C. has: Trợ động từ HTHT (ngôi he, she, it).<br>D. having: V-ing.</div>
-                <div class="exp-step"><strong>3. Tại sao chọn C đúng?</strong> Lưu ý đặc biệt: Động từ tường thuật ở ngoài ngoặc là <b>"says"</b> (thì Hiện tại đơn). Theo quy tắc, khi động từ tường thuật ở hiện tại, ta <b>KHÔNG lùi thì</b> động từ trong ngoặc kép. Thì HTHT giữ nguyên. Chủ ngữ mới là "she" nên dùng "has".</div>
-                <div class="exp-step"><strong>4. Tại sao các đáp án khác sai?</strong><br>- A sai vì "she" không đi với "have".<br>- B sai bẫy lùi thì (không lùi thì vì động từ là says).<br>- D sai cấu trúc ngữ pháp.</div>`
+                exp: `<div class="exp-step"><strong>Giải thích:</strong> Động từ tường thuật ở ngoài ngoặc là <b>"says"</b> (hiện tại đơn) -> <b>KHÔNG lùi thì</b>. Thì HTHT giữ nguyên, chủ ngữ "she" đi với "has".</div>`
             },
             {
-                part: "Bài 1: Chọn đáp án đúng nhất (Trắc nghiệm)",
+                type: 'choice', part: "Bài 1: Chọn đáp án đúng nhất (Trắc nghiệm)",
                 text: "Question 4: He asked me ______ I liked playing soccer.",
                 options: [
-                    { text: "A. what", correct: false },
-                    { text: "B. if", correct: true },
-                    { text: "C. that", correct: false },
-                    { text: "D. who", correct: false }
+                    { text: "A. what", correct: false }, { text: "B. if", correct: true },
+                    { text: "C. that", correct: false }, { text: "D. who", correct: false }
                 ],
-                exp: `
-                <div class="exp-step"><strong>1. Dịch câu hỏi:</strong> "Anh ấy hỏi tôi ______ tôi có thích chơi bóng đá không."</div>
-                <div class="exp-step"><strong>2. Phân tích 4 đáp án:</strong><br>A. what: cái gì.<br>B. if: liệu (có hay không).<br>C. that: rằng.<br>D. who: ai.</div>
-                <div class="exp-step"><strong>3. Tại sao chọn B đúng?</strong> Đây là dạng tường thuật của câu hỏi Yes/No (VD: Do you like playing soccer?). Công thức tường thuật câu hỏi Yes/No là: S + asked + (O) + <b>if / whether</b> + S + V(lùi thì).</div>
-                <div class="exp-step"><strong>4. Tại sao các đáp án khác sai?</strong><br>- C sai vì "that" dùng cho câu kể, không dùng cho câu hỏi (asked).<br>- A và D sai vì đây không phải câu hỏi có từ để hỏi (Wh-questions).</div>`
+                exp: `<div class="exp-step"><strong>Giải thích:</strong> Tường thuật câu hỏi Yes/No có cấu trúc: S + asked + O + <b>if / whether</b> + S + V(lùi thì).</div>`
             },
             {
-                part: "Bài 1: Chọn đáp án đúng nhất (Trắc nghiệm)",
+                type: 'choice', part: "Bài 1: Chọn đáp án đúng nhất (Trắc nghiệm)",
                 text: "Question 5: 'Don't touch this,' she said to him. -> She told him ______ that.",
                 options: [
-                    { text: "A. not touch", correct: false },
-                    { text: "B. to not touch", correct: false },
-                    { text: "C. not to touch", correct: true },
-                    { text: "D. don't touch", correct: false }
+                    { text: "A. not touch", correct: false }, { text: "B. to not touch", correct: false },
+                    { text: "C. not to touch", correct: true }, { text: "D. don't touch", correct: false }
                 ],
-                exp: `
-                <div class="exp-step"><strong>1. Dịch câu hỏi:</strong> "'Đừng chạm vào cái này,' cô ấy nói với anh ta. -> Cô ấy bảo anh ta ______ cái đó."</div>
-                <div class="exp-step"><strong>2. Phân tích 4 đáp án:</strong><br>A. not touch: sai ngữ pháp.<br>B. to not touch: sai vị trí "not".<br>C. not to touch: không được chạm vào.<br>D. don't touch: đừng chạm.</div>
-                <div class="exp-step"><strong>3. Tại sao chọn C đúng?</strong> Đây là tường thuật câu mệnh lệnh phủ định (Don't + V). Công thức là: <b>S + told / asked + O + NOT TO V</b>. Do đó "Don't touch" chuyển thành "not to touch". (Đồng thời 'this' đổi thành 'that').</div>
-                <div class="exp-step"><strong>4. Tại sao các đáp án khác sai?</strong><br>- A, B, D hoàn toàn sai cấu trúc ngữ pháp của câu tường thuật mệnh lệnh. Bẫy hay gặp là chọn B (to not V) nhưng đúng chuẩn phải là (not to V).</div>`
+                exp: `<div class="exp-step"><strong>Giải thích:</strong> Tường thuật câu mệnh lệnh phủ định (Don't + V) có công thức: <b>S + told + O + NOT TO V</b>.</div>`
             },
             {
-                part: "Bài 1: Chọn đáp án đúng nhất (Trắc nghiệm)",
+                type: 'choice', part: "Bài 1: Chọn đáp án đúng nhất (Trắc nghiệm)",
                 text: "Question 6: My mother said that she ______ a new car the following day.",
                 options: [
-                    { text: "A. will buy", correct: false },
-                    { text: "B. would buy", correct: true },
-                    { text: "C. buys", correct: false },
-                    { text: "D. bought", correct: false }
+                    { text: "A. will buy", correct: false }, { text: "B. would buy", correct: true },
+                    { text: "C. buys", correct: false }, { text: "D. bought", correct: false }
                 ],
-                exp: `
-                <div class="exp-step"><strong>1. Dịch câu hỏi:</strong> "Mẹ tôi nói rằng bà ấy ______ một chiếc xe ô tô mới vào ngày hôm sau."</div>
-                <div class="exp-step"><strong>2. Phân tích 4 đáp án:</strong><br>A. will buy: Tương lai đơn.<br>B. would buy: Tương lai trong quá khứ (lùi thì của will).<br>C. buys: Hiện tại đơn.<br>D. bought: Quá khứ đơn.</div>
-                <div class="exp-step"><strong>3. Tại sao chọn B đúng?</strong> Dấu hiệu nhận biết là cụm từ <b>"the following day"</b> (được đổi từ "tomorrow"). Điều này cho thấy câu gốc ở thì Tương lai đơn (will buy). Khi tường thuật, ta lùi "will" thành <b>"would"</b>.</div>
-                <div class="exp-step"><strong>4. Tại sao các đáp án khác sai?</strong><br>- A sai vì chưa lùi thì (động từ tường thuật 'said' ở quá khứ).<br>- C và D sai thì, không phù hợp với trạng từ tương lai "the following day".</div>`
+                exp: `<div class="exp-step"><strong>Giải thích:</strong> "the following day" chứng tỏ câu gốc ở Tương lai đơn (will). Lùi thì "will" thành <b>"would"</b>.</div>`
             },
             {
-                part: "Bài 1: Chọn đáp án đúng nhất (Trắc nghiệm)",
+                type: 'choice', part: "Bài 1: Chọn đáp án đúng nhất (Trắc nghiệm)",
                 text: "Question 7: The science teacher said that the Earth ______ around the Sun.",
                 options: [
-                    { text: "A. goes", correct: true },
-                    { text: "B. went", correct: false },
-                    { text: "C. had gone", correct: false },
-                    { text: "D. is going", correct: false }
+                    { text: "A. goes", correct: true }, { text: "B. went", correct: false },
+                    { text: "C. had gone", correct: false }, { text: "D. is going", correct: false }
                 ],
-                exp: `
-                <div class="exp-step"><strong>1. Dịch câu hỏi:</strong> "Giáo viên khoa học nói rằng Trái Đất ______ quanh Mặt Trời."</div>
-                <div class="exp-step"><strong>2. Phân tích 4 đáp án:</strong><br>A. goes: Hiện tại đơn.<br>B. went: Quá khứ đơn.<br>C. had gone: Quá khứ hoàn thành.<br>D. is going: Hiện tại tiếp diễn.</div>
-                <div class="exp-step"><strong>3. Tại sao chọn A đúng?</strong> "Trái Đất quay quanh Mặt Trời" là <b>một sự thật hiển nhiên, một chân lý khoa học</b>. Theo quy tắc ngoại lệ, ta <b>KHÔNG lùi thì</b> đối với những câu diễn tả chân lý, luôn giữ ở thì Hiện tại đơn (goes).</div>
-                <div class="exp-step"><strong>4. Tại sao các đáp án khác sai?</strong><br>- B và C là những bẫy lùi thì thông thường (Học sinh thấy 'said' sẽ lùi thì, nhưng quên ngoại lệ này).<br>- D sai thì ngữ cảnh.</div>`
+                exp: `<div class="exp-step"><strong>Giải thích:</strong> "Trái Đất quay quanh Mặt Trời" là <b>sự thật hiển nhiên</b> -> <b>KHÔNG lùi thì</b>, luôn giữ ở Hiện tại đơn.</div>`
             },
             {
-                part: "Bài 1: Chọn đáp án đúng nhất (Trắc nghiệm)",
+                type: 'choice', part: "Bài 1: Chọn đáp án đúng nhất (Trắc nghiệm)",
                 text: "Question 8: She asked him where ______.",
                 options: [
-                    { text: "A. did he live", correct: false },
-                    { text: "B. he lived", correct: true },
-                    { text: "C. does he live", correct: false },
-                    { text: "D. he lives", correct: false }
+                    { text: "A. did he live", correct: false }, { text: "B. he lived", correct: true },
+                    { text: "C. does he live", correct: false }, { text: "D. he lives", correct: false }
                 ],
-                exp: `
-                <div class="exp-step"><strong>1. Dịch câu hỏi:</strong> "Cô ấy hỏi anh ta rằng anh ta sống ở đâu."</div>
-                <div class="exp-step"><strong>2. Phân tích 4 đáp án:</strong><br>A. did he live: dạng câu hỏi quá khứ (đảo ngữ).<br>B. he lived: chủ ngữ + V quá khứ (lùi thì, không đảo ngữ).<br>C. does he live: dạng câu hỏi hiện tại.<br>D. he lives: chủ ngữ + V hiện tại.</div>
-                <div class="exp-step"><strong>3. Tại sao chọn B đúng?</strong> Công thức tường thuật câu hỏi có từ để hỏi: S + asked + O + Wh-word + <b>S + V (lùi thì)</b>. Lưu ý cực kỳ quan trọng: Trong câu gián tiếp, ta <b>KHÔNG dùng dạng đảo ngữ</b> (không mượn trợ động từ do/does/did đưa lên trước chủ ngữ). Chủ ngữ "he" phải đứng trước động từ lùi thì "lived".</div>
-                <div class="exp-step"><strong>4. Tại sao các đáp án khác sai?</strong><br>- A và C sai vì mắc lỗi mượn trợ động từ đảo ngữ.<br>- D sai vì chưa lùi thì (vẫn ở hiện tại).</div>`
+                exp: `<div class="exp-step"><strong>Giải thích:</strong> Câu hỏi gián tiếp <b>KHÔNG mượn trợ động từ đảo ngữ</b>. Cấu trúc là Wh-word + <b>S + V(lùi thì)</b>.</div>`
             },
             {
-                part: "Bài 1: Chọn đáp án đúng nhất (Trắc nghiệm)",
+                type: 'choice', part: "Bài 1: Chọn đáp án đúng nhất (Trắc nghiệm)",
                 text: "Question 9: 'You mustn't make noise here,' she said to me. -> She said that I ______ make noise ______.",
                 options: [
-                    { text: "A. didn't have to / here", correct: false },
-                    { text: "B. mustn't / there", correct: true },
-                    { text: "C. mustn't / here", correct: false },
-                    { text: "D. hadn't to / there", correct: false }
+                    { text: "A. didn't have to / here", correct: false }, { text: "B. mustn't / there", correct: true },
+                    { text: "C. mustn't / here", correct: false }, { text: "D. hadn't to / there", correct: false }
                 ],
-                exp: `
-                <div class="exp-step"><strong>1. Dịch câu hỏi:</strong> "'Bạn không được phép làm ồn ở đây,' cô ấy nói với tôi. -> Cô ấy nói rằng tôi ______ làm ồn ______."</div>
-                <div class="exp-step"><strong>2. Phân tích 4 đáp án:</strong><br>A. didn't have to / here.<br>B. mustn't / there.<br>C. mustn't / here.<br>D. hadn't to / there.</div>
-                <div class="exp-step"><strong>3. Tại sao chọn B đúng?</strong> Có 2 bước cần xử lý: <br>1. "mustn't" chỉ sự cấm đoán, khi tường thuật <b>giữ nguyên là mustn't</b> (không đổi thành didn't have to - vì didn't have to mang nghĩa là 'không cần thiết phải làm', sai nghĩa cấm đoán).<br>2. Trạng từ chỉ nơi chốn "here" bắt buộc đổi thành <b>"there"</b>.</div>
-                <div class="exp-step"><strong>4. Tại sao các đáp án khác sai?</strong><br>- A sai cả nghĩa động từ và chưa đổi trạng từ.<br>- C sai vì chưa đổi "here" thành "there".<br>- D sai vì "hadn't to" không tồn tại trong tiếng Anh chuẩn (phải là didn't have to, nhưng vẫn sai nghĩa).</div>`
+                exp: `<div class="exp-step"><strong>Giải thích:</strong> "mustn't" chỉ sự cấm đoán thì <b>giữ nguyên</b>. Trạng từ "here" bắt buộc đổi thành <b>"there"</b>.</div>`
             },
             {
-                part: "Bài 1: Chọn đáp án đúng nhất (Trắc nghiệm)",
+                type: 'choice', part: "Bài 1: Chọn đáp án đúng nhất (Trắc nghiệm)",
                 text: "Question 10: Karina ______ that she couldn't put her spacesuit on quickly.",
                 options: [
-                    { text: "A. told", correct: false },
-                    { text: "B. said", correct: true },
-                    { text: "C. asked", correct: false },
-                    { text: "D. wanted to know", correct: false }
+                    { text: "A. told", correct: false }, { text: "B. said", correct: true },
+                    { text: "C. asked", correct: false }, { text: "D. wanted to know", correct: false }
                 ],
-                exp: `
-                <div class="exp-step"><strong>1. Dịch câu hỏi:</strong> "Karina ______ rằng cô ấy không thể mặc bộ đồ vũ trụ một cách nhanh chóng."</div>
-                <div class="exp-step"><strong>2. Phân tích 4 đáp án:</strong><br>A. told (v): kể (cần tân ngữ).<br>B. said (v): nói.<br>C. asked (v): hỏi.<br>D. wanted to know (v): muốn biết.</div>
-                <div class="exp-step"><strong>3. Tại sao chọn B đúng?</strong> Nhìn ngay sau chỗ trống là chữ "that", <b>không có tân ngữ chỉ người</b>. Theo lý thuyết, cấu trúc là <b>S + said + that</b> (nói cái gì đó). </div>
-                <div class="exp-step"><strong>4. Tại sao các đáp án khác sai?</strong><br>- A sai vì "told" bắt buộc phải có tân ngữ ngay sau nó (Ví dụ: told ME that).<br>- C và D sai vì đây là câu kể, không phải câu hỏi (nếu dùng C, D thì phía sau phải là if/whether hoặc từ để hỏi).</div>`
+                exp: `<div class="exp-step"><strong>Giải thích:</strong> Nhìn sau chỗ trống là "that" (không có tân ngữ người). Cấu trúc đúng là <b>S + said + that</b>.</div>`
             },
-            // BÀI 2: ĐIỀN TỪ (Chuyển đổi từ Tự luận sang Điền khuyết Dropdown mô phỏng)
+
+            // BÀI 2: ĐIỀN TỪ
             {
-                part: "Bài 2: Viết lại câu (Chọn cụm từ đúng để điền vào chỗ trống)",
+                type: 'choice', part: "Bài 2: Viết lại câu",
                 text: "Question 11: Peter said: 'I live in a big city.'<br>=> Peter said (that) he ______ in a big city.",
                 options: [
-                    { text: "A. live", correct: false },
-                    { text: "B. lived", correct: true },
-                    { text: "C. has lived", correct: false },
-                    { text: "D. living", correct: false }
+                    { text: "A. live", correct: false }, { text: "B. lived", correct: true },
+                    { text: "C. has lived", correct: false }, { text: "D. living", correct: false }
                 ],
-                exp: `
-                <div class="exp-step"><strong>1. Dịch:</strong> "Peter nói: 'Tôi sống ở một thành phố lớn.' => Peter nói rằng anh ấy sống ở một thành phố lớn."</div>
-                <div class="exp-step"><strong>2. Phân tích:</strong> Động từ gốc "live" (Hiện tại đơn) khi tường thuật phải lùi 1 thì về Quá khứ đơn (V2/ed).</div>
-                <div class="exp-step"><strong>3. Tại sao chọn B?</strong> "lived" là dạng quá khứ đơn của "live", chuẩn quy tắc lùi thì.</div>
-                <div class="exp-step"><strong>4. Đáp án khác sai vì:</strong> Chưa lùi thì (A, D) hoặc lùi sai thì (C).</div>`
+                exp: `<div class="exp-step">Hiện tại đơn (live) lùi về Quá khứ đơn (lived).</div>`
             },
             {
-                part: "Bài 2: Viết lại câu",
+                type: 'choice', part: "Bài 2: Viết lại câu",
                 text: "Question 12: He said: 'Someone has stolen my bag.'<br>=> He said (that) someone ______ bag.",
                 options: [
-                    { text: "A. has stolen my", correct: false },
-                    { text: "B. had stolen my", correct: false },
-                    { text: "C. had stolen his", correct: true },
-                    { text: "D. stole his", correct: false }
+                    { text: "A. has stolen my", correct: false }, { text: "B. had stolen my", correct: false },
+                    { text: "C. had stolen his", correct: true }, { text: "D. stole his", correct: false }
                 ],
-                exp: `
-                <div class="exp-step"><strong>1. Dịch:</strong> "Anh ấy nói: 'Ai đó đã trộm túi của tôi.' => Anh ấy nói rằng ai đó đã trộm túi của anh ấy."</div>
-                <div class="exp-step"><strong>2. Phân tích:</strong> Thì Hiện tại hoàn thành (has stolen) lùi về Quá khứ hoàn thành (had stolen). Tính từ sở hữu "my" (của tôi - người nói là He) phải đổi thành "his" (của anh ấy).</div>
-                <div class="exp-step"><strong>3. Tại sao chọn C?</strong> "had stolen his" thỏa mãn cả 2 điều kiện: Lùi thì đúng và đổi tính từ sở hữu đúng.</div>
-                <div class="exp-step"><strong>4. Đáp án khác sai vì:</strong> A (chưa lùi thì, chưa đổi my), B (chưa đổi my), D (lùi sai thành Quá khứ đơn).</div>`
+                exp: `<div class="exp-step">HTHT (has stolen) lùi về QKHT (had stolen). Tính từ sở hữu "my" đổi thành "his".</div>`
             },
             {
-                part: "Bài 2: Viết lại câu",
+                type: 'choice', part: "Bài 2: Viết lại câu",
                 text: "Question 13: The teacher said to us: 'Open your books.'<br>=> The teacher told us ______.",
                 options: [
-                    { text: "A. open our books", correct: false },
-                    { text: "B. to open your books", correct: false },
-                    { text: "C. opening our books", correct: false },
-                    { text: "D. to open our books", correct: true }
+                    { text: "A. open our books", correct: false }, { text: "B. to open your books", correct: false },
+                    { text: "C. opening our books", correct: false }, { text: "D. to open our books", correct: true }
                 ],
-                exp: `
-                <div class="exp-step"><strong>1. Dịch:</strong> "Giáo viên nói với chúng tôi: 'Mở sách của các em ra.' => Giáo viên bảo chúng tôi mở sách của chúng tôi ra."</div>
-                <div class="exp-step"><strong>2. Phân tích:</strong> Đây là câu mệnh lệnh. Cấu trúc: told + O + <b>to V</b>. "your" (của các bạn) chuyển theo tân ngữ "us" (chúng tôi) thành "our" (của chúng tôi).</div>
-                <div class="exp-step"><strong>3. Tại sao chọn D?</strong> Dùng "to open" và đổi "your" thành "our".</div>
-                <div class="exp-step"><strong>4. Đáp án khác sai vì:</strong> A thiếu "to", B chưa đổi "your", C sai cấu trúc mệnh lệnh (dùng V-ing).</div>`
+                exp: `<div class="exp-step">Câu mệnh lệnh: told + O + <b>to V</b>. "your" chuyển theo "us" thành "our".</div>`
             },
             {
-                part: "Bài 2: Viết lại câu",
+                type: 'choice', part: "Bài 2: Viết lại câu",
                 text: "Question 14: 'Did you go with your mother yesterday?' he asked me.<br>=> He asked me ______.",
                 options: [
-                    { text: "A. if I went with my mother yesterday", correct: false },
-                    { text: "B. whether I had gone with my mother the day before", correct: true },
-                    { text: "C. did I go with my mother the previous day", correct: false },
-                    { text: "D. if I had gone with your mother the day before", correct: false }
+                    { text: "A. if I went with my mother yesterday", correct: false }, { text: "B. whether I had gone with my mother the day before", correct: true },
+                    { text: "C. did I go with my mother the previous day", correct: false }, { text: "D. if I had gone with your mother the day before", correct: false }
                 ],
-                exp: `
-                <div class="exp-step"><strong>1. Dịch:</strong> "'Bạn có đi với mẹ hôm qua không?' anh ấy hỏi tôi. => Anh ấy hỏi tôi liệu tôi đã đi với mẹ vào ngày hôm trước không."</div>
-                <div class="exp-step"><strong>2. Phân tích:</strong> 1. Dùng if/whether. 2. Đổi ngôi: you -> I, your -> my. 3. Lùi thì: QKĐ (did go) -> QKHT (had gone). 4. Đổi trạng từ: yesterday -> the day before. 5. KHÔNG đảo ngữ.</div>
-                <div class="exp-step"><strong>3. Tại sao chọn B?</strong> Thỏa mãn đủ 5 yếu tố biến đổi phức tạp trên.</div>
-                <div class="exp-step"><strong>4. Đáp án khác sai vì:</strong> A (chưa lùi thì, chưa đổi trạng từ), C (còn giữ đảo ngữ 'did I go'), D (chưa đổi 'your' thành 'my').</div>`
+                exp: `<div class="exp-step">Dùng if/whether. Đổi you->I, your->my. Lùi thì QKĐ->QKHT (had gone). Đổi yesterday -> the day before. Không đảo ngữ.</div>`
             },
             {
-                part: "Bài 2: Viết lại câu",
+                type: 'choice', part: "Bài 2: Viết lại câu",
                 text: "Question 15: 'What kind of shoes do you like?' Tom asked me.<br>=> Tom asked me ______.",
                 options: [
-                    { text: "A. what kind of shoes do I like", correct: false },
-                    { text: "B. what kind of shoes I liked", correct: true },
-                    { text: "C. what kind of shoes I like", correct: false },
-                    { text: "D. what kind of shoes did I like", correct: false }
+                    { text: "A. what kind of shoes do I like", correct: false }, { text: "B. what kind of shoes I liked", correct: true },
+                    { text: "C. what kind of shoes I like", correct: false }, { text: "D. what kind of shoes did I like", correct: false }
                 ],
-                exp: `
-                <div class="exp-step"><strong>1. Dịch:</strong> "Tom hỏi tôi: 'Bạn thích loại giày nào?' => Tom hỏi tôi loại giày nào mà tôi thích."</div>
-                <div class="exp-step"><strong>2. Phân tích:</strong> Từ để hỏi giữ nguyên. Lùi thì Hiện tại đơn (do like) -> Quá khứ đơn (liked). Quan trọng nhất: Đưa về dạng S + V (không đảo trợ động từ lên trước).</div>
-                <div class="exp-step"><strong>3. Tại sao chọn B?</strong> "what kind of shoes" (từ để hỏi) + "I" (chủ ngữ) + "liked" (động từ lùi thì).</div>
-                <div class="exp-step"><strong>4. Đáp án khác sai vì:</strong> A và D dính bẫy đảo ngữ (câu gián tiếp không mượn trợ động từ do/did), C chưa lùi thì.</div>`
+                exp: `<div class="exp-step">Từ để hỏi + S + V(lùi thì). Lùi "do like" thành "liked". Không đảo trợ động từ.</div>`
             },
             {
-                part: "Bài 2: Viết lại câu",
+                type: 'choice', part: "Bài 2: Viết lại câu",
                 text: "Question 16: Mary said: 'I can't come on time today.'<br>=> Mary said (that) she ______ on time ______.",
                 options: [
-                    { text: "A. can't come / that day", correct: false },
-                    { text: "B. couldn't come / today", correct: false },
-                    { text: "C. couldn't came / that day", correct: false },
-                    { text: "D. couldn't come / that day", correct: true }
+                    { text: "A. can't come / that day", correct: false }, { text: "B. couldn't come / today", correct: false },
+                    { text: "C. couldn't came / that day", correct: false }, { text: "D. couldn't come / that day", correct: true }
                 ],
-                exp: `
-                <div class="exp-step"><strong>1. Dịch:</strong> "Mary nói: 'Tôi không thể đến đúng giờ hôm nay.' => Mary nói rằng cô ấy không thể đến đúng giờ ngày hôm đó."</div>
-                <div class="exp-step"><strong>2. Phân tích:</strong> Động từ khuyết thiếu "can't" lùi thành "couldn't" (động từ chính come vẫn giữ nguyên V nguyên thể). Trạng từ "today" đổi thành "that day".</div>
-                <div class="exp-step"><strong>3. Tại sao chọn D?</strong> Lùi "can't" -> "couldn't come" và "today" -> "that day" cực chuẩn.</div>
-                <div class="exp-step"><strong>4. Đáp án khác sai vì:</strong> A chưa lùi can't, B chưa đổi today, C sai cấu trúc (sau could phải là V nguyên thể come, không phải came).</div>`
+                exp: `<div class="exp-step">Lùi "can't" thành "couldn't" (động từ sau giữ nguyên thể). "today" đổi thành "that day".</div>`
             },
             {
-                part: "Bài 2: Viết lại câu",
+                type: 'choice', part: "Bài 2: Viết lại câu",
                 text: "Question 17: Peter said: 'We used to go fishing in the afternoon.'<br>=> Peter said (that) ______.",
                 options: [
-                    { text: "A. they had used to go fishing in the afternoon", correct: false },
-                    { text: "B. we used to go fishing in the afternoon", correct: false },
-                    { text: "C. they used to go fishing in the afternoon", correct: true },
-                    { text: "D. they used to went fishing in the afternoon", correct: false }
+                    { text: "A. they had used to go fishing in the afternoon", correct: false }, { text: "B. we used to go fishing in the afternoon", correct: false },
+                    { text: "C. they used to go fishing in the afternoon", correct: true }, { text: "D. they used to went fishing in the afternoon", correct: false }
                 ],
-                exp: `
-                <div class="exp-step"><strong>1. Dịch:</strong> "Peter nói: 'Chúng tôi từng đi câu cá vào buổi chiều.' => Peter nói rằng họ từng đi câu cá vào buổi chiều."</div>
-                <div class="exp-step"><strong>2. Phân tích:</strong> Đổi ngôi: "We" -> "They". Lưu ý lý thuyết: Khi câu trực tiếp có cụm <b>"used to"</b>, ta <b>KHÔNG lùi thì</b>, giữ nguyên.</div>
-                <div class="exp-step"><strong>3. Tại sao chọn C?</strong> Đổi đúng ngôi We thành They, và giữ nguyên cụm "used to go".</div>
-                <div class="exp-step"><strong>4. Đáp án khác sai vì:</strong> A lùi thì sai nguyên tắc (had used to là sai), B chưa đổi ngôi "we", D sai ngữ pháp (sau used to là V nguyên thể).</div>`
+                exp: `<div class="exp-step">Đổi "We"->"They". Cụm <b>"used to"</b> thì <b>KHÔNG lùi thì</b>, giữ nguyên.</div>`
             },
             {
-                part: "Bài 2: Viết lại câu",
+                type: 'choice', part: "Bài 2: Viết lại câu",
                 text: "Question 18: Huong said: 'We are going to have a party next weekend.'<br>=> Huong said (that) they ______ a party ______.",
                 options: [
-                    { text: "A. are going to have / the following weekend", correct: false },
-                    { text: "B. were going to have / next weekend", correct: false },
-                    { text: "C. was going to have / the following weekend", correct: false },
-                    { text: "D. were going to have / the following weekend", correct: true }
+                    { text: "A. are going to have / the following weekend", correct: false }, { text: "B. were going to have / next weekend", correct: false },
+                    { text: "C. was going to have / the following weekend", correct: false }, { text: "D. were going to have / the following weekend", correct: true }
                 ],
-                exp: `
-                <div class="exp-step"><strong>1. Dịch:</strong> "Hương nói: 'Chúng tôi dự định tổ chức tiệc vào cuối tuần tới.' => Hương nói rằng họ dự định tổ chức tiệc vào cuối tuần sau đó."</div>
-                <div class="exp-step"><strong>2. Phân tích:</strong> Thì tương lai gần (are going to) lùi thành Quá khứ tương lai gần (was/were going to). Chủ ngữ "they" đi với "were". "next weekend" đổi thành "the next/following weekend".</div>
-                <div class="exp-step"><strong>3. Tại sao chọn D?</strong> Lùi "are" thành "were" chuẩn với "they", trạng từ đổi đúng thành "the following weekend".</div>
-                <div class="exp-step"><strong>4. Đáp án khác sai vì:</strong> A chưa lùi thì. B chưa đổi trạng từ. C chia sai động từ to be (they phải đi với were, không phải was).</div>`
+                exp: `<div class="exp-step">Lùi "are" thành "were". "next weekend" đổi thành "the following weekend".</div>`
             },
             {
-                part: "Bài 2: Viết lại câu",
+                type: 'choice', part: "Bài 2: Viết lại câu",
                 text: "Question 19: 'Shall I wear this?' I asked mum.<br>=> I asked mum if I ______ wear ______.",
                 options: [
-                    { text: "A. shall / that", correct: false },
-                    { text: "B. should / that", correct: true },
-                    { text: "C. should / this", correct: false },
-                    { text: "D. would / that", correct: false }
+                    { text: "A. shall / that", correct: false }, { text: "B. should / that", correct: true },
+                    { text: "C. should / this", correct: false }, { text: "D. would / that", correct: false }
                 ],
-                exp: `
-                <div class="exp-step"><strong>1. Dịch:</strong> "'Con có nên mặc cái này không?' Tôi hỏi mẹ. => Tôi hỏi mẹ liệu tôi có nên mặc cái đó không."</div>
-                <div class="exp-step"><strong>2. Phân tích:</strong> Lùi Modal verb: "Shall" trong câu xin lời khuyên thường được lùi thành "should". Đại từ chỉ định "this" đổi thành "that".</div>
-                <div class="exp-step"><strong>3. Tại sao chọn B?</strong> Đã lùi "shall" thành "should" và đổi "this" thành "that".</div>
-                <div class="exp-step"><strong>4. Đáp án khác sai vì:</strong> A chưa lùi thì. C chưa đổi "this". D dùng "would" (thường shall lùi thành should khi mang ý nghĩa khuyên nhủ/hỏi ý kiến).</div>`
+                exp: `<div class="exp-step">"Shall" diễn tả xin lời khuyên lùi thành "should". "this" đổi thành "that".</div>`
             },
             {
-                part: "Bài 2: Viết lại câu",
+                type: 'choice', part: "Bài 2: Viết lại câu",
                 text: "Question 20: Peter said: 'I will do it by myself.'<br>=> Peter said (that) he ______ do it by ______.",
                 options: [
-                    { text: "A. will / himself", correct: false },
-                    { text: "B. would / myself", correct: false },
-                    { text: "C. would / himself", correct: true },
-                    { text: "D. would / themselves", correct: false }
+                    { text: "A. will / himself", correct: false }, { text: "B. would / myself", correct: false },
+                    { text: "C. would / himself", correct: true }, { text: "D. would / themselves", correct: false }
                 ],
-                exp: `
-                <div class="exp-step"><strong>1. Dịch:</strong> "Peter nói: 'Tôi sẽ tự mình làm việc đó.' => Peter nói rằng anh ấy sẽ tự mình làm việc đó."</div>
-                <div class="exp-step"><strong>2. Phân tích:</strong> Lùi thì: "will" -> "would". Đổi đại từ phản thân: "myself" (tự tôi) phải chuyển theo chủ ngữ "he" thành "himself" (tự anh ấy).</div>
-                <div class="exp-step"><strong>3. Tại sao chọn C?</strong> Lùi thì đúng và đổi đại từ phản thân đồng nhất với chủ ngữ "he".</div>
-                <div class="exp-step"><strong>4. Đáp án khác sai vì:</strong> A chưa lùi thì. B chưa đổi đại từ phản thân. D đổi sai đại từ (themselves là của họ).</div>`
+                exp: `<div class="exp-step">Lùi "will"->"would". "myself" chuyển theo "he" thành "himself".</div>`
             },
-            // BÀI 3: TÌM LỖI SAI (Mô phỏng 10 câu)
+
+            // BÀI 3: TÌM LỖI SAI (CHUYỂN SANG DẠNG ĐIỀN CHỮ)
             {
-                part: "Bài 3: Tìm và sửa lỗi sai",
-                text: "Question 21: She <u>told</u> that her school had a uniform.<br>Tìm lỗi sai và chọn cách sửa đúng nhất:",
-                options: [
-                    { text: "A. told -> told me / said", correct: true },
-                    { text: "B. that -> if", correct: false },
-                    { text: "C. had -> has", correct: false },
-                    { text: "D. a uniform -> uniforms", correct: false }
-                ],
-                exp: `
-                <div class="exp-step"><strong>1. Dịch:</strong> "Cô ấy kể/nói rằng trường của cô ấy có đồng phục."</div>
-                <div class="exp-step"><strong>2. Phân tích:</strong> Theo lý thuyết "Phân biệt Tell và Say": Động từ "tell" (told) bắt buộc phải có Tân ngữ chỉ người đứng ngay sau nó (Ví dụ: told ME that). Ở đây chỉ có "told that" là sai ngữ pháp nghiêm trọng.</div>
-                <div class="exp-step"><strong>3. Tại sao chọn A đúng?</strong> Phải sửa "told" thành "said" (vì said that là đúng), hoặc thêm tân ngữ vào thành "told me".</div>
-                <div class="exp-step"><strong>4. Các đáp án khác sai:</strong> Không giải quyết được lỗi sai chính của câu.</div>`
+                type: 'text', part: "Bài 3: Tìm và Sửa Lỗi Sai (Tự luận)",
+                text: "Question 21: She told that her school had a uniform.",
+                mistake: ["told"],
+                correction: ["said", "told me"],
+                exp: `<div class="exp-step"><strong>Giải thích:</strong> "tell" (told) bắt buộc phải có Tân ngữ chỉ người ngay sau nó (Ví dụ: told ME that). Nên sửa "told" thành "said" hoặc "told me".</div>`
             },
             {
-                part: "Bài 3: Tìm và sửa lỗi sai",
-                text: "Question 22: He asked me <u>run</u> faster.",
-                options: [
-                    { text: "A. asked -> said", correct: false },
-                    { text: "B. me -> I", correct: false },
-                    { text: "C. run -> to run", correct: true },
-                    { text: "D. faster -> fast", correct: false }
-                ],
-                exp: `
-                <div class="exp-step"><strong>1. Dịch:</strong> "Anh ấy yêu cầu tôi chạy nhanh hơn."</div>
-                <div class="exp-step"><strong>2. Phân tích:</strong> Đây là tường thuật câu mệnh lệnh. Cấu trúc là: S + asked/told + O + <b>to V</b>.</div>
-                <div class="exp-step"><strong>3. Tại sao chọn C đúng?</strong> Chữ "run" đang để ở dạng nguyên thể không "to" là sai cấu trúc, phải sửa thành "to run".</div>
-                <div class="exp-step"><strong>4. Các đáp án khác sai:</strong> Không chỉ ra đúng lỗi ngữ pháp cơ bản của câu mệnh lệnh gián tiếp.</div>`
+                type: 'text', part: "Bài 3: Tìm và Sửa Lỗi Sai (Tự luận)",
+                text: "Question 22: He asked me run faster.",
+                mistake: ["run"],
+                correction: ["to run"],
+                exp: `<div class="exp-step"><strong>Giải thích:</strong> Tường thuật câu mệnh lệnh: S + asked + O + <b>to V</b>. Chữ "run" phải đổi thành "to run".</div>`
             },
             {
-                part: "Bài 3: Tìm và sửa lỗi sai",
-                text: "Question 23: She wanted to know <u>me</u> if I had done my homework.",
-                options: [
-                    { text: "A. wanted to know -> asked", correct: false },
-                    { text: "B. me -> (Bỏ chữ me)", correct: true },
-                    { text: "C. if -> that", correct: false },
-                    { text: "D. had done -> did", correct: false }
-                ],
-                exp: `
-                <div class="exp-step"><strong>1. Dịch:</strong> "Cô ấy muốn biết liệu tôi đã làm bài tập về nhà chưa."</div>
-                <div class="exp-step"><strong>2. Phân tích:</strong> Theo lý thuyết: Cụm từ "wanted to know" (muốn biết) và "wondered" (tự hỏi) <b>tuyệt đối KHÔNG đi kèm tân ngữ chỉ người</b> ngay phía sau.</div>
-                <div class="exp-step"><strong>3. Tại sao chọn B đúng?</strong> Thừa chữ "me". Phải bỏ nó đi. Cấu trúc chuẩn là: wanted to know if...</div>
-                <div class="exp-step"><strong>4. Các đáp án khác sai:</strong> A không sai nhưng không phải lỗi duy nhất, C sai vì câu hỏi phải dùng if/whether, D sai lùi thì.</div>`
+                type: 'text', part: "Bài 3: Tìm và Sửa Lỗi Sai (Tự luận)",
+                text: "Question 23: She wanted to know me if I had done my homework.<br><small><i>(Gợi ý: Nếu có từ bị thừa, ô Sửa lại hãy để trống)</i></small>",
+                mistake: ["me", "know me"],
+                correction: ["", "bỏ", "x"],
+                exp: `<div class="exp-step"><strong>Giải thích:</strong> Cụm "wanted to know" và "wondered" <b>KHÔNG</b> đi kèm tân ngữ chỉ người. Từ "me" bị thừa.</div>`
             },
             {
-                part: "Bài 3: Tìm và sửa lỗi sai",
-                text: "Question 24: He said that he <u>will</u> call me that night.",
-                options: [
-                    { text: "A. said -> told", correct: false },
-                    { text: "B. that -> if", correct: false },
-                    { text: "C. will -> would", correct: true },
-                    { text: "D. that night -> tonight", correct: false }
-                ],
-                exp: `
-                <div class="exp-step"><strong>1. Dịch:</strong> "Anh ấy nói rằng anh ấy sẽ gọi tôi vào tối đó."</div>
-                <div class="exp-step"><strong>2. Phân tích:</strong> Động từ tường thuật "said" ở quá khứ, nên mệnh đề phía sau bắt buộc phải lùi thì. Động từ "will" đang ở thì hiện tại/tương lai.</div>
-                <div class="exp-step"><strong>3. Tại sao chọn C đúng?</strong> Phải lùi "will" thành "would" theo đúng quy tắc lùi thì.</div>
-                <div class="exp-step"><strong>4. Các đáp án khác sai:</strong> A (said that là đúng rồi), B (câu kể không dùng if), D (không được lùi ngược trạng từ về trực tiếp).</div>`
+                type: 'text', part: "Bài 3: Tìm và Sửa Lỗi Sai (Tự luận)",
+                text: "Question 24: He said that he will call me that night.",
+                mistake: ["will"],
+                correction: ["would"],
+                exp: `<div class="exp-step"><strong>Giải thích:</strong> Động từ tường thuật "said" ở quá khứ, nên bắt buộc phải lùi thì "will" thành "would".</div>`
             },
             {
-                part: "Bài 3: Tìm và sửa lỗi sai",
-                text: "Question 25: The little boy said that mother's mother <u>was</u> grandmother.",
-                options: [
-                    { text: "A. said -> asked", correct: false },
-                    { text: "B. that -> (bỏ that)", correct: false },
-                    { text: "C. mother's mother -> mother of mother", correct: false },
-                    { text: "D. was -> is", correct: true }
-                ],
-                exp: `
-                <div class="exp-step"><strong>1. Dịch:</strong> "Cậu bé nói rằng mẹ của mẹ là bà ngoại."</div>
-                <div class="exp-step"><strong>2. Phân tích:</strong> "Mẹ của mẹ là bà" là một <b>sự thật hiển nhiên/chân lý</b>. Theo quy tắc ngoại lệ, không được lùi thì đối với sự thật hiển nhiên.</div>
-                <div class="exp-step"><strong>3. Tại sao chọn D đúng?</strong> Động từ to be phải giữ ở hiện tại là "is", không lùi thành "was".</div>
-                <div class="exp-step"><strong>4. Các đáp án khác sai:</strong> Không nhận ra được ngoại lệ của sự thật hiển nhiên.</div>`
+                type: 'text', part: "Bài 3: Tìm và Sửa Lỗi Sai (Tự luận)",
+                text: "Question 25: The little boy said that mother's mother was grandmother.",
+                mistake: ["was"],
+                correction: ["is"],
+                exp: `<div class="exp-step"><strong>Giải thích:</strong> "Mẹ của mẹ là bà" là một <b>sự thật hiển nhiên/chân lý</b> -> Ngoại lệ không được lùi thì.</div>`
             },
             {
-                part: "Bài 3: Tìm và sửa lỗi sai",
-                text: "Question 26: She asked me what <u>was my name</u>.",
-                options: [
-                    { text: "A. asked me -> asked to me", correct: false },
-                    { text: "B. what -> if", correct: false },
-                    { text: "C. was my name -> my name was", correct: true },
-                    { text: "D. name -> names", correct: false }
-                ],
-                exp: `
-                <div class="exp-step"><strong>1. Dịch:</strong> "Cô ấy hỏi tôi tên tôi là gì."</div>
-                <div class="exp-step"><strong>2. Phân tích:</strong> Lỗi kinh điển trong câu hỏi gián tiếp: Câu gián tiếp đóng vai trò như một câu kể, nên <b>KHÔNG được đảo động từ to be (was) lên trước chủ ngữ (my name)</b>. Cấu trúc chuẩn là Wh-word + S + V.</div>
-                <div class="exp-step"><strong>3. Tại sao chọn C đúng?</strong> Phải đổi ngược lại thành chủ ngữ trước động từ: "my name was".</div>
-                <div class="exp-step"><strong>4. Các đáp án khác sai:</strong> Không phát hiện ra lỗi đảo ngữ trái phép trong câu gián tiếp.</div>`
+                type: 'text', part: "Bài 3: Tìm và Sửa Lỗi Sai (Tự luận)",
+                text: "Question 26: She asked me what was my name.",
+                mistake: ["was my name", "was"],
+                correction: ["my name was"],
+                exp: `<div class="exp-step"><strong>Giải thích:</strong> Câu gián tiếp <b>KHÔNG được đảo động từ lên trước chủ ngữ</b>. Cấu trúc chuẩn là Wh-word + S + V (my name was).</div>`
             },
             {
-                part: "Bài 3: Tìm và sửa lỗi sai",
-                text: "Question 27: He said he had been sleeping <u>now</u>.",
-                options: [
-                    { text: "A. said -> asked", correct: false },
-                    { text: "B. had been sleeping -> was sleeping", correct: false },
-                    { text: "C. sleeping -> sleep", correct: false },
-                    { text: "D. now -> then", correct: true }
-                ],
-                exp: `
-                <div class="exp-step"><strong>1. Dịch:</strong> "Anh ấy nói rằng anh ấy đang ngủ lúc đó."</div>
-                <div class="exp-step"><strong>2. Phân tích:</strong> Câu đã được lùi thì từ Hiện tại tiếp diễn sang Quá khứ hoàn thành tiếp diễn (had been sleeping). Tuy nhiên, trạng từ chỉ thời gian "now" lại chưa được biến đổi.</div>
-                <div class="exp-step"><strong>3. Tại sao chọn D đúng?</strong> Bắt buộc phải đổi trạng từ "now" thành "then" trong câu gián tiếp.</div>
-                <div class="exp-step"><strong>4. Các đáp án khác sai:</strong> B sai vì nếu lùi từ was sleeping phải lùi về had been sleeping là đúng rồi.</div>`
+                type: 'text', part: "Bài 3: Tìm và Sửa Lỗi Sai (Tự luận)",
+                text: "Question 27: He said he had been sleeping now.",
+                mistake: ["now"],
+                correction: ["then"],
+                exp: `<div class="exp-step"><strong>Giải thích:</strong> Trong câu tường thuật gián tiếp, trạng từ "now" bắt buộc phải đổi thành "then".</div>`
             },
             {
-                part: "Bài 3: Tìm và sửa lỗi sai",
-                text: "Question 28: 'I must take care of my brother.' -> She said she <u>must</u> take care of her brother.",
-                options: [
-                    { text: "A. must -> had to", correct: true },
-                    { text: "B. take care -> took care", correct: false },
-                    { text: "C. her -> my", correct: false },
-                    { text: "D. brother -> brothers", correct: false }
-                ],
-                exp: `
-                <div class="exp-step"><strong>1. Dịch:</strong> "'Tôi phải chăm sóc em trai.' -> Cô ấy nói cô ấy phải chăm sóc em trai cô ấy."</div>
-                <div class="exp-step"><strong>2. Phân tích:</strong> Động từ khuyết thiếu "must" chỉ sự bắt buộc. Theo bảng lùi thì, "must" khi mang nghĩa bắt buộc phải lùi thành "had to" ở quá khứ.</div>
-                <div class="exp-step"><strong>3. Tại sao chọn A đúng?</strong> Đổi "must" thành "had to". (Lưu ý: mustn't chỉ sự cấm đoán thì mới giữ nguyên, còn must bắt buộc thì phải lùi).</div>
-                <div class="exp-step"><strong>4. Các đáp án khác sai:</strong> B sai vì sau had to là V nguyên thể (không lùi thành took).</div>`
+                type: 'text', part: "Bài 3: Tìm và Sửa Lỗi Sai (Tự luận)",
+                text: "Question 28: 'I must take care of my brother.' -> She said she must take care of her brother.",
+                mistake: ["must"],
+                correction: ["had to"],
+                exp: `<div class="exp-step"><strong>Giải thích:</strong> Động từ khuyết thiếu "must" (chỉ sự bắt buộc) khi lùi thì phải chuyển thành "had to".</div>`
             },
             {
-                part: "Bài 3: Tìm và sửa lỗi sai",
-                text: "Question 29: I asked Jenny if she <u>is making</u> a paper plane.",
-                options: [
-                    { text: "A. asked -> said to", correct: false },
-                    { text: "B. if -> that", correct: false },
-                    { text: "C. is making -> was making", correct: true },
-                    { text: "D. a -> an", correct: false }
-                ],
-                exp: `
-                <div class="exp-step"><strong>1. Dịch:</strong> "Tôi hỏi Jenny liệu cô ấy có đang làm máy bay giấy không."</div>
-                <div class="exp-step"><strong>2. Phân tích:</strong> Động từ tường thuật "asked" chia ở thì Quá khứ đơn, do đó mệnh đề phía sau if bắt buộc phải lùi thì. "is making" đang ở thì Hiện tại tiếp diễn.</div>
-                <div class="exp-step"><strong>3. Tại sao chọn C đúng?</strong> Phải lùi Hiện tại tiếp diễn về Quá khứ tiếp diễn: "was making".</div>
-                <div class="exp-step"><strong>4. Các đáp án khác sai:</strong> Không giải quyết được lỗi chia sai thì cơ bản.</div>`
+                type: 'text', part: "Bài 3: Tìm và Sửa Lỗi Sai (Tự luận)",
+                text: "Question 29: I asked Jenny if she is making a paper plane.",
+                mistake: ["is making", "is"],
+                correction: ["was making", "was"],
+                exp: `<div class="exp-step"><strong>Giải thích:</strong> Động từ tường thuật "asked" chia ở Quá khứ đơn -> phải lùi thì Hiện tại tiếp diễn (is making) về Quá khứ tiếp diễn (was making).</div>`
             },
             {
-                part: "Bài 3: Tìm và sửa lỗi sai",
-                text: "Question 30: Mary said that she had been in the park <u>yesterday</u>.",
-                options: [
-                    { text: "A. said -> asked", correct: false },
-                    { text: "B. that -> if", correct: false },
-                    { text: "C. had been -> was", correct: false },
-                    { text: "D. yesterday -> the day before / the previous day", correct: true }
-                ],
-                exp: `
-                <div class="exp-step"><strong>1. Dịch:</strong> "Mary nói rằng cô ấy đã ở công viên ngày hôm trước."</div>
-                <div class="exp-step"><strong>2. Phân tích:</strong> Câu đã lùi thì hoàn chỉnh sang Quá khứ hoàn thành (had been). Tuy nhiên, lỗi sơ đẳng là quên chưa biến đổi trạng từ chỉ thời gian "yesterday".</div>
-                <div class="exp-step"><strong>3. Tại sao chọn D đúng?</strong> Trong câu gián tiếp, "yesterday" phải biến thành "the day before" hoặc "the previous day".</div>
-                <div class="exp-step"><strong>4. Các đáp án khác sai:</strong> Không chỉ ra được lỗi sai trạng từ. C sai vì "was" là thì Quá khứ đơn, lùi thì thành "had been" là đang đúng rồi.</div>`
+                type: 'text', part: "Bài 3: Tìm và Sửa Lỗi Sai (Tự luận)",
+                text: "Question 30: Mary said that she had been in the park yesterday.",
+                mistake: ["yesterday"],
+                correction: ["the day before", "the previous day"],
+                exp: `<div class="exp-step"><strong>Giải thích:</strong> Quên chưa biến đổi trạng từ chỉ thời gian. "yesterday" phải biến thành "the day before" hoặc "the previous day".</div>`
             }
         ];
 
-        // LOGIC CHẠY TRẮC NGHIỆM
+        // LOGIC CHẠY BÀI
         let currentScore = 0;
         let answeredQuestions = 0;
 
@@ -1002,59 +885,76 @@
                     currentPart = q.part;
                 }
 
-                // Copy and shuffle options
-                let optionsData = [...q.options];
-                // Keep the original text structure (A, B, C, D) inside the data, but shuffle the array objects
-                // Actually, to make it look good, we should remove A, B, C, D text if we shuffle, 
-                // but the prompt asked to shuffle ABCD. We will just shuffle the array.
-                shuffleArray(optionsData);
+                // Nếu là dạng Trắc nghiệm
+                if (!q.type || q.type === 'choice') {
+                    let optionsData = [...q.options];
+                    shuffleArray(optionsData);
 
-                let optionsHtml = '';
-                optionsData.forEach((opt, optIndex) => {
-                    // Xóa chữ A. B. C. D. ở đầu để shuffle không bị lộn xộn chữ cái
-                    let cleanText = opt.text.replace(/^[A-D]\.\s/, '');
-                    let letter = String.fromCharCode(65 + optIndex); // A, B, C, D
-                    
-                    optionsHtml += `
-                        <button class="option-btn" 
-                            id="btn-${qIndex}-${optIndex}"
-                            onclick="checkAnswer(${qIndex}, ${optIndex}, ${opt.correct})">
-                            <b>${letter}.</b>&nbsp; ${cleanText}
-                        </button>
+                    let optionsHtml = '';
+                    optionsData.forEach((opt, optIndex) => {
+                        let cleanText = opt.text.replace(/^[A-D]\.\s/, '');
+                        let letter = String.fromCharCode(65 + optIndex);
+                        optionsHtml += `
+                            <button class="option-btn" 
+                                id="btn-${qIndex}-${optIndex}"
+                                onclick="checkChoiceAnswer(${qIndex}, ${optIndex}, ${opt.correct})">
+                                <b>${letter}.</b>&nbsp; ${cleanText}
+                            </button>
+                        `;
+                    });
+
+                    html += `
+                        <div class="question-card" id="card-${qIndex}">
+                            <div class="question-text">${q.text}</div>
+                            <div class="options-grid">
+                                ${optionsHtml}
+                            </div>
+                            <div class="explanation-box" id="exp-${qIndex}">
+                                <h4>💡 Giải thích chi tiết:</h4>
+                                ${q.exp}
+                            </div>
+                        </div>
                     `;
-                });
-
-                html += `
-                    <div class="question-card" id="card-${qIndex}">
-                        <div class="question-text">${q.text}</div>
-                        <div class="options-grid">
-                            ${optionsHtml}
+                } 
+                // Nếu là dạng Điền từ (Tìm & Sửa lỗi)
+                else if (q.type === 'text') {
+                    html += `
+                        <div class="question-card text-input-card" id="card-${qIndex}">
+                            <div class="question-text">${q.text}</div>
+                            <div class="input-group">
+                                <div class="input-row">
+                                    <label>❌ Lỗi sai:</label>
+                                    <input type="text" id="mistake-${qIndex}" class="text-input" placeholder="Gõ từ bị sai vào đây...">
+                                </div>
+                                <div class="input-row">
+                                    <label>✅ Sửa lại:</label>
+                                    <input type="text" id="correction-${qIndex}" class="text-input" placeholder="Gõ từ đúng vào đây...">
+                                </div>
+                                <button class="check-btn" id="btn-check-${qIndex}" onclick="checkTextAnswer(${qIndex})">Kiểm tra đáp án 🔍</button>
+                            </div>
+                            <div class="explanation-box" id="exp-${qIndex}">
+                                <h4>💡 Giải thích chi tiết:</h4>
+                                ${q.exp}
+                            </div>
                         </div>
-                        <div class="explanation-box" id="exp-${qIndex}">
-                            <h4>💡 Giải thích siêu chi tiết:</h4>
-                            ${q.exp}
-                        </div>
-                    </div>
-                `;
+                    `;
+                }
             });
 
             container.innerHTML = html;
         }
 
-        // BẮT SỰ KIỆN CLICK ĐÁP ÁN
-        function checkAnswer(qIndex, optIndex, isCorrect) {
+        // BẮT SỰ KIỆN CLICK ĐÁP ÁN TRẮC NGHIỆM
+        function checkChoiceAnswer(qIndex, optIndex, isCorrect) {
             const card = document.getElementById(`card-${qIndex}`);
+            if (card.classList.contains('answered')) return;
+            card.classList.add('answered');
+            answeredQuestions++;
+
             const buttons = card.querySelectorAll('.option-btn');
             const clickedBtn = document.getElementById(`btn-${qIndex}-${optIndex}`);
             const expBox = document.getElementById(`exp-${qIndex}`);
 
-            // Chỉ cho phép chọn 1 lần
-            if (card.classList.contains('answered')) return;
-            card.classList.add('answered');
-
-            answeredQuestions++;
-
-            // Disable all buttons in this card
             buttons.forEach(btn => btn.disabled = true);
 
             if (isCorrect) {
@@ -1068,11 +968,6 @@
                 playWrongSound();
                 card.style.borderColor = "var(--wrong)";
                 
-                // Show the correct answer automatically
-                const correctOptIndex = quizData[qIndex].options.findIndex(o => o.correct);
-                // Find the corresponding button (since we shuffled, we need to find which button holds the correct text)
-                // We'll just loop and check if it has the correct property attached, but we didn't pass it to DOM.
-                // A simpler way is to find the correct text from data.
                 let correctText = quizData[qIndex].options.find(o => o.correct).text.replace(/^[A-D]\.\s/, '');
                 buttons.forEach(btn => {
                     if(btn.innerHTML.includes(correctText)) {
@@ -1080,8 +975,67 @@
                     }
                 });
             }
+            expBox.style.display = 'block';
+        }
 
-            // Hiện Giải Thích NGAY LẬP TỨC
+        // BẮT SỰ KIỆN GÕ ĐÁP ÁN BÀI 3
+        function checkTextAnswer(qIndex) {
+            const card = document.getElementById(`card-${qIndex}`);
+            if (card.classList.contains('answered')) return;
+
+            const mistakeInput = document.getElementById(`mistake-${qIndex}`);
+            const correctionInput = document.getElementById(`correction-${qIndex}`);
+            const btn = document.getElementById(`btn-check-${qIndex}`);
+            const expBox = document.getElementById(`exp-${qIndex}`);
+            const q = quizData[qIndex];
+
+            // Rút gọn, bỏ khoảng trắng và in thường để so sánh chuẩn xác
+            const mVal = mistakeInput.value.trim().toLowerCase();
+            const cVal = correctionInput.value.trim().toLowerCase();
+
+            if (mVal === "" && cVal === "") {
+                alert("Bạn chưa nhập đáp án kìa!");
+                return;
+            }
+
+            // Đánh dấu đã trả lời
+            card.classList.add('answered');
+            answeredQuestions++;
+            mistakeInput.disabled = true;
+            correctionInput.disabled = true;
+            btn.disabled = true;
+            btn.innerText = "Đã kiểm tra ✔";
+
+            // So sánh với mảng đáp án hợp lệ
+            const isMistakeCorrect = q.mistake.some(m => m.toLowerCase() === mVal);
+            const isCorrectionCorrect = q.correction.some(c => c.toLowerCase() === cVal);
+
+            if (isMistakeCorrect && isCorrectionCorrect) {
+                card.style.borderColor = "var(--correct)";
+                mistakeInput.classList.add('correct-input');
+                correctionInput.classList.add('correct-input');
+                playCorrectSound();
+                createConfetti();
+                currentScore++;
+            } else {
+                card.style.borderColor = "var(--wrong)";
+                if(isMistakeCorrect) mistakeInput.classList.add('correct-input');
+                else mistakeInput.classList.add('wrong-input');
+                
+                if(isCorrectionCorrect) correctionInput.classList.add('correct-input');
+                else correctionInput.classList.add('wrong-input');
+                
+                playWrongSound();
+
+                // Hiển thị thêm đáp án chuẩn ở phần Giải thích
+                let correctAnsHtml = `<div style="color:var(--wrong); font-weight:bold; margin-bottom:15px; font-size:1.1rem;">
+                    👉 ĐÁP ÁN ĐÚNG:<br>
+                    ❌ Lỗi sai: "${q.mistake[0]}"<br>
+                    ✅ Sửa thành: "${q.correction[0] === "" ? "(Bỏ từ này đi)" : q.correction[0]}"
+                </div>`;
+                expBox.innerHTML = correctAnsHtml + expBox.innerHTML;
+            }
+
             expBox.style.display = 'block';
         }
 

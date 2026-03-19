@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Listening Practice - Ms Mai An ULIS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Cập nhật hệ màu Xanh lá (Green Theme) */
+            --primary-color: #2e7d32; /* Xanh lá đậm */
+            --secondary-color: #66bb6a; /* Xanh lá sáng */
+            --correct-color: #00D26A;
+            --wrong-color: #FF4757;
+            --glass-bg: rgba(255, 255, 255, 0.2);
+            --glass-border: rgba(255, 255, 255, 0.4);
+            --text-main: #ffffff;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Nunito', sans-serif;
+        }
+
+        body {
+            /* Nền loang màu xanh lá cây */
+            background: radial-gradient(circle at 50% 50%, #a8e063 0%, #2e7d32 100%);
+            color: var(--text-main);
+            min-height: 100vh;
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* SVG Emoji chuyển động trôi nổi */
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='400' height='400'><text x='50' y='50' font-size='30'>🏫</text><text x='300' y='120' font-size='40'>🚲</text><text x='150' y='250' font-size='35'>🎬</text><text x='350' y='350' font-size='45'>🎾</text><text x='80' y='380' font-size='30'>☔</text></svg>");
+            background-size: 400px 400px;
+            opacity: 0.35;
+            z-index: -1;
+            /* Hiệu ứng chuyển động */
+            animation: floatBg 25s linear infinite;
+        }
+
+        @keyframes floatBg {
+            0% { background-position: 0 0; }
+            50% { background-position: 200px 200px; }
+            100% { background-position: 400px 400px; }
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .header-small {
+            text-align: center;
+            font-size: 14px;
+            font-weight: 900;
+            color: #e8f5e9;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+            background: rgba(0,0,0,0.2);
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            margin-left: auto;
+            margin-right: auto;
+            display: block;
+            width: fit-content;
+        }
+
+        .main-title {
+            text-align: center;
+            font-size: 36px;
+            font-weight: 900;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.4);
+        }
+
+        /* Glassmorphism Audio Player */
+        .audio-container {
+            background: var(--glass-bg);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 15px 30px;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: center;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+        }
+        
+        audio {
+            width: 100%;
+            height: 40px;
+            outline: none;
+            border-radius: 20px;
+        }
+
+        /* Question Cards */
+        .question-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+            transition: transform 0.3s ease;
+        }
+
+        .question-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .question-text {
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            border-bottom: 2px dashed rgba(255,255,255,0.4);
+            padding-bottom: 10px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        .option-btn {
+            background: rgba(255, 255, 255, 0.95);
+            border: 4px solid transparent;
+            border-radius: 15px;
+            padding: 10px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 6px 0 rgba(0,0,0,0.1);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .option-btn:hover:not(.locked) {
+            transform: scale(1.05);
+            box-shadow: 0 10px 0 rgba(0,0,0,0.15);
+        }
+
+        .option-btn img {
+            width: 100%;
+            height: 180px;
+            object-fit: contain;
+            border-radius: 10px;
+            margin-bottom: 10px;
+        }
+
+        .option-btn.locked {
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        .option-btn.correct {
+            border-color: var(--correct-color);
+            background: #e8fcf1;
+            box-shadow: 0 0 20px rgba(0, 210, 106, 0.5);
+            opacity: 1;
+            transform: scale(1.05);
+        }
+
+        .option-btn.wrong {
+            border-color: var(--wrong-color);
+            background: #ffebeb;
+            animation: shake 0.5s;
+            opacity: 1;
+        }
+
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-8px) rotate(-2deg); }
+            50% { transform: translateX(8px) rotate(2deg); }
+            75% { transform: translateX(-8px) rotate(-2deg); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Explanation Box */
+        .explanation-box {
+            display: none;
+            margin-top: 20px;
+            background: rgba(0, 0, 0, 0.5);
+            border-left: 5px solid var(--secondary-color);
+            border-radius: 0 15px 15px 0;
+            padding: 20px;
+            animation: slideDown 0.4s ease-out;
+            font-size: 16px;
+            line-height: 1.6;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .exp-step { margin-bottom: 15px; }
+        .exp-title { font-weight: 900; color: #FFD700; margin-bottom: 5px; text-transform: uppercase; font-size: 14px;}
+        .keyword { color: #FF4757; font-weight: 900; background: rgba(255,255,255,0.9); padding: 0 4px; border-radius: 3px; }
+        
+        /* Nút Submit đổi màu theo tone xanh */
+        .submit-btn {
+            display: block;
+            width: 250px;
+            margin: 40px auto;
+            padding: 15px 30px;
+            font-size: 20px;
+            font-weight: 900;
+            color: #fff;
+            background: linear-gradient(45deg, #4caf50, #81c784);
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            box-shadow: 0 8px 0 #2e7d32;
+            transition: all 0.2s;
+            text-transform: uppercase;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(2px);
+            box-shadow: 0 6px 0 #2e7d32;
+        }
+        
+        .submit-btn:active {
+            transform: translateY(8px);
+            box-shadow: 0 0 0 #2e7d32;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(5px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, #ffffff, #f0f0f0);
+            color: #333;
+            padding: 40px;
+            border-radius: 25px;
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0.5); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .modal-score {
+            font-size: 48px;
+            font-weight: 900;
+            color: var(--primary-color);
+            margin: 15px 0;
+        }
+
+        .modal-gif {
+            width: 100%;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .btn-close {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 10px 25px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 10px;
+            cursor: pointer;
+            margin-top: 15px;
+        }
+
+        /* Confetti Container */
+        #confetti-container {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            pointer-events: none;
+            z-index: 999;
+            overflow: hidden;
+        }
+
+        .confetti {
+            position: absolute;
+            width: 10px; height: 10px;
+            background-color: #f00;
+            animation: fall linear forwards;
+        }
+
+        @keyframes fall {
+            to { transform: translateY(100vh) rotate(720deg); }
+        }
+
+        @media (max-width: 768px) {
+            .options-grid { grid-template-columns: 1fr; }
+            .option-btn img { height: 150px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="confetti-container"></div>
+
+    <div class="container">
+        <div class="header-small">Listening Practice - Giáo viên tạo: Ms Mai An ULIS</div>
+        <h1 class="main-title">KET (A2) Listening Part 1</h1>
+
+        <div class="audio-container">
+            <audio controls id="main-audio">
+                <source src="https://englishpracticetest.net/wp-content/uploads/2021/11/ket-practice-listening-test-01-part-1.mp3" type="audio/mpeg">
+                Trình duyệt của bạn không hỗ trợ thẻ audio.
+            </audio>
+        </div>
+
+        <div id="quiz-container">
+            </div>
+
+        <button class="submit-btn" onclick="submitQuiz()">NỘP BÀI</button>
+    </div>
+
+    <div class="modal-overlay" id="result-modal">
+        <div class="modal-content">
+            <h2 style="font-size: 24px; font-weight: 900;">KẾT QUẢ CỦA BẠN</h2>
+            <div class="modal-score" id="score-text">0/5</div>
+            <img src="" alt="Reaction GIF" class="modal-gif" id="score-gif">
+            <p id="score-message" style="font-weight: bold; font-size: 18px; margin-bottom: 10px;"></p>
+            <button class="btn-close" onclick="closeModal()">Làm lại bài</button>
+        </div>
+    </div>
+
+<script>
+// --- AUDIO SYNTHESIZER ---
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+function playSound(type) {
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    const osc = audioCtx.createOscillator();
+    const gainNode = audioCtx.createGain();
+    osc.connect(gainNode);
+    gainNode.connect(audioCtx.destination);
+
+    if (type === 'correct') {
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(800, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.1);
+        gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.5);
+    } else {
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(300, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(150, audioCtx.currentTime + 0.3);
+        osc.frequency.setValueAtTime(150, audioCtx.currentTime + 0.3);
+        osc.frequency.exponentialRampToValueAtTime(80, audioCtx.currentTime + 0.6);
+        gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.6);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.6);
+    }
+}
+
+// --- SVG CHUYỂN ĐỔI SANG BASE64 ---
+const svgImages = {
+    q1a: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 150"><rect width="200" height="150" fill="#FFF3E0"/><rect x="20" y="40" width="160" height="90" fill="#81D4FA" stroke="#E65100" stroke-width="4"/><polygon points="10,40 190,40 170,10 30,10" fill="#FF9800"/><circle cx="60" cy="80" r="15" fill="#795548"/><circle cx="100" cy="80" r="15" fill="#FF4081"/><circle cx="140" cy="80" r="15" fill="#795548"/><rect x="50" y="110" width="100" height="20" fill="#FFC107"/></svg>`,
+    q1b: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 150"><rect width="200" height="150" fill="#212121"/><rect x="20" y="20" width="160" height="80" fill="#ECEFF1" stroke="#F44336" stroke-width="4"/><polygon points="40,20 160,20 100,80" fill="#00BCD4" opacity="0.5"/><circle cx="100" cy="50" r="20" fill="#FFEB3B"/><rect x="80" y="110" width="40" height="40" fill="#795548"/></svg>`,
+    q1c: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 150"><rect width="200" height="150" fill="#E8F5E9"/><rect x="30" y="20" width="140" height="110" fill="#FFFFFF" stroke="#4CAF50" stroke-width="4"/><rect x="50" y="30" width="20" height="90" rx="10" fill="#E91E63"/><circle cx="60" cy="40" r="4" fill="#000"/><circle cx="60" cy="110" r="4" fill="#000"/><rect x="90" y="30" width="20" height="90" rx="10" fill="#2196F3"/><circle cx="100" cy="40" r="4" fill="#000"/><circle cx="100" cy="110" r="4" fill="#000"/><rect x="130" y="30" width="20" height="90" rx="10" fill="#FFEB3B"/><circle cx="140" cy="40" r="4" fill="#000"/><circle cx="140" cy="110" r="4" fill="#000"/></svg>`,
+    
+    q2a: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 150"><rect width="200" height="150" fill="#F3E5F5"/><polygon points="20,40 180,40 160,20 40,20" fill="#8D6E63"/><rect x="20" y="40" width="160" height="100" fill="#D7CCC8" stroke="#5D4037" stroke-width="2"/><rect x="25" y="45" width="45" height="45" fill="#A1887F"/><circle cx="47" cy="67" r="4" fill="#3E2723"/><rect x="25" y="92" width="45" height="45" fill="#A1887F"/><circle cx="47" cy="114" r="4" fill="#3E2723"/><rect x="130" y="45" width="45" height="30" fill="#BCAAA4"/><rect x="130" y="77" width="45" height="30" fill="#BCAAA4"/><rect x="130" y="109" width="45" height="30" fill="#BCAAA4"/></svg>`,
+    q2b: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 150"><rect width="200" height="150" fill="#F3E5F5"/><polygon points="20,40 180,40 160,20 40,20" fill="#8D6E63"/><rect x="20" y="40" width="160" height="100" fill="#D7CCC8" stroke="#5D4037" stroke-width="2"/><rect x="25" y="45" width="45" height="22" fill="#A1887F"/><circle cx="47" cy="56" r="3" fill="#3E2723"/><rect x="25" y="70" width="45" height="22" fill="#A1887F"/><circle cx="47" cy="81" r="3" fill="#3E2723"/><rect x="25" y="95" width="45" height="20" fill="#A1887F"/><circle cx="47" cy="105" r="3" fill="#3E2723"/><rect x="25" y="118" width="45" height="20" fill="#A1887F"/><circle cx="47" cy="128" r="3" fill="#3E2723"/><rect x="75" y="45" width="100" height="10" fill="#A1887F"/></svg>`,
+    q2c: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 150"><rect width="200" height="150" fill="#F3E5F5"/><polygon points="20,40 180,40 160,20 40,20" fill="#8D6E63"/><rect x="20" y="40" width="160" height="100" fill="#D7CCC8" stroke="#5D4037" stroke-width="2"/><rect x="130" y="45" width="45" height="45" fill="#A1887F"/><circle cx="152" cy="67" r="4" fill="#3E2723"/><rect x="130" y="92" width="45" height="45" fill="#A1887F"/><circle cx="152" cy="114" r="4" fill="#3E2723"/></svg>`,
+
+    q3a: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 150"><rect width="200" height="150" fill="#E0F7FA"/><rect x="20" y="30" width="160" height="90" rx="10" fill="#FF5252"/><rect x="30" y="40" width="40" height="30" fill="#80DEEA"/><rect x="80" y="40" width="40" height="30" fill="#80DEEA"/><rect x="130" y="40" width="40" height="30" fill="#80DEEA"/><circle cx="50" cy="120" r="15" fill="#212121"/><circle cx="150" cy="120" r="15" fill="#212121"/></svg>`,
+    q3b: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 150"><rect width="200" height="150" fill="#E0F7FA"/><circle cx="60" cy="100" r="25" fill="none" stroke="#212121" stroke-width="4"/><circle cx="140" cy="100" r="25" fill="none" stroke="#212121" stroke-width="4"/><line x1="60" y1="100" x2="100" y2="100" stroke="#FF9800" stroke-width="4"/><line x1="100" y1="100" x2="80" y2="60" stroke="#FF9800" stroke-width="4"/><line x1="80" y1="60" x2="140" y2="100" stroke="#FF9800" stroke-width="4"/><line x1="100" y1="100" x2="110" y2="50" stroke="#FF9800" stroke-width="4"/><circle cx="80" cy="60" r="8" fill="#4CAF50"/><circle cx="110" cy="50" r="8" fill="#F44336"/></svg>`,
+    q3c: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 150"><rect width="200" height="150" fill="#E0F7FA"/><rect x="0" y="110" width="200" height="40" fill="#9E9E9E"/><circle cx="80" cy="40" r="12" fill="#FFCC80"/><rect x="70" y="55" width="20" height="35" fill="#4CAF50"/><line x1="75" y1="90" x2="65" y2="120" stroke="#1976D2" stroke-width="8"/><line x1="85" y1="90" x2="95" y2="120" stroke="#1976D2" stroke-width="8"/><circle cx="130" cy="50" r="10" fill="#FFCC80"/><rect x="122" y="62" width="16" height="30" fill="#E91E63"/><line x1="126" y1="92" x2="115" y2="115" stroke="#1976D2" stroke-width="6"/><line x1="134" y1="92" x2="145" y2="115" stroke="#1976D2" stroke-width="6"/></svg>`,
+
+    q4a: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 150"><rect width="200" height="150" fill="#FFF8E1"/><circle cx="100" cy="50" r="25" fill="#FFCC80"/><path d="M75,50 Q100,20 125,50 L125,100 Q100,120 75,100 Z" fill="#212121"/><rect x="80" y="75" width="40" height="75" fill="#9C27B0" rx="10"/></svg>`,
+    q4b: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 150"><rect width="200" height="150" fill="#FFF8E1"/><circle cx="100" cy="50" r="25" fill="#FFCC80"/><path d="M75,50 Q100,20 125,50 L125,80 Q100,90 75,80 Z" fill="#FFEB3B"/><rect x="80" y="75" width="40" height="75" fill="#00BCD4" rx="10"/></svg>`,
+    q4c: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 150"><rect width="200" height="150" fill="#FFF8E1"/><circle cx="100" cy="50" r="25" fill="#FFCC80"/><path d="M80,50 Q100,20 120,50 L120,65 Q100,70 80,65 Z" fill="#212121"/><line x1="85" y1="50" x2="115" y2="50" stroke="#000" stroke-width="2"/><circle cx="92" cy="50" r="6" fill="none" stroke="#000" stroke-width="2"/><circle cx="108" cy="50" r="6" fill="none" stroke="#000" stroke-width="2"/><rect x="80" y="75" width="40" height="75" fill="#4CAF50" rx="10"/></svg>`,
+
+    q5a: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 150"><rect width="200" height="150" fill="#E8EAF6"/><line x1="20" y1="20" x2="20" y2="130" stroke="#9E9E9E" stroke-width="4"/><line x1="180" y1="20" x2="180" y2="130" stroke="#9E9E9E" stroke-width="4"/><rect x="20" y="30" width="160" height="40" fill="none" stroke="#212121" stroke-width="1" stroke-dasharray="4 4"/><circle cx="100" cy="40" r="10" fill="#FFEB3B"/><circle cx="60" cy="90" r="8" fill="#FF9800"/><line x1="60" y1="98" x2="60" y2="120" stroke="#000" stroke-width="4"/><circle cx="140" cy="100" r="8" fill="#FF9800"/><line x1="140" y1="108" x2="140" y2="130" stroke="#000" stroke-width="4"/></svg>`,
+    q5b: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 150"><rect width="200" height="150" fill="#E8EAF6"/><rect x="40" y="60" width="120" height="30" fill="none" stroke="#212121" stroke-width="2" stroke-dasharray="2 2"/><circle cx="70" cy="50" r="6" fill="#F44336"/><line x1="70" y1="56" x2="70" y2="80" stroke="#000" stroke-width="3"/><line x1="70" y1="65" x2="85" y2="55" stroke="#000" stroke-width="2"/><circle cx="88" cy="52" r="3" fill="#FFF"/><circle cx="130" cy="100" r="6" fill="#2196F3"/><line x1="130" y1="106" x2="130" y2="130" stroke="#000" stroke-width="3"/><line x1="130" y1="115" x2="115" y2="105" stroke="#000" stroke-width="2"/><circle cx="112" cy="102" r="3" fill="#FFF"/></svg>`,
+    q5c: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 150"><rect width="200" height="150" fill="#E8EAF6"/><path d="M0,100 L200,60 L200,150 L0,150 Z" fill="#FFCDD2"/><path d="M0,120 L200,80" stroke="#FFF" stroke-width="2" stroke-dasharray="10 5"/><circle cx="80" cy="65" r="8" fill="#FF9800"/><line x1="80" y1="73" x2="90" y2="100" stroke="#000" stroke-width="4"/><line x1="90" y1="100" x2="80" y2="130" stroke="#000" stroke-width="4"/><circle cx="140" cy="50" r="8" fill="#FF9800"/><line x1="140" y1="58" x2="150" y2="85" stroke="#000" stroke-width="4"/><line x1="150" y1="85" x2="140" y2="115" stroke="#000" stroke-width="4"/></svg>`
+};
+
+function getBase64SVG(svgString) {
+    return 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgString)));
+}
+
+// --- DỮ LIỆU BÀI KIỂM TRA ---
+const quizData = [
+    {
+        id: 1,
+        question: "1. Where’s the girl going this afternoon?",
+        options: [
+            { id: 'a', img: getBase64SVG(svgImages.q1a), isCorrect: false, text: "A. Café / Bakery" },
+            { id: 'b', img: getBase64SVG(svgImages.q1b), isCorrect: true, text: "B. Cinema" },
+            { id: 'c', img: getBase64SVG(svgImages.q1c), isCorrect: false, text: "C. Skateboard Shop" }
+        ],
+        explanation: {
+            trans: "Dịch: Cô gái sẽ đi đâu chiều nay? A. Quán cà phê/bánh ngọt, B. Rạp chiếu phim, C. Cửa hàng ván trượt.",
+            script: "Girl: To buy your new skateboard? I’d love to, but I’m meeting my classmate Susan. <strong class='keyword'>We’re going to see that new Japanese cartoon.</strong>",
+            correct: "Tại sao đúng (B): Cô gái nói rõ ràng là sẽ đi xem bộ phim hoạt hình Nhật Bản mới cùng với bạn cùng lớp Susan.",
+            distractors: "Chỉ ra bẫy (A, C): Cửa hàng ván trượt (C) là nơi cậu bé và mẹ sẽ đi. Quán cà phê (A) là nơi mẹ cậu bé muốn đến sau đó. Cô gái đã từ chối đi mua ván trượt cùng."
+        }
+    },
+    {
+        id: 2,
+        question: "2. Which is the boy’s new desk?",
+        options: [
+            { id: 'a', img: getBase64SVG(svgImages.q2a), isCorrect: true, text: "A. 2 drawers (L), shelves (R)" },
+            { id: 'b', img: getBase64SVG(svgImages.q2b), isCorrect: false, text: "B. 4 drawers (L)" },
+            { id: 'c', img: getBase64SVG(svgImages.q2c), isCorrect: false, text: "C. 2 drawers (R)" }
+        ],
+        explanation: {
+            trans: "Dịch: Bàn học mới của cậu bé là cái nào? A. 2 ngăn kéo bên trái, có kệ bên phải. B. 4 ngăn kéo bên trái. C. 2 ngăn kéo bên phải.",
+            script: "Boy: <strong class='keyword'>Mine’s got two drawers on the left and three shelves on the right.</strong>",
+            correct: "Tại sao đúng (A): Cậu bé miêu tả chính xác bàn của mình có 2 ngăn kéo bên trái và 3 chiếc kệ bên phải.",
+            distractors: "Chỉ ra bẫy (B, C): Bàn 4 ngăn kéo (B) là cái dì Barbara thấy mẹ cậu đã xem trên mạng nhưng không mua. Bàn C không được nhắc đến nhưng sai vị trí ngăn kéo."
+        }
+    },
+    {
+        id: 3,
+        question: "3. How will they get to their tennis class?",
+        options: [
+            { id: 'a', img: getBase64SVG(svgImages.q3a), isCorrect: false, text: "A. Bus" },
+            { id: 'b', img: getBase64SVG(svgImages.q3b), isCorrect: false, text: "B. Bicycle" },
+            { id: 'c', img: getBase64SVG(svgImages.q3c), isCorrect: true, text: "C. Walk" }
+        ],
+        explanation: {
+            trans: "Dịch: Họ sẽ đến lớp học tennis bằng cách nào? A. Xe buýt, B. Xe đạp, C. Đi bộ.",
+            script: "Boy 1: Or <strong class='keyword'>we could walk</strong>. It’s not far.<br>Boy 2: <strong class='keyword'>Good idea</strong>.",
+            correct: "Tại sao đúng (C): Cậu bé thứ nhất đề nghị đi bộ vì khoảng cách không xa, và cậu bé thứ hai đã đồng ý ('Good idea').",
+            distractors: "Chỉ ra bẫy (A, B): Xe đạp (B) được nhắc đến ban đầu nhưng xe của Boy 2 bị hỏng bánh. Xe buýt (A) là ý muốn của Boy 2 do xe hỏng, nhưng sau đó họ đổi ý sang đi bộ."
+        }
+    },
+    {
+        id: 4,
+        question: "4. Which woman is Laura’s new English teacher?",
+        options: [
+            { id: 'a', img: getBase64SVG(svgImages.q4a), isCorrect: false, text: "A. Long dark hair" },
+            { id: 'b', img: getBase64SVG(svgImages.q4b), isCorrect: false, text: "B. Blonde hair" },
+            { id: 'c', img: getBase64SVG(svgImages.q4c), isCorrect: true, text: "C. Short dark hair, glasses" }
+        ],
+        explanation: {
+            trans: "Dịch: Người phụ nữ nào là giáo viên tiếng Anh mới của Laura? A. Tóc đen dài, B. Tóc vàng, C. Tóc đen ngắn, đeo kính.",
+            script: "Laura: Anyway, it’s the other woman, <strong class='keyword'>with short dark hair and glasses</strong>.",
+            correct: "Tại sao đúng (C): Laura xác nhận giáo viên của mình là người phụ nữ có mái tóc đen ngắn và có đeo kính.",
+            distractors: "Chỉ ra bẫy (A, B): Người phụ nữ tóc đen dài (A) là người mà mẹ Laura nhìn nhầm. Tóc vàng (B) là đặc điểm của Dì Suzanna chứ không phải giáo viên."
+        }
+    },
+    {
+        id: 5,
+        question: "5. What might Harry do if it rains on Saturday?",
+        options: [
+            { id: 'a', img: getBase64SVG(svgImages.q5a), isCorrect: true, text: "A. Volleyball" },
+            { id: 'b', img: getBase64SVG(svgImages.q5b), isCorrect: false, text: "B. Badminton" },
+            { id: 'c', img: getBase64SVG(svgImages.q5c), isCorrect: false, text: "C. Running" }
+        ],
+        explanation: {
+            trans: "Dịch: Harry có thể làm gì nếu trời mưa vào thứ Bảy? A. Bóng chuyền, B. Cầu lông, C. Chạy bộ.",
+            script: "Harry: I like badminton, but my friends don’t. <strong class='keyword'>We all like volleyball, and that’s good exercise, too, so I’ll think about that.</strong>",
+            correct: "Tại sao đúng (A): Harry nói tất cả các bạn đều thích bóng chuyền và đó là môn thể dục tốt nên cậu ấy sẽ cân nhắc chơi môn này (nếu mưa).",
+            distractors: "Chỉ ra bẫy (B, C): Chạy bộ (C) là dự định luyện tập nếu trời không mưa. Cầu lông (B) thì Harry thích nhưng bạn bè của cậu ấy thì không, nên họ sẽ không chơi."
+        }
+    }
+];
+
+// --- HỆ THỐNG LOGIC & GIAO DIỆN ---
+let score = 0;
+let answeredQuestions = 0;
+
+function shuffleArray(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+}
+
+function createConfetti() {
+    const container = document.getElementById('confetti-container');
+    container.innerHTML = '';
+    const colors = ['#FFD700', '#FF4757', '#00D26A', '#00C9A7', '#8854C0'];
+    
+    for (let i = 0; i < 50; i++) {
+        const conf = document.createElement('div');
+        conf.classList.add('confetti');
+        conf.style.left = Math.random() * 100 + 'vw';
+        conf.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+        conf.style.animationDuration = (Math.random() * 2 + 1) + 's';
+        conf.style.opacity = Math.random();
+        container.appendChild(conf);
+    }
+    setTimeout(() => { container.innerHTML = ''; }, 3000);
+}
+
+function renderQuiz() {
+    const container = document.getElementById('quiz-container');
+    container.innerHTML = '';
+
+    quizData.forEach((q, index) => {
+        const card = document.createElement('div');
+        card.className = 'question-card';
+        card.id = `question-${q.id}`;
+
+        const questionText = document.createElement('div');
+        questionText.className = 'question-text';
+        questionText.innerText = q.question;
+        card.appendChild(questionText);
+
+        const optionsGrid = document.createElement('div');
+        optionsGrid.className = 'options-grid';
+        
+        const shuffledOptions = shuffleArray([...q.options]);
+
+        shuffledOptions.forEach(opt => {
+            const btn = document.createElement('button');
+            btn.className = 'option-btn';
+            btn.innerHTML = `<img src="${opt.img}" alt="Option"><span style="font-weight: bold; color: #333">${opt.text}</span>`;
+            
+            btn.onclick = () => handleAnswer(q.id, opt.isCorrect, btn, optionsGrid);
+            optionsGrid.appendChild(btn);
+        });
+
+        card.appendChild(optionsGrid);
+
+        const expBox = document.createElement('div');
+        expBox.className = 'explanation-box';
+        expBox.id = `exp-${q.id}`;
+        expBox.innerHTML = `
+            <div class="exp-step"><div class="exp-title">Bước 1: Dịch nghĩa & Đáp án</div>${q.explanation.trans}</div>
+            <div class="exp-step"><div class="exp-title">Bước 2: Audio Script</div>${q.explanation.script}</div>
+            <div class="exp-step"><div class="exp-title">Bước 3: Tại sao đúng?</div>${q.explanation.correct}</div>
+            <div class="exp-step"><div class="exp-title">Bước 4: Tại sao sai (Distractors)?</div>${q.explanation.distractors}</div>
+        `;
+        card.appendChild(expBox);
+
+        container.appendChild(card);
+    });
+}
+
+function handleAnswer(questionId, isCorrect, selectedBtn, gridElement) {
+    const buttons = gridElement.querySelectorAll('.option-btn');
+    buttons.forEach(btn => {
+        btn.classList.add('locked');
+        btn.onclick = null;
+    });
+
+    if (isCorrect) {
+        selectedBtn.classList.add('correct');
+        playSound('correct');
+        createConfetti();
+        score++;
+    } else {
+        selectedBtn.classList.add('wrong');
+        playSound('wrong');
+        
+        const correctData = quizData.find(q => q.id === questionId).options.find(o => o.isCorrect);
+        buttons.forEach(btn => {
+            if(btn.innerHTML.includes(correctData.text)) {
+                btn.style.border = "4px solid var(--correct-color)";
+                btn.style.boxShadow = "0 0 10px var(--correct-color)";
+            }
+        });
+    }
+
+    document.getElementById(`exp-${questionId}`).style.display = 'block';
+    answeredQuestions++;
+}
+
+function submitQuiz() {
+    if (answeredQuestions < quizData.length) {
+        alert("Bạn vui lòng hoàn thành tất cả các câu hỏi trước khi nộp bài nhé!");
+        return;
+    }
+
+    const modal = document.getElementById('result-modal');
+    const scoreText = document.getElementById('score-text');
+    const gif = document.getElementById('score-gif');
+    const msg = document.getElementById('score-message');
+
+    scoreText.innerText = `${score} / ${quizData.length}`;
+
+    const percentage = (score / quizData.length) * 100;
+
+    if (percentage === 100) {
+        gif.src = "https://media.giphy.com/media/11sBLVxNs7v6WA/giphy.gif";
+        msg.innerText = "Xuất sắc! Bạn đúng chuẩn Master Listening rồi!";
+        msg.style.color = "#00D26A";
+    } else if (percentage >= 60) {
+        gif.src = "https://media.giphy.com/media/3o7abKhOpu0NwenH3O/giphy.gif";
+        msg.innerText = "Làm tốt lắm! Chút nữa là hoàn hảo!";
+        msg.style.color = "#FF9800";
+    } else {
+        gif.src = "https://media.giphy.com/media/OPU6wzx8JrHna/giphy.gif";
+        msg.innerText = "Úi, hơi tiếc! Hãy đọc kỹ Script và làm lại nhé!";
+        msg.style.color = "#FF4757";
+    }
+
+    modal.style.display = "flex";
+}
+
+function closeModal() {
+    document.getElementById('result-modal').style.display = "none";
+    score = 0;
+    answeredQuestions = 0;
+    renderQuiz();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+window.onload = renderQuiz;
+</script>
+</body>
+</html>

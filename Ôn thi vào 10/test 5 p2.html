@@ -1,0 +1,1122 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Practice Test 5 - Gamification</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Gamification Pastel & Neon Colors */
+            --primary: #8854C0; /* Tím pastel */
+            --secondary: #00C9A7; /* Xanh ngọc */
+            --accent: #FDCB6E; /* Vàng sáng */
+            --correct: #00D26A; /* Xanh lá đúng */
+            --wrong: #FF4757; /* Đỏ cam sai */
+            --glass-bg: rgba(255, 255, 255, 0.85);
+            --glass-border: rgba(255, 255, 255, 0.5);
+            --text-dark: #2d3436;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Nunito', sans-serif;
+        }
+
+        body {
+            height: 100vh;
+            overflow: hidden;
+            background: linear-gradient(135deg, var(--primary), var(--secondary), var(--accent));
+            background-size: 300% 300%;
+            animation: gradientMove 15s ease infinite;
+            color: var(--text-dark);
+            position: relative;
+        }
+
+        @keyframes gradientMove {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Floating Background Emojis */
+        .bg-pattern {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+        .bg-emoji {
+            position: absolute;
+            font-size: 3rem;
+            opacity: 0.3;
+            animation: floatEmoji 10s linear infinite;
+        }
+        @keyframes floatEmoji {
+            0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+            10% { opacity: 0.4; }
+            90% { opacity: 0.4; }
+            100% { transform: translateY(-20vh) rotate(360deg); opacity: 0; }
+        }
+
+        /* Top Bar */
+        #top-bar {
+            position: relative;
+            z-index: 10;
+            height: 70px;
+            background: rgba(255, 255, 255, 0.4);
+            backdrop-filter: blur(10px);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 30px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border-bottom: 2px solid var(--glass-border);
+        }
+        .header-info h2 { font-size: 1.1rem; color: #fff; text-shadow: 1px 1px 2px rgba(0,0,0,0.3); font-weight: 800; }
+        
+        #timer-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            background: var(--glass-bg);
+            padding: 8px 20px;
+            border-radius: 20px;
+            box-shadow: 0 4px 0 rgba(0,0,0,0.1);
+            font-weight: bold;
+            font-size: 1.2rem;
+            color: var(--primary);
+        }
+        #btn-timer {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 5px 15px;
+            border-radius: 15px;
+            cursor: pointer;
+            font-weight: bold;
+            box-shadow: 0 4px 0 #5f3a8c;
+            transition: all 0.1s;
+        }
+        #btn-timer:active { transform: translateY(4px); box-shadow: 0 0 0 #5f3a8c; }
+
+        /* Main Layout */
+        #main-container {
+            display: flex;
+            height: calc(100vh - 70px);
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Panels */
+        .panel {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            scroll-behavior: smooth;
+        }
+        .panel::-webkit-scrollbar { width: 8px; }
+        .panel::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.5); border-radius: 10px; }
+
+        #left-pane { border-right: 2px dashed rgba(255,255,255,0.4); }
+
+        /* Cards */
+        .card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(15px);
+            border: 2px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        /* Reading Passage Styles */
+        .passage-title {
+            font-family: 'Quicksand', sans-serif;
+            color: var(--primary);
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            text-align: center;
+            text-transform: uppercase;
+        }
+        .passage-text {
+            font-size: 1.15rem;
+            line-height: 1.8;
+            margin-bottom: 15px;
+            text-align: justify;
+        }
+        .btn-translate {
+            display: inline-block;
+            background: var(--accent);
+            color: #d35400;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 15px;
+            font-weight: 800;
+            cursor: pointer;
+            box-shadow: 0 4px 0 #e1b12c;
+            margin-bottom: 15px;
+            transition: transform 0.1s;
+        }
+        .btn-translate:active { transform: translateY(4px); box-shadow: none; }
+        .translation-box {
+            display: none;
+            background: #fff8e1;
+            border-left: 5px solid var(--accent);
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 1.05rem;
+            margin-bottom: 20px;
+            color: #555;
+        }
+
+        /* Glossary Table */
+        .glossary-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            border-radius: 15px;
+            overflow: hidden;
+            font-size: 1rem;
+        }
+        .glossary-table th { background: var(--secondary); color: white; padding: 10px; }
+        .glossary-table td { padding: 10px; border-bottom: 1px solid #ddd; background: rgba(255,255,255,0.6); }
+
+        /* Questions Styles */
+        .question-block { margin-bottom: 30px; }
+        .question-text {
+            font-size: 1.15rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+            color: #2c3e50;
+            line-height: 1.6;
+        }
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+        }
+        .option-btn {
+            background: white;
+            border: 2px solid #dfe6e9;
+            padding: 15px 20px;
+            border-radius: 15px;
+            font-size: 1.08rem;
+            font-weight: 600;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px 0 #dfe6e9;
+            display: flex;
+            align-items: center;
+        }
+        .option-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 0 #dfe6e9; border-color: var(--primary); }
+        .option-btn:active { transform: translateY(4px); box-shadow: none; }
+        
+        /* State colors */
+        .option-btn.correct {
+            background: var(--correct); color: white; border-color: #00b894; box-shadow: 0 4px 0 #00b894;
+        }
+        .option-btn.wrong {
+            background: var(--wrong); color: white; border-color: #d63031; box-shadow: 0 4px 0 #d63031;
+            animation: shake 0.4s;
+        }
+        .option-btn.disabled { pointer-events: none; opacity: 0.8; }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            50% { transform: translateX(5px); }
+            75% { transform: translateX(-5px); }
+        }
+
+        /* Explanation Box */
+        .explanation-box {
+            display: none;
+            margin-top: 15px;
+            background: #f1f2f6;
+            border: 2px dashed var(--primary);
+            border-radius: 15px;
+            padding: 20px;
+            font-size: 1rem;
+            line-height: 1.6;
+        }
+        .explanation-box.show { display: block; animation: fadeIn 0.5s; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .exp-title { font-weight: 800; color: var(--primary); margin-bottom: 10px; }
+        .exp-item { margin-bottom: 8px; }
+        .exp-quote { background: #fff; padding: 10px; border-left: 4px solid var(--secondary); margin: 10px 0; font-style: italic; }
+
+        /* Submit Button */
+        #btn-submit {
+            display: block;
+            width: 100%;
+            background: linear-gradient(to right, #FF416C, #FF4B2B);
+            color: white;
+            font-size: 1.5rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            padding: 20px;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            box-shadow: 0 8px 0 #c0392b;
+            margin-top: 30px;
+            transition: all 0.2s;
+        }
+        #btn-submit:hover { transform: scale(1.02); }
+        #btn-submit:active { transform: translateY(8px); box-shadow: none; }
+
+        /* Result Modal */
+        #result-modal {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8); z-index: 100;
+            justify-content: center; align-items: center;
+        }
+        .modal-content {
+            background: white; width: 90%; max-width: 500px;
+            border-radius: 30px; padding: 40px; text-align: center;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        @keyframes popIn { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+        .modal-score { font-size: 4rem; font-weight: 900; color: var(--primary); margin: 20px 0; }
+        .modal-msg { font-size: 1.5rem; font-weight: 700; margin-bottom: 20px; }
+        .modal-gif { width: 100%; border-radius: 15px; margin-bottom: 20px; object-fit: cover; height: 250px;}
+        .btn-close-modal {
+            background: var(--secondary); color: white; border: none; padding: 15px 30px;
+            font-size: 1.2rem; font-weight: bold; border-radius: 20px; cursor: pointer; box-shadow: 0 5px 0 #00a884;
+        }
+
+        /* Confetti */
+        .confetti { position: absolute; width: 10px; height: 10px; background-color: #f00; z-index: 999; }
+    </style>
+</head>
+<body>
+
+    <div class="bg-pattern" id="bg-pattern"></div>
+
+    <div id="top-bar">
+        <div class="header-info">
+            <h2>✨ Giáo viên tạo: Ms Mai An ULIS ✨</h2>
+        </div>
+        <div id="timer-container">
+            ⏱️ <span id="time-display">10:00</span>
+            <button id="btn-timer">BẮT ĐẦU TÍNH GIỜ</button>
+        </div>
+    </div>
+
+    <div id="main-container">
+        
+        <div class="panel" id="left-pane">
+            
+            <div class="card">
+                <h3 class="passage-title">🚲 Safety Tips for Cyclists in Cities</h3>
+                
+                <div class="passage-text">
+                    Wear a properly fitted helmet – This is the single most important safety measure to protect your (13) ________ in case of a crash.
+                </div>
+                <button class="btn-translate" onclick="toggleTranslation('trans-1-1')">Mở dịch đoạn này 🌟</button>
+                <div class="translation-box" id="trans-1-1">
+                    Đội mũ bảo hiểm vừa vặn – Đây là biện pháp an toàn quan trọng nhất duy nhất để bảo vệ đầu của bạn trong trường hợp xảy ra tai nạn.
+                </div>
+
+                <div class="passage-text">
+                    Follow traffic laws and signals – Obey all traffic (14) ________, stop signs, and give way to pedestrians.<br><br>
+                    Ride defensively – Assume drivers don't see you and be prepared to (15) ________. Ride assertively but not aggressively.
+                </div>
+                <button class="btn-translate" onclick="toggleTranslation('trans-1-2')">Mở dịch đoạn này 🌟</button>
+                <div class="translation-box" id="trans-1-2">
+                    Tuân thủ luật giao thông và tín hiệu – Tuân theo mọi luật lệ giao thông, biển báo dừng, và nhường đường cho người đi bộ.<br><br>
+                    Lái xe phòng thủ – Hãy giả định rằng tài xế không nhìn thấy bạn và luôn chuẩn bị sẵn sàng để phản ứng. Hãy lái xe một cách quyết đoán nhưng không hung hăng.
+                </div>
+
+                <div class="passage-text">
+                    Avoid riding on the sidewalk – It's generally safer to ride on the road with (16) ________, as drivers are less likely to expect you on the sidewalk.<br><br>
+                    Use hand signals – Signal turns and lane changes so drivers know your intentions.
+                </div>
+                <button class="btn-translate" onclick="toggleTranslation('trans-1-3')">Mở dịch đoạn này 🌟</button>
+                <div class="translation-box" id="trans-1-3">
+                    Tránh đi xe trên vỉa hè – Nhìn chung, đi xe trên đường cùng với các phương tiện giao thông khác sẽ an toàn hơn, vì các tài xế thường ít ngờ tới việc bạn xuất hiện trên vỉa hè.<br><br>
+                    Sử dụng tín hiệu tay – Ra hiệu khi rẽ và chuyển làn để tài xế biết ý định của bạn.
+                </div>
+
+                <h4>📚 Glossary (Từ vựng B1-C2)</h4>
+                <table class="glossary-table">
+                    <tr><th>Word</th><th>Type</th><th>Vietnamese</th></tr>
+                    <tr><td>Properly</td><td>(adv)</td><td>Một cách đúng đắn, vừa vặn</td></tr>
+                    <tr><td>Measure</td><td>(n)</td><td>Biện pháp</td></tr>
+                    <tr><td>Pedestrian</td><td>(n)</td><td>Người đi bộ</td></tr>
+                    <tr><td>Defensively</td><td>(adv)</td><td>Có tính phòng thủ</td></tr>
+                    <tr><td>Assertively</td><td>(adv)</td><td>Một cách quả quyết, tự tin</td></tr>
+                    <tr><td>Aggressively</td><td>(adv)</td><td>Một cách hung hăng</td></tr>
+                    <tr><td>Intention</td><td>(n)</td><td>Ý định, mục đích</td></tr>
+                </table>
+            </div>
+
+            <div class="card">
+                <h3 class="passage-title">🌍 The Earth is a Unique Planet</h3>
+                
+                <div class="passage-text">
+                    The Earth is a unique planet in our solar system. Unlike other planets, such as Mars, which is dry and cold, Earth is (19) ________ water and has a mild climate. About 71% of the Earth's surface is water, making it look blue from space. This is (20) ________ we call it the "Blue Planet."
+                </div>
+                <button class="btn-translate" onclick="toggleTranslation('trans-2-1')">Mở dịch đoạn này 🌟</button>
+                <div class="translation-box" id="trans-2-1">
+                    Trái Đất là một hành tinh độc đáo trong hệ mặt trời của chúng ta. Không giống như các hành tinh khác, chẳng hạn như sao Hỏa khô và lạnh, Trái Đất được bao phủ bởi nước và có khí hậu ôn hòa. Khoảng 71% bề mặt Trái Đất là nước, khiến nó trông có màu xanh lam từ không gian. Đây là lý do tại sao chúng ta gọi nó là "Hành tinh xanh".
+                </div>
+
+                <div class="passage-text">
+                    The Earth has many different environments. In some areas, like the Amazon rainforest, there are many plants and animals. This area is very wet and warm. (21) ________, places like the Sahara Desert are very hot and dry. The diversity of environments on Earth is one of the reasons why it is home to (22) ________.
+                </div>
+                <button class="btn-translate" onclick="toggleTranslation('trans-2-2')">Mở dịch đoạn này 🌟</button>
+                <div class="translation-box" id="trans-2-2">
+                    Trái Đất có nhiều môi trường khác nhau. Ở một số khu vực, như rừng nhiệt đới Amazon, có rất nhiều thực vật và động vật. Khu vực này rất ẩm ướt và ấm áp. Ngược lại, những nơi như sa mạc Sahara lại rất nóng và khô. Sự đa dạng của các môi trường trên Trái Đất là một trong những lý do khiến nó là nhà của hàng triệu loài.
+                </div>
+
+                <div class="passage-text">
+                    Another interesting fact is that Earth has a protective atmosphere. This atmosphere keeps us (23) ________ from harmful rays from the sun, unlike the thin atmosphere of Mars. Earth's atmosphere also helps to maintain a suitable temperature for life. In conclusion, Earth is special because it has water, diverse environments, and a protective atmosphere. These (24) ________ make it a perfect home for all living things.
+                </div>
+                <button class="btn-translate" onclick="toggleTranslation('trans-2-3')">Mở dịch đoạn này 🌟</button>
+                <div class="translation-box" id="trans-2-3">
+                    Một sự thật thú vị khác là Trái Đất có một bầu khí quyển bảo vệ. Bầu khí quyển này giữ cho chúng ta an toàn khỏi các tia có hại từ mặt trời, không giống như bầu khí quyển mỏng của sao Hỏa. Khí quyển của Trái Đất cũng giúp duy trì nhiệt độ phù hợp cho sự sống. Tóm lại, Trái Đất đặc biệt vì nó có nước, môi trường đa dạng và bầu khí quyển bảo vệ. Những đặc điểm này biến nó thành ngôi nhà hoàn hảo cho mọi sinh vật sống.
+                </div>
+
+                <h4>📚 Glossary (Từ vựng B1-C2)</h4>
+                <table class="glossary-table">
+                    <tr><th>Word</th><th>Type</th><th>Vietnamese</th></tr>
+                    <tr><td>Unique</td><td>(adj)</td><td>Độc nhất, độc đáo</td></tr>
+                    <tr><td>Solar system</td><td>(n)</td><td>Hệ mặt trời</td></tr>
+                    <tr><td>Mild</td><td>(adj)</td><td>Ôn hòa, dịu nhẹ</td></tr>
+                    <tr><td>Diversity</td><td>(n)</td><td>Sự đa dạng</td></tr>
+                    <tr><td>Atmosphere</td><td>(n)</td><td>Bầu khí quyển</td></tr>
+                    <tr><td>Maintain</td><td>(v)</td><td>Duy trì</td></tr>
+                    <tr><td>Feature</td><td>(n)</td><td>Đặc điểm, tính năng</td></tr>
+                </table>
+            </div>
+
+            <div class="card">
+                <h3 class="passage-title">⚡ The Future of Electric Cars</h3>
+                
+                <div class="passage-text">
+                    Electric cars are becoming more and more popular around the world. In the past, many people preferred gasoline cars because they were cheaper and easier to find. However, electric cars have many benefits that make them a better choice for the future. First, electric cars are better for the environment. They produce no exhaust gases, which means they do not pollute the air like gasoline cars. This is essential because cleaner air leads to better health for everyone. Also, electric cars can be charged using renewable energy sources, such as wind or solar power. 
+                </div>
+                <button class="btn-translate" onclick="toggleTranslation('trans-3-1')">Mở dịch đoạn này 🌟</button>
+                <div class="translation-box" id="trans-3-1">
+                    Xe điện đang ngày càng trở nên phổ biến trên toàn thế giới. Trước đây, nhiều người thích xe xăng vì chúng rẻ hơn và dễ tìm hơn. Tuy nhiên, xe điện có nhiều lợi ích khiến chúng trở thành sự lựa chọn tốt hơn cho tương lai. Đầu tiên, xe điện tốt hơn cho môi trường. Chúng không tạo ra khí thải, có nghĩa là chúng không gây ô nhiễm không khí như xe xăng. Điều này rất thiết yếu vì không khí trong sạch hơn dẫn đến sức khỏe tốt hơn cho mọi người. Ngoài ra, xe điện có thể được sạc bằng các nguồn năng lượng tái tạo, chẳng hạn như năng lượng gió hoặc năng lượng mặt trời.
+                </div>
+
+                <div class="passage-text">
+                    Second, electric cars can save money in the long run. While they may cost more to buy than gasoline cars, they are cheaper to maintain and fuel. Electricity is often less expensive than gasoline, so drivers can save money over time. Lastly, many countries are investing in electric cars. Governments are offering incentives, such as tax credits, to encourage people to buy them. This support shows that electric cars are a priority for the future. In conclusion, electric cars offer many advantages compared to traditional gasoline cars. They are better for the environment, can save money, and are supported by governments. As technology improves, electric cars will become even more popular and accessible.
+                </div>
+                <button class="btn-translate" onclick="toggleTranslation('trans-3-2')">Mở dịch đoạn này 🌟</button>
+                <div class="translation-box" id="trans-3-2">
+                    Thứ hai, xe điện có thể tiết kiệm tiền về lâu dài. Mặc dù mua chúng có thể đắt hơn xe xăng, nhưng việc bảo trì và tiếp nhiên liệu lại rẻ hơn. Điện thường rẻ hơn xăng, nên người lái xe có thể tiết kiệm tiền theo thời gian. Cuối cùng, nhiều quốc gia đang đầu tư vào xe điện. Các chính phủ đang đưa ra các ưu đãi, chẳng hạn như tín dụng thuế, để khuyến khích người dân mua chúng. Sự hỗ trợ này cho thấy xe điện là một ưu tiên cho tương lai. Tóm lại, xe điện mang lại nhiều lợi thế so với xe xăng truyền thống. Chúng tốt hơn cho môi trường, có thể tiết kiệm tiền và được chính phủ hỗ trợ. Khi công nghệ cải thiện, xe điện sẽ trở nên phổ biến và dễ tiếp cận hơn nữa.
+                </div>
+
+                <h4>📚 Glossary (Từ vựng B1-C2)</h4>
+                <table class="glossary-table">
+                    <tr><th>Word</th><th>Type</th><th>Vietnamese</th></tr>
+                    <tr><td>Exhaust</td><td>(n)</td><td>Khí thải</td></tr>
+                    <tr><td>Pollute</td><td>(v)</td><td>Làm ô nhiễm</td></tr>
+                    <tr><td>Essential</td><td>(adj)</td><td>Cần thiết, cốt yếu</td></tr>
+                    <tr><td>Renewable</td><td>(adj)</td><td>Có thể tái tạo</td></tr>
+                    <tr><td>Maintain</td><td>(v)</td><td>Bảo trì, duy trì</td></tr>
+                    <tr><td>Incentive</td><td>(n)</td><td>Sự khuyến khích, ưu đãi</td></tr>
+                    <tr><td>Accessible</td><td>(adj)</td><td>Dễ tiếp cận</td></tr>
+                </table>
+            </div>
+
+            <div class="card">
+                <h3 class="passage-title">🌱 Climate Change Solutions</h3>
+                
+                <div class="passage-text">
+                    Climate change poses one of the greatest challenges of our time, leading to severe impacts like rising sea levels and extreme weather. However, there are effective solutions to mitigate these effects.<br>
+                    Renewable energy sources, such as solar and wind power, are crucial. Transitioning from fossil fuels to clean energy (37) _____.
+                </div>
+                <button class="btn-translate" onclick="toggleTranslation('trans-4-1')">Mở dịch đoạn này 🌟</button>
+                <div class="translation-box" id="trans-4-1">
+                    Biến đổi khí hậu đặt ra một trong những thách thức lớn nhất của thời đại chúng ta, dẫn đến những tác động nghiêm trọng như mực nước biển dâng cao và thời tiết cực đoan. Tuy nhiên, có những giải pháp hiệu quả để giảm nhẹ những tác động này.<br>
+                    Các nguồn năng lượng tái tạo, như năng lượng mặt trời và gió, là rất quan trọng. Việc chuyển đổi từ nhiên liệu hóa thạch sang năng lượng sạch có thể làm giảm đáng kể lượng khí thải nhà kính.
+                </div>
+
+                <div class="passage-text">
+                    Additionally, improving energy efficiency in buildings and transportation helps cut emissions without hindering economic growth. (38) ____. Techniques can sequester carbon in healthy soils, while protecting natural ecosystems like forests serves as effective carbon sinks.
+                </div>
+                <button class="btn-translate" onclick="toggleTranslation('trans-4-2')">Mở dịch đoạn này 🌟</button>
+                <div class="translation-box" id="trans-4-2">
+                    Ngoài ra, việc cải thiện hiệu quả sử dụng năng lượng trong các tòa nhà và giao thông giúp cắt giảm khí thải mà không cản trở tăng trưởng kinh tế. Nông nghiệp và quản lý đất đai cũng cung cấp các giải pháp. Các kỹ thuật có thể cô lập carbon trong đất khỏe mạnh, trong khi việc bảo vệ các hệ sinh thái tự nhiên như rừng đóng vai trò như những bể chứa carbon hiệu quả.
+                </div>
+
+                <div class="passage-text">
+                    (39) ____, supportive policies are essential. Carbon pricing and renewable energy mandates can drive the transition to a low-carbon economy. Individual actions, such as reducing energy consumption and adopting sustainable diets, are equally important. (40) _____. Now is the time to act.
+                </div>
+                <button class="btn-translate" onclick="toggleTranslation('trans-4-3')">Mở dịch đoạn này 🌟</button>
+                <div class="translation-box" id="trans-4-3">
+                    Để các giải pháp công nghệ này thành công, các chính sách hỗ trợ là điều cần thiết. Việc định giá carbon và các quy định về năng lượng tái tạo có thể thúc đẩy quá trình chuyển đổi sang nền kinh tế carbon thấp. Hành động của cá nhân, chẳng hạn như giảm tiêu thụ năng lượng và áp dụng chế độ ăn uống bền vững, cũng quan trọng không kém. Bằng cách thực hiện những giải pháp này, chúng ta có thể tạo ra một tương lai bền vững hơn. Bây giờ là lúc để hành động.
+                </div>
+
+                <h4>📚 Glossary (Từ vựng B1-C2)</h4>
+                <table class="glossary-table">
+                    <tr><th>Word</th><th>Type</th><th>Vietnamese</th></tr>
+                    <tr><td>Mitigate</td><td>(v)</td><td>Giảm nhẹ, làm dịu</td></tr>
+                    <tr><td>Crucial</td><td>(adj)</td><td>Cực kỳ quan trọng</td></tr>
+                    <tr><td>Hinder</td><td>(v)</td><td>Cản trở</td></tr>
+                    <tr><td>Sequester</td><td>(v)</td><td>Cô lập, giữ lại (carbon)</td></tr>
+                    <tr><td>Ecosystem</td><td>(n)</td><td>Hệ sinh thái</td></tr>
+                    <tr><td>Mandate</td><td>(n)</td><td>Lệnh, quy định bắt buộc</td></tr>
+                    <tr><td>Sustainable</td><td>(adj)</td><td>Bền vững</td></tr>
+                </table>
+            </div>
+        </div>
+
+        <div class="panel" id="right-pane">
+            <div id="questions-container">
+                </div>
+            <button id="btn-submit" onclick="submitTest()">NỘP BÀI 🎉</button>
+        </div>
+
+    </div>
+
+    <div id="result-modal">
+        <div class="modal-content">
+            <h2 class="modal-msg" id="modal-msg">Làm tốt lắm!</h2>
+            <img class="modal-gif" id="modal-gif" src="" alt="Meme">
+            <div class="modal-score" id="modal-score">0/0</div>
+            <button class="btn-close-modal" onclick="closeModal()">Xem lại đáp án 🔍</button>
+        </div>
+    </div>
+
+    <script>
+        // --- DATA BÀI TẬP (Đã được cập nhật để hiển thị TRỌN VẸN toàn bộ câu) ---
+        const questionsData = [
+            // Passage 1
+            {
+                id: 13,
+                text: "Question 13. Wear a properly fitted helmet – This is the single most important safety measure to protect your (13) ________ in case of a crash.",
+                options: [
+                    { text: "A. hands", isCorrect: false },
+                    { text: "B. feet", isCorrect: false },
+                    { text: "C. head", isCorrect: true },
+                    { text: "D. body", isCorrect: false }
+                ],
+                explanation: `
+                    <div class="exp-title">💡 Giải thích chi tiết:</div>
+                    <div class="exp-item">Dịch câu hỏi: Đội mũ bảo hiểm vừa vặn bảo vệ bộ phận nào?</div>
+                    <div class="exp-item">A. hands (bàn tay) ❌ Sai.</div>
+                    <div class="exp-item">B. feet (bàn chân) ❌ Sai.</div>
+                    <div class="exp-item">C. head (đầu) ✅ Đúng vì mũ bảo hiểm dùng để đội đầu.</div>
+                    <div class="exp-item">D. body (cơ thể) ❌ Sai.</div>
+                    <div class="exp-quote">"Wear a properly fitted helmet – This is the single most important safety measure to protect your head in case of a crash."</div>
+                    <div class="exp-item">👉 Dịch: "Đội mũ bảo hiểm vừa vặn - Đây là biện pháp an toàn quan trọng nhất để bảo vệ <b style='color:red'>đầu</b> của bạn trong trường hợp va chạm."</div>
+                `
+            },
+            {
+                id: 14,
+                text: "Question 14. Follow traffic laws and signals – Obey all traffic (14) ________, stop signs, and give way to pedestrians.",
+                options: [
+                    { text: "A. lamps", isCorrect: false },
+                    { text: "B. roads", isCorrect: false },
+                    { text: "C. paths", isCorrect: false },
+                    { text: "D. rules", isCorrect: true }
+                ],
+                explanation: `
+                    <div class="exp-title">💡 Giải thích chi tiết:</div>
+                    <div class="exp-item">Dịch câu hỏi: Tuân theo mọi ... giao thông, biển báo dừng.</div>
+                    <div class="exp-item">A. lamps (đèn) ❌ Sai ngữ cảnh.</div>
+                    <div class="exp-item">B. roads (con đường) ❌ Sai.</div>
+                    <div class="exp-item">C. paths (lối đi) ❌ Sai.</div>
+                    <div class="exp-item">D. rules (luật lệ/quy tắc) ✅ Đúng. Cụm từ "traffic rules" = luật giao thông.</div>
+                    <div class="exp-quote">"Obey all traffic rules, stop signs, and give way to pedestrians."</div>
+                    <div class="exp-item">👉 Dịch: "Tuân theo mọi <b style='color:red'>luật lệ</b> giao thông, biển báo dừng, và nhường đường cho người đi bộ."</div>
+                `
+            },
+            {
+                id: 15,
+                text: "Question 15. Ride defensively – Assume drivers don't see you and be prepared to (15) ________.",
+                options: [
+                    { text: "A. stop", isCorrect: false },
+                    { text: "B. react", isCorrect: true },
+                    { text: "C. avoid", isCorrect: false },
+                    { text: "D. overtake", isCorrect: false }
+                ],
+                explanation: `
+                    <div class="exp-title">💡 Giải thích chi tiết:</div>
+                    <div class="exp-item">Dịch câu hỏi: Giả sử tài xế không nhìn thấy bạn và hãy chuẩn bị sẵn sàng để ...</div>
+                    <div class="exp-item">A. stop (dừng lại) ❌ Chưa đủ bao quát các tình huống.</div>
+                    <div class="exp-item">B. react (phản ứng) ✅ Đúng. Prepared to react = chuẩn bị phản ứng (phanh, né, v.v.).</div>
+                    <div class="exp-item">C. avoid (tránh) ❌ Thiếu tân ngữ phía sau.</div>
+                    <div class="exp-item">D. overtake (vượt qua) ❌ Sai logic an toàn.</div>
+                    <div class="exp-quote">"Assume drivers don't see you and be prepared to react."</div>
+                    <div class="exp-item">👉 Dịch: "Hãy giả định rằng tài xế không nhìn thấy bạn và luôn chuẩn bị sẵn sàng để <b style='color:red'>phản ứng</b>."</div>
+                `
+            },
+            {
+                id: 16,
+                text: "Question 16. Avoid riding on the sidewalk – It's generally safer to ride on the road with (16) ________, as drivers are less likely to expect you on the sidewalk.",
+                options: [
+                    { text: "A. traffic", isCorrect: true },
+                    { text: "B. bicycles", isCorrect: false },
+                    { text: "C. pedestrians", isCorrect: false },
+                    { text: "D. signals", isCorrect: false }
+                ],
+                explanation: `
+                    <div class="exp-title">💡 Giải thích chi tiết:</div>
+                    <div class="exp-item">Dịch câu hỏi: Nhìn chung, đi xe trên đường cùng với ... sẽ an toàn hơn.</div>
+                    <div class="exp-item">A. traffic (các phương tiện giao thông) ✅ Đúng.</div>
+                    <div class="exp-item">B. bicycles (xe đạp) ❌ Không đầy đủ.</div>
+                    <div class="exp-item">C. pedestrians (người đi bộ) ❌ Người đi bộ ở trên vỉa hè, không đi dưới lòng đường.</div>
+                    <div class="exp-item">D. signals (tín hiệu) ❌ Sai ngữ nghĩa.</div>
+                    <div class="exp-quote">"It's generally safer to ride on the road with traffic..."</div>
+                    <div class="exp-item">👉 Dịch: "Nhìn chung, đi xe trên đường cùng với <b style='color:red'>các phương tiện giao thông khác</b> sẽ an toàn hơn..."</div>
+                `
+            },
+            // Passage 2
+            {
+                id: 19,
+                text: "Question 19. Unlike other planets, such as Mars, which is dry and cold, Earth is (19) ________ water and has a mild climate.",
+                options: [
+                    { text: "A. covering with", isCorrect: false },
+                    { text: "B. covered with", isCorrect: true },
+                    { text: "C. covering from", isCorrect: false },
+                    { text: "D. covered from", isCorrect: false }
+                ],
+                explanation: `
+                    <div class="exp-title">💡 Giải thích chi tiết:</div>
+                    <div class="exp-item">Dịch câu hỏi: Trái Đất ... nước và có khí hậu ôn hòa.</div>
+                    <div class="exp-item">A. covering with ❌ Sai cấu trúc bị động.</div>
+                    <div class="exp-item">B. covered with ✅ Đúng. Cấu trúc bị động: "be covered with" = được bao phủ bởi.</div>
+                    <div class="exp-item">C. covering from ❌ Sai giới từ và chủ động.</div>
+                    <div class="exp-item">D. covered from ❌ Sai giới từ.</div>
+                    <div class="exp-quote">"Earth is covered with water..."</div>
+                    <div class="exp-item">👉 Dịch: "Trái Đất được <b style='color:red'>bao phủ bởi</b> nước..."</div>
+                `
+            },
+            {
+                id: 20,
+                text: "Question 20. About 71% of the Earth's surface is water, making it look blue from space. This is (20) ________ we call it the 'Blue Planet.'",
+                options: [
+                    { text: "A. why", isCorrect: true },
+                    { text: "B. which", isCorrect: false },
+                    { text: "C. what", isCorrect: false },
+                    { text: "D. how", isCorrect: false }
+                ],
+                explanation: `
+                    <div class="exp-title">💡 Giải thích chi tiết:</div>
+                    <div class="exp-item">Dịch câu hỏi: Đây là ... chúng ta gọi nó là "Hành tinh xanh".</div>
+                    <div class="exp-item">A. why ✅ Đúng. Cấu trúc "This is why..." = Đây là lý do tại sao...</div>
+                    <div class="exp-item">B. which / C. what / D. how ❌ Đều không phù hợp để chỉ lý do ở câu trước.</div>
+                    <div class="exp-quote">"This is why we call it the 'Blue Planet.'"</div>
+                    <div class="exp-item">👉 Dịch: "Đây là <b style='color:red'>lý do tại sao</b> chúng ta gọi nó là 'Hành tinh xanh'."</div>
+                `
+            },
+            {
+                id: 21,
+                text: "Question 21. This area is very wet and warm. (21) ________, places like the Sahara Desert are very hot and dry.",
+                options: [
+                    { text: "A. In conclusion", isCorrect: false },
+                    { text: "B. In contrast", isCorrect: true },
+                    { text: "C. Differing from", isCorrect: false },
+                    { text: "D. By comparison", isCorrect: false }
+                ],
+                explanation: `
+                    <div class="exp-title">💡 Giải thích chi tiết:</div>
+                    <div class="exp-item">Dịch câu hỏi: Khu vực này rất ẩm ướt và ấm áp. ..., những nơi như sa mạc Sahara lại rất nóng và khô.</div>
+                    <div class="exp-item">A. In conclusion (Tóm lại) ❌ Sai logic.</div>
+                    <div class="exp-item">B. In contrast (Ngược lại) ✅ Đúng, vì thể hiện sự tương phản giữa rừng Amazon (ẩm) và sa mạc Sahara (khô).</div>
+                    <div class="exp-item">C. Differing from ❌ Không đứng một mình có dấu phẩy theo cách này.</div>
+                    <div class="exp-item">D. By comparison (Để so sánh) ❌ Kém tự nhiên hơn In contrast trong ngữ cảnh đối lập hoàn toàn.</div>
+                    <div class="exp-quote">"In contrast, places like the Sahara Desert are very hot and dry."</div>
+                    <div class="exp-item">👉 Dịch: "<b style='color:red'>Ngược lại</b>, những nơi như sa mạc Sahara lại rất nóng và khô."</div>
+                `
+            },
+            {
+                id: 22,
+                text: "Question 22. The diversity of environments on Earth is one of the reasons why it is home to (22) ________.",
+                options: [
+                    { text: "A. millions of species", isCorrect: true },
+                    { text: "B. millions species", isCorrect: false },
+                    { text: "C. species millions", isCorrect: false },
+                    { text: "D. species of millions", isCorrect: false }
+                ],
+                explanation: `
+                    <div class="exp-title">💡 Giải thích chi tiết:</div>
+                    <div class="exp-item">Cấu trúc: Số lượng hàng triệu + of + danh từ số nhiều.</div>
+                    <div class="exp-item">A. millions of species (hàng triệu loài) ✅ Đúng ngữ pháp.</div>
+                    <div class="exp-item">Các phương án còn lại đều sai trật tự từ hoặc thiếu giới từ "of".</div>
+                    <div class="exp-quote">"...why it is home to millions of species."</div>
+                    <div class="exp-item">👉 Dịch: "...là lý do khiến nó là nhà của <b style='color:red'>hàng triệu loài</b>."</div>
+                `
+            },
+            {
+                id: 23,
+                text: "Question 23. Another interesting fact is that Earth has a protective atmosphere. This atmosphere keeps us (23) ________ from harmful rays from the sun, unlike the thin atmosphere of Mars.",
+                options: [
+                    { text: "A. free", isCorrect: false },
+                    { text: "B. independent", isCorrect: false },
+                    { text: "C. safe", isCorrect: true },
+                    { text: "D. available", isCorrect: false }
+                ],
+                explanation: `
+                    <div class="exp-title">💡 Giải thích chi tiết:</div>
+                    <div class="exp-item">Dịch câu hỏi: Bầu khí quyển này giữ cho chúng ta ... khỏi các tia có hại từ mặt trời.</div>
+                    <div class="exp-item">A. free (tự do) ❌ Sai nghĩa.</div>
+                    <div class="exp-item">B. independent (độc lập) ❌ Sai nghĩa.</div>
+                    <div class="exp-item">C. safe (an toàn) ✅ Đúng. Cụm: keep sb safe from sth (giữ ai an toàn khỏi cái gì).</div>
+                    <div class="exp-item">D. available (có sẵn) ❌ Sai nghĩa.</div>
+                    <div class="exp-quote">"This atmosphere keeps us safe from harmful rays..."</div>
+                    <div class="exp-item">👉 Dịch: "Bầu khí quyển này giữ cho chúng ta <b style='color:red'>an toàn</b> khỏi các tia có hại..."</div>
+                `
+            },
+            {
+                id: 24,
+                text: "Question 24. Earth is special because it has water, diverse environments, and a protective atmosphere. These (24) ________ make it a perfect home for all living things.",
+                options: [
+                    { text: "A. causes", isCorrect: false },
+                    { text: "B. diversities", isCorrect: false },
+                    { text: "C. specialities", isCorrect: false },
+                    { text: "D. features", isCorrect: true }
+                ],
+                explanation: `
+                    <div class="exp-title">💡 Giải thích chi tiết:</div>
+                    <div class="exp-item">Dịch câu hỏi: Những ... này biến nó thành ngôi nhà hoàn hảo cho mọi sinh vật sống.</div>
+                    <div class="exp-item">A. causes (nguyên nhân) ❌ Sai nghĩa.</div>
+                    <div class="exp-item">B. diversities (sự đa dạng) ❌ Không bao hàm hết ý nước và khí quyển.</div>
+                    <div class="exp-item">C. specialities (đặc sản) ❌ Sai nghĩa.</div>
+                    <div class="exp-item">D. features (đặc điểm) ✅ Đúng. Nước, môi trường, khí quyển là các đặc điểm (features) của Trái Đất.</div>
+                    <div class="exp-quote">"These features make it a perfect home..."</div>
+                    <div class="exp-item">👉 Dịch: "Những <b style='color:red'>đặc điểm</b> này biến nó thành ngôi nhà hoàn hảo..."</div>
+                `
+            },
+            // Passage 3
+            {
+                id: 31,
+                text: "Question 31. What is the main idea of the passage?",
+                options: [
+                    { text: "A. Electric cars are better for the environment and save money.", isCorrect: true },
+                    { text: "B. Gasoline cars will always be preferred in the future.", isCorrect: false },
+                    { text: "C. Electric cars are too expensive for most people at present.", isCorrect: false },
+                    { text: "D. Certainly governments do not support electric cars.", isCorrect: false }
+                ],
+                explanation: `
+                    <div class="exp-title">💡 Giải thích chi tiết:</div>
+                    <div class="exp-item">Dịch câu hỏi: Ý chính của đoạn văn là gì?</div>
+                    <div class="exp-item">A. Xe điện tốt hơn cho môi trường và tiết kiệm tiền. ✅ Đúng, thâu tóm toàn bài.</div>
+                    <div class="exp-item">B. Xe xăng sẽ luôn được ưa chuộng. ❌ Sai, đoạn văn nói ngược lại.</div>
+                    <div class="exp-item">C. Xe điện quá đắt. ❌ Sai, bài báo nhấn mạnh tính tiết kiệm lâu dài.</div>
+                    <div class="exp-item">D. Chính phủ không hỗ trợ. ❌ Sai, bài nói chính phủ đang hỗ trợ.</div>
+                    <div class="exp-quote">"In conclusion, electric cars offer many advantages... They are better for the environment, can save money..."</div>
+                    <div class="exp-item">👉 Dịch: "Tóm lại, xe điện mang lại nhiều lợi thế... Chúng <b style='color:red'>tốt hơn cho môi trường, có thể tiết kiệm tiền</b>..."</div>
+                `
+            },
+            {
+                id: 32,
+                text: "Question 32. The word 'essential' in the passage is OPPOSITE in meaning to ________.",
+                options: [
+                    { text: "A. inconvenient", isCorrect: false },
+                    { text: "B. impossible", isCorrect: false },
+                    { text: "C. unnecessary", isCorrect: true },
+                    { text: "D. disagreeable", isCorrect: false }
+                ],
+                explanation: `
+                    <div class="exp-title">💡 Giải thích chi tiết:</div>
+                    <div class="exp-item">Dịch câu hỏi: Từ "essential" TRÁI NGHĨA với từ nào?</div>
+                    <div class="exp-item">"essential" nghĩa là cực kỳ quan trọng, thiết yếu (necessary).</div>
+                    <div class="exp-item">A. inconvenient (bất tiện) ❌</div>
+                    <div class="exp-item">B. impossible (không thể) ❌</div>
+                    <div class="exp-item">C. unnecessary (không cần thiết) ✅ Đúng, trái nghĩa với thiết yếu.</div>
+                    <div class="exp-item">D. disagreeable (khó chịu) ❌</div>
+                    <div class="exp-quote">"This is essential because cleaner air leads to better health..."</div>
+                    <div class="exp-item">👉 Dịch: "Điều này là <b style='color:red'>rất thiết yếu</b> vì không khí sạch mang lại sức khỏe tốt."</div>
+                `
+            },
+            {
+                id: 33,
+                text: "Question 33. Which of the following statements is TRUE?",
+                options: [
+                    { text: "A. Electric cars are cheaper to buy than gasoline cars.", isCorrect: false },
+                    { text: "B. Electric cars do not produce exhaust gases.", isCorrect: true },
+                    { text: "C. All governments are against electric cars.", isCorrect: false },
+                    { text: "D. Electric cars require more maintenance than gasoline cars.", isCorrect: false }
+                ],
+                explanation: `
+                    <div class="exp-title">💡 Giải thích chi tiết:</div>
+                    <div class="exp-item">Dịch câu hỏi: Phát biểu nào sau đây là ĐÚNG?</div>
+                    <div class="exp-item">A. Xe điện rẻ hơn khi mua. ❌ Sai, bài nói "cost more to buy".</div>
+                    <div class="exp-item">B. Xe điện không xả khí thải. ✅ Đúng.</div>
+                    <div class="exp-item">C. Mọi chính phủ đều chống lại xe điện. ❌ Sai.</div>
+                    <div class="exp-item">D. Cần bảo trì nhiều hơn. ❌ Sai, bài nói "cheaper to maintain".</div>
+                    <div class="exp-quote">"They produce no exhaust gases..."</div>
+                    <div class="exp-item">👉 Dịch: "Chúng <b style='color:red'>không tạo ra khí thải</b>..."</div>
+                `
+            },
+            {
+                id: 34,
+                text: "Question 34. What can be inferred about the future of electric cars?",
+                options: [
+                    { text: "A. They will become less popular over time.", isCorrect: false },
+                    { text: "B. More people will choose electric cars because of their benefits.", isCorrect: true },
+                    { text: "C. Governments will stop supporting electric cars.", isCorrect: false },
+                    { text: "D. Electric cars will only be available in some countries.", isCorrect: false }
+                ],
+                explanation: `
+                    <div class="exp-title">💡 Giải thích chi tiết:</div>
+                    <div class="exp-item">Dịch câu hỏi: Có thể suy luận gì về tương lai của xe điện?</div>
+                    <div class="exp-item">A. Sẽ bớt phổ biến. ❌ Sai.</div>
+                    <div class="exp-item">B. Sẽ có nhiều người chọn mua vì lợi ích của nó. ✅ Đúng.</div>
+                    <div class="exp-item">C. Chính phủ ngừng hỗ trợ. ❌ Sai.</div>
+                    <div class="exp-item">D. Chỉ bán ở vài nước. ❌ Không được đề cập.</div>
+                    <div class="exp-quote">"As technology improves, electric cars will become even more popular and accessible."</div>
+                    <div class="exp-item">👉 Dịch: "Khi công nghệ cải tiến, xe điện sẽ trở nên <b style='color:red'>phổ biến và dễ tiếp cận hơn</b>."</div>
+                `
+            },
+            {
+                id: 35,
+                text: "Question 35. Why are governments offering incentives for electric cars?",
+                options: [
+                    { text: "A. To encourage people to choose electric cars", isCorrect: true },
+                    { text: "B. To make gasoline cars more popular", isCorrect: false },
+                    { text: "C. To reduce the price of gasoline", isCorrect: false },
+                    { text: "D. To limit the use of cars in cities", isCorrect: false }
+                ],
+                explanation: `
+                    <div class="exp-title">💡 Giải thích chi tiết:</div>
+                    <div class="exp-item">Dịch câu hỏi: Tại sao chính phủ cung cấp ưu đãi cho xe điện?</div>
+                    <div class="exp-item">A. Để khuyến khích người dân chọn xe điện. ✅ Đúng.</div>
+                    <div class="exp-quote">"Governments are offering incentives, such as tax credits, to encourage people to buy them."</div>
+                    <div class="exp-item">👉 Dịch: "Chính phủ đang đưa ra các ưu đãi... để <b style='color:red'>khuyến khích mọi người mua chúng</b>."</div>
+                `
+            },
+            {
+                id: 36,
+                text: "Question 36. The word 'improves' in the passage is CLOSEST in meaning to ________.",
+                options: [
+                    { text: "A. becomes worse", isCorrect: false },
+                    { text: "B. goes faster", isCorrect: false },
+                    { text: "C. comes closer", isCorrect: false },
+                    { text: "D. gets better", isCorrect: true }
+                ],
+                explanation: `
+                    <div class="exp-title">💡 Giải thích chi tiết:</div>
+                    <div class="exp-item">Dịch câu hỏi: Từ "improves" GẦN NGHĨA NHẤT với từ nào?</div>
+                    <div class="exp-item">"improves" = cải thiện, tốt hơn lên.</div>
+                    <div class="exp-item">A. becomes worse (tệ đi) ❌</div>
+                    <div class="exp-item">B. goes faster (đi nhanh hơn) ❌</div>
+                    <div class="exp-item">C. comes closer (đến gần hơn) ❌</div>
+                    <div class="exp-item">D. gets better (trở nên tốt hơn) ✅ Đúng.</div>
+                    <div class="exp-quote">"As technology improves..."</div>
+                    <div class="exp-item">👉 Dịch: "Khi công nghệ <b style='color:red'>cải tiến / trở nên tốt hơn</b>..."</div>
+                `
+            },
+            // Passage 4
+            {
+                id: 37,
+                text: "Question 37. Renewable energy sources, such as solar and wind power, are crucial. Transitioning from fossil fuels to clean energy (37) ________.",
+                options: [
+                    { text: "A. By implementing these solutions, we can create a more sustainable future", isCorrect: false },
+                    { text: "B. can significantly reduce greenhouse gas emissions", isCorrect: true },
+                    { text: "C. Agriculture and land management also offer solutions", isCorrect: false },
+                    { text: "D. For these technological solutions to succeed", isCorrect: false }
+                ],
+                explanation: `
+                    <div class="exp-title">💡 Giải thích chi tiết:</div>
+                    <div class="exp-item">Vị trí cần điền đóng vai trò là VỊ NGỮ cho chủ ngữ "Transitioning from fossil fuels to clean energy".</div>
+                    <div class="exp-item">Chỉ có phương án B bắt đầu bằng động từ "can reduce" là hợp lý về ngữ pháp và ý nghĩa.</div>
+                    <div class="exp-quote">"Transitioning from fossil fuels to clean energy can significantly reduce greenhouse gas emissions."</div>
+                    <div class="exp-item">👉 Dịch: "Việc chuyển đổi từ nhiên liệu hóa thạch sang năng lượng sạch <b style='color:red'>có thể làm giảm đáng kể lượng khí thải nhà kính</b>."</div>
+                `
+            },
+            {
+                id: 38,
+                text: "Question 38. Additionally, improving energy efficiency in buildings and transportation helps cut emissions without hindering economic growth. (38) ________. Techniques can sequester carbon in healthy soils, while protecting natural ecosystems like forests serves as effective carbon sinks.",
+                options: [
+                    { text: "A. By implementing these solutions, we can create a more sustainable future", isCorrect: false },
+                    { text: "B. can significantly reduce greenhouse gas emissions", isCorrect: false },
+                    { text: "C. Agriculture and land management also offer solutions", isCorrect: true },
+                    { text: "D. For these technological solutions to succeed", isCorrect: false }
+                ],
+                explanation: `
+                    <div class="exp-title">💡 Giải thích chi tiết:</div>
+                    <div class="exp-item">Câu sau đó nói về "healthy soils" (đất) và "forests" (rừng). Vậy câu trước phải là lời giới thiệu về mảng nông nghiệp/đất đai.</div>
+                    <div class="exp-item">Phương án C nhắc đến "Agriculture and land management" rất ăn khớp.</div>
+                    <div class="exp-quote">"Agriculture and land management also offer solutions. Techniques can sequester carbon in healthy soils..."</div>
+                    <div class="exp-item">👉 Dịch: "<b style='color:red'>Nông nghiệp và quản lý đất đai cũng đưa ra các giải pháp</b>. Các kỹ thuật có thể lưu trữ carbon trong đất..."</div>
+                `
+            },
+            {
+                id: 39,
+                text: "Question 39. (39) ________, supportive policies are essential. Carbon pricing and renewable energy mandates can drive the transition to a low-carbon economy.",
+                options: [
+                    { text: "A. By implementing these solutions, we can create a more sustainable future", isCorrect: false },
+                    { text: "B. can significantly reduce greenhouse gas emissions", isCorrect: false },
+                    { text: "C. Agriculture and land management also offer solutions", isCorrect: false },
+                    { text: "D. For these technological solutions to succeed", isCorrect: true }
+                ],
+                explanation: `
+                    <div class="exp-title">💡 Giải thích chi tiết:</div>
+                    <div class="exp-item">Vế sau là "các chính sách hỗ trợ là điều thiết yếu". Vế trước là cụm trạng ngữ chỉ mục đích là phù hợp nhất.</div>
+                    <div class="exp-quote">"For these technological solutions to succeed, supportive policies are essential."</div>
+                    <div class="exp-item">👉 Dịch: "<b style='color:red'>Để các giải pháp công nghệ này thành công</b>, các chính sách hỗ trợ là điều thiết yếu."</div>
+                `
+            },
+            {
+                id: 40,
+                text: "Question 40. Individual actions, such as reducing energy consumption and adopting sustainable diets, are equally important. (40) ________. Now is the time to act.",
+                options: [
+                    { text: "A. By implementing these solutions, we can create a more sustainable future", isCorrect: true },
+                    { text: "B. can significantly reduce greenhouse gas emissions", isCorrect: false },
+                    { text: "C. Agriculture and land management also offer solutions", isCorrect: false },
+                    { text: "D. For these technological solutions to succeed", isCorrect: false }
+                ],
+                explanation: `
+                    <div class="exp-title">💡 Giải thích chi tiết:</div>
+                    <div class="exp-item">Đây là câu kết luận, tổng kết lại lợi ích nếu thực hiện mọi giải pháp trên.</div>
+                    <div class="exp-quote">"By implementing these solutions, we can create a more sustainable future. Now is the time to act."</div>
+                    <div class="exp-item">👉 Dịch: "<b style='color:red'>Bằng cách thực hiện những giải pháp này, chúng ta có thể tạo ra một tương lai bền vững hơn</b>. Bây giờ là lúc hành động."</div>
+                `
+            }
+        ];
+
+        let score = 0;
+        let answeredQuestions = new Set();
+
+        // ÂM THANH: Sử dụng Web Audio API
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        
+        function playCorrectSound() {
+            if(audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            osc.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(800, audioCtx.currentTime); // Ding cao
+            osc.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.1);
+            gainNode.gain.setValueAtTime(0.5, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
+            osc.start(audioCtx.currentTime);
+            osc.stop(audioCtx.currentTime + 0.3);
+            createConfetti();
+        }
+
+        function playWrongSound() {
+            if(audioCtx.state === 'suspended') audioCtx.resume();
+            // Téo tèo tèo
+            playTone(400, 0, 0.2);
+            playTone(350, 0.2, 0.2);
+            playTone(300, 0.4, 0.4);
+        }
+
+        function playTone(freq, delay, duration) {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.type = 'triangle';
+            osc.frequency.value = freq;
+            gain.gain.setValueAtTime(0.3, audioCtx.currentTime + delay);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + delay + duration);
+            osc.start(audioCtx.currentTime + delay);
+            osc.stop(audioCtx.currentTime + delay + duration);
+        }
+
+        // --- TIỆN ÍCH ---
+        function toggleTranslation(id) {
+            const box = document.getElementById(id);
+            if(box.style.display === 'block') {
+                box.style.display = 'none';
+            } else {
+                box.style.display = 'block';
+            }
+        }
+
+        // Trộn ngẫu nhiên mảng
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        // Tạo Confetti
+        function createConfetti() {
+            const colors = ['#00D26A', '#FDCB6E', '#8854C0', '#00C9A7'];
+            for(let i=0; i<30; i++) {
+                const confetti = document.createElement('div');
+                confetti.classList.add('confetti');
+                confetti.style.left = Math.random() * 100 + 'vw';
+                confetti.style.top = Math.random() * -20 + 'px';
+                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                document.body.appendChild(confetti);
+                
+                const fallDuration = Math.random() * 2 + 2;
+                confetti.animate([
+                    { transform: `translate3d(0,0,0) rotate(0deg)`, opacity: 1 },
+                    { transform: `translate3d(${Math.random()*100 - 50}px, 100vh, 0) rotate(${Math.random()*360}deg)`, opacity: 0 }
+                ], { duration: fallDuration * 1000, easing: 'linear' });
+
+                setTimeout(() => confetti.remove(), fallDuration * 1000);
+            }
+        }
+
+        // Render Questions
+        function renderQuestions() {
+            const container = document.getElementById('questions-container');
+            container.innerHTML = '';
+
+            questionsData.forEach((q, qIndex) => {
+                const qBlock = document.createElement('div');
+                qBlock.className = 'card question-block';
+
+                const qText = document.createElement('div');
+                qText.className = 'question-text';
+                qText.innerText = q.text;
+                qBlock.appendChild(qText);
+
+                const grid = document.createElement('div');
+                grid.className = 'options-grid';
+
+                // Trộn đáp án
+                let optionsCopy = [...q.options];
+                shuffleArray(optionsCopy);
+
+                optionsCopy.forEach((opt, optIndex) => {
+                    const btn = document.createElement('button');
+                    btn.className = 'option-btn';
+                    btn.innerText = opt.text;
+                    btn.onclick = () => handleAnswer(qIndex, opt, btn, qBlock, optionsCopy);
+                    grid.appendChild(btn);
+                });
+
+                qBlock.appendChild(grid);
+
+                // Hộp giải thích ẩn
+                const expBox = document.createElement('div');
+                expBox.className = 'explanation-box';
+                expBox.id = `exp-${qIndex}`;
+                expBox.innerHTML = q.explanation;
+                qBlock.appendChild(expBox);
+
+                container.appendChild(qBlock);
+            });
+        }
+
+        function handleAnswer(qIndex, selectedOption, btnElement, qBlockDiv, optionsArray) {
+            // Nếu đã trả lời thì bỏ qua
+            if(answeredQuestions.has(qIndex)) return;
+            answeredQuestions.add(qIndex);
+
+            const allBtns = qBlockDiv.querySelectorAll('.option-btn');
+            
+            if(selectedOption.isCorrect) {
+                btnElement.classList.add('correct');
+                playCorrectSound();
+                score++;
+            } else {
+                btnElement.classList.add('wrong');
+                playWrongSound();
+                // Hiện đáp án đúng
+                allBtns.forEach((b, idx) => {
+                    if(optionsArray[idx].isCorrect) {
+                        b.classList.add('correct');
+                    }
+                });
+            }
+
+            // Vô hiệu hóa nút
+            allBtns.forEach(b => b.classList.add('disabled'));
+
+            // Hiện giải thích (Luôn hiện để HS học kể cả đúng hay sai)
+            document.getElementById(`exp-${qIndex}`).classList.add('show');
+        }
+
+        // Nộp bài
+        function submitTest() {
+            const total = questionsData.length;
+            const percentage = (score / total) * 100;
+            
+            document.getElementById('modal-score').innerText = `${score}/${total}`;
+            const msgEl = document.getElementById('modal-msg');
+            const gifEl = document.getElementById('modal-gif');
+
+            if(percentage === 100) {
+                msgEl.innerText = "THIÊN TÀI! ĐIỂM TUYỆT ĐỐI! 🏆";
+                gifEl.src = "https://media.giphy.com/media/11sBLVxNs7v6WA/giphy.gif"; // Celebration
+            } else if(percentage >= 60) {
+                msgEl.innerText = "LÀM TỐT LẮM! TIẾP TỤC PHÁT HUY NHÉ! 👏";
+                gifEl.src = "https://media.giphy.com/media/3o7abKhOpu0NwenH3O/giphy.gif"; // High-five
+            } else {
+                msgEl.innerText = "CỐ LÊN NHÉ! XEM KỸ LẠI PHẦN GIẢI THÍCH! 💪";
+                gifEl.src = "https://media.giphy.com/media/OPU6wzx8JrHna/giphy.gif"; // Crying/Sad
+            }
+
+            document.getElementById('result-modal').style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('result-modal').style.display = 'none';
+        }
+
+        // --- ĐỒNG HỒ ĐẾM NGƯỢC ---
+        let timeRemaining = 600; // 10 minutes
+        let timerInterval = null;
+        let isTimerRunning = false;
+
+        const timeDisplay = document.getElementById('time-display');
+        const btnTimer = document.getElementById('btn-timer');
+
+        function updateTimerDisplay() {
+            let m = Math.floor(timeRemaining / 60);
+            let s = timeRemaining % 60;
+            timeDisplay.innerText = `${m < 10 ? '0'+m : m}:${s < 10 ? '0'+s : s}`;
+        }
+
+        btnTimer.addEventListener('click', () => {
+            if(!isTimerRunning) {
+                isTimerRunning = true;
+                btnTimer.innerText = "TẠM DỪNG";
+                timerInterval = setInterval(() => {
+                    if(timeRemaining > 0) {
+                        timeRemaining--;
+                        updateTimerDisplay();
+                    } else {
+                        clearInterval(timerInterval);
+                        alert("Đã hết giờ làm bài. Bạn vẫn có thể tiếp tục làm, nhưng nhớ là trong phòng thi thật, bạn chỉ nên làm một bài như thế này trong 10 phút thôi nha.");
+                        btnTimer.innerText = "HẾT GIỜ";
+                        btnTimer.disabled = true;
+                    }
+                }, 1000);
+            } else {
+                isTimerRunning = false;
+                btnTimer.innerText = "TIẾP TỤC";
+                clearInterval(timerInterval);
+            }
+        });
+
+        // --- BACKGROUND EMOJI AUTO GENERATION ---
+        function initBackground() {
+            const emojis = ['🌍', '🚲', '⚡', '🌿', '☀️', '🚗', '🌳'];
+            const bgContainer = document.getElementById('bg-pattern');
+            for(let i=0; i<15; i++) {
+                const el = document.createElement('div');
+                el.className = 'bg-emoji';
+                el.innerText = emojis[Math.floor(Math.random() * emojis.length)];
+                el.style.left = Math.random() * 100 + 'vw';
+                el.style.animationDelay = (Math.random() * 10) + 's';
+                el.style.animationDuration = (10 + Math.random() * 10) + 's';
+                bgContainer.appendChild(el);
+            }
+        }
+
+        // Khởi tạo
+        window.onload = () => {
+            renderQuestions();
+            initBackground();
+        };
+
+    </script>
+</body>
+</html>

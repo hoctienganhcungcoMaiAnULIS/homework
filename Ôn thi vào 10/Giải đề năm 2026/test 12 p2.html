@@ -1,0 +1,1057 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Practice Test - Ms Mai An ULIS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* ================= TỔNG QUAN & THEME GAMIFICATION ================= */
+        :root {
+            --primary: #8854C0;    /* Tím Pastel */
+            --secondary: #00C9A7;  /* Xanh Ngọc */
+            --accent: #FDCB6E;     /* Vàng Sáng */
+            --correct: #00D26A;    /* Xanh Lá đúng */
+            --incorrect: #FF4757;  /* Đỏ sai */
+            --glass-bg: rgba(255, 255, 255, 0.85);
+            --glass-border: rgba(255, 255, 255, 0.4);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Quicksand', sans-serif;
+        }
+
+        body {
+            /* Background chuyển màu loang mượt mà */
+            background: linear-gradient(-45deg, #8854C0, #FDCB6E, #00C9A7, #ff9a9e);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            height: 100vh;
+            overflow: hidden;
+            color: #333;
+            user-select: none; /* Chống bôi đen copy */
+        }
+
+        /* SVG Pattern phủ lên trên làm họa tiết lơ lửng */
+        body::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='250' height='250' viewBox='0 0 200 200'%3E%3Ctext x='20' y='40' font-size='24' opacity='0.4'%3E🏮%3C/text%3E%3Ctext x='150' y='60' font-size='24' opacity='0.4'%3E📱%3C/text%3E%3Ctext x='80' y='120' font-size='24' opacity='0.4'%3E🌟%3C/text%3E%3Ctext x='170' y='160' font-size='24' opacity='0.4'%3E🏃‍♂️%3C/text%3E%3Ctext x='10' y='180' font-size='24' opacity='0.4'%3E🚀%3C/text%3E%3C/svg%3E");
+            animation: floatPattern 20s linear infinite;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        @keyframes floatPattern {
+            from { background-position: 0 0; }
+            to { background-position: 250px 250px; }
+        }
+
+        /* ================= BẢO MẬT (MODAL) ================= */
+        #password-modal, #name-modal {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(8px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+        
+        .modal-content {
+            background: var(--glass-bg);
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            border: 2px solid var(--glass-border);
+            max-width: 450px;
+            width: 90%;
+        }
+
+        .modal-content h2 { color: var(--primary); margin-bottom: 10px;}
+
+        .modal-content input {
+            padding: 15px;
+            width: 100%;
+            border-radius: 12px;
+            border: 2px solid var(--primary);
+            font-size: 1.1rem;
+            margin: 20px 0;
+            outline: none;
+            text-align: center;
+        }
+
+        .modal-content button {
+            padding: 12px 30px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 15px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 5px 0 #5e3a8c;
+            transition: all 0.2s;
+            width: 100%;
+        }
+        .modal-content button:active {
+            transform: translateY(5px);
+            box-shadow: none;
+        }
+
+        .shake { animation: shakeError 0.4s; }
+        @keyframes shakeError {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            50% { transform: translateX(10px); }
+            75% { transform: translateX(-10px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* ================= LAYOUT CHÍNH ================= */
+        #app-container {
+            display: none; 
+            height: 100vh;
+            flex-direction: column;
+            position: relative;
+            z-index: 1;
+        }
+
+        .top-bar {
+            background: rgba(255, 255, 255, 0.4);
+            backdrop-filter: blur(10px);
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid var(--glass-border);
+        }
+        .top-bar h3 { font-size: 1.3rem; color: #fff; text-shadow: 1px 1px 3px rgba(0,0,0,0.5); }
+        
+        .timer-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            background: var(--glass-bg);
+            padding: 5px 20px;
+            border-radius: 20px;
+            box-shadow: 0 4px 0 rgba(0,0,0,0.1);
+        }
+        #timer { font-size: 1.5rem; font-weight: bold; color: var(--primary); }
+        .btn-timer {
+            background: var(--secondary); color: white; border: none; padding: 10px 15px;
+            border-radius: 12px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 0 #00967d; font-size: 1rem;
+        }
+        .btn-timer:active { transform: translateY(4px); box-shadow: none; }
+
+        .split-container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+            padding: 15px;
+            gap: 15px;
+        }
+
+        .panel {
+            flex: 1;
+            background: var(--glass-bg);
+            backdrop-filter: blur(15px);
+            border-radius: 20px;
+            padding: 25px;
+            overflow-y: auto;
+            border: 2px solid var(--glass-border);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+
+        .panel::-webkit-scrollbar { width: 8px; }
+        .panel::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 10px; }
+
+        @media (max-width: 768px) {
+            .split-container { flex-direction: column; overflow-y: auto; }
+            .panel { overflow-y: visible; height: auto; }
+            body { overflow: auto; }
+            #app-container { height: auto; min-height: 100vh; }
+        }
+
+        /* ================= BÊN TRÁI (READING) ================= */
+        .reading-box {
+            margin-bottom: 30px;
+            background: rgba(255,255,255,0.7);
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.05);
+            border: 1px solid white;
+        }
+        .reading-box h3 { color: var(--primary); margin-bottom: 15px; font-size: 1.3rem; text-align: center;}
+        .reading-box p { font-size: 1.15rem; line-height: 1.8; margin-bottom: 10px; color: #2d3436; text-align: justify;}
+        
+        .btn-translate {
+            background: var(--accent);
+            color: #2d3436;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 0 #d9a444;
+            display: inline-block; margin-top: 5px; margin-bottom: 20px;
+            font-size: 0.95rem;
+        }
+        .btn-translate:active { transform: translateY(4px); box-shadow: none; }
+        
+        .translation-text {
+            display: none;
+            background: #fff8e1;
+            padding: 15px;
+            border-left: 5px solid var(--accent);
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-size: 1.1rem;
+            color: #555;
+            line-height: 1.6;
+        }
+
+        table.glossary {
+            width: 100%; border-collapse: collapse; margin-top: 20px;
+            background: white; border-radius: 10px; overflow: hidden;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+        table.glossary th { background: var(--primary); color: white; padding: 12px; font-size: 1.1rem; }
+        table.glossary td { padding: 12px; border-bottom: 1px solid #eee; text-align: center; font-size: 1.05rem;}
+        table.glossary tr:last-child td { border-bottom: none; }
+
+        /* ================= BÊN PHẢI (EXERCISES) ================= */
+        .question-card {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            border: 2px solid transparent;
+        }
+        .question-text { font-size: 1.15rem; font-weight: bold; margin-bottom: 15px; color: var(--primary); line-height: 1.5;}
+        
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+        }
+        .option-btn {
+            background: #f1f2f6;
+            border: 2px solid #dfe4ea;
+            padding: 15px;
+            border-radius: 15px;
+            font-size: 1.08rem;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 600;
+            color: #2d3436;
+        }
+        .option-btn:hover:not(:disabled) { transform: scale(1.02); border-color: var(--primary); background: #f9f5ff; }
+        .option-btn.correct-ans {
+            background: var(--correct); color: white; border-color: #00b85d; box-shadow: 0 4px 0 #00b85d;
+        }
+        .option-btn.wrong-ans {
+            background: var(--incorrect); color: white; border-color: #e03846; box-shadow: 0 4px 0 #e03846;
+            animation: shakeError 0.4s;
+        }
+
+        .explanation-box {
+            display: none;
+            margin-top: 15px;
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 12px;
+            border-left: 5px solid var(--primary);
+            font-size: 1rem;
+            line-height: 1.6;
+            color: #333;
+        }
+        .explanation-box p { margin-bottom: 8px; }
+        .explanation-box strong.red-keyword { color: var(--incorrect); font-weight: bold; }
+        .exp-quote { font-style: italic; background: #eef2f3; padding: 10px; border-radius: 8px; color: #555; border: 1px solid #ddd; }
+
+        .btn-submit {
+            width: 100%; padding: 15px; font-size: 1.3rem; font-weight: bold;
+            background: linear-gradient(45deg, var(--primary), var(--secondary));
+            color: white; border: none; border-radius: 15px; cursor: pointer;
+            box-shadow: 0 6px 0 rgba(0,0,0,0.2); margin-top: 20px; margin-bottom: 20px;
+            transition: transform 0.2s;
+        }
+        .btn-submit:active { transform: translateY(6px); box-shadow: none; }
+
+        /* ================= KẾT QUẢ ================= */
+        #result-modal img {
+            width: 100%; max-width: 250px; border-radius: 15px; margin: 15px 0; box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        #result-message { font-size: 1.2rem; margin-bottom: 20px; font-weight: bold; color: #333; line-height: 1.5;}
+
+        .confetti {
+            position: absolute; width: 12px; height: 12px;
+            z-index: 10000; pointer-events: none; border-radius: 2px;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="password-modal">
+        <div class="modal-content">
+            <h2>🔒 KHU VỰC BẢO MẬT</h2>
+            <p style="margin-bottom: 15px;">Hỏi Ms Mai An để lấy mật khẩu vào phòng thi nhé!</p>
+            <input type="password" id="pwd-input" placeholder="Nhập mật khẩu bí mật...">
+            <button onclick="checkPassword()">🚀 MỞ BÀI THI</button>
+            <p id="pwd-error" style="color: var(--incorrect); margin-top: 15px; display: none; font-weight: bold;">Sai mật khẩu rồi! Thử lại nha.</p>
+        </div>
+    </div>
+
+    <div id="name-modal" style="display: none;">
+        <div class="modal-content">
+            <h2>🎉 Sắp Xong Rồi!</h2>
+            <p>Nhập tên của con để Ms Mai An ghi điểm nhé:</p>
+            <input type="text" id="student-name" placeholder="Ví dụ: Nguyễn Văn A...">
+            <button onclick="showFinalResults()">🎯 NỘP BÀI & XEM KẾT QUẢ</button>
+            <p id="name-error" style="color: var(--incorrect); margin-top: 15px; display: none; font-weight: bold;">⚠️ Vui lòng nhập tên trước khi xem điểm nhé!</p>
+        </div>
+    </div>
+
+    <div id="result-modal" style="display: none;">
+        <div class="modal-content">
+            <h1 id="result-title" style="color: var(--primary); font-size: 2.5rem;">🎯 KẾT QUẢ</h1>
+            <img id="result-gif" src="" alt="Reaction GIF">
+            <p id="result-message"></p>
+            <h2 id="result-score" style="color: var(--secondary); font-size: 2.5rem; margin-bottom: 20px;"></h2>
+            <button onclick="location.reload()">🔄 LÀM LẠI TỪ ĐẦU</button>
+        </div>
+    </div>
+
+    <div id="app-container">
+        <div class="top-bar">
+            <h3>📝 Ms Mai An ULIS</h3>
+            <div class="timer-container">
+                <span id="timer">10:00</span>
+                <button class="btn-timer" id="btn-start-timer" onclick="startTimer()">BẮT ĐẦU TÍNH GIỜ</button>
+            </div>
+        </div>
+
+        <div class="split-container">
+            <div class="panel left-panel">
+                <h2 style="color: var(--primary); margin-bottom: 20px; text-align: center; font-size: 1.8rem;">📖 READING PASSAGE</h2>
+                
+                <div class="reading-box">
+                    <h3>P1: HOI AN LANTERN-MAKING WORKSHOP</h3>
+                    <p>You and your friends are invited to join a Lantern-Making Workshop at Riverside Cultural House, Hoi An. Discover the charm of the ancient town and make your own colourful lanterns - (13) ________ symbol of luck and happiness in the Mid-Autumn Festival. The event will be held (14) ________ the first Monday of September.</p>
+                    <button class="btn-translate" onclick="toggleTranslate('trans1')">🌟 Mở dịch đoạn này</button>
+                    <div id="trans1" class="translation-text">Bạn và bạn bè được mời tham gia Hội thảo Làm Đèn lồng tại Nhà Văn hóa Ven sông, Hội An. Hãy khám phá vẻ đẹp quyến rũ của khu phố cổ và tự tay làm những chiếc đèn lồng đầy màu sắc của riêng bạn - một biểu tượng của sự may mắn và hạnh phúc trong Tết Trung thu. Sự kiện sẽ được tổ chức vào thứ Hai đầu tiên của tháng Chín.</div>
+                    
+                    <p>This special workshop is a great chance for students to experience traditional Vietnamese culture. Participants will work in small groups to (15) ________ lanterns using bamboo, silk, and natural colours. Friendly volunteers will be available to guide and support you throughout the process. You can choose your favourite shapes and patterns to make your lantern unique and creative.</p>
+                    <button class="btn-translate" onclick="toggleTranslate('trans2')">🌟 Mở dịch đoạn này</button>
+                    <div id="trans2" class="translation-text">Hội thảo đặc biệt này là cơ hội tuyệt vời để học sinh trải nghiệm văn hóa truyền thống Việt Nam. Những người tham gia sẽ làm việc theo nhóm nhỏ để trang trí đèn lồng bằng tre, lụa và màu sắc tự nhiên. Các tình nguyện viên thân thiện sẽ có mặt để hướng dẫn và hỗ trợ bạn trong suốt quá trình. Bạn có thể chọn hình dáng và hoa văn yêu thích để làm cho chiếc đèn lồng của mình trở nên độc đáo và sáng tạo.</div>
+
+                    <p>You'll learn from (16) ________ local artisans and hear many fascinating stories about Hoi An's lantern tradition. There will be lots of fun, including a mini parade and photo spot. For more details, contact 1900 7666 or visit our website hoianheritage.com.</p>
+                    <button class="btn-translate" onclick="toggleTranslate('trans3')">🌟 Mở dịch đoạn này</button>
+                    <div id="trans3" class="translation-text">Bạn sẽ được học hỏi từ những nghệ nhân địa phương giàu kinh nghiệm và nghe nhiều câu chuyện hấp dẫn về truyền thống đèn lồng của Hội An. Sẽ có rất nhiều niềm vui, bao gồm một cuộc diễu hành nhỏ và điểm chụp ảnh. Để biết thêm chi tiết, hãy liên hệ 1900 7666 hoặc truy cập trang web của chúng tôi hoianheritage.com.</div>
+
+                    <table class="glossary">
+                        <tr><th>Word</th><th>Type</th><th>Vietnamese Meaning</th></tr>
+                        <tr><td>charm</td><td>Noun</td><td>sức quyến rũ, vẻ đẹp</td></tr>
+                        <tr><td>symbol</td><td>Noun</td><td>biểu tượng</td></tr>
+                        <tr><td>participate</td><td>Verb</td><td>tham gia</td></tr>
+                        <tr><td>artisan</td><td>Noun</td><td>nghệ nhân</td></tr>
+                        <tr><td>fascinating</td><td>Adjective</td><td>hấp dẫn, lôi cuốn</td></tr>
+                        <tr><td>traditional</td><td>Adjective</td><td>thuộc về truyền thống</td></tr>
+                        <tr><td>volunteer</td><td>Noun</td><td>tình nguyện viên</td></tr>
+                        <tr><td>unique</td><td>Adjective</td><td>độc đáo, duy nhất</td></tr>
+                        <tr><td>creative</td><td>Adjective</td><td>sáng tạo</td></tr>
+                        <tr><td>heritage</td><td>Noun</td><td>di sản</td></tr>
+                    </table>
+                </div>
+
+                <div class="reading-box">
+                    <h3>P2: FRIENDSHIP & TECHNOLOGY</h3>
+                    <p>Friendship has changed a lot because of technology. Many teenagers now keep in touch through messages, video calls, and social media. This brings several advantages. (19) ________ is convenient, helps students relax after studying, and makes them feel less lonely. It also (20) ________ friends to maintain contact even when they live far apart.</p>
+                    <button class="btn-translate" onclick="toggleTranslate('trans4')">🌟 Mở dịch đoạn này</button>
+                    <div id="trans4" class="translation-text">Tình bạn đã thay đổi rất nhiều vì công nghệ. Nhiều thanh thiếu niên hiện nay giữ liên lạc qua tin nhắn, cuộc gọi video và mạng xã hội. Điều này mang lại một số lợi ích. Việc giữ kết nối trực tuyến rất thuận tiện, giúp học sinh thư giãn sau khi học và làm cho họ bớt cảm thấy cô đơn. Nó cũng cho phép bạn bè duy trì liên lạc ngay cả khi họ sống cách xa nhau.</div>
+
+                    <p>However, online friendships also have limitations. Virtual communication cannot replace real face-to-face interaction. Real conversations allow people to share emotions more naturally and honestly, helping them understand each other better and build stronger relationships. In addition, people sometimes share too much personal information online, (21) ________ like misunderstandings or privacy risks.</p>
+                    <button class="btn-translate" onclick="toggleTranslate('trans5')">🌟 Mở dịch đoạn này</button>
+                    <div id="trans5" class="translation-text">Tuy nhiên, tình bạn trực tuyến cũng có những hạn chế. Giao tiếp ảo không thể thay thế sự tương tác trực tiếp ngoài đời thực. Những cuộc trò chuyện thực tế cho phép mọi người chia sẻ cảm xúc một cách tự nhiên và chân thực hơn, giúp họ hiểu nhau hơn và xây dựng các mối quan hệ bền chặt hơn. Ngoài ra, đôi khi mọi người chia sẻ quá nhiều thông tin cá nhân trên mạng, điều này dẫn đến những vấn đề như hiểu lầm hoặc rủi ro về quyền riêng tư.</div>
+
+                    <p>Good friends (22) ________ one another during difficulties, offering comfort, support, and encouragement. Therefore, teenagers (23) ________ learn to balance both online and offline friendships to avoid isolation. Parents can also help by teaching them how to use social media wisely (24) ________ protect their safety. True friendship is not just about likes or messages - it is about trust, care, and being there for each other in real life.</p>
+                    <button class="btn-translate" onclick="toggleTranslate('trans6')">🌟 Mở dịch đoạn này</button>
+                    <div id="trans6" class="translation-text">Những người bạn tốt luôn sát cánh bên nhau trong lúc khó khăn, mang lại sự an ủi, hỗ trợ và động viên. Vì vậy, thanh thiếu niên nên học cách cân bằng giữa tình bạn trực tuyến và ngoại tuyến để tránh sự cô lập. Cha mẹ cũng có thể giúp đỡ bằng cách dạy họ cách sử dụng mạng xã hội một cách khôn ngoan để bảo vệ sự an toàn của họ. Tình bạn thực sự không chỉ là những lượt thích hay tin nhắn - đó là sự tin tưởng, quan tâm và hiện diện vì nhau trong đời thực.</div>
+
+                    <table class="glossary">
+                        <tr><th>Word</th><th>Type</th><th>Vietnamese Meaning</th></tr>
+                        <tr><td>convenient</td><td>Adjective</td><td>thuận tiện</td></tr>
+                        <tr><td>maintain</td><td>Verb</td><td>duy trì</td></tr>
+                        <tr><td>virtual</td><td>Adjective</td><td>ảo (trên mạng)</td></tr>
+                        <tr><td>interaction</td><td>Noun</td><td>sự tương tác</td></tr>
+                        <tr><td>isolation</td><td>Noun</td><td>sự cô lập</td></tr>
+                        <tr><td>advantage</td><td>Noun</td><td>lợi thế, điểm mạnh</td></tr>
+                        <tr><td>limitation</td><td>Noun</td><td>sự hạn chế</td></tr>
+                        <tr><td>misunderstanding</td><td>Noun</td><td>sự hiểu lầm</td></tr>
+                        <tr><td>privacy</td><td>Noun</td><td>sự riêng tư</td></tr>
+                        <tr><td>encouragement</td><td>Noun</td><td>sự động viên, khích lệ</td></tr>
+                    </table>
+                </div>
+
+                <div class="reading-box">
+                    <h3>P3: BEING A TEENAGER</h3>
+                    <p>Being a teenager is like standing at the edge of two worlds - one called childhood and the other called adulthood. It's a time full of chaos, creativity, confusion, and dreams. Teens live in a digital age where everything happens at lightning speed. One moment they're laughing with friends online, and the next they're questioning who they really are. It's thrilling and terrifying at the same time.</p>
+                    <button class="btn-translate" onclick="toggleTranslate('trans7')">🌟 Mở dịch đoạn này</button>
+                    <div id="trans7" class="translation-text">Trở thành một thiếu niên giống như đứng ở ranh giới của hai thế giới - một gọi là tuổi thơ và một gọi là tuổi trưởng thành. Đó là khoảng thời gian đầy sự hỗn loạn, sáng tạo, bối rối và những giấc mơ. Thanh thiếu niên sống trong thời đại kỹ thuật số, nơi mọi thứ diễn ra với tốc độ ánh sáng. Một lúc họ đang cười đùa với bạn bè trên mạng, ngay sau đó họ lại tự hỏi mình thực sự là ai. Điều đó vừa hồi hộp vừa đáng sợ cùng một lúc.</div>
+
+                    <p>Teen life is not just about school or social media. It's about finding your voice in a world that often tells you what to be. It's when music speaks louder than words, when friendships shape who you become, and when late-night thoughts turn into big dreams about the future. Sure, there are struggles - pressure, insecurity, and expectations - but there's also incredible potential.</p>
+                    <button class="btn-translate" onclick="toggleTranslate('trans8')">🌟 Mở dịch đoạn này</button>
+                    <div id="trans8" class="translation-text">Cuộc sống tuổi teen không chỉ có trường học hay mạng xã hội. Đó là việc tìm ra tiếng nói của chính mình trong một thế giới thường bảo bạn phải trở thành người như thế nào. Đó là khi âm nhạc có tiếng nói mạnh mẽ hơn lời nói, khi tình bạn định hình nên con người bạn, và khi những suy nghĩ đêm khuya biến thành những giấc mơ lớn về tương lai. Chắc chắn là có những đấu tranh - áp lực, sự bất an và những kỳ vọng - nhưng cũng có những tiềm năng đáng kinh ngạc.</div>
+
+                    <p>Every challenge they face becomes a chance to grow stronger, braver, and more true to themselves. Teens have the power to change the world because they dare to imagine it differently. They question what's unfair, stand up for what's right, and remind everyone that the future isn't something far away - it's happening now, through their energy and ideas. Being a teen isn't easy, but it's a powerful chapter of becoming - a story still being written, one brave choice at a time.</p>
+                    <button class="btn-translate" onclick="toggleTranslate('trans9')">🌟 Mở dịch đoạn này</button>
+                    <div id="trans9" class="translation-text">Mỗi thử thách họ đối mặt trở thành cơ hội để phát triển mạnh mẽ hơn, dũng cảm hơn và sống thật hơn với chính mình. Thanh thiếu niên có sức mạnh để thay đổi thế giới vì họ dám tưởng tượng nó một cách khác biệt. Họ đặt câu hỏi về những gì không công bằng, đứng lên bảo vệ lẽ phải, và nhắc nhở mọi người rằng tương lai không phải là điều xa vời - nó đang diễn ra ngay bây giờ, qua năng lượng và ý tưởng của họ. Làm một thiếu niên không dễ dàng, nhưng đó là một chương mạnh mẽ của quá trình trưởng thành - một câu chuyện vẫn đang được viết nên, từng lựa chọn dũng cảm một.</div>
+
+                    <table class="glossary">
+                        <tr><th>Word</th><th>Type</th><th>Vietnamese Meaning</th></tr>
+                        <tr><td>chaos</td><td>Noun</td><td>sự hỗn loạn</td></tr>
+                        <tr><td>thrilling</td><td>Adjective</td><td>hồi hộp, thích thú</td></tr>
+                        <tr><td>insecurity</td><td>Noun</td><td>sự bất an</td></tr>
+                        <tr><td>potential</td><td>Noun</td><td>tiềm năng</td></tr>
+                        <tr><td>justice</td><td>Noun</td><td>sự công bằng</td></tr>
+                        <tr><td>confusion</td><td>Noun</td><td>sự bối rối</td></tr>
+                        <tr><td>expectation</td><td>Noun</td><td>sự kỳ vọng</td></tr>
+                        <tr><td>challenge</td><td>Noun</td><td>thử thách</td></tr>
+                        <tr><td>adulthood</td><td>Noun</td><td>tuổi trưởng thành</td></tr>
+                        <tr><td>chapter</td><td>Noun</td><td>chương (sách/cuộc đời)</td></tr>
+                    </table>
+                </div>
+
+                <div class="reading-box">
+                    <h3>P4: THE IMPORTANCE OF EXERCISE</h3>
+                    <p>Exercise plays a vital role in keeping us healthy. Regular exercise helps (37) ________, and improve sleep quality. Even a few minutes of light exercise can help your body feel better. Many people find it hard to stay active because of busy schedules. (38) ________. But there are easy ways to include movement in daily life – taking the stairs, stretching at work, or walking after dinner.</p>
+                    <button class="btn-translate" onclick="toggleTranslate('trans10')">🌟 Mở dịch đoạn này</button>
+                    <div id="trans10" class="translation-text">Tập thể dục đóng một vai trò quan trọng trong việc giữ cho chúng ta khỏe mạnh. Tập thể dục thường xuyên giúp giảm căng thẳng, xây dựng cơ bắp khỏe mạnh hơn và cải thiện chất lượng giấc ngủ. Thậm chí chỉ vài phút tập thể dục nhẹ nhàng cũng có thể giúp cơ thể bạn cảm thấy tốt hơn. Nhiều người cảm thấy khó khăn để duy trì hoạt động vì lịch trình bận rộn. Họ có thể dành hàng giờ ngồi trước màn hình. Nhưng có những cách dễ dàng để đưa vận động vào cuộc sống hàng ngày – đi cầu thang bộ, vươn vai tại nơi làm việc hoặc đi dạo sau bữa tối.</div>
+
+                    <p>Exercising with friends can also be more fun and motivating. Having a workout partner makes exercising feel less tiring and more enjoyable. (39) ________ teamwork and friendship. It helps people stay committed to their fitness goals and enjoy spending time together. Sharing progress and celebrating small achievements can make the journey even more enjoyable.</p>
+                    <button class="btn-translate" onclick="toggleTranslate('trans11')">🌟 Mở dịch đoạn này</button>
+                    <div id="trans11" class="translation-text">Tập thể dục với bạn bè cũng có thể thú vị và tạo động lực hơn. Có một đối tác tập luyện làm cho việc tập thể dục bớt mệt mỏi và thú vị hơn. Cùng nhau thực hiện hoạt động thể chất xây dựng tinh thần đồng đội và tình bạn. Nó giúp mọi người duy trì cam kết với các mục tiêu thể chất của họ và tận hưởng thời gian bên nhau. Chia sẻ sự tiến bộ và ăn mừng những thành tựu nhỏ có thể làm cho hành trình này trở nên thú vị hơn.</div>
+
+                    <p>Finally, the most important thing is consistency. Without regular practice, results will not last and motivation can quickly fade. (40) ________. A little effort every day can lead to a much healthier and happier life.</p>
+                    <button class="btn-translate" onclick="toggleTranslate('trans12')">🌟 Mở dịch đoạn này</button>
+                    <div id="trans12" class="translation-text">Cuối cùng, điều quan trọng nhất là sự kiên trì (nhất quán). Nếu không luyện tập thường xuyên, kết quả sẽ không kéo dài và động lực có thể phai nhạt nhanh chóng. Điều quan trọng nhất là làm cho việc tập thể dục trở thành một thói quen hàng ngày. Một chút nỗ lực mỗi ngày có thể dẫn đến một cuộc sống khỏe mạnh và hạnh phúc hơn nhiều.</div>
+
+                    <table class="glossary">
+                        <tr><th>Word</th><th>Type</th><th>Vietnamese Meaning</th></tr>
+                        <tr><td>vital</td><td>Adjective</td><td>vô cùng quan trọng</td></tr>
+                        <tr><td>schedule</td><td>Noun</td><td>lịch trình</td></tr>
+                        <tr><td>motivating</td><td>Adjective</td><td>tạo động lực</td></tr>
+                        <tr><td>commitment</td><td>Noun</td><td>sự cam kết</td></tr>
+                        <tr><td>consistency</td><td>Noun</td><td>sự kiên trì, nhất quán</td></tr>
+                        <tr><td>progress</td><td>Noun</td><td>sự tiến bộ</td></tr>
+                        <tr><td>achievement</td><td>Noun</td><td>thành tựu</td></tr>
+                        <tr><td>fade</td><td>Verb</td><td>phai nhạt, biến mất</td></tr>
+                        <tr><td>effort</td><td>Noun</td><td>sự nỗ lực</td></tr>
+                        <tr><td>regular</td><td>Adjective</td><td>thường xuyên, đều đặn</td></tr>
+                    </table>
+                </div>
+
+            </div>
+
+            <div class="panel right-panel">
+                <h2 style="color: var(--secondary); margin-bottom: 20px; text-align: center; font-size: 1.8rem;">🎮 EXERCISES</h2>
+                
+                <div class="question-card">
+                    <div class="question-text">Question 13. Choose the best word for blank (13): "...make your own colourful lanterns - (13) ________ symbol of luck..."</div>
+                    <div class="options-grid" data-q="13">
+                        <button class="option-btn" data-correct="true" onclick="checkAns(this, 'A')">A. a</button>
+                        <button class="option-btn" data-correct="false" onclick="checkAns(this, 'B')">B. some</button>
+                        <button class="option-btn" data-correct="false" onclick="checkAns(this, 'C')">C. Ø</button>
+                        <button class="option-btn" data-correct="false" onclick="checkAns(this, 'D')">D. any</button>
+                    </div>
+                    <div class="explanation-box">
+                        <p><strong>Dịch câu hỏi:</strong> Chọn từ tốt nhất cho chỗ trống (13).</p>
+                        <p>A. a (một) ✅ Đúng vì 'symbol' (biểu tượng) là danh từ đếm được số ít, bắt đầu bằng phụ âm.</p>
+                        <p>B. some (một vài) ❌ Sai vì 'symbol' không có 's' (số nhiều).</p>
+                        <p>C. Ø (không dùng mạo từ) ❌ Sai vì danh từ đếm được số ít cần mạo từ.</p>
+                        <p>D. any (bất kỳ) ❌ Sai.</p>
+                        <p class="exp-quote">"make your own colourful lanterns - a symbol of luck and happiness..."</p>
+                        <p>👉 <strong>Dịch:</strong> "tự làm những chiếc đèn lồng của riêng bạn - <span class="red-keyword">một biểu tượng</span> của sự may mắn..."</p>
+                    </div>
+                </div>
+
+                <div class="question-card">
+                    <div class="question-text">Question 14. Choose the best word for blank (14): "The event will be held (14) ________ the first Monday..."</div>
+                    <div class="options-grid" data-q="14">
+                        <button class="option-btn" data-correct="false" onclick="checkAns(this, 'A')">A. in</button>
+                        <button class="option-btn" data-correct="false" onclick="checkAns(this, 'B')">B. at</button>
+                        <button class="option-btn" data-correct="true" onclick="checkAns(this, 'C')">C. on</button>
+                        <button class="option-btn" data-correct="false" onclick="checkAns(this, 'D')">D. by</button>
+                    </div>
+                    <div class="explanation-box">
+                        <p><strong>Dịch câu hỏi:</strong> Chọn giới từ đúng cho chỗ trống (14).</p>
+                        <p>A. in ❌ Sai vì 'in' dùng cho tháng/năm.</p>
+                        <p>B. at ❌ Sai vì 'at' dùng cho giờ.</p>
+                        <p>C. on ✅ Đúng vì dùng trước các NGÀY trong tuần (Monday).</p>
+                        <p>D. by ❌ Sai.</p>
+                        <p class="exp-quote">"The event will be held on the first Monday of September."</p>
+                        <p>👉 <strong>Dịch:</strong> "Sự kiện sẽ được tổ chức <span class="red-keyword">vào (on) ngày</span> thứ Hai đầu tiên..."</p>
+                    </div>
+                </div>
+
+                 <div class="question-card">
+                    <div class="question-text">Question 15. Choose the best word for blank (15): "...work in small groups to (15) ________ lanterns using bamboo..."</div>
+                    <div class="options-grid" data-q="15">
+                        <button class="option-btn" data-correct="true" onclick="checkAns(this, 'A')">A. decorate</button>
+                        <button class="option-btn" data-correct="false" onclick="checkAns(this, 'B')">B. imagine</button>
+                        <button class="option-btn" data-correct="false" onclick="checkAns(this, 'C')">C. captivate</button>
+                        <button class="option-btn" data-correct="false" onclick="checkAns(this, 'D')">D. picture</button>
+                    </div>
+                    <div class="explanation-box">
+                        <p><strong>Dịch câu hỏi:</strong> Điền động từ phù hợp vào chỗ trống (15).</p>
+                        <p>A. decorate (trang trí) ✅ Đúng về nghĩa của đoạn văn (trang trí đèn lồng).</p>
+                        <p>B. imagine (tưởng tượng) ❌ Sai nghĩa.</p>
+                        <p>C. captivate (quyến rũ) ❌ Sai nghĩa.</p>
+                        <p>D. picture (hình dung) ❌ Sai nghĩa.</p>
+                        <p class="exp-quote">"...to decorate lanterns using bamboo, silk, and natural colours."</p>
+                        <p>👉 <strong>Dịch:</strong> "...để <span class="red-keyword">trang trí</span> đèn lồng bằng tre, lụa và màu tự nhiên."</p>
+                    </div>
+                </div>
+
+                 <div class="question-card">
+                    <div class="question-text">Question 16. Choose the best word for blank (16): "You'll learn from (16) ________ local artisans..."</div>
+                    <div class="options-grid" data-q="16">
+                        <button class="option-btn" data-correct="false" onclick="checkAns(this, 'A')">A. significant</button>
+                        <button class="option-btn" data-correct="false" onclick="checkAns(this, 'B')">B. beneficial</button>
+                        <button class="option-btn" data-correct="true" onclick="checkAns(this, 'C')">C. experienced</button>
+                        <button class="option-btn" data-correct="false" onclick="checkAns(this, 'D')">D. well-prepared</button>
+                    </div>
+                    <div class="explanation-box">
+                        <p><strong>Dịch câu hỏi:</strong> Chọn tính từ phù hợp bổ nghĩa cho danh từ thợ thủ công (artisans).</p>
+                        <p>A. significant (đáng kể) ❌ Sai nghĩa.</p>
+                        <p>B. beneficial (có ích) ❌ Sai nghĩa.</p>
+                        <p>C. experienced (giàu kinh nghiệm) ✅ Đúng vì phù hợp miêu tả thợ thủ công lành nghề.</p>
+                        <p>D. well-prepared (chuẩn bị tốt) ❌ Không tự nhiên trong ngữ cảnh này.</p>
+                        <p class="exp-quote">"You'll learn from experienced local artisans..."</p>
+                        <p>👉 <strong>Dịch:</strong> "Bạn sẽ được học hỏi từ những nghệ nhân địa phương <span class="red-keyword">giàu kinh nghiệm</span>..."</p>
+                    </div>
+                </div>
+
+                <div class="question-card">
+                    <div class="question-text">Question 19. Choose the best phrase: "(19) ________ is convenient, helps students relax..."</div>
+                    <div class="options-grid" data-q="19">
+                        <button class="option-btn" data-correct="true" onclick="checkAns(this, 'A')">A. Staying connected online</button>
+                        <button class="option-btn" data-correct="false" onclick="checkAns(this, 'B')">B. Online staying connected</button>
+                        <button class="option-btn" data-correct="false" onclick="checkAns(this, 'C')">C. Connecting to staying online</button>
+                        <button class="option-btn" data-correct="false" onclick="checkAns(this, 'D')">D. Staying online to connect</button>
+                    </div>
+                    <div class="explanation-box">
+                        <p><strong>Dịch câu hỏi:</strong> Chọn cụm từ đúng để làm chủ ngữ cho câu.</p>
+                        <p>A. Staying connected online (Việc giữ kết nối trực tuyến) ✅ Đúng vì đóng vai trò Chủ ngữ (Danh động từ V-ing).</p>
+                        <p>B, C, D ❌ Sai trật tự từ và cấu trúc ngữ pháp.</p>
+                        <p class="exp-quote">"Staying connected online is convenient..."</p>
+                        <p>👉 <strong>Dịch:</strong> "<span class="red-keyword">Việc giữ kết nối trực tuyến</span> thì thuận tiện..."</p>
+                    </div>
+                </div>
+
+                <div class="question-card">
+                    <div class="question-text">Question 20. Choose the best word: "It also (20) ________ friends to maintain contact even when they live far apart."</div>
+                    <div class="options-grid" data-q="20">
+                        <button class="option-btn" data-correct="false" onclick="checkAns(this, 'A')">A. lets</button>
+                        <button class="option-btn" data-correct="true" onclick="checkAns(this, 'B')">B. allows</button>
+                        <button class="option-btn" data-correct="false" onclick="checkAns(this, 'C')">C. suggests</button>
+                        <button class="option-btn" data-correct="false" onclick="checkAns(this, 'D')">D. makes</button>
+                    </div>
+                    <div class="explanation-box">
+                        <p><strong>Dịch câu hỏi:</strong> Chọn động từ phù hợp đi với "to V".</p>
+                        <p>A. lets ❌ Cấu trúc là "let sb DO sth" (không có 'to').</p>
+                        <p>B. allows ✅ Đúng cấu trúc "allow sb TO do sth" (cho phép ai đó làm gì).</p>
+                        <p>C. suggests ❌ Cấu trúc là "suggest doing sth".</p>
+                        <p>D. makes ❌ Cấu trúc là "make sb do sth" (không có 'to').</p>
+                        <p class="exp-quote">"It also allows friends to maintain contact..."</p>
+                        <p>👉 <strong>Dịch:</strong> "Nó cũng <span class="red-keyword">cho phép</span> bạn bè duy trì liên lạc..."</p>
+                    </div>
+                </div>
+
+                <div class="question-card">
+                    <div class="question-text">Question 21. Choose the best phrase: "...share too much personal information online, (21) ________ like misunderstandings or privacy risks."</div>
+                    <div class="options-grid" data-q="21">
+                        <button class="option-btn" data-correct="false" onclick="checkAns(this, 'A')">A. which problems result in</button>
+                        <button class="option-btn" data-correct="false" onclick="checkAns(this, 'B')">B. in which problems result</button>
+                        <button class="option-btn" data-correct="true" onclick="checkAns(this, 'C')">C. which results in problems</button>
+                        <button class="option-btn" data-correct="false" onclick="checkAns(this, 'D')">D. in which resulting problems</button>
+                    </div>
+                    <div class="explanation-box">
+                        <p><strong>Dịch câu hỏi:</strong> Chọn mệnh đề quan hệ phù hợp.</p>
+                        <p>C. which results in problems ✅ Đúng. Đại từ quan hệ "which" thay thế cho toàn bộ sự việc ở mệnh đề trước (việc chia sẻ quá nhiều thông tin), kết hợp với động từ "results in" (dẫn đến).</p>
+                        <p>A, B, D ❌ Sai cấu trúc ngữ pháp.</p>
+                        <p class="exp-quote">"...share too much personal information online, which results in problems like misunderstandings..."</p>
+                        <p>👉 <strong>Dịch:</strong> "...chia sẻ quá nhiều thông tin cá nhân trên mạng, <span class="red-keyword">điều này dẫn đến những vấn đề</span> như hiểu lầm..."</p>
+                    </div>
+                </div>
+
+                <div class="question-card">
+                    <div class="question-text">Question 22. Choose the best phrasal verb: "Good friends (22) ________ one another during difficulties..."</div>
+                    <div class="options-grid" data-q="22">
+                        <button class="option-btn" data-correct="false" onclick="checkAns(this, 'A')">A. deal with</button>
+                        <button class="option-btn" data-correct="false" onclick="checkAns(this, 'B')">B. let down</button>
+                        <button class="option-btn" data-correct="false" onclick="checkAns(this, 'C')">C. come across</button>
+                        <button class="option-btn" data-correct="true" onclick="checkAns(this, 'D')">D. stand by</button>
+                    </div>
+                    <div class="explanation-box">
+                        <p><strong>Dịch câu hỏi:</strong> Chọn cụm động từ mang nghĩa hỗ trợ, ở bên cạnh.</p>
+                        <p>A. deal with (giải quyết) ❌</p>
+                        <p>B. let down (làm thất vọng) ❌</p>
+                        <p>C. come across (tình cờ gặp) ❌</p>
+                        <p>D. stand by (sát cánh, ủng hộ, ở bên cạnh) ✅ Đúng nghĩa.</p>
+                        <p class="exp-quote">"Good friends stand by one another during difficulties..."</p>
+                        <p>👉 <strong>Dịch:</strong> "Những người bạn tốt luôn <span class="red-keyword">sát cánh/ở bên cạnh</span> nhau trong lúc khó khăn..."</p>
+                    </div>
+                </div>
+
+                <div class="question-card">
+                    <div class="question-text">Question 23. Choose the best modal verb: "Therefore, teenagers (23) ________ learn to balance both online and offline friendships to avoid isolation."</div>
+                    <div class="options-grid" data-q="23">
+                        <button class="option-btn" data-correct="true" onclick="checkAns(this, 'A')">A. should</button>
+                        <button class="option-btn" data-correct="false" onclick="checkAns(this, 'B')">B. would</button>
+                        <button class="option-btn" data-correct="false" onclick="checkAns(this, 'C')">C. can't</button>
+                        <button class="option-btn" data-correct="false" onclick="checkAns(this, 'D')">D. mustn't</button>
+                    </div>
+                    <div class="explanation-box">
+                        <p><strong>Dịch câu hỏi:</strong> Chọn động từ khuyết thiếu phù hợp chỉ lời khuyên.</p>
+                        <p>A. should (nên) ✅ Đúng vì câu này mang tính chất đưa ra lời khuyên tốt nhất cho thanh thiếu niên.</p>
+                        <p>B. would (sẽ) ❌ Không hợp lý.</p>
+                        <p>C. can't (không thể) ❌ Sai nghĩa.</p>
+                        <p>D. mustn't (không được phép) ❌ Sai nghĩa.</p>
+                        <p class="exp-quote">"Therefore, teenagers should learn to balance..."</p>
+                        <p>👉 <strong>Dịch:</strong> "Vì vậy, thanh thiếu niên <span class="red-keyword">nên</span> học cách cân bằng..."</p>
+                    </div>
+                </div>
+
+                <div class="question-card">
+                    <div class="question-text">Question 24. Choose the best conjunction: "Parents can also help by teaching them how to use social media wisely (24) ________ protect their safety."</div>
+                    <div class="options-grid" data-q="24">
+                        <button class="option-btn" data-correct="false" onclick="checkAns(this, 'A')">A. for fear of</button>
+                        <button class="option-btn" data-correct="false" onclick="checkAns(this, 'B')">B. in case of</button>
+                        <button class="option-btn" data-correct="true" onclick="checkAns(this, 'C')">C. in order to</button>
+                        <button class="option-btn" data-correct="false" onclick="checkAns(this, 'D')">D. in contrast</button>
+                    </div>
+                    <div class="explanation-box">
+                        <p><strong>Dịch câu hỏi:</strong> Chọn liên từ chỉ mục đích.</p>
+                        <p>A. for fear of (vì sợ rằng) ❌</p>
+                        <p>B. in case of (trong trường hợp) ❌</p>
+                        <p>C. in order to (để mà) ✅ Đúng vì nó chỉ mục đích của hành động "sử dụng mạng xã hội khôn ngoan" là "để bảo vệ an toàn".</p>
+                        <p>D. in contrast (trái lại) ❌</p>
+                        <p class="exp-quote">"...use social media wisely in order to protect their safety."</p>
+                        <p>👉 <strong>Dịch:</strong> "...sử dụng mạng xã hội một cách khôn ngoan <span class="red-keyword">để mà</span> bảo vệ sự an toàn của họ."</p>
+                    </div>
+                </div>
+
+                <div class="question-card">
+                    <div class="question-text">Question 31. What does the passage compare being a teenager to?</div>
+                    <div class="options-grid" data-q="31">
+                        <button class="option-btn" data-correct="false" onclick="checkAns(this, 'A')">A. Running toward goals without fear</button>
+                        <button class="option-btn" data-correct="false" onclick="checkAns(this, 'B')">B. Living away from family and friends</button>
+                        <button class="option-btn" data-correct="false" onclick="checkAns(this, 'C')">C. Forgetting everything from the past</button>
+                        <button class="option-btn" data-correct="true" onclick="checkAns(this, 'D')">D. Being between two stages of life</button>
+                    </div>
+                    <div class="explanation-box">
+                        <p><strong>Dịch câu hỏi:</strong> Đoạn văn so sánh việc trở thành một thiếu niên với điều gì?</p>
+                        <p>A, B, C ❌ Không có thông tin này trong bài.</p>
+                        <p>D. Ở giữa hai giai đoạn của cuộc đời ✅ Đúng.</p>
+                        <p class="exp-quote">"Being a teenager is like standing at the edge of two worlds - one called childhood and the other called adulthood."</p>
+                        <p>👉 <strong>Dịch:</strong> "Trở thành một thiếu niên giống như đứng ở <span class="red-keyword">ranh giới của hai thế giới (giai đoạn)</span>..."</p>
+                    </div>
+                </div>
+
+                <div class="question-card">
+                    <div class="question-text">Question 32. According to the passage, what challenge do teens face in the digital age?</div>
+                    <div class="options-grid" data-q="32">
+                        <button class="option-btn" data-correct="false" onclick="checkAns(this, 'A')">A. Feeling bored because nothing new happens online</button>
+                        <button class="option-btn" data-correct="true" onclick="checkAns(this, 'B')">B. Living in a world that changes very quickly</button>
+                        <button class="option-btn" data-correct="false" onclick="checkAns(this, 'C')">C. Having fewer opportunities to express their creativity</button>
+                        <button class="option-btn" data-correct="false" onclick="checkAns(this, 'D')">D. Losing interest in friendships due to lack of communication tools</button>
+                    </div>
+                    <div class="explanation-box">
+                        <p><strong>Dịch câu hỏi:</strong> Thử thách nào thanh thiếu niên phải đối mặt trong thời đại kỹ thuật số?</p>
+                        <p>B. Sống trong một thế giới thay đổi rất nhanh chóng ✅ Đúng. Tốc độ ánh sáng (lightning speed) thể hiện sự nhanh chóng.</p>
+                        <p>A, C, D ❌ Sai so với nội dung bài.</p>
+                        <p class="exp-quote">"Teens live in a digital age where everything happens at lightning speed."</p>
+                        <p>👉 <strong>Dịch:</strong> "Thanh thiếu niên sống trong thời đại kỹ thuật số, nơi mọi thứ diễn ra với <span class="red-keyword">tốc độ ánh sáng</span>."</p>
+                    </div>
+                </div>
+
+                <div class="question-card">
+                    <div class="question-text">Question 33. What do teens usually search for, according to the passage?</div>
+                    <div class="options-grid" data-q="33">
+                        <button class="option-btn" data-correct="false" onclick="checkAns(this, 'A')">A. Easy answers from adults and teachers</button>
+                        <button class="option-btn" data-correct="false" onclick="checkAns(this, 'B')">B. Rules that never change or challenge them</button>
+                        <button class="option-btn" data-correct="true" onclick="checkAns(this, 'C')">C. Their own voices and true identities</button>
+                        <button class="option-btn" data-correct="false" onclick="checkAns(this, 'D')">D. Ways to avoid feelings and emotions</button>
+                    </div>
+                    <div class="explanation-box">
+                        <p><strong>Dịch câu hỏi:</strong> Thanh thiếu niên thường tìm kiếm điều gì?</p>
+                        <p>C. Tiếng nói riêng và danh tính thực sự của họ ✅ Đúng.</p>
+                        <p class="exp-quote">"It's about finding your voice in a world that often tells you what to be... questioning who they really are."</p>
+                        <p>👉 <strong>Dịch:</strong> "Đó là việc <span class="red-keyword">tìm ra tiếng nói của chính mình</span>... <span class="red-keyword">tự hỏi mình thực sự là ai</span>."</p>
+                    </div>
+                </div>
+
+                <div class="question-card">
+                    <div class="question-text">Question 34. Why does the author believe teens are powerful?</div>
+                    <div class="options-grid" data-q="34">
+                        <button class="option-btn" data-correct="false" onclick="checkAns(this, 'A')">A. Because they don't care about fairness or truth.</button>
+                        <button class="option-btn" data-correct="false" onclick="checkAns(this, 'B')">B. Because they follow what others say without doubt.</button>
+                        <button class="option-btn" data-correct="false" onclick="checkAns(this, 'C')">C. Because they live quietly and avoid challenges.</button>
+                        <button class="option-btn" data-correct="true" onclick="checkAns(this, 'D')">D. Because they dare to imagine and change the world.</button>
+                    </div>
+                    <div class="explanation-box">
+                        <p><strong>Dịch câu hỏi:</strong> Tại sao tác giả tin rằng tuổi teen rất mạnh mẽ?</p>
+                        <p>D. Vì họ dám tưởng tượng và thay đổi thế giới ✅ Đúng.</p>
+                        <p class="exp-quote">"Teens have the power to change the world because they dare to imagine it differently."</p>
+                        <p>👉 <strong>Dịch:</strong> "Thanh thiếu niên có sức mạnh để <span class="red-keyword">thay đổi thế giới</span> vì họ <span class="red-keyword">dám tưởng tượng</span> nó một cách khác biệt."</p>
+                    </div>
+                </div>
+
+                <div class="question-card">
+                    <div class="question-text">Question 35. The word "potential" is CLOSEST in meaning to ________.</div>
+                    <div class="options-grid" data-q="35">
+                        <button class="option-btn" data-correct="false" onclick="checkAns(this, 'A')">A. doubt and failure</button>
+                        <button class="option-btn" data-correct="false" onclick="checkAns(this, 'B')">B. fear and worry</button>
+                        <button class="option-btn" data-correct="false" onclick="checkAns(this, 'C')">C. risk and weakness</button>
+                        <button class="option-btn" data-correct="true" onclick="checkAns(this, 'D')">D. ability and strength</button>
+                    </div>
+                    <div class="explanation-box">
+                        <p><strong>Dịch câu hỏi:</strong> Từ "potential" GẦN nghĩa nhất với từ nào?</p>
+                        <p>A. doubt and failure (nghi ngờ và thất bại) ❌</p>
+                        <p>B. fear and worry (sợ hãi và lo lắng) ❌</p>
+                        <p>C. risk and weakness (rủi ro và điểm yếu) ❌</p>
+                        <p>D. ability and strength (khả năng và sức mạnh) ✅ Đúng. "Potential" (tiềm năng) đồng nghĩa với năng lực sức mạnh chưa khai phá.</p>
+                        <p class="exp-quote">"...but there's also incredible potential."</p>
+                        <p>👉 <strong>Dịch:</strong> "...nhưng cũng có <span class="red-keyword">những khả năng/tiềm năng</span> đáng kinh ngạc."</p>
+                    </div>
+                </div>
+
+                <div class="question-card">
+                    <div class="question-text">Question 36. According to the passage, the phrase "stand up for" is OPPOSITE in meaning to ________.</div>
+                    <div class="options-grid" data-q="36">
+                        <button class="option-btn" data-correct="false" onclick="checkAns(this, 'A')">A. protect others with courage</button>
+                        <button class="option-btn" data-correct="false" onclick="checkAns(this, 'B')">B. believe in truth and justice</button>
+                        <button class="option-btn" data-correct="true" onclick="checkAns(this, 'C')">C. ignore what is right and fair</button>
+                        <button class="option-btn" data-correct="false" onclick="checkAns(this, 'D')">D. fight against what is wrong</button>
+                    </div>
+                    <div class="explanation-box">
+                        <p><strong>Dịch câu hỏi:</strong> Cụm từ "stand up for" (đứng lên bảo vệ) TRÁI NGHĨA với cụm từ nào?</p>
+                        <p>A, B, D ❌ Đều là các hành động tích cực, bảo vệ lẽ phải (đồng nghĩa).</p>
+                        <p>C. ignore what is right and fair (phớt lờ những gì đúng đắn và công bằng) ✅ Đúng vì đây là nghĩa đối lập hoàn toàn.</p>
+                        <p class="exp-quote">"They question what's unfair, stand up for what's right..."</p>
+                        <p>👉 <strong>Dịch:</strong> "Họ đặt câu hỏi về những gì không công bằng, <span class="red-keyword">đứng lên bảo vệ</span> lẽ phải..."</p>
+                    </div>
+                </div>
+
+                <div class="question-card">
+                    <div class="question-text">Question 37. Fill in the blank (37): "Regular exercise helps (37) ________, and improve sleep quality."</div>
+                    <div class="options-grid" data-q="37">
+                        <button class="option-btn" data-correct="false" onclick="checkAns(this, 'A')">A. They may spend hours sitting in front of screens</button>
+                        <button class="option-btn" data-correct="true" onclick="checkAns(this, 'B')">B. reduce stress, build stronger muscles</button>
+                        <button class="option-btn" data-correct="false" onclick="checkAns(this, 'C')">C. Doing physical activity together builds</button>
+                        <button class="option-btn" data-correct="false" onclick="checkAns(this, 'D')">D. What matters most is to make exercise a daily habit</button>
+                    </div>
+                    <div class="explanation-box">
+                        <p><strong>Dịch câu hỏi:</strong> Điền câu phù hợp nhất vào ô trống (37).</p>
+                        <p>B. reduce stress, build stronger muscles ✅ Đúng vì nó liệt kê các lợi ích của việc tập thể dục (giảm căng thẳng, xây cơ), khớp hoàn toàn với cấu trúc liệt kê "...and improve sleep quality".</p>
+                        <p class="exp-quote">"Regular exercise helps reduce stress, build stronger muscles, and improve sleep quality."</p>
+                        <p>👉 <strong>Dịch:</strong> "Tập thể dục thường xuyên giúp <span class="red-keyword">giảm căng thẳng, xây dựng cơ bắp khỏe mạnh hơn</span> và cải thiện giấc ngủ."</p>
+                    </div>
+                </div>
+
+                 <div class="question-card">
+                    <div class="question-text">Question 38. Fill in the blank (38): "Many people find it hard to stay active because of busy schedules. (38) ________. But there are easy ways..."</div>
+                    <div class="options-grid" data-q="38">
+                        <button class="option-btn" data-correct="true" onclick="checkAns(this, 'A')">A. They may spend hours sitting in front of screens</button>
+                        <button class="option-btn" data-correct="false" onclick="checkAns(this, 'B')">B. reduce stress, build stronger muscles</button>
+                        <button class="option-btn" data-correct="false" onclick="checkAns(this, 'C')">C. Doing physical activity together builds</button>
+                        <button class="option-btn" data-correct="false" onclick="checkAns(this, 'D')">D. What matters most is to make exercise a daily habit</button>
+                    </div>
+                    <div class="explanation-box">
+                        <p><strong>Dịch câu hỏi:</strong> Điền câu phù hợp nhất vào ô trống (38).</p>
+                        <p>A. Họ có thể dành hàng giờ ngồi trước màn hình ✅ Đúng vì đây là câu giải thích cho hậu quả của "lịch trình bận rộn" ở câu ngay phía trước.</p>
+                        <p class="exp-quote">"Many people find it hard to stay active because of busy schedules. They may spend hours sitting in front of screens."</p>
+                        <p>👉 <strong>Dịch:</strong> "...bởi vì lịch trình bận rộn. <span class="red-keyword">Họ có thể dành hàng giờ ngồi trước màn hình.</span>"</p>
+                    </div>
+                </div>
+
+                <div class="question-card">
+                    <div class="question-text">Question 39. Fill in the blank (39): "Having a workout partner makes exercising feel less tiring and more enjoyable. (39) ________ teamwork and friendship."</div>
+                    <div class="options-grid" data-q="39">
+                        <button class="option-btn" data-correct="false" onclick="checkAns(this, 'A')">A. They may spend hours sitting in front of screens</button>
+                        <button class="option-btn" data-correct="false" onclick="checkAns(this, 'B')">B. reduce stress, build stronger muscles</button>
+                        <button class="option-btn" data-correct="true" onclick="checkAns(this, 'C')">C. Doing physical activity together builds</button>
+                        <button class="option-btn" data-correct="false" onclick="checkAns(this, 'D')">D. What matters most is to make exercise a daily habit</button>
+                    </div>
+                    <div class="explanation-box">
+                        <p><strong>Dịch câu hỏi:</strong> Điền câu phù hợp nhất vào ô trống (39).</p>
+                        <p>C. Thực hiện hoạt động thể chất cùng nhau xây dựng... ✅ Đúng vì khớp với các từ "teamwork and friendship" (tinh thần đồng đội và tình bạn).</p>
+                        <p class="exp-quote">"Doing physical activity together builds teamwork and friendship."</p>
+                        <p>👉 <strong>Dịch:</strong> "<span class="red-keyword">Cùng nhau thực hiện hoạt động thể chất xây dựng</span> tinh thần đồng đội và tình bạn."</p>
+                    </div>
+                </div>
+
+                <div class="question-card">
+                    <div class="question-text">Question 40. Fill in the blank (40): "Without regular practice, results will not last and motivation can quickly fade. (40) ________. A little effort every day can lead to a much healthier and happier life."</div>
+                    <div class="options-grid" data-q="40">
+                        <button class="option-btn" data-correct="false" onclick="checkAns(this, 'A')">A. They may spend hours sitting in front of screens</button>
+                        <button class="option-btn" data-correct="false" onclick="checkAns(this, 'B')">B. reduce stress, build stronger muscles</button>
+                        <button class="option-btn" data-correct="false" onclick="checkAns(this, 'C')">C. Doing physical activity together builds</button>
+                        <button class="option-btn" data-correct="true" onclick="checkAns(this, 'D')">D. What matters most is to make exercise a daily habit</button>
+                    </div>
+                    <div class="explanation-box">
+                        <p><strong>Dịch câu hỏi:</strong> Điền câu phù hợp nhất vào ô trống (40).</p>
+                        <p>D. Điều quan trọng nhất là làm cho việc tập thể dục trở thành một thói quen hàng ngày ✅ Đúng vì nó tóm tắt lại ý "consistency" (sự kiên trì) ở câu trước và mở ra kết luận.</p>
+                        <p class="exp-quote">"What matters most is to make exercise a daily habit. A little effort every day..."</p>
+                        <p>👉 <strong>Dịch:</strong> "<span class="red-keyword">Điều quan trọng nhất là làm cho việc tập thể dục trở thành một thói quen hàng ngày.</span> Một chút nỗ lực mỗi ngày..."</p>
+                    </div>
+                </div>
+
+                <button class="btn-submit" onclick="promptForName()">🎉 NỘP BÀI & XEM ĐIỂM 🎉</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        function playDing() {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            osc.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(800, audioCtx.currentTime); 
+            osc.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.1);
+            
+            gainNode.gain.setValueAtTime(1, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+            
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.5);
+            createConfetti();
+        }
+
+        function playBuzz() {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            osc.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(300, audioCtx.currentTime); 
+            osc.frequency.linearRampToValueAtTime(150, audioCtx.currentTime + 0.3); 
+            
+            gainNode.gain.setValueAtTime(0.5, audioCtx.currentTime);
+            gainNode.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+            
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.4);
+        }
+
+        function createConfetti() {
+            for (let i = 0; i < 35; i++) {
+                const conf = document.createElement('div');
+                conf.classList.add('confetti');
+                conf.style.left = Math.random() * 100 + 'vw';
+                conf.style.top = -10 + 'px';
+                conf.style.backgroundColor = ['#00D26A', '#FDCB6E', '#8854C0', '#FF4757', '#00C9A7'][Math.floor(Math.random() * 5)];
+                document.body.appendChild(conf);
+
+                const animation = conf.animate([
+                    { transform: `translate3d(0,0,0) rotate(0deg)`, opacity: 1 },
+                    { transform: `translate3d(${Math.random()*200 - 100}px, 100vh, 0) rotate(${Math.random()*360}deg)`, opacity: 0 }
+                ], { duration: Math.random() * 1000 + 1500, easing: 'cubic-bezier(.37,0,.63,1)' });
+
+                animation.onfinish = () => conf.remove();
+            }
+        }
+    </script>
+
+    <script>
+        // --- CHỐNG F12 VÀ RIGHT-CLICK ---
+        document.addEventListener('contextmenu', event => event.preventDefault()); // Khóa chuột phải
+        document.onkeydown = function(e) {
+            if(e.keyCode == 123) { return false; } // F12
+            if(e.ctrlKey && e.shiftKey && e.keyCode == 'I'.charCodeAt(0)) { return false; } // Ctrl+Shift+I
+            if(e.ctrlKey && e.shiftKey && e.keyCode == 'C'.charCodeAt(0)) { return false; } // Ctrl+Shift+C
+            if(e.ctrlKey && e.shiftKey && e.keyCode == 'J'.charCodeAt(0)) { return false; } // Ctrl+Shift+J
+            if(e.ctrlKey && e.keyCode == 'U'.charCodeAt(0)) { return false; } // Ctrl+U (View Source)
+        }
+
+        // --- BẢO MẬT MẬT KHẨU ---
+        const secretCode = [115, 97, 109, 116, 111, 109, 98, 101, 111];
+        
+        function checkPassword() {
+            const input = document.getElementById('pwd-input').value;
+            const target = String.fromCharCode(...secretCode);
+            const modalBox = document.querySelector('#password-modal .modal-content');
+            
+            if (input === target) {
+                document.getElementById('password-modal').style.display = 'none';
+                document.getElementById('app-container').style.display = 'flex';
+                shuffleOptions(); 
+            } else {
+                modalBox.classList.remove('shake');
+                void modalBox.offsetWidth; 
+                modalBox.classList.add('shake');
+                document.getElementById('pwd-error').style.display = 'block';
+                document.getElementById('pwd-input').value = '';
+            }
+        }
+
+        document.getElementById('pwd-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') checkPassword();
+        });
+
+        // --- CHỨC NĂNG DỊCH THUẬT ---
+        function toggleTranslate(id) {
+            const el = document.getElementById(id);
+            if(el.style.display === 'block') {
+                el.style.display = 'none';
+            } else {
+                el.style.display = 'block';
+            }
+        }
+
+        // --- TIMER ---
+        let timerInterval;
+        let timeLeft = 600; // 10 phút
+        let isRunning = false;
+
+        function startTimer() {
+            const btn = document.getElementById('btn-start-timer');
+            if(isRunning) {
+                clearInterval(timerInterval);
+                btn.innerText = "▶ TIẾP TỤC";
+                isRunning = false;
+            } else {
+                btn.innerText = "⏸ TẠM DỪNG";
+                isRunning = true;
+                timerInterval = setInterval(() => {
+                    timeLeft--;
+                    let m = Math.floor(timeLeft / 60);
+                    let s = timeLeft % 60;
+                    document.getElementById('timer').innerText = `${m}:${s < 10 ? '0':''}${s}`;
+                    if(timeLeft <= 0) {
+                        clearInterval(timerInterval);
+                        alert("⏰ Đã hết giờ làm bài. Bạn vẫn có thể tiếp tục làm, nhưng nhớ là trong phòng thi thật, bạn chỉ nên làm một bài như thế này trong 10 phút thôi nha.");
+                        btn.innerText = "HẾT GIỜ";
+                        btn.disabled = true;
+                        btn.style.background = "#888";
+                    }
+                }, 1000);
+            }
+        }
+
+        // --- LOGIC BÀI TẬP ---
+        let score = 0;
+        let answeredQuestions = 0;
+        const totalQuestions = document.querySelectorAll('.question-card').length;
+
+        function shuffleOptions() {
+            const grids = document.querySelectorAll('.options-grid');
+            grids.forEach(grid => {
+                let btns = Array.from(grid.children);
+                btns.sort(() => Math.random() - 0.5);
+                btns.forEach(btn => grid.appendChild(btn));
+            });
+        }
+
+        function checkAns(btn, optLetter) {
+            const grid = btn.parentElement;
+            const isCorrect = btn.getAttribute('data-correct') === 'true';
+            
+            const allBtns = grid.querySelectorAll('button');
+            allBtns.forEach(b => {
+                b.disabled = true;
+                b.style.opacity = '0.6';
+                b.style.cursor = 'not-allowed';
+            });
+
+            btn.style.opacity = '1';
+
+            if(isCorrect) {
+                btn.classList.add('correct-ans');
+                playDing();
+                score++;
+            } else {
+                btn.classList.add('wrong-ans');
+                playBuzz();
+                const correctBtn = grid.querySelector('[data-correct="true"]');
+                correctBtn.classList.add('correct-ans');
+                correctBtn.style.opacity = '1';
+            }
+            
+            answeredQuestions++;
+
+            const expBox = grid.nextElementSibling;
+            if(expBox && expBox.classList.contains('explanation-box')) {
+                expBox.style.display = 'block';
+            }
+        }
+
+        // --- NỘP BÀI & KẾT QUẢ ---
+        function promptForName() {
+            document.getElementById('name-modal').style.display = 'flex';
+        }
+
+        function showFinalResults() {
+            const nameInput = document.getElementById('student-name').value.trim();
+            if(!nameInput) {
+                document.getElementById('name-error').style.display = 'block';
+                document.getElementById('student-name').style.borderColor = 'red';
+                return;
+            }
+
+            document.getElementById('name-modal').style.display = 'none';
+            document.getElementById('result-modal').style.display = 'flex';
+
+            const percentage = (score / totalQuestions) * 100;
+            const titleEl = document.getElementById('result-title');
+            const msgEl = document.getElementById('result-message');
+            const gifEl = document.getElementById('result-gif');
+            
+            document.getElementById('result-score').innerText = `Điểm của con: ${score} / ${totalQuestions}`;
+
+            if(percentage === 100) {
+                titleEl.innerText = "🌟 THIÊN TÀI!!! 🌟";
+                msgEl.innerText = `Xuất sắc tuyệt đối! ${nameInput} đúng là trùm tiếng Anh! Không sai một câu nào luôn!`;
+                gifEl.src = "https://media.giphy.com/media/11sBLVxNs7v6WA/giphy.gif"; 
+            } else if (percentage >= 60) {
+                titleEl.innerText = "👍 RẤT TỐT!";
+                msgEl.innerText = `Giỏi lắm ${nameInput}! Con đã làm rất tốt. Hãy xem lại phần giải thích những câu bị sai để rèn luyện thêm nhé!`;
+                gifEl.src = "https://media.giphy.com/media/3o7abGQa0aRJUurpII/giphy.gif";
+            } else {
+                titleEl.innerText = "💪 CỐ LÊN NHÉ!";
+                msgEl.innerText = `Ui cha, ${nameInput} cần cẩn thận hơn một chút nha. Đọc thật kỹ phần giải thích chi tiết bên dưới để không sai lần sau nhé!`;
+                gifEl.src = "https://media.giphy.com/media/2UIcmK4pn7rYNLRboG/giphy.gif";
+            }
+        }
+
+        document.getElementById('student-name').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') showFinalResults();
+        });
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Practice Test 10 - Ms Mai An ULIS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #8854C0;
+            --secondary: #FDCB6E;
+            --accent: #00C9A7;
+            --correct: #00D26A;
+            --wrong: #FF4757;
+            --text-main: #2D3436;
+            --glass-bg: rgba(255, 255, 255, 0.6);
+            --glass-border: rgba(255, 255, 255, 0.8);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Nunito', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(-45deg, #8854C0, #FF9A9E, #FDCB6E, #00C9A7);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            color: var(--text-main);
+            overflow-x: hidden;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* SVG Background Pattern */
+        .bg-pattern {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            z-index: -1;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y="20" x="10" font-size="8">📚</text><text y="80" x="30" font-size="10">🌟</text><text y="40" x="70" font-size="8">🌳</text><text y="90" x="80" font-size="10">❤️</text><text y="50" x="20" font-size="6">🚀</text><text y="10" x="85" font-size="8">🌎</text></svg>');
+            background-size: 150px 150px;
+            animation: floatPattern 30s linear infinite;
+            opacity: 0.5;
+        }
+
+        @keyframes floatPattern {
+            from { background-position: 0 0; }
+            to { background-position: 300px 300px; }
+        }
+
+        /* Modals */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(8px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+
+        .glass-modal {
+            background: rgba(255, 255, 255, 0.85);
+            padding: 2.5rem;
+            border-radius: 25px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            border: 2px solid #fff;
+            max-width: 450px;
+            width: 90%;
+        }
+
+        .glass-modal h2 { color: var(--primary); margin-bottom: 15px; font-size: 1.8rem; }
+        .glass-modal input {
+            width: 100%; padding: 12px 20px; border: 3px solid #ddd;
+            border-radius: 15px; font-size: 1.2rem; margin-bottom: 20px;
+            transition: all 0.3s;
+            outline: none;
+        }
+        .glass-modal input:focus { border-color: var(--accent); }
+        .input-error { border-color: var(--wrong) !important; animation: shake 0.4s; }
+
+        .btn-3d {
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            border-radius: 18px;
+            cursor: pointer;
+            box-shadow: 0 6px 0 #009e82;
+            transition: all 0.1s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            display: inline-block;
+        }
+        .btn-3d:active { transform: translateY(6px); box-shadow: 0 0 0 #009e82; }
+        .btn-3d.blue { background: #3498db; box-shadow: 0 6px 0 #2980b9; }
+        .btn-3d.blue:active { box-shadow: 0 0 0 #2980b9; }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            50% { transform: translateX(10px); }
+            75% { transform: translateX(-10px); }
+        }
+
+        /* Header / Top Control Bar */
+        header {
+            background: var(--glass-bg);
+            backdrop-filter: blur(15px);
+            border-bottom: 2px solid var(--glass-border);
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 10;
+        }
+
+        .teacher-info { font-size: 1rem; font-weight: 800; color: var(--primary); }
+        
+        .timer-container {
+            display: flex; align-items: center; gap: 15px;
+        }
+        .time-display {
+            font-size: 1.8rem; font-weight: 800; color: #d35400;
+            background: #fff; padding: 5px 15px; border-radius: 12px;
+            box-shadow: inset 0 3px 6px rgba(0,0,0,0.1);
+        }
+
+        /* Main Layout */
+        .container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+            padding: 20px;
+            gap: 20px;
+        }
+
+        .panel {
+            flex: 1;
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            border-radius: 20px;
+            border: 2px solid var(--glass-border);
+            padding: 25px;
+            overflow-y: auto;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.1);
+        }
+
+        .panel::-webkit-scrollbar { width: 8px; }
+        .panel::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.2); border-radius: 10px; }
+
+        /* Reading Section */
+        .reading-passage {
+            font-size: 1.15rem; line-height: 1.8; margin-bottom: 30px;
+            background: rgba(255,255,255,0.7); padding: 20px; border-radius: 15px;
+        }
+        .translate-btn {
+            background: #ffeaa7; color: #d35400; border: none; padding: 8px 15px;
+            border-radius: 12px; font-weight: bold; cursor: pointer; margin-top: 10px;
+            box-shadow: 0 4px 0 #f1c40f; transition: all 0.1s; font-size: 0.95rem;
+        }
+        .translate-btn:active { transform: translateY(4px); box-shadow: 0 0 0 #f1c40f; }
+        .translation-content {
+            display: none; background: #e3f2fd; padding: 15px; border-radius: 12px;
+            margin-top: 10px; font-size: 1rem; border-left: 5px solid #2196F3;
+        }
+
+        /* Glossary Table */
+        .glossary { margin-top: 30px; }
+        .glossary h3 { color: var(--primary); text-align: center; margin-bottom: 15px; font-size: 1.5rem; }
+        table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 15px; overflow: hidden; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; }
+        th { background: var(--primary); color: #fff; }
+        tr:last-child td { border-bottom: none; }
+
+        /* Quiz Section */
+        .question-card {
+            background: #fff; padding: 20px; border-radius: 18px; margin-bottom: 25px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05); border: 2px solid #f0f0f0;
+        }
+        .question-text { font-size: 1.15rem; font-weight: 700; margin-bottom: 15px; }
+        
+        .options-grid { display: flex; flex-direction: column; gap: 12px; }
+        
+        .option-btn {
+            background: #f8f9fa; border: 2px solid #dfe6e9; padding: 12px 20px;
+            border-radius: 15px; font-size: 1.08rem; text-align: left; cursor: pointer;
+            transition: all 0.2s; font-weight: 600; box-shadow: 0 4px 0 #dfe6e9;
+            white-space: normal; /* Cho phép chữ dài rớt dòng */
+            line-height: 1.4;
+        }
+        .option-btn:hover:not(:disabled) { transform: scale(1.02); border-color: var(--primary); }
+        .option-btn:active:not(:disabled) { transform: scale(1.02) translateY(4px); box-shadow: 0 0 0 #dfe6e9; }
+        
+        .option-btn.correct-ans { background: var(--correct); color: white; border-color: #00b85c; box-shadow: 0 4px 0 #00b85c; }
+        .option-btn.wrong-ans { background: var(--wrong); color: white; border-color: #e84118; box-shadow: 0 4px 0 #e84118; animation: shake 0.4s; }
+        
+        .option-btn:disabled { cursor: not-allowed; }
+
+        /* Explanations */
+        .explanation {
+            display: none; background: #fff3e0; padding: 15px; border-radius: 12px;
+            margin-top: 15px; font-size: 1rem; border: 2px dashed #ffb74d; line-height: 1.6;
+        }
+        .explanation.show { display: block; animation: fadeIn 0.5s; }
+        .keyword { color: #e74c3c; font-weight: bold; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Confetti */
+        .confetti {
+            position: fixed; width: 10px; height: 10px; background-color: #f00; z-index: 10000;
+            animation: fall 2s linear forwards;
+        }
+        @keyframes fall { to { transform: translateY(100vh) rotate(720deg); } }
+
+        /* Submit Button */
+        .submit-area { text-align: center; margin-top: 30px; padding-bottom: 30px; }
+        .btn-submit { font-size: 1.5rem; padding: 15px 40px; border-radius: 30px; background: linear-gradient(to right, #FF416C, #FF4B2B); box-shadow: 0 8px 0 #c0392b; }
+        .btn-submit:active { transform: translateY(8px); box-shadow: 0 0 0 #c0392b; }
+
+        /* Result Image */
+        .result-meme { max-width: 100%; border-radius: 15px; margin-top: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
+    </style>
+</head>
+<body>
+
+    <div class="bg-pattern"></div>
+
+    <div class="modal-overlay" id="pwdModal">
+        <div class="glass-modal">
+            <h2>🔒 Nhập mật khẩu để vào thi</h2>
+            <p style="margin-bottom: 15px; color: #666;">Gợi ý: Hỏi cô Mai An nha!</p>
+            <input type="password" id="pwdInput" placeholder="Nhập mật khẩu...">
+            <button class="btn-3d" onclick="checkPwd()">MỞ KHÓA 🚀</button>
+            <p id="pwdError" style="color: var(--wrong); margin-top: 10px; display: none; font-weight: bold;">Sai mật khẩu rồi bé ơi! ❌</p>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="nameModal" style="display: none;">
+        <div class="glass-modal">
+            <h2>🎯 Bạn tên là gì nhỉ?</h2>
+            <p style="margin-bottom: 15px; color: #666;">Hãy để lại tên để xem bảng vàng kết quả nhé!</p>
+            <input type="text" id="nameInput" placeholder="Ví dụ: Nguyễn Văn A...">
+            <button class="btn-3d blue" onclick="submitName()">XEM ĐIỂM NGAY 🏆</button>
+            <p id="nameError" style="color: var(--wrong); margin-top: 10px; display: none; font-weight: bold;">⚠️ Vui lòng nhập tên trước khi xem điểm nhé!</p>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="resultModal" style="display: none;">
+        <div class="glass-modal">
+            <h2 id="resultTitle">🌟 THIÊN TÀI!</h2>
+            <p id="resultScore" style="font-size: 1.5rem; font-weight: bold; color: var(--accent); margin: 10px 0;">Điểm của bạn: 0/20</p>
+            <img id="resultImg" class="result-meme" src="" alt="Meme">
+            <br><br>
+            <button class="btn-3d" onclick="location.reload()">LÀM LẠI TỪ ĐẦU 🔄</button>
+        </div>
+    </div>
+
+    <div id="mainContent" style="display: none; height: 100%; flex-direction: column;">
+        <header>
+            <div class="teacher-info">Giáo viên tạo: Ms Mai An ULIS ✨</div>
+            <div class="timer-container">
+                <button class="btn-3d" id="timerBtn" onclick="toggleTimer()">BẮT ĐẦU TÍNH GIỜ LÀM BÀI</button>
+                <div class="time-display" id="timeDisplay">10:00</div>
+            </div>
+        </header>
+
+        <div class="container">
+            <div class="panel">
+                <h2 style="color: var(--primary); margin-bottom: 20px; font-size: 1.8rem; text-align: center;">📖 READING PASSAGES</h2>
+
+                <div class="reading-passage">
+                    <strong>Part 1: Read the following announcement...</strong><br><br>
+                    JOIN THE SUMMER ENGLISH CLUB IN DA NANG!<br>
+                    Looking for a fun and (13) ________ way to improve your English this summer? Join the Summer English Club (14) ________ the Youth Center, 45 Bach Dang Street, Da Nang! You'll learn with friendly, experienced teachers and make new friends from different schools.
+                    <button class="translate-btn" onclick="toggleTranslate('trans1')">Mở dịch đoạn này 🌟</button>
+                    <div id="trans1" class="translation-content">
+                        THAM GIA CÂU LẠC BỘ TIẾNG ANH MÙA HÈ TẠI ĐÀ NẴNG!<br>
+                        Bạn đang tìm kiếm một cách thú vị và hiệu quả để cải thiện tiếng Anh của mình trong mùa hè này? Hãy tham gia Câu lạc bộ Tiếng Anh Mùa hè tại Trung tâm Thanh thiếu niên, 45 Bạch Đằng, Đà Nẵng! Bạn sẽ được học với những giáo viên thân thiện, giàu kinh nghiệm và kết bạn mới từ các trường khác nhau.
+                    </div>
+                    <br><br>
+                    The club offers (15) ________ games, songs, and speaking activities that help you use English with confidence. Students will also join outdoor projects like beach clean-ups and teamwork (16) ________ to practise English in real life. Bonus: Free T-shirt and Certificate of Participation for all members! → For details or registration, please contact 1900 7666 or visit our Facebook page. Join us for fun trips, English challenges, and exciting cultural exchange activities every weekend!
+                    <button class="translate-btn" onclick="toggleTranslate('trans2')">Mở dịch đoạn này 🌟</button>
+                    <div id="trans2" class="translation-content">
+                        Câu lạc bộ cung cấp nhiều trò chơi, bài hát và các hoạt động nói giúp bạn tự tin sử dụng tiếng Anh. Học sinh cũng sẽ tham gia các dự án ngoài trời như dọn dẹp bãi biển và các thử thách làm việc nhóm để thực hành tiếng Anh trong đời thực. Thêm nữa: Tặng áo thun miễn phí và Giấy chứng nhận tham gia cho tất cả các thành viên! → Để biết chi tiết hoặc đăng ký, vui lòng liên hệ 1900 7666 hoặc truy cập trang Facebook của chúng tôi. Hãy tham gia cùng chúng tôi để có những chuyến đi thú vị, thử thách tiếng Anh và các hoạt động giao lưu văn hóa sôi động vào mỗi cuối tuần!
+                    </div>
+                </div>
+
+                <div class="reading-passage">
+                    <strong>Part 2: Mark the letter A, B, C, or D...</strong><br><br>
+                    In today's busy world, people often forget how powerful kindness can be. A simple smile, a helping hand, or a few kind words (19) ________. Kindness spreads from one person to another, inspiring more people to act with love and care. Being kind doesn't cost anything, (20) ________ it brings happiness to both the giver and the receiver.
+                    <button class="translate-btn" onclick="toggleTranslate('trans3')">Mở dịch đoạn này 🌟</button>
+                    <div id="trans3" class="translation-content">
+                        Trong thế giới bận rộn ngày nay, con người ta thường quên mất sự tử tế có sức mạnh to lớn như thế nào. Một nụ cười đơn giản, một bàn tay giúp đỡ, hay vài lời nói tử tế có thể thay đổi một ngày của ai đó. Sự tử tế lan tỏa từ người này sang người khác, truyền cảm hứng cho nhiều người hành động với tình yêu thương và sự quan tâm. Trở nên tử tế không tốn xu nào, thế nhưng nó mang lại hạnh phúc cho cả người cho và người nhận.
+                    </div>
+                    <br><br>
+                    One small act of kindness can create a chain of positive actions that brighten many lives. Kindness can appear in many forms. Students can help classmates with homework, share school materials, or support friends (21) ________. When people show care and understanding, they create a warm and positive environment. Moreover, kindness helps build trust and strong (22) ________ between individuals. Even small actions, like picking up litter or (23) ________ cross the street, can make a community better. If everyone tried to be a little kinder every day, the world (24) ________ become a friendlier and more peaceful place. Kindness may be simple, but its impact lasts a lifetime.
+                    <button class="translate-btn" onclick="toggleTranslate('trans4')">Mở dịch đoạn này 🌟</button>
+                    <div id="trans4" class="translation-content">
+                        Một hành động tử tế nhỏ bé có thể tạo ra một chuỗi các hành động tích cực làm thắp sáng nhiều cuộc đời. Sự tử tế có thể xuất hiện dưới nhiều hình thức. Học sinh có thể giúp đỡ bạn cùng lớp làm bài tập, chia sẻ đồ dùng học tập, hoặc hỗ trợ những người bạn cảm thấy buồn bã. Khi con người thể hiện sự quan tâm và thấu hiểu, họ tạo ra một môi trường ấm áp và tích cực. Hơn nữa, sự tử tế giúp xây dựng niềm tin và các mối quan hệ bền chặt giữa các cá nhân. Thậm chí những hành động nhỏ, như nhặt rác hay giúp một người già qua đường, cũng có thể làm cho cộng đồng tốt đẹp hơn. Nếu mỗi người đều cố gắng tử tế hơn một chút mỗi ngày, thế giới sẽ trở thành một nơi thân thiện và hòa bình hơn. Sự tử tế có thể đơn giản, nhưng tác động của nó kéo dài suốt cả cuộc đời.
+                    </div>
+                </div>
+
+                <div class="reading-passage">
+                    <strong>Part 3: Read the following passage...</strong><br><br>
+                    Nature has always been one of the greatest teachers of humanity. Every tree, river, and mountain tells a story if we take the time to listen. Animals cooperate to survive, plants adapt to harsh conditions, and even the smallest insect plays an important role in maintaining balance. Humans often see themselves as separate from nature, but the truth is that we are deeply connected to it. When nature suffers, we suffer too.
+                    <button class="translate-btn" onclick="toggleTranslate('trans5')">Mở dịch đoạn này 🌟</button>
+                    <div id="trans5" class="translation-content">
+                        Thiên nhiên luôn là một trong những người thầy vĩ đại nhất của nhân loại. Mỗi cái cây, dòng sông, ngọn núi đều kể một câu chuyện nếu chúng ta dành thời gian lắng nghe. Động vật hợp tác để sinh tồn, thực vật thích nghi với điều kiện khắc nghiệt, và ngay cả loài côn trùng nhỏ nhất cũng đóng vai trò quan trọng trong việc duy trì sự cân bằng. Con người thường coi mình tách biệt với thiên nhiên, nhưng sự thật là chúng ta có sự kết nối sâu sắc với nó. Khi thiên nhiên chịu tổn thương, chúng ta cũng vậy.
+                    </div>
+                    <br><br>
+                    Scientists have recently discovered how forests communicate. Through underground networks of roots and fungi, trees share nutrients and warnings. An older tree can help a younger one grow, just as a mentor guides a student. This hidden system shows us the power of cooperation and kindness - values that modern society often forgets. Unfortunately, human activities like deforestation, pollution, and overconsumption are destroying this harmony. We cut down forests for profit and pollute the air we breathe. But it's not too late to change. Each positive step we take, no matter how small, can help restore the balance between people and the planet. By protecting nature, we also protect ourselves. Learning from nature's wisdom means living simply, sharing resources fairly, and respecting all living things. If we truly listen to the Earth, we will realize it has been teaching us compassion and balance all along.
+                    <button class="translate-btn" onclick="toggleTranslate('trans6')">Mở dịch đoạn này 🌟</button>
+                    <div id="trans6" class="translation-content">
+                        Các nhà khoa học gần đây đã phát hiện ra cách các khu rừng giao tiếp. Thông qua mạng lưới rễ và nấm dưới lòng đất, các cây chia sẻ chất dinh dưỡng và các cảnh báo. Một cái cây già hơn có thể giúp một cái cây non phát triển, giống như một người cố vấn hướng dẫn một học sinh. Hệ thống ẩn giấu này cho chúng ta thấy sức mạnh của sự hợp tác và lòng tử tế - những giá trị mà xã hội hiện đại thường hay lãng quên. Thật không may, các hoạt động của con người như phá rừng, ô nhiễm và tiêu thụ quá mức đang phá hủy sự hài hòa này. Chúng ta chặt phá rừng vì lợi nhuận và làm ô nhiễm bầu không khí chúng ta hít thở. Nhưng vẫn chưa quá muộn để thay đổi. Mỗi bước đi tích cực chúng ta thực hiện, dù nhỏ bé đến đâu, đều có thể giúp khôi phục lại sự cân bằng giữa con người và hành tinh. Bằng cách bảo vệ thiên nhiên, chúng ta cũng bảo vệ chính mình. Học hỏi từ trí tuệ của thiên nhiên có nghĩa là sống đơn giản, chia sẻ tài nguyên công bằng và tôn trọng mọi sinh vật sống. Nếu chúng ta thực sự lắng nghe Trái đất, chúng ta sẽ nhận ra rằng nó luôn dạy chúng ta lòng trắc ẩn và sự cân bằng từ trước đến nay.
+                    </div>
+                </div>
+
+                <div class="reading-passage">
+                    <strong>Part 4: Four phrases/ sentences have been removed...</strong><br><br>
+                    Learning a new language can be exciting but also challenging. Everyone has (37) ________. People learn languages for work, travel, or simply to understand other cultures. When studying a new language, it's important to listen and speak as much as possible. In the past, students often learned only from textbooks. Today, technology offers many new ways to practice. Many use online apps, videos, and language exchange websites.
+                    <button class="translate-btn" onclick="toggleTranslate('trans7')">Mở dịch đoạn này 🌟</button>
+                    <div id="trans7" class="translation-content">
+                        Học một ngôn ngữ mới có thể thú vị nhưng cũng đầy thử thách. Mỗi người đều có lý do riêng để học một ngoại ngữ. Mọi người học ngoại ngữ vì công việc, du lịch, hoặc đơn giản là để hiểu các nền văn hóa khác. Khi học một ngôn ngữ mới, việc nghe và nói càng nhiều càng tốt là rất quan trọng. Trước đây, học sinh thường chỉ học qua sách giáo khoa. Ngày nay, công nghệ mang đến nhiều cách thực hành mới. Nhiều người sử dụng các ứng dụng trực tuyến, video và các trang web trao đổi ngôn ngữ.
+                    </div>
+                    <br><br>
+                    These tools allow learners to (38) ________. Practising with native speakers, even for a few minutes a day, can greatly improve confidence and fluency. However, language learning takes time and patience. (39) ________. Making mistakes is a natural part of learning, and students shouldn't be afraid of them. Setting small goals each week can help learners stay motivated and see steady progress. Finally, learning a new language opens many doors. (40) ________. It helps us connect with people from around the world and see life from new perspectives.
+                    <button class="translate-btn" onclick="toggleTranslate('trans8')">Mở dịch đoạn này 🌟</button>
+                    <div id="trans8" class="translation-content">
+                        Những công cụ này cho phép người học nghe người bản xứ, lặp lại từ vựng và cải thiện phát âm. Việc thực hành với người bản ngữ, ngay cả trong vài phút mỗi ngày, cũng có thể cải thiện đáng kể sự tự tin và trôi chảy. Tuy nhiên, việc học ngôn ngữ đòi hỏi thời gian và sự kiên nhẫn. Nó không phải là điều có thể xảy ra trong một sớm một chiều. Việc mắc lỗi là một phần tự nhiên của quá trình học, và học sinh không nên e sợ chúng. Việc đặt ra những mục tiêu nhỏ mỗi tuần có thể giúp người học duy trì động lực và thấy được sự tiến bộ đều đặn. Cuối cùng, học một ngôn ngữ mới mở ra nhiều cánh cửa. Nó có thể giúp con người đi du lịch dễ dàng và tìm được việc làm tốt hơn. Nó giúp chúng ta kết nối với mọi người từ khắp nơi trên thế giới và nhìn cuộc sống qua những lăng kính mới.
+                    </div>
+                </div>
+
+                <div class="glossary">
+                    <h3>📚 Bảng từ vựng VIP (B1 - C2)</h3>
+                    <table>
+                        <tr><th>Từ vựng</th><th>Loại từ</th><th>Nghĩa tiếng Việt</th></tr>
+                        <tr><td>Announcement</td><td>Noun</td><td>Thông báo</td></tr>
+                        <tr><td>Participation</td><td>Noun</td><td>Sự tham gia</td></tr>
+                        <tr><td>Inspire</td><td>Verb</td><td>Truyền cảm hứng</td></tr>
+                        <tr><td>Cooperate</td><td>Verb</td><td>Hợp tác</td></tr>
+                        <tr><td>Harsh</td><td>Adjective</td><td>Khắc nghiệt</td></tr>
+                        <tr><td>Nutrient</td><td>Noun</td><td>Chất dinh dưỡng</td></tr>
+                        <tr><td>Deforestation</td><td>Noun</td><td>Sự tàn phá rừng</td></tr>
+                        <tr><td>Compassion</td><td>Noun</td><td>Lòng trắc ẩn, tình thương</td></tr>
+                        <tr><td>Fluency</td><td>Noun</td><td>Sự trôi chảy</td></tr>
+                        <tr><td>Perspective</td><td>Noun</td><td>Góc nhìn, quan điểm</td></tr>
+                    </table>
+                </div>
+            </div>
+
+            <div class="panel" id="quizPanel">
+                <h2 style="color: var(--primary); margin-bottom: 20px; font-size: 1.8rem; text-align: center;">🎮 EXERCISES</h2>
+                <div id="questionsContainer">
+                    </div>
+                
+                <div class="submit-area">
+                    <button class="btn-submit btn-3d" onclick="showNameModal()">🎯 NỘP BÀI & XEM KẾT QUẢ</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. SECURITY & UTILS ---
+        const pwdHash = [115, 97, 109, 116, 111, 109, 98, 101, 111]; 
+        const realPwd = pwdHash.map(c => String.fromCharCode(c)).join('');
+
+        function checkPwd() {
+            const input = document.getElementById('pwdInput');
+            const error = document.getElementById('pwdError');
+            if(input.value === realPwd) {
+                document.getElementById('pwdModal').style.display = 'none';
+                document.getElementById('mainContent').style.display = 'flex';
+                initQuiz();
+            } else {
+                input.classList.remove('input-error');
+                void input.offsetWidth; // trigger reflow
+                input.classList.add('input-error');
+                error.style.display = 'block';
+            }
+        }
+
+        // Allow Enter key
+        document.getElementById('pwdInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') checkPwd();
+        });
+
+        // --- 2. AUDIO GENERATOR (Web Audio API) ---
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        
+        function playSound(type) {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            osc.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            
+            if (type === 'correct') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(523.25, audioCtx.currentTime); // C5
+                osc.frequency.exponentialRampToValueAtTime(659.25, audioCtx.currentTime + 0.1); // E5
+                gainNode.gain.setValueAtTime(0.5, audioCtx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+                osc.start(); osc.stop(audioCtx.currentTime + 0.5);
+            } else {
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(300, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(150, audioCtx.currentTime + 0.4);
+                gainNode.gain.setValueAtTime(0.5, audioCtx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+                osc.start(); osc.stop(audioCtx.currentTime + 0.4);
+            }
+        }
+
+        // --- 3. CONFETTI EFFECT ---
+        function shootConfetti() {
+            const colors = ['#f00', '#0f0', '#00f', '#ff0', '#f0f', '#0ff'];
+            for(let i=0; i<30; i++) {
+                let conf = document.createElement('div');
+                conf.className = 'confetti';
+                conf.style.left = Math.random() * 100 + 'vw';
+                conf.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                conf.style.animationDuration = (Math.random() * 2 + 1) + 's';
+                document.body.appendChild(conf);
+                setTimeout(() => conf.remove(), 3000);
+            }
+        }
+
+        // --- 4. TIMER ---
+        let timeRemaining = 600; // 10 minutes
+        let timerInterval;
+        let isTimerRunning = false;
+
+        function toggleTimer() {
+            const btn = document.getElementById('timerBtn');
+            if (isTimerRunning) {
+                clearInterval(timerInterval);
+                btn.innerText = "TIẾP TỤC LÀM BÀI";
+            } else {
+                btn.innerText = "TẠM DỪNG";
+                timerInterval = setInterval(() => {
+                    timeRemaining--;
+                    let m = Math.floor(timeRemaining / 60);
+                    let s = timeRemaining % 60;
+                    document.getElementById('timeDisplay').innerText = `${m}:${s < 10 ? '0' : ''}${s}`;
+                    if(timeRemaining <= 0) {
+                        clearInterval(timerInterval);
+                        alert("⏰ Đã hết giờ làm bài. Bạn vẫn có thể tiếp tục làm, nhưng nhớ là trong phòng thi thật, bạn chỉ nên làm một bài như thế này trong 10 phút thôi nha.");
+                    }
+                }, 1000);
+            }
+            isTimerRunning = !isTimerRunning;
+        }
+
+        function toggleTranslate(id) {
+            const el = document.getElementById(id);
+            el.style.display = (el.style.display === 'block') ? 'none' : 'block';
+        }
+
+        // --- 5. QUIZ DATA & LOGIC ---
+        const quizData = [
+            {
+                q: "Question 13.",
+                options: [
+                    { text: "A. effective", correct: true, explain: "✅ <b>Đúng</b> vì hợp nghĩa (hiệu quả) và từ loại (tính từ)." },
+                    { text: "B. convenient", correct: false, explain: "❌ <b>Sai</b> vì 'convenient' (thuận tiện) không sát nghĩa bằng 'hiệu quả' khi nói về cách học." },
+                    { text: "C. colorful", correct: false, explain: "❌ <b>Sai</b> nghĩa (nhiều màu sắc)." },
+                    { text: "D. affective", correct: false, explain: "❌ <b>Sai</b> nghĩa (dễ xúc động)." }
+                ],
+                explainText: "Dịch câu hỏi: Tìm kiếm một cách vui vẻ và _____ để cải thiện tiếng Anh của bạn mùa hè này?<br>🔍 Dẫn chứng: 'Looking for a fun and (13) ________ way to improve your English this summer?'<br>👉 Dịch: Bạn đang tìm kiếm một cách thú vị và <span class='keyword'>hiệu quả (effective)</span> để cải thiện tiếng Anh của mình trong mùa hè này?"
+            },
+            {
+                q: "Question 14.",
+                options: [
+                    { text: "A. on", correct: false, explain: "❌ <b>Sai</b> vì 'on' dùng cho đường phố chung chung, không đi với địa điểm cụ thể có tên tòa nhà." },
+                    { text: "B. at", correct: true, explain: "✅ <b>Đúng</b>. Dùng 'at' trước một địa điểm cụ thể (the Youth Center)." },
+                    { text: "C. out", correct: false, explain: "❌ <b>Sai</b> cấu trúc." },
+                    { text: "D. from", correct: false, explain: "❌ <b>Sai</b> nghĩa." }
+                ],
+                explainText: "Dịch câu hỏi: Tham gia câu lạc bộ ____ Trung tâm thanh thiếu niên.<br>🔍 Dẫn chứng: 'Join the Summer English Club (14) ________ the Youth Center...'<br>👉 Dịch: Hãy tham gia Câu lạc bộ Tiếng Anh Mùa hè <span class='keyword'>tại (at)</span> Trung tâm Thanh thiếu niên..."
+            },
+            {
+                q: "Question 15.",
+                options: [
+                    { text: "A. much", correct: false, explain: "❌ <b>Sai</b> vì 'much' cộng danh từ không đếm được." },
+                    { text: "B. many", correct: true, explain: "✅ <b>Đúng</b> vì 'games' là danh từ số nhiều đếm được." },
+                    { text: "C. lot of", correct: false, explain: "❌ <b>Sai</b> ngữ pháp vì thiếu chữ 'a' (a lot of)." },
+                    { text: "D. few", correct: false, explain: "❌ <b>Sai</b> vì 'few' mang nghĩa tiêu cực (rất ít, hầu như không có), không hợp ngữ cảnh quảng cáo." }
+                ],
+                explainText: "Dịch câu hỏi: Câu lạc bộ cung cấp ____ trò chơi...<br>🔍 Dẫn chứng: 'The club offers (15) ________ games, songs...'<br>👉 Dịch: Câu lạc bộ cung cấp <span class='keyword'>nhiều (many)</span> trò chơi, bài hát..."
+            },
+            {
+                q: "Question 16.",
+                options: [
+                    { text: "A. struggles", correct: false, explain: "❌ <b>Sai</b> nghĩa (sự đấu tranh vất vả)." },
+                    { text: "B. attempts", correct: false, explain: "❌ <b>Sai</b> nghĩa (sự cố gắng)." },
+                    { text: "C. rescues", correct: false, explain: "❌ <b>Sai</b> nghĩa (sự giải cứu)." },
+                    { text: "D. challenges", correct: true, explain: "✅ <b>Đúng</b>. 'teamwork challenges' = thử thách làm việc nhóm." }
+                ],
+                explainText: "Dịch câu hỏi: tham gia các dự án ngoài trời như dọn dẹp bãi biển và các _____ làm việc nhóm<br>🔍 Dẫn chứng: '...and teamwork (16) ________ to practise English in real life.'<br>👉 Dịch: ...và các <span class='keyword'>thử thách (challenges)</span> làm việc nhóm để thực hành tiếng Anh trong đời thực."
+            },
+            {
+                q: "Question 19.",
+                options: [
+                    { text: "A. can change someone's day", correct: true, explain: "✅ <b>Đúng</b> cấu trúc và ngữ nghĩa: Có thể thay đổi một ngày của ai đó." },
+                    { text: "B. should change a day for someone", correct: false, explain: "❌ <b>Sai</b> vì dùng 'should' (nên) không hợp lý ngữ cảnh sự việc hiển nhiên." },
+                    { text: "C. someone could change their day", correct: false, explain: "❌ <b>Sai</b> trật tự và ý nghĩa." },
+                    { text: "D. can someone's day change", correct: false, explain: "❌ <b>Sai</b> ngữ pháp (giống câu hỏi)." }
+                ],
+                explainText: "Dịch câu hỏi: Một nụ cười đơn giản... ____<br>🔍 Dẫn chứng: 'A simple smile, a helping hand, or a few kind words (19) ________.'<br>👉 Dịch: Một nụ cười đơn giản, một bàn tay giúp đỡ, hay vài lời nói tử tế <span class='keyword'>có thể thay đổi một ngày của ai đó (can change someone's day)</span>."
+            },
+            {
+                q: "Question 20.",
+                options: [
+                    { text: "A. or", correct: false, explain: "❌ <b>Sai</b> (hoặc)." },
+                    { text: "B. yet", correct: true, explain: "✅ <b>Đúng</b>. 'yet' mang nghĩa 'tuy nhiên/thế nhưng', nối 2 vế đối lập." },
+                    { text: "C. so", correct: false, explain: "❌ <b>Sai</b> (vì vậy - chỉ kết quả)." },
+                    { text: "D. as", correct: false, explain: "❌ <b>Sai</b> (bởi vì)." }
+                ],
+                explainText: "Dịch câu hỏi: Trở nên tử tế không tốn gì cả, _____ nó mang lại hạnh phúc...<br>🔍 Dẫn chứng: 'Being kind doesn't cost anything, (20) ________ it brings happiness...'<br>👉 Dịch: Trở nên tử tế không tốn xu nào, <span class='keyword'>thế nhưng (yet)</span> nó mang lại hạnh phúc..."
+            },
+            {
+                q: "Question 21.",
+                options: [
+                    { text: "A. whose unhappiness feel", correct: false, explain: "❌ <b>Sai</b> ngữ pháp." },
+                    { text: "B. that unhappiness feels", correct: false, explain: "❌ <b>Sai</b> ngữ pháp." },
+                    { text: "C. who feel unhappy", correct: true, explain: "✅ <b>Đúng</b>. Mệnh đề quan hệ bổ nghĩa cho 'friends' (người)." },
+                    { text: "D. for which they feel unhappy", correct: false, explain: "❌ <b>Sai</b> vì 'which' không dùng cho người (friends)." }
+                ],
+                explainText: "Dịch câu hỏi: ...hỗ trợ những người bạn _____<br>🔍 Dẫn chứng: '...or support friends (21) ________.'<br>👉 Dịch: ...hoặc hỗ trợ những người bạn <span class='keyword'>những người cảm thấy buồn bã (who feel unhappy)</span>."
+            },
+            {
+                q: "Question 22.",
+                options: [
+                    { text: "A. communications", correct: false, explain: "❌ <b>Sai</b> (sự giao tiếp)." },
+                    { text: "B. association", correct: false, explain: "❌ <b>Sai</b> (hiệp hội)." },
+                    { text: "C. dependence", correct: false, explain: "❌ <b>Sai</b> (sự phụ thuộc)." },
+                    { text: "D. relationships", correct: true, explain: "✅ <b>Đúng</b> (các mối quan hệ). Đi với 'build strong relationships'." }
+                ],
+                explainText: "Dịch câu hỏi: ...xây dựng niềm tin và _____ vững chắc...<br>🔍 Dẫn chứng: '...build trust and strong (22) ________ between individuals.'<br>👉 Dịch: ...giúp xây dựng niềm tin và <span class='keyword'>các mối quan hệ (relationships)</span> bền chặt..."
+            },
+            {
+                q: "Question 23.",
+                options: [
+                    { text: "A. helping an elderly person", correct: true, explain: "✅ <b>Đúng</b>. Nối 2 danh động từ (picking up... or helping...)." },
+                    { text: "B. an elderly person helping", correct: false, explain: "❌ <b>Sai</b> cấu trúc." },
+                    { text: "C. to help an elderly person", correct: false, explain: "❌ <b>Sai</b> dạng từ (phải là V-ing cho song song với picking)." },
+                    { text: "D. an elderly person to help", correct: false, explain: "❌ <b>Sai</b> cấu trúc." }
+                ],
+                explainText: "Dịch câu hỏi: ...như việc nhặt rác hoặc _____ băng qua đường.<br>🔍 Dẫn chứng: '...like picking up litter or (23) ________ cross the street...'<br>👉 Dịch: ...như nhặt rác hay <span class='keyword'>giúp một người già (helping an elderly person)</span> qua đường..."
+            },
+            {
+                q: "Question 24.",
+                options: [
+                    { text: "A. will", correct: false, explain: "❌ <b>Sai</b> vì mệnh đề If đang dùng thì quá khứ (tried) -> Câu điều kiện loại 2." },
+                    { text: "B. would", correct: true, explain: "✅ <b>Đúng</b>. Câu điều kiện loại 2 diễn tả điều kiện không có thực ở hiện tại: If + S + V(quá khứ), S + would + V." },
+                    { text: "C. may", correct: false, explain: "❌ <b>Sai</b> cấu trúc ĐK loại 2." },
+                    { text: "D. can", correct: false, explain: "❌ <b>Sai</b> cấu trúc ĐK loại 2." }
+                ],
+                explainText: "Dịch câu hỏi: Nếu mọi người cố gắng... thì thế giới ____ trở thành...<br>🔍 Dẫn chứng: 'If everyone tried to be a little kinder every day, the world (24) ________ become a friendlier...'<br>👉 Dịch: Nếu mỗi người đều cố gắng tử tế hơn một chút mỗi ngày, thế giới <span class='keyword'>sẽ (would)</span> trở thành một nơi thân thiện..."
+            },
+            {
+                q: "Question 31. What does the passage say nature can teach us?",
+                options: [
+                    { text: "A. It teaches us ways to earn more money.", correct: false, explain: "❌ <b>Sai</b> vì bài không nói thiên nhiên dạy cách kiếm tiền." },
+                    { text: "B. It teaches us that humans are more powerful.", correct: false, explain: "❌ <b>Sai</b> vì con người phụ thuộc vào thiên nhiên, không phải mạnh hơn." },
+                    { text: "C. It teaches us how to control the planet.", correct: false, explain: "❌ <b>Sai</b> vì thiên nhiên dạy ta cân bằng, không phải kiểm soát." },
+                    { text: "D. It can teach us lessons about life and balance.", correct: true, explain: "✅ <b>Đúng</b>. Thiên nhiên dạy những bài học về cuộc sống và sự cân bằng." }
+                ],
+                explainText: "Dịch câu hỏi: Đoạn văn nói thiên nhiên có thể dạy chúng ta điều gì?<br>🔍 Dẫn chứng: 'Every tree... tells a story... teaching us compassion and balance.'<br>👉 Dịch: Nó luôn dạy chúng ta <span class='keyword'>lòng trắc ẩn và sự cân bằng (lessons about life and balance)</span>."
+            },
+            {
+                q: "Question 32. According to the passage, what do animals and plants show us?",
+                options: [
+                    { text: "A. The process of growing faster and stronger", correct: false, explain: "❌ <b>Sai</b>." },
+                    { text: "B. The importance of cooperation and adaptation", correct: true, explain: "✅ <b>Đúng</b>. Động vật hợp tác (cooperate) và thực vật thích nghi (adapt)." },
+                    { text: "C. The danger of changing the environment", correct: false, explain: "❌ <b>Sai</b>." },
+                    { text: "D. The need to fight for survival and power", correct: false, explain: "❌ <b>Sai</b>." }
+                ],
+                explainText: "Dịch câu hỏi: Động vật và thực vật cho chúng ta thấy điều gì?<br>🔍 Dẫn chứng: 'Animals cooperate to survive, plants adapt to harsh conditions...'<br>👉 Dịch: <span class='keyword'>Động vật hợp tác để sinh tồn, thực vật thích nghi (cooperation and adaptation)</span> với điều kiện khắc nghiệt..."
+            },
+            {
+                q: "Question 33. What have scientists recently discovered about forests?",
+                options: [
+                    { text: "A. Forests can stop pollution caused by humans.", correct: false, explain: "❌ <b>Sai</b> không được nhắc đến." },
+                    { text: "B. Trees grow faster when they are far apart.", correct: false, explain: "❌ <b>Sai</b>." },
+                    { text: "C. Trees can share nutrients and warnings underground.", correct: true, explain: "✅ <b>Đúng</b>. Cây cối có thể chia sẻ dưỡng chất và cảnh báo dưới lòng đất." },
+                    { text: "D. Forests survive only when people protect them.", correct: false, explain: "❌ <b>Sai</b>." }
+                ],
+                explainText: "Dịch câu hỏi: Các nhà khoa học gần đây phát hiện điều gì về rừng?<br>🔍 Dẫn chứng: 'Scientists have recently discovered how forests communicate... trees share nutrients and warnings.'<br>👉 Dịch: Thông qua mạng lưới dưới lòng đất, các cây <span class='keyword'>chia sẻ chất dinh dưỡng và các cảnh báo (share nutrients and warnings)</span>."
+            },
+            {
+                q: "Question 34. What does the hidden system of trees demonstrate to us?",
+                options: [
+                    { text: "A. The value of cooperation and kindness", correct: true, explain: "✅ <b>Đúng</b>. Thể hiện giá trị của sự hợp tác và tử tế." },
+                    { text: "B. The secret of fast and strong growth", correct: false, explain: "❌ <b>Sai</b>." },
+                    { text: "C. The danger of modern technology", correct: false, explain: "❌ <b>Sai</b>." },
+                    { text: "D. The way to become rich and successful", correct: false, explain: "❌ <b>Sai</b>." }
+                ],
+                explainText: "Dịch câu hỏi: Hệ thống ẩn của cây cối chứng minh điều gì?<br>🔍 Dẫn chứng: 'This hidden system shows us the power of cooperation and kindness...'<br>👉 Dịch: Hệ thống ẩn giấu này cho chúng ta thấy sức mạnh của <span class='keyword'>sự hợp tác và lòng tử tế (cooperation and kindness)</span>..."
+            },
+            {
+                q: "Question 35. The word 'harmony' is CLOSEST in meaning to",
+                options: [
+                    { text: "A. sadness and confusion", correct: false, explain: "❌ <b>Sai</b> (buồn bã và bối rối)." },
+                    { text: "B. destruction and loss", correct: false, explain: "❌ <b>Sai</b> (sự phá hủy và mất mát)." },
+                    { text: "C. control and success", correct: false, explain: "❌ <b>Sai</b> (kiểm soát và thành công)." },
+                    { text: "D. peace and balance", correct: true, explain: "✅ <b>Đúng</b>. Harmony = sự hài hòa, hòa hợp ~ sự hòa bình và cân bằng (peace and balance)." }
+                ],
+                explainText: "Dịch câu hỏi: Từ 'harmony' gần nghĩa nhất với từ nào?<br>🔍 Dẫn chứng: '...destroying this harmony.'<br>👉 Dịch: Từ 'harmony' (sự hài hòa) đồng nghĩa với <span class='keyword'>sự yên bình và cân bằng (peace and balance)</span>."
+            },
+            {
+                q: "Question 36. The phrase 'adapt to' is OPPOSITE in meaning to",
+                options: [
+                    { text: "A. struggle against change", correct: true, explain: "✅ <b>Đúng</b>. Thích nghi (adapt) >< chống lại sự thay đổi (struggle against change)." },
+                    { text: "B. survive in new conditions", correct: false, explain: "❌ <b>Sai</b> (đồng nghĩa với thích nghi)." },
+                    { text: "C. learn from the environment", correct: false, explain: "❌ <b>Sai</b>." },
+                    { text: "D. adjust to difficult situations", correct: false, explain: "❌ <b>Sai</b> (đồng nghĩa với thích nghi)." }
+                ],
+                explainText: "Dịch câu hỏi: Cụm từ 'adapt to' TRÁI NGHĨA với cụm nào?<br>🔍 Dẫn chứng: '...plants adapt to harsh conditions...'<br>👉 Dịch: Thực vật thích nghi (adapt to) với điều kiện khắc nghiệt. Trái nghĩa của thích nghi là <span class='keyword'>chống lại sự thay đổi (struggle against change)</span>."
+            },
+            {
+                q: "Question 37.",
+                options: [
+                    { text: "A. It can help people travel easily and find better jobs", correct: false, explain: "❌ <b>Sai</b> vì câu trước đang nói về việc 'Mọi người đều có...', ghép câu này vào không hợp logic ngữ pháp và ngữ cảnh." },
+                    { text: "B. hear native speakers, repeat words, and improve pronunciation", correct: false, explain: "❌ <b>Sai</b> vì sai cấu trúc ngữ pháp khi đứng sau 'has'." },
+                    { text: "C. It's not something that happens overnight", correct: false, explain: "❌ <b>Sai</b> logic vì đoạn này chưa bàn đến thời gian học nhanh hay chậm." },
+                    { text: "D. their own reason for studying a foreign language", correct: true, explain: "✅ <b>Đúng</b>. Câu sau nói 'Mọi người học vì công việc, du lịch...' tức là đang giải thích cho các 'lý do' (reason) này." }
+                ],
+                explainText: "Dịch câu hỏi: Điền đáp án phù hợp vào chỗ trống (37).<br>🔍 Dẫn chứng: 'Everyone has (37) ________. People learn languages for work, travel...'<br>👉 Dịch: Mỗi người đều có <span class='keyword'>lý do riêng để học một ngoại ngữ (their own reason for studying a foreign language)</span>. Mọi người học ngôn ngữ vì công việc, du lịch..."
+            },
+            {
+                q: "Question 38.",
+                options: [
+                    { text: "A. It can help people travel easily and find better jobs", correct: false, explain: "❌ <b>Sai</b> vì không khớp với chủ ngữ 'learners' và động từ 'to' ở câu trước." },
+                    { text: "B. hear native speakers, repeat words, and improve pronunciation", correct: true, explain: "✅ <b>Đúng</b> vì phù hợp với 'These tools allow learners to...' (Các công cụ này cho phép người học... làm các hành động liên quan đến nghe/nói)." },
+                    { text: "C. It's not something that happens overnight", correct: false, explain: "❌ <b>Sai</b> cấu trúc ngữ pháp sau 'allow somebody to...'." },
+                    { text: "D. their own reason for studying a foreign language", correct: false, explain: "❌ <b>Sai</b> ngữ cảnh." }
+                ],
+                explainText: "Dịch câu hỏi: Điền đáp án phù hợp vào chỗ trống (38).<br>🔍 Dẫn chứng: 'Many use online apps... These tools allow learners to (38) ________.'<br>👉 Dịch: Những công cụ này cho phép người học <span class='keyword'>nghe người bản xứ, lặp lại từ vựng và cải thiện phát âm (hear native speakers, repeat words, and improve pronunciation)</span>."
+            },
+            {
+                q: "Question 39.",
+                options: [
+                    { text: "A. It can help people travel easily and find better jobs", correct: false, explain: "❌ <b>Sai</b> vì câu trước đang nói về việc học cần thời gian, không nói về lợi ích." },
+                    { text: "B. hear native speakers, repeat words, and improve pronunciation", correct: false, explain: "❌ <b>Sai</b> ngữ pháp và logic." },
+                    { text: "C. It's not something that happens overnight", correct: true, explain: "✅ <b>Đúng</b>. Cụm 'not happens overnight' (không xảy ra trong một sớm một chiều) bổ sung ý hoàn hảo cho 'takes time and patience' (cần thời gian và kiên nhẫn)." },
+                    { text: "D. their own reason for studying a foreign language", correct: false, explain: "❌ <b>Sai</b> logic." }
+                ],
+                explainText: "Dịch câu hỏi: Điền đáp án phù hợp vào chỗ trống (39).<br>🔍 Dẫn chứng: 'However, language learning takes time and patience. (39) ________.'<br>👉 Dịch: Học ngôn ngữ đòi hỏi thời gian và kiên nhẫn. <span class='keyword'>Nó không phải là điều có thể xảy ra trong một sớm một chiều (It's not something that happens overnight)</span>."
+            },
+            {
+                q: "Question 40.",
+                options: [
+                    { text: "A. It can help people travel easily and find better jobs", correct: true, explain: "✅ <b>Đúng</b>. Câu này liệt kê những lợi ích, bổ sung ý nghĩa rõ ràng cho 'opens many doors' (mở ra nhiều cánh cửa cơ hội)." },
+                    { text: "B. hear native speakers, repeat words, and improve pronunciation", correct: false, explain: "❌ <b>Sai</b> logic." },
+                    { text: "C. It's not something that happens overnight", correct: false, explain: "❌ <b>Sai</b> ngữ cảnh đoạn kết." },
+                    { text: "D. their own reason for studying a foreign language", correct: false, explain: "❌ <b>Sai</b> ngữ cảnh đoạn kết." }
+                ],
+                explainText: "Dịch câu hỏi: Điền đáp án phù hợp vào chỗ trống (40).<br>🔍 Dẫn chứng: 'Finally, learning a new language opens many doors. (40) ________.'<br>👉 Dịch: Cuối cùng, học một ngôn ngữ mới mở ra nhiều cánh cửa. <span class='keyword'>Nó có thể giúp con người đi du lịch dễ dàng và tìm việc làm tốt hơn (It can help people travel easily and find better jobs)</span>."
+            }
+        ];
+
+        let score = 0;
+        let answeredQuestions = 0;
+
+        function shuffle(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function initQuiz() {
+            const container = document.getElementById('questionsContainer');
+            container.innerHTML = '';
+            
+            quizData.forEach((item, index) => {
+                const card = document.createElement('div');
+                card.className = 'question-card';
+                
+                let title = document.createElement('div');
+                title.className = 'question-text';
+                title.innerText = item.q;
+                card.appendChild(title);
+
+                const optionsGrid = document.createElement('div');
+                optionsGrid.className = 'options-grid';
+                
+                let shuffledOptions = shuffle([...item.options]);
+                
+                shuffledOptions.forEach((opt) => {
+                    const btn = document.createElement('button');
+                    btn.className = 'option-btn';
+                    btn.innerText = opt.text;
+                    btn.onclick = () => handleAnswer(btn, opt.correct, card, item, optionsGrid);
+                    optionsGrid.appendChild(btn);
+                });
+
+                card.appendChild(optionsGrid);
+
+                const explainDiv = document.createElement('div');
+                explainDiv.className = 'explanation';
+                explainDiv.innerHTML = item.explainText + "<br><br><b>Chi tiết các đáp án:</b><br>" + 
+                    item.options.map(o => `${o.text} ${o.explain}`).join('<br>');
+                card.appendChild(explainDiv);
+
+                container.appendChild(card);
+            });
+        }
+
+        function handleAnswer(btn, isCorrect, card, itemData, optionsGrid) {
+            const buttons = optionsGrid.querySelectorAll('button');
+            buttons.forEach(b => b.disabled = true);
+
+            if (isCorrect) {
+                btn.classList.add('correct-ans');
+                playSound('correct');
+                shootConfetti();
+                score++;
+            } else {
+                btn.classList.add('wrong-ans');
+                playSound('wrong');
+                // Find correct and mark it
+                buttons.forEach(b => {
+                    let textMatch = b.innerText;
+                    let correctOpt = itemData.options.find(o => o.text === textMatch && o.correct === true);
+                    if(correctOpt) b.classList.add('correct-ans');
+                });
+            }
+
+            answeredQuestions++;
+            card.querySelector('.explanation').classList.add('show');
+        }
+
+        // --- 6. SUBMISSION & RESULTS ---
+        function showNameModal() {
+            if(answeredQuestions < quizData.length) {
+                if(!confirm("Bạn chưa làm xong bài! Chắc chắn muốn nộp chứ?")) return;
+            }
+            document.getElementById('nameModal').style.display = 'flex';
+        }
+
+        // Allow Enter on Name Input
+        document.getElementById('nameInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') submitName();
+        });
+
+        function submitName() {
+            const name = document.getElementById('nameInput').value.trim();
+            const error = document.getElementById('nameError');
+            if(name === "") {
+                const input = document.getElementById('nameInput');
+                input.classList.remove('input-error');
+                void input.offsetWidth; // trigger reflow
+                input.classList.add('input-error');
+                error.style.display = 'block';
+                return;
+            }
+
+            document.getElementById('nameModal').style.display = 'none';
+            showResult(name);
+        }
+
+        function showResult(name) {
+            const percentage = (score / quizData.length) * 100;
+            const modal = document.getElementById('resultModal');
+            const title = document.getElementById('resultTitle');
+            const scoreText = document.getElementById('resultScore');
+            const img = document.getElementById('resultImg');
+
+            scoreText.innerText = `Điểm của bạn: ${score}/${quizData.length}`;
+
+            if(percentage === 100) {
+                title.innerText = `🌟 THIÊN TÀI! ${name} xuất sắc tuyệt đối!`;
+                img.src = 'https://media.giphy.com/media/11sBLVxNs7v6WA/giphy.gif'; // Celebration
+            } else if (percentage >= 60) {
+                title.innerText = `Làm tốt lắm ${name}! Đập tay nào ✋`;
+                img.src = 'https://media.giphy.com/media/g9582DNuQppxC/giphy.gif'; // Nod/Approval
+            } else {
+                title.innerText = `Cố lên nhé ${name}! Đừng bỏ cuộc! 💪`;
+                img.src = 'https://media.giphy.com/media/L95W4wv8nfaV2/giphy.gif'; // Crying/Sad
+            }
+
+            modal.style.display = 'flex';
+            clearInterval(timerInterval); // Stop timer
+        }
+    </script>
+</body>
+</html>

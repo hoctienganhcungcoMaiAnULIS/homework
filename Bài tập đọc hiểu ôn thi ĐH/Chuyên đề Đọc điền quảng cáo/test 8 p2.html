@@ -1,0 +1,963 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ms Mai An ULIS - English Quiz Gamification</title>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        /* ================= DYNAMIC THEME & BASE ================= */
+        :root {
+            /* Theme: Earth & Civic (Vibrant Green & Deep Sky Blue) */
+            --primary: #1E90FF; /* Deep Sky Blue */
+            --secondary: #2ED573; /* Vibrant Green */
+            --accent: #FFA502; /* Energetic Orange */
+            --bg-gradient: linear-gradient(-45deg, #A8E063, #56AB2F, #00B09B, #96C93D);
+            --glass-bg: rgba(255, 255, 255, 0.6);
+            --glass-border: rgba(255, 255, 255, 0.8);
+            --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+            
+            --correct: #00D26A;
+            --wrong: #FF4757;
+            --text-dark: #2F3640;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Quicksand', sans-serif;
+        }
+
+        body {
+            background: var(--bg-gradient);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            color: var(--text-dark);
+            height: 100vh;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Hình nền SVG Emoji lơ lửng chủ đề Môi trường & Bầu cử */
+        body::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-image: url("data:image/svg+xml,%3Csvg width='800' height='800' xmlns='http://www.w3.org/2000/svg'%3E%3Ctext x='10%25' y='20%25' font-size='45' opacity='0.35'%3E🌍%3C/text%3E%3Ctext x='80%25' y='15%25' font-size='50' opacity='0.35'%3E🗳️%3C/text%3E%3Ctext x='30%25' y='70%25' font-size='60' opacity='0.35'%3E🌱%3C/text%3E%3Ctext x='70%25' y='80%25' font-size='45' opacity='0.35'%3E♻️%3C/text%3E%3Ctext x='50%25' y='40%25' font-size='35' opacity='0.35'%3E🍃%3C/text%3E%3Ctext x='15%25' y='85%25' font-size='50' opacity='0.35'%3E⚖️%3C/text%3E%3Ctext x='90%25' y='50%25' font-size='40' opacity='0.35'%3E📢%3C/text%3E%3C/svg%3E");
+            background-size: cover;
+            animation: floatEmoji 20s linear infinite;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        @keyframes floatEmoji {
+            0% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(5deg); }
+            100% { transform: translateY(0) rotate(0deg); }
+        }
+
+        /* ================= MODALS ================= */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(8px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+
+        .modal-box {
+            background: var(--glass-bg);
+            border: 2px solid var(--glass-border);
+            border-radius: 25px;
+            padding: 40px;
+            text-align: center;
+            box-shadow: var(--glass-shadow);
+            max-width: 450px;
+            width: 90%;
+            backdrop-filter: blur(15px);
+        }
+
+        .modal-box h2 {
+            font-size: 1.8rem;
+            color: var(--primary);
+            margin-bottom: 20px;
+            font-weight: 800;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 15px;
+            border-radius: 15px;
+            border: 2px solid var(--glass-border);
+            font-size: 1.2rem;
+            outline: none;
+            text-align: center;
+            margin-bottom: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            transition: all 0.3s;
+        }
+
+        .input-field:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 15px rgba(30, 144, 255, 0.4);
+        }
+
+        .input-field.error {
+            border-color: var(--wrong);
+            animation: shake 0.4s;
+        }
+
+        .btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.2rem;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+            box-shadow: 0 6px 0 #1874CD;
+            transition: all 0.2s;
+            text-transform: uppercase;
+            width: 100%;
+        }
+
+        .btn:active {
+            transform: translateY(6px);
+            box-shadow: 0 0 0 #1874CD;
+        }
+
+        .btn.btn-secondary {
+            background: var(--accent);
+            box-shadow: 0 6px 0 #E67E22;
+            color: #fff;
+        }
+        .btn.btn-secondary:active {
+            box-shadow: 0 0 0 #E67E22;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-10px); }
+            40%, 80% { transform: translateX(10px); }
+        }
+
+        .hidden { display: none !important; }
+
+        /* ================= MAIN LAYOUT ================= */
+        #main-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            padding: 15px;
+        }
+
+        /* TOP BAR */
+        .top-bar {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 10px 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            backdrop-filter: blur(10px);
+            box-shadow: var(--glass-shadow);
+        }
+
+        .header-title {
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: white;
+            background: var(--secondary);
+            padding: 5px 15px;
+            border-radius: 12px;
+            box-shadow: 0 3px 0 #219A52;
+        }
+
+        .timer-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .timer-display {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: var(--wrong);
+            background: #fff;
+            padding: 5px 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 0 rgba(0,0,0,0.1);
+            letter-spacing: 2px;
+        }
+
+        .btn-timer {
+            padding: 10px 20px;
+            border-radius: 15px;
+            font-size: 1rem;
+            width: auto;
+            background: var(--primary);
+            box-shadow: 0 4px 0 #1874CD;
+        }
+
+        /* SPLIT SCREEN */
+        .split-screen {
+            display: flex;
+            gap: 20px;
+            height: calc(100vh - 100px);
+        }
+
+        .panel {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 25px;
+            padding: 25px;
+            backdrop-filter: blur(12px);
+            box-shadow: var(--glass-shadow);
+            overflow-y: auto;
+        }
+
+        .panel-left { flex: 1; }
+        .panel-right { flex: 1.2; }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: rgba(255,255,255,0.3); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb { background: var(--secondary); border-radius: 10px; }
+
+        /* ================= CONTENT STYLES ================= */
+        .passage-box {
+            background: rgba(255, 255, 255, 0.85);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+            border-left: 6px solid var(--primary);
+            font-size: 1.15rem;
+            line-height: 1.8;
+            color: #2c3e50;
+        }
+
+        .passage-title {
+            font-size: 1.5rem;
+            color: var(--primary);
+            margin-bottom: 15px;
+            font-weight: 800;
+            text-align: center;
+        }
+
+        .btn-translate {
+            background: var(--secondary);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 15px;
+            box-shadow: 0 4px 0 #219A52;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            transition: 0.2s;
+        }
+        .btn-translate:active {
+            transform: translateY(4px);
+            box-shadow: 0 0 0 #219A52;
+        }
+
+        .translation-box {
+            background: #f8fbfa;
+            padding: 15px;
+            border-radius: 12px;
+            margin-top: 15px;
+            border: 2px dashed var(--secondary);
+            font-size: 1rem;
+            color: #444;
+            display: none;
+        }
+
+        .glossary-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: #fff;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+        .glossary-table th {
+            background: var(--primary);
+            color: white;
+            padding: 12px;
+            font-size: 1.1rem;
+        }
+        .glossary-table td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #eee;
+            font-size: 1.05rem;
+        }
+        .glossary-table tr:hover { background: #f0f8ff; }
+
+        /* QUESTIONS STYLES */
+        .question-card {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 25px;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.08);
+            border: 2px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .question-text {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+            color: #2F3640;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+        }
+
+        .option-btn {
+            background: white;
+            border: 2px solid #bdc3c7;
+            padding: 15px 20px;
+            border-radius: 15px;
+            font-size: 1.08rem;
+            font-weight: 600;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 4px 0 #bdc3c7;
+            display: flex;
+            align-items: center;
+            color: #34495e;
+        }
+
+        .option-btn:hover:not(:disabled) {
+            transform: scale(1.02);
+            border-color: var(--secondary);
+        }
+
+        .option-btn:active:not(:disabled) {
+            transform: scale(0.98) translateY(4px);
+            box-shadow: 0 0 0 #bdc3c7;
+        }
+
+        .option-btn.correct {
+            background: var(--correct);
+            color: white;
+            border-color: #00b35a;
+            box-shadow: 0 4px 0 #00b35a;
+        }
+
+        .option-btn.wrong {
+            background: var(--wrong);
+            color: white;
+            border-color: #d13643;
+            box-shadow: 0 4px 0 #d13643;
+            animation: shake 0.4s;
+        }
+
+        .option-btn:disabled { cursor: default; }
+
+        .explanation-box {
+            margin-top: 20px;
+            padding: 15px;
+            background: #fdfefe;
+            border-radius: 15px;
+            border-left: 5px solid var(--accent);
+            font-size: 1rem;
+            line-height: 1.6;
+            display: none;
+            animation: fadeIn 0.5s ease;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.02);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .submit-area {
+            text-align: center;
+            margin-top: 30px;
+            margin-bottom: 20px;
+        }
+
+        .result-meme {
+            width: 100%;
+            max-height: 200px;
+            object-fit: contain;
+            border-radius: 15px;
+            margin-bottom: 15px;
+            background: #fff;
+            padding: 5px;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="password-modal" class="modal-overlay">
+        <div class="modal-box">
+            <h2>🔒 Lớp học Ms Mai An ULIS</h2>
+            <p style="margin-bottom: 20px; color: #555;">Vui lòng nhập mật khẩu để vào bài thi</p>
+            <input type="password" id="pass-input" class="input-field" placeholder="Nhập mật khẩu...">
+            <button class="btn" onclick="checkPassword()">Mở Khóa Lớp Học</button>
+            <p id="pass-error" style="color: var(--wrong); margin-top: 10px; display: none; font-weight: bold;">Sai mật khẩu! Thử lại nhé ❌</p>
+        </div>
+    </div>
+
+    <div id="name-modal" class="modal-overlay hidden">
+        <div class="modal-box">
+            <h2>🎯 Bạn đã hoàn thành!</h2>
+            <p style="margin-bottom: 20px; color: #555;">Hãy cho cô biết tên của bạn nhé!</p>
+            <input type="text" id="name-input" class="input-field" placeholder="Ví dụ: Nguyễn Văn A...">
+            <button class="btn" onclick="submitQuizFinal()">Xem Điểm Nào 🚀</button>
+            <p id="name-error" style="color: var(--wrong); margin-top: 10px; display: none; font-weight: bold;">⚠️ Vui lòng nhập tên trước khi xem điểm nhé!</p>
+        </div>
+    </div>
+
+    <div id="result-modal" class="modal-overlay hidden">
+        <div class="modal-box" style="max-width: 500px;">
+            <img id="result-meme" class="result-meme" src="" alt="Result Meme">
+            <h2 id="result-title" style="font-size: 2rem;">🌟 THIÊN TÀI!</h2>
+            <p id="result-name" style="font-size: 1.2rem; font-weight: bold; margin-bottom: 10px;"></p>
+            <div style="font-size: 3rem; font-weight: 900; color: var(--primary); margin: 15px 0;">
+                <span id="score-text">0/0</span>
+            </div>
+            <p id="result-message" style="font-size: 1.1rem; color: #555; margin-bottom: 25px;"></p>
+            <button class="btn btn-secondary" onclick="location.reload()">Làm Lại Từ Đầu 🔄</button>
+        </div>
+    </div>
+
+    <div id="main-container" class="hidden">
+        <div class="top-bar">
+            <div class="header-title">👩‍🏫 Ms Mai An ULIS</div>
+            <div class="timer-container">
+                <div class="timer-display" id="time-display">10:00</div>
+                <button class="btn btn-timer" id="timer-btn" onclick="toggleTimer()">BẮT ĐẦU TÍNH GIỜ</button>
+            </div>
+        </div>
+
+        <div class="split-screen">
+            <div class="panel panel-left">
+                
+                <div class="passage-box">
+                    <div class="passage-title">🗳️ Be Part of the Historic Election Day!</div>
+                    <p>This year's election, <strong>(19) ......</strong> a heated race between two prominent candidates, has surprised many with its <strong>(20) ......</strong>. The final decision, which will shape the nation's future, will be made on Election Day. Voters, who are encouraged <strong>(21) ......</strong> their voices heard, have come together in record numbers during early voting, with more than 62.7 million ballots already cast.</p>
+                    <button class="btn-translate" onclick="toggleTranslation('trans1')">Mở dịch đoạn này 🌟</button>
+                    <div class="translation-box" id="trans1">
+                        Cuộc bầu cử năm nay, với đặc điểm là một cuộc đua khốc liệt giữa hai ứng cử viên nổi bật, đã khiến nhiều người ngạc nhiên với những bước ngoặt phát triển không ngờ tới của nó. Quyết định cuối cùng, quyết định sẽ định hình tương lai của quốc gia, sẽ được đưa ra vào Ngày Bầu cử. Các cử tri, những người được khuyến khích lên tiếng để tiếng nói của họ được lắng nghe, đã cùng nhau đi bỏ phiếu sớm với số lượng kỷ lục, với hơn 62,7 triệu lá phiếu đã được bỏ.
+                    </div>
+
+                    <p style="margin-top: 15px;">Organizers are pleased <strong>(22) ......</strong> the smooth process so far and have worked <strong>(23) ......</strong> to ensure a fair and efficient election. As we <strong>(24) ......</strong> at a decision that impacts everyone, let's take pride in our role in democracy. Make sure to cast your vote today!</p>
+                    <button class="btn-translate" onclick="toggleTranslation('trans2')">Mở dịch đoạn này 🌟</button>
+                    <div class="translation-box" id="trans2">
+                        Các nhà tổ chức hài lòng với quá trình diễn ra suôn sẻ cho đến nay và đã làm việc không mệt mỏi để đảm bảo một cuộc bầu cử công bằng và hiệu quả. Khi chúng ta đi đến một quyết định có ảnh hưởng đến tất cả mọi người, hãy tự hào về vai trò của chúng ta trong nền dân chủ. Đảm bảo rằng bạn sẽ bỏ phiếu ngay hôm nay nhé!
+                    </div>
+                </div>
+
+                <div class="passage-box">
+                    <div class="passage-title">🌱 Small Steps for a Cleaner Future!</div>
+                    <p>Implementing <strong>(25) ......</strong> practices can make a big difference <strong>(26) ......</strong> our environment. By adopting simple habits like reducing, reusing, and recycling, we can significantly decrease the amount of waste <strong>(27) ......</strong> up in landfills. For instance, reducing waste not only protects the environment but also saves on disposal costs.</p>
+                    <button class="btn-translate" onclick="toggleTranslation('trans3')">Mở dịch đoạn này 🌟</button>
+                    <div class="translation-box" id="trans3">
+                        Việc thực hiện các biện pháp quản lý chất thải hiệu quả có thể tạo ra một sự khác biệt lớn đối với môi trường của chúng ta. Bằng cách áp dụng những thói quen đơn giản như tiết giảm, tái sử dụng và tái chế, chúng ta có thể giảm thiểu đáng kể lượng chất thải bị vứt bỏ ở các bãi rác. Ví dụ, việc giảm thiểu rác thải không chỉ bảo vệ môi trường mà còn tiết kiệm được chi phí xử lý.
+                    </div>
+
+                    <p style="margin-top: 15px;">While <strong>(28) ......</strong> solutions are essential, individual actions are equally important. By <strong>(29) ......</strong> small steps, such as proper waste segregation, we contribute to a healthier planet. Over time, you'll soon get accustomed <strong>(30) ......</strong> items, which benefits both the environment and the community. Remember, every effort counts towards a sustainable future!</p>
+                    <button class="btn-translate" onclick="toggleTranslation('trans4')">Mở dịch đoạn này 🌟</button>
+                    <div class="translation-box" id="trans4">
+                        Trong khi các giải pháp công nghiệp là vô cùng cần thiết, hành động của mỗi cá nhân cũng quan trọng không kém. Bằng cách thực hiện những bước nhỏ, chẳng hạn như phân loại rác thải đúng cách, chúng ta góp phần tạo nên một hành tinh khỏe mạnh hơn. Theo thời gian, bạn sẽ sớm trở nên quen thuộc với việc tái chế các vật dụng, điều này mang lại lợi ích cho cả môi trường và cộng đồng. Hãy nhớ rằng, mọi nỗ lực đều có giá trị hướng tới một tương lai bền vững!
+                    </div>
+                </div>
+
+                <h3 style="color: var(--primary); margin-top: 30px;">📚 Bảng Từ Vựng Cực Xịn (Glossary)</h3>
+                <table class="glossary-table">
+                    <thead>
+                        <tr><th>Từ Vựng</th><th>Loại Từ</th><th>Nghĩa Tiếng Việt</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>Prominent</td><td>Adj</td><td>Nổi bật, xuất chúng</td></tr>
+                        <tr><td>Ballot</td><td>Noun</td><td>Lá phiếu</td></tr>
+                        <tr><td>Efficient</td><td>Adj</td><td>Hiệu quả, năng suất</td></tr>
+                        <tr><td>Democracy</td><td>Noun</td><td>Nền dân chủ</td></tr>
+                        <tr><td>Implement</td><td>Verb</td><td>Thi hành, thực hiện</td></tr>
+                        <tr><td>Significantly</td><td>Adv</td><td>Đáng kể, quan trọng</td></tr>
+                        <tr><td>Landfill</td><td>Noun</td><td>Bãi rác, bãi chôn lấp rác</td></tr>
+                        <tr><td>Disposal</td><td>Noun</td><td>Sự vứt bỏ, việc xử lý rác</td></tr>
+                        <tr><td>Segregation</td><td>Noun</td><td>Sự phân loại, tách biệt</td></tr>
+                        <tr><td>Accustomed</td><td>Adj</td><td>Quen thuộc, quen với</td></tr>
+                        <tr><td>Sustainable</td><td>Adj</td><td>Bền vững</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="panel panel-right" id="quiz-container">
+                </div>
+        </div>
+    </div>
+
+    <script>
+        // --- BẢO MẬT ANTI-CHÉP PHẠT & DEVTOOLS ---
+        document.addEventListener('contextmenu', event => event.preventDefault());
+        document.addEventListener('keydown', function(e) {
+            if(e.key === 'F12' || 
+              (e.ctrlKey && e.shiftKey && e.key === 'I') || 
+              (e.ctrlKey && e.shiftKey && e.key === 'C') || 
+              (e.ctrlKey && e.shiftKey && e.key === 'J') || 
+              (e.ctrlKey && e.key === 'U')) {
+                e.preventDefault();
+            }
+        });
+
+        const arrX = [102, 114, 112, 100, 108, 100, 113, 120, 111, 108, 118]; 
+        const validKey = arrX.map(c => String.fromCharCode(c - 3)).join('');
+
+        function checkPassword() {
+            const input = document.getElementById('pass-input');
+            const error = document.getElementById('pass-error');
+            if(input.value === validKey) {
+                document.getElementById('password-modal').classList.add('hidden');
+                document.getElementById('main-container').classList.remove('hidden');
+            } else {
+                input.classList.add('error');
+                error.style.display = 'block';
+                setTimeout(() => {
+                    input.classList.remove('error');
+                }, 400);
+            }
+        }
+        
+        document.getElementById('pass-input').addEventListener('keypress', function(e) {
+            if(e.key === 'Enter') checkPassword();
+        });
+
+        // --- WEB AUDIO API ---
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        
+        function playDing() {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(800, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.1);
+            gainNode.gain.setValueAtTime(0.5, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+            osc.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.5);
+        }
+
+        function playWrong() {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(300, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.3);
+            gainNode.gain.setValueAtTime(0.5, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+            osc.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.3);
+        }
+
+        // --- CONFETTI EFFECT ---
+        function fireConfetti() {
+            const colors = ['#1E90FF', '#2ED573', '#FFA502', '#FF4757', '#9B59B6'];
+            for (let i = 0; i < 50; i++) {
+                let confetti = document.createElement('div');
+                confetti.style.position = 'fixed';
+                confetti.style.width = '10px';
+                confetti.style.height = '10px';
+                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                confetti.style.left = Math.random() * 100 + 'vw';
+                confetti.style.top = '-10px';
+                confetti.style.borderRadius = Math.random() > 0.5 ? '50%' : '0';
+                confetti.style.zIndex = '9999';
+                confetti.style.pointerEvents = 'none';
+                document.body.appendChild(confetti);
+
+                let angle = Math.random() * Math.PI * 2;
+                let velocity = 2 + Math.random() * 3;
+                let vx = Math.cos(angle) * velocity;
+                let vy = Math.random() * 5 + 2;
+
+                let posX = parseFloat(confetti.style.left);
+                let posY = -10;
+
+                let anim = setInterval(() => {
+                    posX += vx;
+                    posY += vy;
+                    vy += 0.1; // gravity
+                    confetti.style.left = posX + 'px';
+                    confetti.style.top = posY + 'px';
+                    confetti.style.transform = `rotate(${posY}deg)`;
+
+                    if (posY > window.innerHeight) {
+                        clearInterval(anim);
+                        confetti.remove();
+                    }
+                }, 20);
+            }
+        }
+
+        // --- TIMER ---
+        let time = 600; 
+        let timerInterval;
+        let isTimerRunning = false;
+        
+        function toggleTimer() {
+            const btn = document.getElementById('timer-btn');
+            if (isTimerRunning) {
+                clearInterval(timerInterval);
+                btn.innerText = "TIẾP TỤC TÍNH GIỜ";
+                btn.classList.add('btn-secondary');
+            } else {
+                btn.innerText = "TẠM DỪNG";
+                btn.classList.remove('btn-secondary');
+                timerInterval = setInterval(() => {
+                    time--;
+                    let m = Math.floor(time / 60);
+                    let s = time % 60;
+                    document.getElementById('time-display').innerText = `${m < 10 ? '0'+m : m}:${s < 10 ? '0'+s : s}`;
+                    if (time <= 0) {
+                        clearInterval(timerInterval);
+                        alert("⏳ Đã hết giờ làm bài! Bạn vẫn có thể tiếp tục làm, nhưng nhớ là trong phòng thi thật, bạn chỉ nên làm một bài như thế này trong 10 phút thôi nha.");
+                    }
+                }, 1000);
+            }
+            isTimerRunning = !isTimerRunning;
+        }
+
+        function toggleTranslation(id) {
+            const box = document.getElementById(id);
+            box.style.display = box.style.display === 'block' ? 'none' : 'block';
+        }
+
+        // --- DỮ LIỆU CÂU HỎI MỚI ---
+        const quizData = [
+            {
+                id: 19,
+                question: "Question 19: Chọn đáp án đúng điền vào chỗ trống.",
+                explainContext: "Dịch câu hỏi: Vị trí đáp án cần điền một từ ở dạng rút gọn mệnh đề quan hệ thể chủ động.",
+                options: [
+                    { text: "A. features", isCorrect: false, exp: "❌ Động từ chia thì, sai ngữ pháp vì câu đã có động từ chính 'has surprised'." },
+                    { text: "B. featuring", isCorrect: true, exp: "✅ Đúng. Cụm từ 'which features' (có đặc điểm là) được rút gọn mệnh đề quan hệ chủ động thành 'featuring'." },
+                    { text: "C. to feature", isCorrect: false, exp: "❌ Sai cấu trúc." },
+                    { text: "D. featured", isCorrect: false, exp: "❌ Dạng bị động/quá khứ, sai ngữ nghĩa." }
+                ],
+                evidenceEn: "This year's election, (19) ______ a heated race between two prominent candidates...",
+                evidenceVi: "Cuộc bầu cử năm nay, <b style='color:red;'>với đặc điểm là</b> một cuộc đua khốc liệt giữa hai ứng cử viên nổi bật..."
+            },
+            {
+                id: 20,
+                question: "Question 20: Chọn đáp án đúng điền vào chỗ trống.",
+                explainContext: "Dịch câu hỏi: Chọn cấu trúc cụm danh từ (adj + N + N) đúng trật tự từ.",
+                options: [
+                    { text: "A. unexpected development twists", isCorrect: true, exp: "✅ Đúng. 'Unexpected development twists' là cấu trúc chính xác, với 'unexpected' (không mong đợi) bổ nghĩa cho danh từ 'twists' (cú xoắn) trong sự phát triển." },
+                    { text: "B. development unexpected twists", isCorrect: false, exp: "❌ Sai trật tự từ." },
+                    { text: "C. unexpected twist developments", isCorrect: false, exp: "❌ Sai trật tự danh từ ghép theo ngữ cảnh này." },
+                    { text: "D. twist unexpected developments", isCorrect: false, exp: "❌ Sai trật tự từ." }
+                ],
+                evidenceEn: "...has surprised many with its (20) ______.",
+                evidenceVi: "...đã khiến nhiều người ngạc nhiên với <b style='color:red;'>những bước ngoặt phát triển không ngờ tới</b> của nó."
+            },
+            {
+                id: 21,
+                question: "Question 21: Chọn đáp án đúng điền vào chỗ trống.",
+                explainContext: "Dịch câu hỏi: Cấu trúc động từ theo sau 'encourage'.",
+                options: [
+                    { text: "A. making", isCorrect: false, exp: "❌ Sai cấu trúc." },
+                    { text: "B. to make", isCorrect: true, exp: "✅ Đúng. Cấu trúc cố định: Be encouraged to V (Được khuyến khích làm gì)." },
+                    { text: "C. make", isCorrect: false, exp: "❌ Sai cấu trúc." },
+                    { text: "D. to making", isCorrect: false, exp: "❌ Sai cấu trúc." }
+                ],
+                evidenceEn: "Voters, who are encouraged (21) ______ their voices heard...",
+                evidenceVi: "Các cử tri, những người được khuyến khích <b style='color:red;'>lên tiếng (để tiếng nói của họ được lắng nghe)</b>..."
+            },
+            {
+                id: 22,
+                question: "Question 22: Chọn đáp án đúng điền vào chỗ trống.",
+                explainContext: "Dịch câu hỏi: Chọn giới từ đi kèm với tính từ 'pleased'.",
+                options: [
+                    { text: "A. to", isCorrect: false, exp: "❌ Sai giới từ." },
+                    { text: "B. over", isCorrect: false, exp: "❌ Sai giới từ." },
+                    { text: "C. with", isCorrect: true, exp: "✅ Đúng. Cấu trúc: Be pleased with sth (Hài lòng với cái gì)." },
+                    { text: "D. for", isCorrect: false, exp: "❌ Sai giới từ." }
+                ],
+                evidenceEn: "Organizers are pleased (22) ______ the smooth process so far...",
+                evidenceVi: "Các nhà tổ chức <b style='color:red;'>hài lòng với</b> quá trình diễn ra suôn sẻ cho đến nay..."
+            },
+            {
+                id: 23,
+                question: "Question 23: Chọn đáp án đúng điền vào chỗ trống.",
+                explainContext: "Dịch câu hỏi: Vị trí cần điền một trạng từ bổ nghĩa cho động từ 'worked'.",
+                options: [
+                    { text: "A. tired", isCorrect: false, exp: "❌ Tính từ (mệt mỏi)." },
+                    { text: "B. tireless", isCorrect: false, exp: "❌ Tính từ (không mệt mỏi)." },
+                    { text: "C. tiredly", isCorrect: false, exp: "❌ Trạng từ mang nghĩa tiêu cực (một cách mệt mỏi), không hợp ngữ cảnh làm việc chăm chỉ." },
+                    { text: "D. tirelessly", isCorrect: true, exp: "✅ Đúng. Vị trí cần trạng từ (V + adv). Câu này nói về việc các tổ chức làm việc không ngừng nghỉ (một cách không mệt mỏi) để đảm bảo cuộc bầu cử công bằng." }
+                ],
+                evidenceEn: "...and have worked (23) ______ to ensure a fair and efficient election.",
+                evidenceVi: "...và đã <b style='color:red;'>làm việc không mệt mỏi</b> để đảm bảo một cuộc bầu cử công bằng và hiệu quả."
+            },
+            {
+                id: 24,
+                question: "Question 24: Chọn đáp án đúng điền vào chỗ trống.",
+                explainContext: "Dịch câu hỏi: Động từ kết hợp với cụm từ 'at a decision'.",
+                options: [
+                    { text: "A. draw", isCorrect: false, exp: "❌ Draw thường đi với conclusion (draw a conclusion)." },
+                    { text: "B. reach", isCorrect: false, exp: "❌ Reach a decision (không đi kèm giới từ at)." },
+                    { text: "C. make", isCorrect: false, exp: "❌ Make a decision (không đi kèm giới từ at)." },
+                    { text: "D. arrive", isCorrect: true, exp: "✅ Đúng. Cụm từ cố định: Arrive at a decision (Đưa ra/đi đến một quyết định)." }
+                ],
+                evidenceEn: "As we (24) ______ at a decision that impacts everyone...",
+                evidenceVi: "Khi chúng ta <b style='color:red;'>đi đến một quyết định</b> ảnh hưởng đến mọi người..."
+            },
+            {
+                id: 25,
+                question: "Question 25: Chọn đáp án đúng điền vào chỗ trống.",
+                explainContext: "Dịch câu hỏi: Cần một cụm danh từ đúng trật tự (adj + N + N).",
+                options: [
+                    { text: "A. management effective waste", isCorrect: false, exp: "❌ Sai trật tự." },
+                    { text: "B. effective waste management", isCorrect: true, exp: "✅ Đúng. 'Effective waste management' là cấu trúc chính xác, trong đó 'effective' là tính từ bổ nghĩa cho 'waste management' (quản lý chất thải)." },
+                    { text: "C. effective management waste", isCorrect: false, exp: "❌ Sai trật tự." },
+                    { text: "D. waste effective management", isCorrect: false, exp: "❌ Sai trật tự." }
+                ],
+                evidenceEn: "Implementing (25) ______ practices can make a big difference...",
+                evidenceVi: "Việc thực hiện các biện pháp <b style='color:red;'>quản lý chất thải hiệu quả</b> có thể tạo ra một sự khác biệt lớn..."
+            },
+            {
+                id: 26,
+                question: "Question 26: Chọn đáp án đúng điền vào chỗ trống.",
+                explainContext: "Dịch câu hỏi: Giới từ đi với cụm 'make a difference'.",
+                options: [
+                    { text: "A. on", isCorrect: false, exp: "❌ Sai giới từ. On thường dùng với effect/impact." },
+                    { text: "B. at", isCorrect: false, exp: "❌ Sai giới từ." },
+                    { text: "C. from", isCorrect: false, exp: "❌ Sai giới từ." },
+                    { text: "D. in", isCorrect: true, exp: "✅ Đúng. Cấu trúc cố định: Make a difference in sth (Tạo ra sự khác biệt trong cái gì)." }
+                ],
+                evidenceEn: "...can make a big difference (26) ______ our environment.",
+                evidenceVi: "...có thể tạo ra một sự khác biệt lớn <b style='color:red;'>đối với (trong)</b> môi trường của chúng ta."
+            },
+            {
+                id: 27,
+                question: "Question 27: Chọn đáp án đúng điền vào chỗ trống.",
+                explainContext: "Dịch câu hỏi: Rút gọn mệnh đề quan hệ thể chủ động.",
+                options: [
+                    { text: "A. is ended", isCorrect: false, exp: "❌ Sai dạng (bị động/thì hiện tại)." },
+                    { text: "B. ending", isCorrect: true, exp: "✅ Đúng. Vị trí đáp án cần điền một từ ở dạng rút gọn mệnh đề quan hệ thể chủ động. Cụm từ 'which ends up' rút gọn thành 'ending up'." },
+                    { text: "C. to end", isCorrect: false, exp: "❌ Sai dạng." },
+                    { text: "D. ended", isCorrect: false, exp: "❌ Dạng bị động." }
+                ],
+                evidenceEn: "...decrease the amount of waste (27) ______ up in landfills.",
+                evidenceVi: "...giảm thiểu đáng kể lượng chất thải <b style='color:red;'>bị vứt bỏ (kết thúc)</b> ở các bãi rác."
+            },
+            {
+                id: 28,
+                question: "Question 28: Chọn đáp án đúng điền vào chỗ trống.",
+                explainContext: "Dịch câu hỏi: Vị trí đáp án cần điền một tính từ (adj + N) bổ nghĩa cho 'solutions'.",
+                options: [
+                    { text: "A. industrious", isCorrect: false, exp: "❌ Tính từ này mang nghĩa là 'chăm chỉ, cần cù' (chỉ người)." },
+                    { text: "B. industry", isCorrect: false, exp: "❌ Danh từ (công nghiệp)." },
+                    { text: "C. industrial", isCorrect: true, exp: "✅ Đúng. 'Industrial' là tính từ mô tả các giải pháp có liên quan đến công nghiệp." },
+                    { text: "D. industrialized", isCorrect: false, exp: "❌ Tính từ mang nghĩa 'được công nghiệp hóa'." }
+                ],
+                evidenceEn: "While (28) ______ solutions are essential...",
+                evidenceVi: "Trong khi các giải pháp <b style='color:red;'>công nghiệp</b> là vô cùng cần thiết..."
+            },
+            {
+                id: 29,
+                question: "Question 29: Chọn đáp án đúng điền vào chỗ trống.",
+                explainContext: "Dịch câu hỏi: Động từ đi kết hợp với danh từ 'steps'.",
+                options: [
+                    { text: "A. keeping", isCorrect: false, exp: "❌ Sai cụm từ." },
+                    { text: "B. taking", isCorrect: true, exp: "✅ Đúng. Cụm từ cố định: Take steps (Thực hiện các bước/biện pháp)." },
+                    { text: "C. setting", isCorrect: false, exp: "❌ Sai cụm từ." },
+                    { text: "D. putting", isCorrect: false, exp: "❌ Sai cụm từ." }
+                ],
+                evidenceEn: "By (29) ______ small steps, such as proper waste segregation...",
+                evidenceVi: "Bằng cách <b style='color:red;'>thực hiện những bước</b> nhỏ, chẳng hạn như phân loại rác thải đúng cách..."
+            },
+            {
+                id: 30,
+                question: "Question 30: Chọn đáp án đúng điền vào chỗ trống.",
+                explainContext: "Dịch câu hỏi: Cấu trúc đi sau cụm 'get accustomed'.",
+                options: [
+                    { text: "A. to recycle", isCorrect: false, exp: "❌ Sai cấu trúc." },
+                    { text: "B. recycle", isCorrect: false, exp: "❌ Sai cấu trúc." },
+                    { text: "C. recycling", isCorrect: false, exp: "❌ Thiếu giới từ 'to'." },
+                    { text: "D. to recycling", isCorrect: true, exp: "✅ Đúng. Cấu trúc cố định: Get accustomed to V-ing (Trở nên quen thuộc với việc làm gì)." }
+                ],
+                evidenceEn: "Over time, you'll soon get accustomed (30) ______ items...",
+                evidenceVi: "Theo thời gian, bạn sẽ sớm <b style='color:red;'>trở nên quen thuộc với việc tái chế</b> các vật dụng..."
+            }
+        ];
+
+        let score = 0;
+        let answeredCount = 0;
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        const container = document.getElementById('quiz-container');
+        
+        quizData.forEach((q, index) => {
+            const card = document.createElement('div');
+            card.className = 'question-card';
+            card.id = `q-${index}`;
+
+            const qText = document.createElement('div');
+            qText.className = 'question-text';
+            qText.innerText = q.question;
+            card.appendChild(qText);
+
+            const grid = document.createElement('div');
+            grid.className = 'options-grid';
+            
+            let shuffledOptions = shuffleArray([...q.options]);
+
+            shuffledOptions.forEach((opt, optIdx) => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.innerText = opt.text;
+                btn.onclick = () => checkAnswer(btn, opt, q, index, grid, card);
+                grid.appendChild(btn);
+            });
+
+            card.appendChild(grid);
+
+            const expBox = document.createElement('div');
+            expBox.className = 'explanation-box';
+            expBox.id = `exp-${index}`;
+            expBox.innerHTML = `
+                <p style="font-weight:bold; color:var(--primary); margin-bottom:10px;">${q.explainContext}</p>
+                ${shuffledOptions.map(o => `<p style="margin-bottom:5px;">${o.text.charAt(0)}. ${o.exp}</p>`).join('')}
+                <div style="background:#fff; padding:10px; border-radius:10px; margin-top:15px; border-left:4px solid var(--secondary);">
+                    <p style="font-size:0.95rem; color:#555;">🔍 Dẫn chứng: <i>"${q.evidenceEn}"</i></p>
+                    <p style="font-size:0.95rem; margin-top:5px;">👉 Dịch: ${q.evidenceVi}</p>
+                </div>
+            `;
+            card.appendChild(expBox);
+
+            container.appendChild(card);
+        });
+
+        const submitDiv = document.createElement('div');
+        submitDiv.className = 'submit-area';
+        submitDiv.innerHTML = `<button class="btn" style="width:auto; padding:15px 50px; font-size:1.5rem;" onclick="showNameModal()">🎯 NỘP BÀI & XEM KẾT QUẢ</button>`;
+        container.appendChild(submitDiv);
+
+        function checkAnswer(btn, opt, qData, qIndex, grid, card) {
+            const buttons = grid.querySelectorAll('.option-btn');
+            buttons.forEach(b => b.disabled = true);
+            answeredCount++;
+
+            const expBox = document.getElementById(`exp-${qIndex}`);
+
+            if (opt.isCorrect) {
+                btn.classList.add('correct');
+                playDing();
+                fireConfetti();
+                score++;
+            } else {
+                btn.classList.add('wrong');
+                playWrong();
+                buttons.forEach(b => {
+                    const matchedOpt = qData.options.find(o => o.text === b.innerText);
+                    if(matchedOpt && matchedOpt.isCorrect) {
+                        b.classList.add('correct');
+                    }
+                });
+            }
+            expBox.style.display = 'block';
+        }
+
+        // --- SUBMIT LOGIC ---
+        function showNameModal() {
+            if(answeredCount < quizData.length) {
+                if(!confirm("Bạn chưa làm hết bài! Bạn có chắc chắn muốn nộp không?")) return;
+            }
+            document.getElementById('name-modal').classList.remove('hidden');
+        }
+
+        document.getElementById('name-input').addEventListener('keypress', function(e) {
+            if(e.key === 'Enter') submitQuizFinal();
+        });
+
+        function submitQuizFinal() {
+            const nameInput = document.getElementById('name-input');
+            const nameError = document.getElementById('name-error');
+            const studentName = nameInput.value.trim();
+
+            if (!studentName) {
+                nameInput.classList.add('error');
+                nameError.style.display = 'block';
+                setTimeout(() => nameInput.classList.remove('error'), 400);
+                return;
+            }
+
+            document.getElementById('name-modal').classList.add('hidden');
+            
+            clearInterval(timerInterval);
+
+            const total = quizData.length;
+            const percent = (score / total) * 100;
+            
+            document.getElementById('score-text').innerText = `${score} / ${total}`;
+            
+            let title = "";
+            let message = "";
+            let memeSrc = "";
+
+            if (percent === 100) {
+                title = "🌟 THIÊN TÀI!";
+                message = "Xuất sắc tuyệt đối! Bạn không sai một câu nào. Cô rất tự hào về bạn!";
+                memeSrc = "https://media.giphy.com/media/11sBLVxNs7v6WA/giphy.gif"; 
+            } else if (percent >= 60) {
+                title = "🔥 LÀM TỐT LẮM!";
+                message = "Bạn nắm bài khá chắc đấy! Cố gắng chút nữa là hoàn hảo nhé.";
+                memeSrc = "https://media.giphy.com/media/3o7abKhOpu0NwenH3O/giphy.gif"; 
+            } else {
+                title = "💪 CỐ LÊN NHÉ!";
+                message = "Sai lầm là mẹ thành công! Hãy đọc kỹ phần giải thích bên dưới để rút kinh nghiệm nha.";
+                memeSrc = "https://media.giphy.com/media/d2lcHJTG5Tscg/giphy.gif"; 
+            }
+
+            document.getElementById('result-title').innerText = title;
+            document.getElementById('result-name').innerText = `${studentName} đã hoàn thành bài thi!`;
+            document.getElementById('result-message').innerText = message;
+            document.getElementById('result-meme').src = memeSrc;
+
+            document.getElementById('result-modal').classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>

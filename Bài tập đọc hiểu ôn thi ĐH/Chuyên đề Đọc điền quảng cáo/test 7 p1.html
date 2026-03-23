@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TEST 7 – ĐỌC ĐIỀN QUẢNG CÁO | Ms Mai An ULIS</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Space+Grotesk:wght@700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --pink: #FF2D78;
+  --pink-light: #ff8ab8;
+  --cyan: #00E5FF;
+  --cyan-dim: rgba(0,229,255,0.15);
+  --purple: #7B2FBE;
+  --purple-light: #c084fc;
+  --yellow: #FFE600;
+  --bg: #0d0a1a;
+  --bg2: #130f22;
+  --bg3: #1a1030;
+  --glass: rgba(255,45,120,0.08);
+  --glass-border: rgba(255,45,120,0.25);
+  --cyan-border: rgba(0,229,255,0.25);
+  --text-main: #f0e8ff;
+  --text-muted: #9b85c0;
+  --card-bg: rgba(19,15,34,0.82);
+  --opt-bg: rgba(255,255,255,0.05);
+  --opt-hover: rgba(0,229,255,0.12);
+  --red: #FF2D78;
+  --green: #00FF9D;
+  --radius: 18px;
+  --radius-sm: 12px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text-main);min-height:100vh;overflow:hidden;}
+
+/* BG */
+.bg-base{position:fixed;inset:0;z-index:0;background:linear-gradient(135deg,#0d0a1a 0%,#110c2a 35%,#0a1228 70%,#0e0a1e 100%);background-size:300% 300%;animation:bgPulse 18s ease infinite;}
+@keyframes bgPulse{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+
+.neon-blob{position:fixed;border-radius:50%;filter:blur(90px);pointer-events:none;z-index:0;animation:blobDrift ease-in-out infinite;}
+@keyframes blobDrift{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-28px) scale(1.07)}}
+
+/* Grid lines */
+.bg-grid{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:0.04;
+  background-image:linear-gradient(rgba(0,229,255,1) 1px,transparent 1px),linear-gradient(90deg,rgba(0,229,255,1) 1px,transparent 1px);
+  background-size:52px 52px;}
+
+.bg-emojis{position:fixed;inset:0;z-index:1;pointer-events:none;overflow:hidden;}
+.bg-emojis span{position:absolute;opacity:0.09;animation:floatE linear infinite;}
+@keyframes floatE{0%{transform:translateY(110vh) rotate(0deg);opacity:0.05}10%{opacity:0.11}90%{opacity:0.09}100%{transform:translateY(-15vh) rotate(360deg);opacity:0.03}}
+
+/* PASSWORD */
+#pwOverlay{position:fixed;inset:0;z-index:9999;background:rgba(8,5,18,0.98);display:flex;align-items:center;justify-content:center;}
+.pw-card{background:rgba(13,10,26,0.96);border:1.5px solid var(--glass-border);border-radius:26px;padding:2.5rem 2.8rem 2.2rem;text-align:center;max-width:400px;width:90%;box-shadow:0 0 80px rgba(255,45,120,0.18),0 20px 60px rgba(0,0,0,0.6);backdrop-filter:blur(20px);position:relative;overflow:hidden;}
+.pw-card::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,45,120,0.06),rgba(0,229,255,0.04));pointer-events:none;}
+.pw-card .lock-icon{font-size:3.2rem;margin-bottom:0.7rem;display:block;}
+.pw-card h2{font-family:'Space Grotesk',sans-serif;font-size:1.1rem;color:var(--cyan);margin-bottom:0.25rem;letter-spacing:0.5px;}
+.pw-card p{font-size:0.87rem;color:var(--text-muted);margin-bottom:1.4rem;}
+#pwInput{width:100%;padding:0.72rem 1.1rem;border-radius:12px;border:1.5px solid rgba(0,229,255,0.3);background:rgba(255,255,255,0.04);color:var(--text-main);font-family:'Nunito',sans-serif;font-size:1rem;outline:none;text-align:center;letter-spacing:3px;transition:border .2s;}
+#pwInput:focus{border-color:var(--pink);box-shadow:0 0 0 3px rgba(255,45,120,0.15);}
+#pwInput.shake{animation:shake .4s;border-color:var(--red);}
+#pwError{color:var(--red);font-size:0.86rem;margin-top:.5rem;min-height:1.2em;}
+#pwBtn{margin-top:1rem;width:100%;padding:.75rem;border-radius:12px;border:none;background:linear-gradient(90deg,var(--pink),var(--purple));color:#fff;font-family:'Space Grotesk',sans-serif;font-size:.95rem;cursor:pointer;letter-spacing:.5px;box-shadow:0 4px 22px rgba(255,45,120,0.4);transition:transform .15s,box-shadow .15s;}
+#pwBtn:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(255,45,120,0.55);}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-8px)}40%{transform:translateX(8px)}60%{transform:translateX(-6px)}80%{transform:translateX(6px)}}
+
+/* APP */
+#app{display:none;position:relative;z-index:2;height:100vh;flex-direction:column;}
+#app.visible{display:flex;}
+
+/* HEADER */
+header{background:rgba(8,5,20,0.9);border-bottom:1px solid rgba(0,229,255,0.15);backdrop-filter:blur(16px);padding:.5rem 1.5rem;display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-shrink:0;flex-wrap:wrap;z-index:10;}
+.header-title h1{font-family:'Space Grotesk',sans-serif;font-size:1rem;color:var(--cyan);letter-spacing:.5px;}
+.header-title p{font-size:.75rem;color:var(--text-muted);}
+.header-controls{display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;}
+#timerBtn{padding:.4rem 1rem;border-radius:20px;border:1.5px solid var(--cyan);background:rgba(0,229,255,0.08);color:var(--cyan);font-family:'Nunito',sans-serif;font-size:.84rem;font-weight:700;cursor:pointer;transition:all .2s;}
+#timerBtn:hover{background:rgba(0,229,255,0.18);}
+#timerDisplay{font-family:'Space Grotesk',sans-serif;font-size:1.2rem;color:var(--yellow);min-width:60px;text-align:center;display:none;}
+#timerDisplay.danger{color:var(--red);animation:pulse .8s infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+#pauseBtn{display:none;padding:.35rem .85rem;border-radius:20px;border:1.5px solid var(--yellow);background:rgba(255,230,0,.08);color:var(--yellow);font-size:.8rem;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif;}
+.progress-bar-wrap{flex:1;min-width:110px;max-width:200px;}
+.progress-label{font-size:.72rem;color:var(--text-muted);margin-bottom:3px;}
+.progress-bar{background:rgba(255,255,255,.07);border-radius:10px;height:7px;overflow:hidden;}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--pink),var(--cyan));border-radius:10px;transition:width .4s;width:0%;}
+#submitBtn{padding:.46rem 1.1rem;border-radius:20px;border:none;background:linear-gradient(90deg,var(--cyan),#00b8cc);color:#0d0a1a;font-family:'Space Grotesk',sans-serif;font-size:.82rem;font-weight:800;cursor:pointer;white-space:nowrap;box-shadow:0 3px 14px rgba(0,229,255,0.35);transition:transform .15s;}
+#submitBtn:hover{transform:translateY(-2px);}
+
+/* SPLIT */
+.split-screen{display:flex;flex:1;overflow:hidden;}
+
+/* LEFT */
+.left-panel{width:46%;flex-shrink:0;overflow-y:auto;overflow-x:hidden;padding:1.2rem 1rem 1.5rem 1.3rem;border-right:1px solid rgba(0,229,255,0.12);scroll-behavior:smooth;}
+.left-panel::-webkit-scrollbar{width:5px;}
+.left-panel::-webkit-scrollbar-thumb{background:rgba(255,45,120,.3);border-radius:10px;}
+.exercise-block{margin-bottom:2rem;}
+.exercise-label{display:inline-block;background:linear-gradient(90deg,var(--pink),var(--purple));color:#fff;font-family:'Space Grotesk',sans-serif;font-size:.75rem;padding:.26rem .9rem;border-radius:20px;margin-bottom:.7rem;letter-spacing:.5px;}
+.passage-title{font-family:'Space Grotesk',sans-serif;font-size:.98rem;color:var(--yellow);margin-bottom:.4rem;text-align:center;}
+.passage-source{font-size:.76rem;color:var(--text-muted);text-align:right;font-style:italic;margin-bottom:.55rem;}
+.passage-card{background:rgba(19,15,34,.78);border:1px solid var(--glass-border);border-radius:var(--radius);padding:1rem 1.15rem;font-size:.96rem;line-height:1.88;margin-bottom:.6rem;backdrop-filter:blur(10px);}
+.blank{display:inline-block;min-width:85px;padding:0 6px;border-bottom:2px solid var(--cyan);text-align:center;font-weight:800;font-size:.91rem;transition:color .3s,border-color .3s;color:var(--text-muted);}
+.blank.correct{color:var(--green);border-color:var(--green);}
+.blank.wrong{color:var(--red);border-color:var(--red);text-decoration:line-through;}
+.translate-btn{display:block;margin:0 auto .3rem;background:rgba(255,230,0,.09);border:1.5px solid rgba(255,230,0,.35);color:var(--yellow);font-family:'Nunito',sans-serif;font-size:.82rem;font-weight:700;padding:.3rem 1rem;border-radius:20px;cursor:pointer;transition:all .2s;}
+.translate-btn:hover{background:rgba(255,230,0,.2);}
+.translation-box{display:none;background:rgba(255,230,0,.06);border:1px solid rgba(255,230,0,.2);border-radius:var(--radius-sm);padding:.75rem 1rem;font-size:.88rem;line-height:1.72;color:#fff8c0;margin-bottom:.65rem;}
+.glossary-title{font-family:'Space Grotesk',sans-serif;font-size:.82rem;color:var(--pink);margin:1rem 0 .5rem;letter-spacing:.5px;}
+.glossary-table{width:100%;border-collapse:collapse;font-size:.82rem;}
+.glossary-table th{background:rgba(255,45,120,.1);color:var(--pink);padding:.38rem .65rem;text-align:left;border-bottom:1px solid rgba(255,45,120,.2);}
+.glossary-table td{padding:.35rem .65rem;border-bottom:1px solid rgba(255,255,255,.05);vertical-align:top;}
+.glossary-table tr:hover td{background:rgba(255,45,120,.04);}
+.word-cell{font-weight:800;color:var(--cyan);}
+.pos-cell{color:var(--yellow);font-style:italic;}
+.vi-cell{color:var(--text-muted);}
+
+/* RIGHT */
+.right-panel{flex:1;overflow-y:auto;overflow-x:hidden;padding:1.2rem 1.3rem 1.5rem 1rem;scroll-behavior:smooth;}
+.right-panel::-webkit-scrollbar{width:5px;}
+.right-panel::-webkit-scrollbar-thumb{background:rgba(255,45,120,.25);border-radius:10px;}
+.q-section-title{font-family:'Space Grotesk',sans-serif;font-size:.82rem;color:var(--pink);margin-bottom:.8rem;margin-top:.5rem;border-left:3px solid var(--cyan);padding-left:.65rem;letter-spacing:.5px;}
+.question-card{background:var(--card-bg);border:1px solid var(--glass-border);border-radius:var(--radius);padding:1rem 1.1rem;margin-bottom:.85rem;backdrop-filter:blur(10px);transition:box-shadow .2s,border-color .2s;}
+.question-card:hover{box-shadow:0 0 0 1px rgba(0,229,255,.25),0 6px 24px rgba(255,45,120,.1);}
+.q-number{display:inline-block;background:linear-gradient(135deg,var(--pink),var(--purple));color:#fff;font-family:'Space Grotesk',sans-serif;font-size:.72rem;padding:.15rem .6rem;border-radius:20px;margin-bottom:.5rem;letter-spacing:.5px;}
+.q-text{font-size:.97rem;font-weight:700;color:var(--text-main);margin-bottom:.7rem;line-height:1.55;}
+.options-grid{display:grid;grid-template-columns:1fr 1fr;gap:.46rem;}
+.option-btn{background:var(--opt-bg);border:1.5px solid rgba(255,45,120,.18);border-radius:var(--radius-sm);padding:.46rem .7rem;color:var(--text-main);font-family:'Nunito',sans-serif;font-size:.91rem;font-weight:600;cursor:pointer;text-align:left;line-height:1.4;transition:all .18s;}
+.option-btn:hover:not(:disabled){background:var(--opt-hover);border-color:var(--cyan);transform:translateY(-1px);}
+.option-btn:disabled{cursor:default;}
+.option-btn.correct{background:rgba(0,255,157,.14);border-color:var(--green);color:var(--green);}
+.option-btn.wrong{background:rgba(255,45,120,.16);border-color:var(--red);color:var(--red);}
+.option-btn.correct-reveal{background:rgba(0,255,157,.1);border-color:var(--green);color:var(--green);animation:pgr .5s;}
+.option-btn.shake{animation:shake .4s;}
+@keyframes pgr{0%,100%{box-shadow:none}50%{box-shadow:0 0 0 4px rgba(0,255,157,.3)}}
+.opt-letter{display:inline-block;font-family:'Space Grotesk',sans-serif;font-size:.72rem;margin-right:5px;color:var(--cyan);}
+.option-btn.correct .opt-letter,.option-btn.correct-reveal .opt-letter{color:var(--green);}
+.option-btn.wrong .opt-letter{color:var(--red);}
+.explanation-box{display:none;margin-top:.7rem;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.08);border-radius:var(--radius-sm);padding:.8rem .9rem;font-size:.87rem;line-height:1.72;}
+.exp-q-vi{color:var(--yellow);font-weight:700;margin-bottom:.5rem;font-size:.88rem;}
+.exp-option{margin:.2rem 0;}
+.correct-tag{color:var(--green);font-weight:800;}
+.wrong-tag{color:var(--red);font-weight:700;}
+.exp-evidence{margin-top:.55rem;background:rgba(0,229,255,.06);border-left:3px solid var(--cyan);padding:.5rem .7rem;border-radius:0 8px 8px 0;}
+.ev-label{font-size:.76rem;color:var(--cyan);font-weight:700;margin-bottom:.22rem;}
+.ev-en{color:var(--text-main);font-style:italic;}
+.ev-vi{color:#fff8c0;margin-top:.18rem;}
+.kw{color:var(--red);font-weight:900;}
+
+/* TIMEOUT */
+#timeoutBanner{display:none;position:fixed;top:60px;left:50%;transform:translateX(-50%);background:rgba(255,45,120,.95);color:#fff;padding:.65rem 1.4rem;border-radius:12px;font-size:.87rem;font-weight:700;z-index:100;max-width:92vw;text-align:center;line-height:1.5;box-shadow:0 4px 22px rgba(255,45,120,.45);}
+
+/* MODALS */
+.modal-overlay{display:none;position:fixed;inset:0;z-index:500;background:rgba(5,3,15,.9);align-items:center;justify-content:center;backdrop-filter:blur(8px);}
+.modal-overlay.active{display:flex;}
+.modal-card{background:rgba(13,10,26,.97);border:1.5px solid var(--glass-border);border-radius:24px;padding:2rem 2.3rem;max-width:420px;width:92%;text-align:center;box-shadow:0 0 80px rgba(255,45,120,.18),0 24px 60px rgba(0,0,0,.6);}
+.modal-card h2{font-family:'Space Grotesk',sans-serif;font-size:1.2rem;color:var(--cyan);margin-bottom:.5rem;}
+.modal-card p{color:var(--text-muted);font-size:.88rem;margin-bottom:1.2rem;}
+#nameInput{width:100%;padding:.7rem 1rem;border-radius:12px;border:1.5px solid rgba(0,229,255,.3);background:rgba(255,255,255,.05);color:var(--text-main);font-family:'Nunito',sans-serif;font-size:1rem;outline:none;}
+#nameInput:focus{border-color:var(--pink);}
+#nameInput.err{border-color:var(--red);}
+#nameError{color:var(--red);font-size:.82rem;margin-top:.4rem;min-height:1.1em;}
+#nameSubmitBtn{margin-top:1rem;width:100%;padding:.7rem;border-radius:12px;border:none;background:linear-gradient(90deg,var(--pink),var(--purple));color:#fff;font-family:'Space Grotesk',sans-serif;font-size:.95rem;cursor:pointer;box-shadow:0 4px 18px rgba(255,45,120,.35);transition:transform .15s;}
+#nameSubmitBtn:hover{transform:translateY(-2px);}
+#resultModal .modal-card{max-width:480px;}
+.result-title{font-family:'Space Grotesk',sans-serif;font-size:1.15rem;color:var(--cyan);margin-bottom:.35rem;line-height:1.35;}
+.result-score{font-family:'Space Grotesk',sans-serif;font-size:3.4rem;background:linear-gradient(90deg,var(--pink),var(--cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin:.4rem 0;}
+.result-comment{font-size:.97rem;color:var(--text-main);margin-bottom:1rem;line-height:1.65;}
+.result-meme{width:100%;max-height:180px;object-fit:contain;border-radius:12px;margin-bottom:1rem;}
+.result-btns{display:flex;gap:.75rem;justify-content:center;flex-wrap:wrap;}
+.result-btn{padding:.56rem 1.3rem;border-radius:20px;border:none;font-family:'Space Grotesk',sans-serif;font-size:.82rem;cursor:pointer;transition:transform .15s;}
+.result-btn:hover{transform:translateY(-2px);}
+.btn-retry{background:linear-gradient(90deg,var(--pink),var(--purple));color:#fff;}
+.btn-review{background:rgba(255,255,255,.08);color:var(--text-main);border:1.5px solid var(--glass-border);}
+.confetti-piece{position:fixed;pointer-events:none;z-index:9999;animation:cfFall 1.2s ease forwards;}
+@keyframes cfFall{0%{opacity:1;transform:translateY(0) rotate(0deg)}100%{opacity:0;transform:translateY(200px) rotate(720deg)}}
+
+@media(max-width:700px){
+  .split-screen{flex-direction:column;overflow-y:auto}
+  .left-panel,.right-panel{width:100%;overflow:visible}
+  .left-panel{border-right:none;border-bottom:1px solid rgba(0,229,255,.12)}
+  body{overflow:auto} #app.visible{height:auto;overflow:auto}
+  .options-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<div class="bg-base"></div>
+<div class="bg-grid"></div>
+<div class="neon-blob" style="width:380px;height:380px;background:#FF2D78;top:-100px;left:-80px;opacity:.1;animation-duration:10s;"></div>
+<div class="neon-blob" style="width:320px;height:320px;background:#00E5FF;bottom:-80px;right:-60px;opacity:.09;animation-duration:13s;animation-delay:-5s;"></div>
+<div class="neon-blob" style="width:220px;height:220px;background:#7B2FBE;top:45%;left:45%;opacity:.08;animation-duration:16s;animation-delay:-8s;"></div>
+<div class="bg-emojis" id="bgEmojis"></div>
+
+<!-- Password -->
+<div id="pwOverlay">
+  <div class="pw-card">
+    <span class="lock-icon">🎵</span>
+    <h2>TEST 7 – ĐỌC ĐIỀN QUẢNG CÁO</h2>
+    <p>Ms Mai An ULIS · Nhập mật khẩu để bắt đầu</p>
+    <input type="password" id="pwInput" placeholder="Mật khẩu..." autocomplete="off">
+    <div id="pwError"></div>
+    <button id="pwBtn">⚡ KHỞI ĐỘNG</button>
+  </div>
+</div>
+
+<!-- Name Modal -->
+<div class="modal-overlay" id="nameModal">
+  <div class="modal-card">
+    <h2>NHẬP TÊN</h2>
+    <p>Để cá nhân hóa kết quả bài thi nha!</p>
+    <input type="text" id="nameInput" placeholder="Ví dụ: Nguyễn Văn A..." maxlength="50">
+    <div id="nameError"></div>
+    <button id="nameSubmitBtn">✅ XEM KẾT QUẢ</button>
+  </div>
+</div>
+
+<!-- Result Modal -->
+<div class="modal-overlay" id="resultModal">
+  <div class="modal-card">
+    <div class="result-title" id="resultTitle"></div>
+    <div class="result-score" id="resultScore"></div>
+    <div class="result-comment" id="resultComment"></div>
+    <img class="result-meme" id="resultMeme" src="" alt="" onerror="this.style.display='none'">
+    <div class="result-btns">
+      <button class="result-btn btn-retry" onclick="location.reload()">🔄 Làm lại</button>
+      <button class="result-btn btn-review" onclick="document.getElementById('resultModal').classList.remove('active')">👀 Xem lại bài</button>
+    </div>
+  </div>
+</div>
+
+<div id="timeoutBanner">⏰ Đã hết giờ! Trong phòng thi thật, hãy hoàn thành bài đọc điền trong 10 phút nhé.</div>
+
+<!-- App -->
+<div id="app">
+  <header>
+    <div class="header-title">
+      <h1>TEST 7 – ĐỌC ĐIỀN QUẢNG CÁO</h1>
+      <p>Giáo viên: Ms Mai An ULIS</p>
+    </div>
+    <div class="header-controls">
+      <button id="timerBtn" onclick="startTimer()">⏱ Bắt đầu tính giờ</button>
+      <div id="timerDisplay">10:00</div>
+      <button id="pauseBtn" onclick="togglePause()">⏸ Tạm dừng</button>
+      <div class="progress-bar-wrap">
+        <div class="progress-label">Tiến độ: <span id="progressText">0/18</span></div>
+        <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+      </div>
+      <button id="submitBtn" onclick="openNameModal()">🎯 Nộp bài</button>
+    </div>
+  </header>
+  <div class="split-screen">
+    <div class="left-panel" id="leftPanel"></div>
+    <div class="right-panel" id="rightPanel"></div>
+  </div>
+</div>
+
+<script>
+// Password (ASCII)
+const _k=[99,111,109,97,105,97,110,117,108,105,115];
+const _p=_k.map(c=>String.fromCharCode(c)).join('');
+document.getElementById('pwBtn').addEventListener('click',checkPW);
+document.getElementById('pwInput').addEventListener('keydown',e=>{if(e.key==='Enter')checkPW();});
+function checkPW(){
+  const v=document.getElementById('pwInput').value;
+  if(v===_p){document.getElementById('pwOverlay').style.display='none';document.getElementById('app').classList.add('visible');buildApp();}
+  else{
+    document.getElementById('pwError').textContent='❌ Mật khẩu không đúng. Vui lòng thử lại!';
+    const inp=document.getElementById('pwInput');inp.classList.remove('shake');void inp.offsetWidth;inp.classList.add('shake');inp.value='';setTimeout(()=>inp.classList.remove('shake'),500);
+  }
+}
+
+// BG emojis
+(function(){
+  const emojis=['🎵','🏋️','🥤','🎧','🌟','🎬','🎶','🏙️','✨','🎤','💿','🍫','🎉','🌃','🎆','🎇','🎼','💪'];
+  const c=document.getElementById('bgEmojis');
+  for(let i=0;i<18;i++){
+    const e=document.createElement('span');e.textContent=emojis[i%emojis.length];
+    e.style.cssText=`left:${Math.random()*100}%;font-size:${1.3+Math.random()*1.7}rem;animation-duration:${18+Math.random()*22}s;animation-delay:${Math.random()*20}s;`;
+    c.appendChild(e);
+  }
+})();
+
+function shuffleArray(a){const r=[...a];for(let i=r.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[r[i],r[j]]=[r[j],r[i]];}return r;}
+
+// ===== DATA =====
+const rawQ=[
+  {
+    id:1,blank:1,
+    qText:'Question 1: Looking to (1)_______ weight without breaking the bank?',
+    options:[{letter:'A',text:'keep'},{letter:'B',text:'miss'},{letter:'C',text:'gain'},{letter:'D',text:'lose'}],
+    correct:'D',
+    qVi:'Câu 1: Bạn đang tìm cách (1)_______ cân mà không tốn quá nhiều tiền?',
+    explanations:{
+      A:'keep (giữ) ❌ Sai — "keep weight" không hợp ngữ cảnh muốn nói về giảm cân.',
+      B:'miss ❌ Sai — "miss weight" không có nghĩa.',
+      C:'gain (tăng) ❌ Sai — "gain weight" = tăng cân, ngược nghĩa với ngữ cảnh.',
+      D:'lose ✅ Đúng — "lose weight" = giảm cân (collocation chuẩn).'
+    },
+    evidenceEn:'"Looking to (1) ______ weight without breaking the bank?"',
+    evidenceVi:'Bạn đang tìm cách <span class="kw">giảm cân</span> mà không tốn quá nhiều tiền?',
+    keyword:'lose weight = giảm cân (collocation chuẩn)'
+  },
+  {
+    id:2,blank:2,
+    qText:'Question 2: Our (2)_______ are now available at a discounted price of £12.99.',
+    options:[{letter:'A',text:'shakes premium replacement'},{letter:'B',text:'replacement premium shakes'},{letter:'C',text:'premium shakes replacement'},{letter:'D',text:'premium replacement shakes'}],
+    correct:'D',
+    qVi:'Câu 2: (2)_______ của chúng tôi hiện có với mức giá ưu đãi £12.99.',
+    explanations:{
+      A:'shakes premium replacement ❌ Sai — danh từ chính "shakes" không đứng đầu trong cụm có 2 tính từ bổ nghĩa.',
+      B:'replacement premium shakes ❌ Sai — "premium" (adj đánh giá chất lượng) phải đứng trước "replacement".',
+      C:'premium shakes replacement ❌ Sai — "replacement" (adj phân loại) phải đứng sát danh từ chính "shakes".',
+      D:'premium replacement shakes ✅ Đúng — adj + adj + N: "premium" (đánh giá) + "replacement" (phân loại) + "shakes" (danh từ chính). "Premium replacement shakes" = các loại shake thay thế bữa ăn cao cấp.'
+    },
+    evidenceEn:'"Our (2) ______ premium replacement shakes are now available at a discounted price."',
+    evidenceVi:'<span class="kw">Các loại shake thay thế bữa ăn cao cấp</span> của chúng tôi hiện có với giá ưu đãi.',
+    keyword:'premium replacement shakes = Adj đánh giá + Adj phân loại + N'
+  },
+  {
+    id:3,blank:3,
+    qText:'Question 3: Our shakes are now available (3)_______ a discounted price of £12.99.',
+    options:[{letter:'A',text:'in'},{letter:'B',text:'at'},{letter:'C',text:'to'},{letter:'D',text:'under'}],
+    correct:'B',
+    qVi:'Câu 3: Các sản phẩm của chúng tôi hiện có (3)_______ mức giá ưu đãi £12.99.',
+    explanations:{
+      A:'in ❌ Sai — "in a price" không phải cụm giới từ chuẩn.',
+      B:'at ✅ Đúng — "at a discounted/reduced/reasonable price" = với mức giá giảm/hợp lý (collocation cố định).',
+      C:'to ❌ Sai — "to a discounted price" không diễn đạt đúng nghĩa.',
+      D:'under ❌ Sai — "under a price" không chuẩn trong ngữ cảnh này.'
+    },
+    evidenceEn:'"Our shakes are now available (3) ______ a discounted price of £12.99."',
+    evidenceVi:'Các sản phẩm của chúng tôi hiện có <span class="kw">với mức giá</span> ưu đãi £12.99.',
+    keyword:'at a discounted price = với mức giá giảm (collocation cố định)'
+  },
+  {
+    id:4,blank:4,
+    qText:'Question 4: These shakes are designed to support your weight loss journey, (4)_______ a convenient and nutritious option for those on the go.',
+    options:[{letter:'A',text:'offering'},{letter:'B',text:'to offer'},{letter:'C',text:'offered'},{letter:'D',text:'is offered'}],
+    correct:'A',
+    qVi:'Câu 4: Các sản phẩm được thiết kế để hỗ trợ hành trình giảm cân của bạn, (4)_______ một lựa chọn tiện lợi và bổ dưỡng cho những người bận rộn.',
+    explanations:{
+      A:'offering ✅ Đúng — rút gọn mệnh đề quan hệ chủ động: "which offers" → "offering". Sản phẩm chủ động "cung cấp" lựa chọn.',
+      B:'to offer ❌ Sai — to-infinitive không dùng để rút gọn mệnh đề quan hệ chủ động.',
+      C:'offered ❌ Sai — rút gọn bị động; nhưng sản phẩm là chủ thể cung cấp, không bị động.',
+      D:'is offered ❌ Sai — mệnh đề đầy đủ, thiếu "which".'
+    },
+    evidenceEn:'"...designed to support your weight loss journey, (4) ______ a convenient and nutritious option."',
+    evidenceVi:'...được thiết kế để hỗ trợ hành trình giảm cân, <span class="kw">cung cấp</span> một lựa chọn tiện lợi và bổ dưỡng.',
+    keyword:'which offers → offering (rút gọn mệnh đề quan hệ chủ động)'
+  },
+  {
+    id:5,blank:5,
+    qText:'Question 5: Imagine (5)_______ a delicious meal that not only satisfies your hunger...',
+    options:[{letter:'A',text:'enjoy'},{letter:'B',text:'to enjoying'},{letter:'C',text:'enjoying'},{letter:'D',text:'to enjoy'}],
+    correct:'C',
+    qVi:'Câu 5: Hãy tưởng tượng (5)_______ một bữa ăn ngon miệng không chỉ thỏa mãn cơn đói của bạn...',
+    explanations:{
+      A:'enjoy (nguyên mẫu) ❌ Sai — sau "imagine" không dùng động từ nguyên mẫu trực tiếp.',
+      B:'to enjoying ❌ Sai — không có cấu trúc "to + V-ing".',
+      C:'enjoying ✅ Đúng — "imagine + V-ing" = tưởng tượng việc làm gì đó (cấu trúc cố định).',
+      D:'to enjoy ❌ Sai — "imagine to + V" không phải cấu trúc chuẩn.'
+    },
+    evidenceEn:'"Imagine (5) ______ a delicious meal that not only satisfies your hunger."',
+    evidenceVi:'Hãy tưởng tượng <span class="kw">thưởng thức</span> một bữa ăn ngon miệng không chỉ thỏa mãn cơn đói của bạn.',
+    keyword:'imagine + V-ing (cấu trúc cố định)'
+  },
+  {
+    id:6,blank:6,
+    qText:'Question 6: Don\'t miss out on this (6)_______ opportunity to kickstart your health journey.',
+    options:[{letter:'A',text:'interest'},{letter:'B',text:'interested'},{letter:'C',text:'interesting'},{letter:'D',text:'interestingly'}],
+    correct:'C',
+    qVi:'Câu 6: Đừng bỏ lỡ cơ hội (6)_______ này để khởi động hành trình sức khỏe của bạn.',
+    explanations:{
+      A:'interest (danh từ/động từ) ❌ Sai — cần tính từ để bổ nghĩa cho "opportunity".',
+      B:'interested (tính từ: quan tâm) ❌ Sai — "interested" mô tả cảm xúc của người, không bổ nghĩa cho cơ hội.',
+      C:'interesting (tính từ: thú vị) ✅ Đúng — adj + N; "interesting opportunity" = cơ hội thú vị.',
+      D:'interestingly (trạng từ) ❌ Sai — trạng từ không bổ nghĩa trực tiếp cho danh từ.'
+    },
+    evidenceEn:'"Don\'t miss out on this (6) ______ opportunity to kickstart your health journey."',
+    evidenceVi:'Đừng bỏ lỡ cơ hội <span class="kw">thú vị</span> này để khởi động hành trình sức khỏe.',
+    keyword:'interesting (adj) = thú vị → bổ nghĩa cho "opportunity"'
+  },
+  {
+    id:7,blank:7,
+    qText:'Question 7: Die With A Smile, (7)_______ on August 16, 2024, is a new duet by Lady Gaga and Bruno Mars.',
+    options:[{letter:'A',text:'to release'},{letter:'B',text:'released'},{letter:'C',text:'releasing'},{letter:'D',text:'was released'}],
+    correct:'B',
+    qVi:'Câu 7: Die With A Smile, (7)_______ vào ngày 16 tháng 8 năm 2024, là một bài hát song ca mới của Lady Gaga và Bruno Mars.',
+    explanations:{
+      A:'to release ❌ Sai — to-infinitive không dùng để rút gọn mệnh đề quan hệ.',
+      B:'released ✅ Đúng — rút gọn mệnh đề quan hệ bị động: "which was released" → "released". Bài hát được phát hành (bị động).',
+      C:'releasing ❌ Sai — V-ing = rút gọn chủ động; nhưng bài hát được phát hành (bị động).',
+      D:'was released ❌ Sai — mệnh đề độc lập, không thể chen vào giữa "Die With A Smile" và mệnh đề chính.'
+    },
+    evidenceEn:'"Die With A Smile, (7) ______ on August 16, 2024, is a new duet by Lady Gaga and Bruno Mars."',
+    evidenceVi:'Die With A Smile, <span class="kw">được phát hành</span> vào ngày 16 tháng 8 năm 2024, là một bài song ca mới.',
+    keyword:'which was released → released (rút gọn mệnh đề quan hệ bị động)'
+  },
+  {
+    id:8,blank:8,
+    qText:'Question 8: This soulful ballad has (8)_______ the attention of music lovers worldwide.',
+    options:[{letter:'A',text:'caught'},{letter:'B',text:'taken'},{letter:'C',text:'pushed'},{letter:'D',text:'dropped'}],
+    correct:'A',
+    qVi:'Câu 8: Bản ballad đầy cảm xúc này đã (8)_______ sự chú ý của những người yêu âm nhạc trên toàn thế giới.',
+    explanations:{
+      A:'caught ✅ Đúng — "catch the attention of sb" = thu hút sự chú ý của ai đó (collocation chuẩn).',
+      B:'taken ❌ Sai — "take the attention" không phải cụm từ thông dụng trong ngữ cảnh này.',
+      C:'pushed ❌ Sai — "push the attention" không có nghĩa.',
+      D:'dropped ❌ Sai — "drop the attention" = đánh mất sự chú ý, ngược nghĩa.'
+    },
+    evidenceEn:'"This soulful ballad has (8) ______ the attention of music lovers worldwide."',
+    evidenceVi:'Bản ballad này đã <span class="kw">thu hút sự chú ý</span> của những người yêu âm nhạc toàn thế giới.',
+    keyword:'catch the attention of sb = thu hút sự chú ý (collocation chuẩn)'
+  },
+  {
+    id:9,blank:9,
+    qText:'Question 9: ...blending Gaga\'s pop style with Mars\' R&B flair (9)_______ a remarkable extent.',
+    options:[{letter:'A',text:'from'},{letter:'B',text:'at'},{letter:'C',text:'with'},{letter:'D',text:'to'}],
+    correct:'D',
+    qVi:'Câu 9: ...hòa trộn phong cách pop của Gaga với sắc thái R&B của Mars (9)_______ một mức độ đáng chú ý.',
+    explanations:{
+      A:'from ❌ Sai — "from a remarkable extent" không phải cụm từ.',
+      B:'at ❌ Sai — "at a remarkable extent" không chuẩn.',
+      C:'with ❌ Sai — "with a remarkable extent" không có nghĩa.',
+      D:'to ✅ Đúng — "to a remarkable/certain/great extent" = đến một mức độ đáng chú ý (thành ngữ cố định).'
+    },
+    evidenceEn:'"...blending Gaga\'s pop style with Mars\' R&B flair (9) ______ a remarkable extent."',
+    evidenceVi:'...hòa trộn phong cách của Gaga và Mars <span class="kw">đến một mức độ</span> đáng chú ý.',
+    keyword:'to a remarkable extent = đến một mức độ đáng chú ý (thành ngữ cố định)'
+  },
+  {
+    id:10,blank:10,
+    qText:'Question 10: ...the captivating melody, which was crafted to showcase the (10)_______ of both singers.',
+    options:[{letter:'A',text:'exceptional talents artistic'},{letter:'B',text:'exceptional artistic talents'},{letter:'C',text:'talents exceptional artistic'},{letter:'D',text:'artistic exceptional talents'}],
+    correct:'B',
+    qVi:'Câu 10: ...giai điệu quyến rũ, được tạo ra để thể hiện (10)_______ của cả hai ca sĩ.',
+    explanations:{
+      A:'exceptional talents artistic ❌ Sai — "artistic" (adj phân loại) phải đứng sát danh từ "talents".',
+      B:'exceptional artistic talents ✅ Đúng — adj + adj + N: "exceptional" (đánh giá) + "artistic" (phân loại) + "talents" (danh từ chính). "Exceptional artistic talents" = tài năng nghệ thuật xuất sắc.',
+      C:'talents exceptional artistic ❌ Sai — danh từ không đứng đầu trong cụm này.',
+      D:'artistic exceptional talents ❌ Sai — "exceptional" (đánh giá) phải đứng trước "artistic" (phân loại).'
+    },
+    evidenceEn:'"...crafted to showcase the (10) ______ exceptional artistic talents of both singers."',
+    evidenceVi:'...được tạo ra để thể hiện <span class="kw">tài năng nghệ thuật xuất sắc</span> của cả hai ca sĩ.',
+    keyword:'exceptional artistic talents = Adj đánh giá + Adj phân loại + N'
+  },
+  {
+    id:11,blank:11,
+    qText:'Question 11: Fans have spent countless hours (11)_______ this collaboration.',
+    options:[{letter:'A',text:'to discuss'},{letter:'B',text:'discuss'},{letter:'C',text:'discussing'},{letter:'D',text:'to discussing'}],
+    correct:'C',
+    qVi:'Câu 11: Các fan đã dành vô số giờ (11)_______ về sự hợp tác này.',
+    explanations:{
+      A:'to discuss ❌ Sai — "spend time to + V" sai cấu trúc.',
+      B:'discuss (nguyên mẫu) ❌ Sai — động từ nguyên mẫu không dùng sau "spend time".',
+      C:'discussing ✅ Đúng — "spend time + V-ing" = dành thời gian làm gì đó (cấu trúc cố định).',
+      D:'to discussing ❌ Sai — không có cấu trúc "to + V-ing".'
+    },
+    evidenceEn:'"Fans have spent countless hours (11) ______ this collaboration."',
+    evidenceVi:'Các fan đã dành vô số giờ <span class="kw">thảo luận về</span> sự hợp tác này.',
+    keyword:'spend time + V-ing = dành thời gian làm gì đó (cấu trúc cố định)'
+  },
+  {
+    id:12,blank:12,
+    qText:'Question 12: ...let its (12)_______ rhythm elevate your playlist.',
+    options:[{letter:'A',text:'enchant'},{letter:'B',text:'enchanted'},{letter:'C',text:'enchanting'},{letter:'D',text:'enchantedly'}],
+    correct:'C',
+    qVi:'Câu 12: ...hãy để nhịp điệu (12)_______ của nó nâng tầm danh sách phát của bạn.',
+    explanations:{
+      A:'enchant (động từ) ❌ Sai — cần tính từ để bổ nghĩa cho "rhythm".',
+      B:'enchanted (tính từ: bị mê hoặc) ❌ Sai — "enchanted" mô tả người bị mê hoặc, không phải nhịp điệu.',
+      C:'enchanting (tính từ: mê hoặc, đầy cuốn hút) ✅ Đúng — adj + N; "enchanting rhythm" = nhịp điệu mê hoặc, cuốn hút.',
+      D:'enchantedly (trạng từ) ❌ Sai — trạng từ không bổ nghĩa trực tiếp cho danh từ.'
+    },
+    evidenceEn:'"...let its (12) ______ rhythm elevate your playlist."',
+    evidenceVi:'...hãy để nhịp điệu <span class="kw">mê hoặc</span> của nó nâng tầm danh sách phát của bạn.',
+    keyword:'enchanting (adj) = mê hoặc → bổ nghĩa cho "rhythm"'
+  },
+  {
+    id:13,blank:13,
+    qText:'Question 13: Hanoi is set to host "Glamour Thang Long," a (13)_______ featuring the world\'s largest pyro drone show.',
+    options:[{letter:'A',text:'cultural thrilling event'},{letter:'B',text:'cultural event thrilling'},{letter:'C',text:'thrilling cultural event'},{letter:'D',text:'thrilling event cultural'}],
+    correct:'C',
+    qVi:'Câu 13: Hà Nội chuẩn bị tổ chức "Glamour Thăng Long", một (13)_______ với màn trình diễn drone pháo hoa lớn nhất thế giới.',
+    explanations:{
+      A:'cultural thrilling event ❌ Sai — "thrilling" (adj đánh giá) phải đứng trước "cultural" (adj phân loại).',
+      B:'cultural event thrilling ❌ Sai — tính từ không đứng sau danh từ trong cụm danh từ.',
+      C:'thrilling cultural event ✅ Đúng — adj + adj + N: "thrilling" (đánh giá) + "cultural" (phân loại) + "event" (danh từ chính). "Thrilling cultural event" = sự kiện văn hóa thú vị.',
+      D:'thrilling event cultural ❌ Sai — "cultural" phải đứng trước "event".'
+    },
+    evidenceEn:'"Hanoi is set to host \'Glamour Thang Long,\' a (13) ______ featuring the world\'s largest pyro drone show."',
+    evidenceVi:'Hà Nội chuẩn bị tổ chức "Glamour Thăng Long", một <span class="kw">sự kiện văn hóa đầy hứng khởi</span>.',
+    keyword:'thrilling cultural event = Adj đánh giá + Adj phân loại + N'
+  },
+  {
+    id:14,blank:14,
+    qText:'Question 14: This spectacular display, (14)_______ meticulously, promises an unforgettable experience.',
+    options:[{letter:'A',text:'plan'},{letter:'B',text:'to plan'},{letter:'C',text:'planned'},{letter:'D',text:'planning'}],
+    correct:'C',
+    qVi:'Câu 14: Màn trình diễn ngoạn mục này, (14)_______ tỉ mỉ, hứa hẹn mang lại trải nghiệm khó quên.',
+    explanations:{
+      A:'plan (nguyên mẫu) ❌ Sai — không dùng động từ nguyên mẫu để rút gọn mệnh đề quan hệ.',
+      B:'to plan ❌ Sai — to-infinitive không dùng để rút gọn mệnh đề quan hệ.',
+      C:'planned ✅ Đúng — rút gọn mệnh đề quan hệ bị động: "which is planned" → "planned". Màn trình diễn được lên kế hoạch (bị động).',
+      D:'planning ❌ Sai — V-ing = rút gọn chủ động; nhưng màn trình diễn được lên kế hoạch (bị động).'
+    },
+    evidenceEn:'"This spectacular display, (14) ______ meticulously, promises an unforgettable experience."',
+    evidenceVi:'Màn trình diễn ngoạn mục này, <span class="kw">được lên kế hoạch</span> tỉ mỉ, hứa hẹn trải nghiệm khó quên.',
+    keyword:'which is planned → planned (rút gọn mệnh đề quan hệ bị động)'
+  },
+  {
+    id:15,blank:15,
+    qText:'Question 15: If you are (15)_______ by innovative light shows and happen to be in Hanoi...',
+    options:[{letter:'A',text:'intrigued'},{letter:'B',text:'intrigue'},{letter:'C',text:'intriguing'},{letter:'D',text:'intriguingly'}],
+    correct:'A',
+    qVi:'Câu 15: Nếu bạn (15)_______ bởi các màn trình diễn ánh sáng sáng tạo và tình cờ ở Hà Nội...',
+    explanations:{
+      A:'intrigued (tính từ: bị hấp dẫn, bị thu hút) ✅ Đúng — "be intrigued by" = bị hấp dẫn/tò mò bởi điều gì; tính từ mô tả cảm xúc của người xem.',
+      B:'intrigue (động từ: gây hứng thú) ❌ Sai — cần tính từ sau "be".',
+      C:'intriguing (tính từ: gây hứng thú) ❌ Sai — "intriguing" mô tả thứ gây hứng thú, không phải cảm xúc của người.',
+      D:'intriguingly (trạng từ) ❌ Sai — trạng từ không đứng sau "are".'
+    },
+    evidenceEn:'"If you are (15) ______ by innovative light shows and happen to be in Hanoi..."',
+    evidenceVi:'Nếu bạn <span class="kw">bị hấp dẫn</span> bởi các màn trình diễn ánh sáng sáng tạo và tình cờ ở Hà Nội...',
+    keyword:'be intrigued by = bị hấp dẫn bởi (tính từ mô tả cảm xúc người)'
+  },
+  {
+    id:16,blank:16,
+    qText:'Question 16: ...you (16)_______ a chance to witness a groundbreaking fusion of technology and art.',
+    options:[{letter:'A',text:'set'},{letter:'B',text:'take'},{letter:'C',text:'stand'},{letter:'D',text:'give'}],
+    correct:'C',
+    qVi:'Câu 16: ...bạn (16)_______ một cơ hội để chứng kiến sự kết hợp đột phá giữa công nghệ và nghệ thuật.',
+    explanations:{
+      A:'set ❌ Sai — "set a chance" không phải cụm từ.',
+      B:'take ❌ Sai — "take a chance" = liều lĩnh thử, không có nghĩa có cơ hội.',
+      C:'stand ✅ Đúng — "stand a chance" = có cơ hội (cụm từ cố định).',
+      D:'give ❌ Sai — "give a chance" = trao cho ai cơ hội, chủ thể phải là người khác.'
+    },
+    evidenceEn:'"...you (16) ______ a chance to witness a groundbreaking fusion of technology and art."',
+    evidenceVi:'...bạn <span class="kw">có cơ hội</span> để chứng kiến sự kết hợp đột phá giữa công nghệ và nghệ thuật.',
+    keyword:'stand a chance = có cơ hội (cụm từ cố định)'
+  },
+  {
+    id:17,blank:17,
+    qText:'Question 17: ...a historic celebration that has qualified (17)_______ global recognition.',
+    options:[{letter:'A',text:'over'},{letter:'B',text:'for'},{letter:'C',text:'to'},{letter:'D',text:'with'}],
+    correct:'B',
+    qVi:'Câu 17: ...một lễ kỷ niệm lịch sử đã đủ tiêu chuẩn (17)_______ sự công nhận toàn cầu.',
+    explanations:{
+      A:'over ❌ Sai — "be qualified over" không phải collocation.',
+      B:'for ✅ Đúng — "be qualified for" = đủ tiêu chuẩn cho cái gì (collocation cố định).',
+      C:'to ❌ Sai — "be qualified to" = có đủ năng lực để làm gì (to-infinitive), không hợp ngữ cảnh.',
+      D:'with ❌ Sai — "be qualified with" không phải cụm từ chuẩn.'
+    },
+    evidenceEn:'"...a historic celebration that has qualified (17) ______ global recognition."',
+    evidenceVi:'...một lễ kỷ niệm lịch sử đã <span class="kw">đủ tiêu chuẩn để được</span> công nhận toàn cầu.',
+    keyword:'be qualified for = đủ tiêu chuẩn cho (collocation cố định)'
+  },
+  {
+    id:18,blank:18,
+    qText:'Question 18: We invite you (18)_______ us in welcoming the New Year with a dazzling display.',
+    options:[{letter:'A',text:'joining'},{letter:'B',text:'to join'},{letter:'C',text:'join'},{letter:'D',text:'to joining'}],
+    correct:'B',
+    qVi:'Câu 18: Chúng tôi mời bạn (18)_______ chúng tôi đón chào Năm Mới với màn trình diễn rực rỡ.',
+    explanations:{
+      A:'joining (V-ing) ❌ Sai — "invite sb + V-ing" không phải cấu trúc chuẩn.',
+      B:'to join ✅ Đúng — "invite sb to + V" = mời ai đó làm gì (cấu trúc cố định).',
+      C:'join (nguyên mẫu) ❌ Sai — cần "to" trước động từ sau "invite sb".',
+      D:'to joining ❌ Sai — không có cấu trúc "to + V-ing".'
+    },
+    evidenceEn:'"We invite you (18) ______ us in welcoming the New Year with a dazzling display."',
+    evidenceVi:'Chúng tôi <span class="kw">mời bạn tham gia cùng</span> chúng tôi đón chào Năm Mới.',
+    keyword:'invite sb to + V = mời ai đó làm gì (cấu trúc cố định)'
+  }
+];
+
+const questions=rawQ.map(q=>({...q,options:shuffleArray(q.options)}));
+
+const passages=[
+  {
+    exNum:1,label:'Exercise 1',
+    title:'Control Your Weight with Our Special Offer',
+    source:'(Adapted from Talk Sport)',
+    paragraphs:[{
+      text:`Looking to <span class="blank" id="b1">___</span> weight without breaking the bank? Our <span class="blank" id="b2">___</span> are now available <span class="blank" id="b3">___</span> a discounted price of £12.99. These shakes are designed to support your weight loss journey, <span class="blank" id="b4">___</span> a convenient and nutritious option for those on the go. Imagine <span class="blank" id="b5">___</span> a delicious meal that not only satisfies your hunger but also aids in your weight control efforts. Each serving is packed with 25g of protein and 4.5g of fiber, helping you feel fuller for longer. With 15 exciting flavors to choose from, including vanilla cream and white chocolate raspberry swirl, there's a taste for everyone. Don't miss out on this <span class="blank" id="b6">___</span> opportunity to kickstart your health journey. Order now and experience the benefits of our diet meal replacement shakes.`,
+      translation:`Bạn đang tìm cách <strong>giảm cân</strong> mà không tốn quá nhiều tiền? <strong>Các loại shake thay thế bữa ăn cao cấp</strong> của chúng tôi hiện có <strong>với mức giá</strong> ưu đãi £12.99. Những loại shake này được thiết kế để hỗ trợ hành trình giảm cân của bạn, <strong>cung cấp</strong> một lựa chọn tiện lợi và bổ dưỡng cho những người bận rộn. Hãy tưởng tượng <strong>thưởng thức</strong> một bữa ăn ngon miệng không chỉ thỏa mãn cơn đói mà còn hỗ trợ kiểm soát cân nặng. Mỗi phần ăn chứa 25g protein và 4.5g chất xơ, giúp bạn no lâu hơn. Với 15 hương vị phong phú, đừng bỏ lỡ cơ hội <strong>thú vị</strong> này để khởi động hành trình sức khỏe!`
+    }],
+    glossary:[
+      {word:'break the bank',pos:'idiom',vi:'tốn quá nhiều tiền, vượt ngân sách'},
+      {word:'replacement',pos:'n.',vi:'sự thay thế; thứ dùng để thay thế'},
+      {word:'nutritious',pos:'adj.',vi:'bổ dưỡng, giàu dinh dưỡng'},
+      {word:'serving',pos:'n.',vi:'một phần ăn'},
+      {word:'fiber',pos:'n.',vi:'chất xơ'},
+      {word:'kickstart',pos:'v.',vi:'khởi động, bắt đầu nhanh chóng'},
+      {word:'premium',pos:'adj.',vi:'cao cấp, chất lượng cao'},
+      {word:'discounted',pos:'adj.',vi:'được giảm giá, có chiết khấu'},
+      {word:'aid',pos:'v.',vi:'giúp đỡ, hỗ trợ'},
+      {word:'lose weight',pos:'phrase',vi:'giảm cân'}
+    ]
+  },
+  {
+    exNum:2,label:'Exercise 2',
+    title:'Experience the Magic of "Die With A Smile"',
+    source:'(Adapted from Spotify and People)',
+    paragraphs:[{
+      text:`Die With A Smile, <span class="blank" id="b7">___</span> on August 16, 2024, is a new duet by Lady Gaga and Bruno Mars. This soulful ballad has <span class="blank" id="b8">___</span> the attention of music lovers worldwide, blending Gaga's pop style with Mars' R&B flair <span class="blank" id="b9">___</span> a remarkable extent. Imagine immersing yourself in this captivating melody, which was crafted to showcase the <span class="blank" id="b10">___</span> of both singers. Fans have spent countless hours <span class="blank" id="b11">___</span> this collaboration. Don't miss out on this exciting musical experience; listen to Die With A Smile today and let its <span class="blank" id="b12">___</span> rhythm elevate your playlist. You can listen to Die With A Smile on Spotify.`,
+      translation:`Die With A Smile, <strong>được phát hành</strong> vào ngày 16 tháng 8 năm 2024, là một bài song ca mới của Lady Gaga và Bruno Mars. Bản ballad đầy cảm xúc này đã <strong>thu hút sự chú ý</strong> của những người yêu âm nhạc trên toàn thế giới, hòa trộn phong cách pop của Gaga với sắc thái R&B của Mars <strong>đến một mức độ</strong> đáng chú ý. Hãy tưởng tượng bạn đắm mình trong giai điệu quyến rũ này, được tạo ra để thể hiện <strong>tài năng nghệ thuật xuất sắc</strong> của cả hai ca sĩ. Các fan đã dành vô số giờ <strong>thảo luận về</strong> sự hợp tác này. Đừng bỏ lỡ trải nghiệm âm nhạc tuyệt vời này; hãy để nhịp điệu <strong>mê hoặc</strong> của nó nâng tầm danh sách phát của bạn.`
+    }],
+    glossary:[
+      {word:'soulful',pos:'adj.',vi:'đầy cảm xúc, có hồn, sâu lắng'},
+      {word:'ballad',pos:'n.',vi:'bản ballad, bài hát trữ tình'},
+      {word:'flair',pos:'n.',vi:'tài năng thiên bẩm, phong cách riêng'},
+      {word:'captivating',pos:'adj.',vi:'quyến rũ, cuốn hút, hấp dẫn'},
+      {word:'craft',pos:'v.',vi:'tạo ra một cách khéo léo, chế tác'},
+      {word:'collaboration',pos:'n.',vi:'sự hợp tác'},
+      {word:'enchanting',pos:'adj.',vi:'mê hoặc, quyến rũ, đầy cuốn hút'},
+      {word:'elevate',pos:'v.',vi:'nâng tầm, đưa lên cao hơn'},
+      {word:'immerse',pos:'v.',vi:'đắm mình vào, chìm vào'},
+      {word:'duet',pos:'n.',vi:'bài song ca, bản nhạc đôi'}
+    ]
+  },
+  {
+    exNum:3,label:'Exercise 3',
+    title:'Experience the Magic of "Glamour Thang Long" in Hanoi',
+    source:'(Adapted from Macau Business)',
+    paragraphs:[{
+      text:`Are you ready? Hanoi is set to host "Glamour Thang Long," a <span class="blank" id="b13">___</span> featuring the world's largest pyro drone show, which will illuminate the city's sky on New Year's Eve 2025. This spectacular display, <span class="blank" id="b14">___</span> meticulously, promises an unforgettable experience for all attendees. If you are <span class="blank" id="b15">___</span> by innovative light shows and happen to be in Hanoi during this time, you <span class="blank" id="b16">___</span> a chance to witness a groundbreaking fusion of technology and art. Don't miss this exciting opportunity to be part of a historic celebration that has qualified <span class="blank" id="b17">___</span> global recognition. We invite you <span class="blank" id="b18">___</span> us in welcoming the New Year with a dazzling display that celebrates Hanoi's rich cultural heritage and innovative spirit.`,
+      translation:`Bạn đã sẵn sàng chưa? Hà Nội chuẩn bị tổ chức "Glamour Thăng Long", một <strong>sự kiện văn hóa đầy hứng khởi</strong> với màn trình diễn drone pháo hoa lớn nhất thế giới, sẽ thắp sáng bầu trời thành phố vào đêm Giao thừa 2025. Màn trình diễn ngoạn mục này, <strong>được lên kế hoạch</strong> tỉ mỉ, hứa hẹn mang lại trải nghiệm khó quên cho tất cả những người tham dự. Nếu bạn <strong>bị hấp dẫn</strong> bởi các màn trình diễn ánh sáng sáng tạo và tình cờ ở Hà Nội, bạn <strong>có cơ hội</strong> chứng kiến sự kết hợp đột phá giữa công nghệ và nghệ thuật. Đừng bỏ lỡ cơ hội là một phần của lễ kỷ niệm lịch sử đã <strong>đủ tiêu chuẩn để được</strong> công nhận toàn cầu. Chúng tôi <strong>mời bạn tham gia cùng</strong> chúng tôi đón chào Năm Mới!`
+    }],
+    glossary:[
+      {word:'pyro',pos:'adj.',vi:'liên quan đến pháo hoa, lửa'},
+      {word:'illuminate',pos:'v.',vi:'thắp sáng, chiếu sáng'},
+      {word:'spectacular',pos:'adj.',vi:'ngoạn mục, ấn tượng'},
+      {word:'meticulously',pos:'adv.',vi:'một cách tỉ mỉ, cẩn thận'},
+      {word:'attendee',pos:'n.',vi:'người tham dự'},
+      {word:'groundbreaking',pos:'adj.',vi:'đột phá, tiên phong'},
+      {word:'fusion',pos:'n.',vi:'sự kết hợp, hòa trộn'},
+      {word:'heritage',pos:'n.',vi:'di sản văn hóa'},
+      {word:'dazzling',pos:'adj.',vi:'rực rỡ, lộng lẫy, chói sáng'},
+      {word:'stand a chance',pos:'phrase',vi:'có cơ hội, có khả năng'}
+    ]
+  }
+];
+
+let answered={},timerInterval=null,timeLeft=600,timerRunning=false,studentName='';
+
+function buildApp(){buildLeft();buildRight();}
+
+function buildLeft(){
+  const p=document.getElementById('leftPanel');p.innerHTML='';
+  passages.forEach(pass=>{
+    const block=document.createElement('div');block.className='exercise-block';
+    let html=`<div class="exercise-label">${pass.label}</div>
+<div class="passage-title">⚡ ${pass.title}</div>`;
+    pass.paragraphs.forEach((para,idx)=>{
+      const uid=`${pass.exNum}_${idx}`;
+      html+=`<div class="passage-card">${para.text}</div>
+<button class="translate-btn" onclick="toggleTr('tr_${uid}',this)">🌟 Mở dịch đoạn này</button>
+<div class="translation-box" id="tr_${uid}">${para.translation}</div>`;
+    });
+    html+=`<div class="passage-source">${pass.source}</div>
+<div class="glossary-title">⚡ Từ vựng – ${pass.title}</div>
+<table class="glossary-table"><thead><tr><th>Từ vựng</th><th>Loại từ</th><th>Nghĩa</th></tr></thead><tbody>`;
+    pass.glossary.forEach(g=>{html+=`<tr><td class="word-cell">${g.word}</td><td class="pos-cell">${g.pos}</td><td class="vi-cell">${g.vi}</td></tr>`;});
+    html+=`</tbody></table>`;
+    block.innerHTML=html;p.appendChild(block);
+  });
+}
+
+function buildRight(){
+  const p=document.getElementById('rightPanel');p.innerHTML='';
+  const sec={1:'Exercise 1 – Control Your Weight with Our Special Offer',7:'Exercise 2 – Experience the Magic of "Die With A Smile"',13:'Exercise 3 – "Glamour Thang Long" in Hanoi'};
+  questions.forEach(q=>{
+    if(sec[q.id]){const s=document.createElement('div');s.className='q-section-title';s.textContent=sec[q.id];p.appendChild(s);}
+    const card=document.createElement('div');card.className='question-card';card.id=`qcard_${q.id}`;
+    let opts='';
+    q.options.forEach(o=>{opts+=`<button class="option-btn" id="opt_${q.id}_${o.letter}" onclick="sel(${q.id},'${o.letter}',this)"><span class="opt-letter">${o.letter}.</span> ${o.text}</button>`;});
+    card.innerHTML=`<div class="q-number">Câu ${q.id}</div><div class="q-text">${q.qText}</div><div class="options-grid" id="opts_${q.id}">${opts}</div><div class="explanation-box" id="exp_${q.id}"></div>`;
+    p.appendChild(card);
+  });
+}
+
+function sel(qId,letter,btn){
+  if(answered[qId])return;
+  const q=questions.find(x=>x.id===qId);
+  const ok=letter===q.correct;
+  document.querySelectorAll(`#opts_${qId} .option-btn`).forEach(b=>b.disabled=true);
+  answered[qId]={selected:letter,correct:ok};
+  updateProgress();
+  if(ok){btn.classList.add('correct');playOK();spawnConfetti(btn);setBlank(qId,q.options.find(o=>o.letter===letter).text,true,false);}
+  else{
+    btn.classList.add('wrong','shake');playFail();
+    setBlank(qId,q.options.find(o=>o.letter===letter).text,false,false);
+    setTimeout(()=>setBlank(qId,q.options.find(o=>o.letter===q.correct).text,false,true),600);
+    setTimeout(()=>{const cb=document.getElementById(`opt_${qId}_${q.correct}`);if(cb)cb.classList.add('correct-reveal');},120);
+  }
+  showExp(qId,q);
+}
+
+function setBlank(qId,text,correct,fix){
+  const el=document.getElementById(`b${qId}`);if(!el)return;
+  el.textContent=text;el.className='blank';el.classList.add(correct||fix?'correct':'wrong');
+}
+
+function showExp(qId,q){
+  const box=document.getElementById(`exp_${qId}`);
+  let html=`<div class="exp-q-vi">💬 ${q.qVi}</div>`;
+  q.options.forEach(o=>{const isC=o.letter===q.correct;html+=`<div class="exp-option"><span class="${isC?'correct-tag':'wrong-tag'}">${o.letter}. ${o.text}</span> — ${q.explanations[o.letter]||''}</div>`;});
+  html+=`<div class="exp-evidence"><div class="ev-label">🔍 Dẫn chứng trong bài:</div><div class="ev-en">${q.evidenceEn}</div><div class="ev-vi">👉 ${q.evidenceVi}</div></div>`;
+  box.innerHTML=html;box.style.display='block';
+}
+
+function toggleTr(id,btn){
+  const b=document.getElementById(id);
+  if(b.style.display==='block'){b.style.display='none';btn.textContent='🌟 Mở dịch đoạn này';}
+  else{b.style.display='block';btn.textContent='🔼 Ẩn bản dịch';}
+}
+function updateProgress(){
+  const c=Object.keys(answered).length;
+  document.getElementById('progressText').textContent=`${c}/18`;
+  document.getElementById('progressFill').style.width=`${c/18*100}%`;
+}
+
+function startTimer(){
+  document.getElementById('timerBtn').style.display='none';
+  document.getElementById('timerDisplay').style.display='block';
+  document.getElementById('pauseBtn').style.display='inline-block';
+  timerRunning=true;timerInterval=setInterval(tick,1000);
+}
+function tick(){
+  if(!timerRunning)return;timeLeft--;
+  const m=Math.floor(Math.max(0,timeLeft)/60),s=Math.max(0,timeLeft)%60;
+  document.getElementById('timerDisplay').textContent=`${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  if(timeLeft<=60)document.getElementById('timerDisplay').classList.add('danger');
+  if(timeLeft<=0){
+    clearInterval(timerInterval);
+    const tb=document.getElementById('timeoutBanner');tb.style.display='block';
+    document.getElementById('pauseBtn').style.display='none';
+    setTimeout(()=>tb.style.display='none',12000);
+  }
+}
+function togglePause(){
+  timerRunning=!timerRunning;
+  document.getElementById('pauseBtn').textContent=timerRunning?'⏸ Tạm dừng':'▶️ Tiếp tục';
+}
+
+function openNameModal(){document.getElementById('nameModal').classList.add('active');document.getElementById('nameInput').focus();}
+document.getElementById('nameInput').addEventListener('keydown',e=>{if(e.key==='Enter')confirmName();});
+document.getElementById('nameSubmitBtn').addEventListener('click',confirmName);
+function confirmName(){
+  const v=document.getElementById('nameInput').value.trim();
+  if(!v){document.getElementById('nameError').textContent='⚠️ Vui lòng nhập tên trước!';document.getElementById('nameInput').classList.add('err');return;}
+  studentName=v;document.getElementById('nameModal').classList.remove('active');showResult();
+}
+function showResult(){
+  const score=Object.values(answered).filter(a=>a.correct).length,pct=score/18*100;
+  let title,comment,gif;
+  if(pct===100){title=`⚡ PERFECT! ${studentName} hoàn hảo tuyệt đối!`;comment=`Toàn bộ 18/18 câu đúng! Đây là thành tích đỉnh cao. Ms Mai An tự hào về bạn lắm! 🎉`;gif='https://media.giphy.com/media/26u4cqiYI30juCOGY/giphy.gif';}
+  else if(pct>=60){title=`⚡ GREAT JOB, ${studentName}!`;comment=`Bạn đạt ${score}/18 câu đúng. Còn một chút nữa là hoàn hảo! Ôn lại phần giải thích nhé. 💪`;gif='https://media.giphy.com/media/xT9IgG50Lg7rusQ5y8/giphy.gif';}
+  else{title=`⚡ KEEP GOING, ${studentName}!`;comment=`Bạn đạt ${score}/18 câu. Đừng nản! Đọc giải thích kỹ rồi thử lại, bạn làm được! 🚀`;gif='https://media.giphy.com/media/d2lcHJTG5Tscg/giphy.gif';}
+  document.getElementById('resultTitle').textContent=title;
+  document.getElementById('resultScore').textContent=`${score} / 18`;
+  document.getElementById('resultComment').textContent=comment;
+  document.getElementById('resultMeme').src=gif;
+  document.getElementById('resultModal').classList.add('active');
+}
+
+let _ctx=null;
+function getCtx(){if(!_ctx)_ctx=new(window.AudioContext||window.webkitAudioContext)();return _ctx;}
+function playOK(){try{const c=getCtx();[[523,0],[659,.1],[784,.2],[1047,.3]].forEach(([f,d])=>{const o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);o.type='sine';o.frequency.value=f;g.gain.setValueAtTime(.15,c.currentTime+d);g.gain.exponentialRampToValueAtTime(.001,c.currentTime+d+.28);o.start(c.currentTime+d);o.stop(c.currentTime+d+.32);});}catch(e){}}
+function playFail(){try{const c=getCtx();[[320,0],[260,.1],[200,.22]].forEach(([f,d])=>{const o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);o.type='sawtooth';o.frequency.value=f;g.gain.setValueAtTime(.11,c.currentTime+d);g.gain.exponentialRampToValueAtTime(.001,c.currentTime+d+.2);o.start(c.currentTime+d);o.stop(c.currentTime+d+.25);});}catch(e){}}
+
+function spawnConfetti(el){
+  const r=el.getBoundingClientRect();
+  const cols=['#FF2D78','#00E5FF','#7B2FBE','#FFE600','#00FF9D','#FF6B9D','#c084fc','#67e8f9'];
+  for(let i=0;i<40;i++){
+    const c=document.createElement('div');c.className='confetti-piece';
+    c.style.left=(r.left+r.width/2+(Math.random()-.5)*100)+'px';
+    c.style.top=(r.top+r.height/2+(Math.random()-.5)*40)+'px';
+    c.style.background=cols[Math.floor(Math.random()*cols.length)];
+    c.style.width=(7+Math.random()*8)+'px';c.style.height=(7+Math.random()*8)+'px';
+    c.style.borderRadius=Math.random()>.5?'50%':'2px';
+    c.style.animationDuration=(.8+Math.random()*.6)+'s';
+    c.style.animationDelay=(Math.random()*.15)+'s';
+    document.body.appendChild(c);setTimeout(()=>c.remove(),1500);
+  }
+}
+</script>
+</body>
+</html>

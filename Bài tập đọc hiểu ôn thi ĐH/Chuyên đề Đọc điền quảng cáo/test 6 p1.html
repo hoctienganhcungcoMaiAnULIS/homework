@@ -1,0 +1,1016 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TEST 6 – ĐỌC ĐIỀN QUẢNG CÁO | Ms Mai An ULIS</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Playfair+Display:ital,wght@0,700;0,900;1,700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --cream: #fdf6ec;
+  --cream2: #f5ede0;
+  --terracotta: #c9553a;
+  --terracotta-light: #f3c5bb;
+  --gold: #c8870a;
+  --gold-light: #fde9b2;
+  --forest: #1e4d35;
+  --forest-light: #2d7a50;
+  --navy: #1a2340;
+  --text-main: #2a1f14;
+  --text-muted: #7a6352;
+  --card-bg: rgba(253,246,236,0.88);
+  --border: rgba(200,135,10,0.25);
+  --border-strong: rgba(200,135,10,0.5);
+  --red: #c0392b;
+  --green: #1e8a50;
+  --option-hover: rgba(201,85,58,0.09);
+  --radius: 16px;
+  --radius-sm: 10px;
+  --shadow: 0 4px 24px rgba(42,31,20,0.12);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Nunito', sans-serif; background: var(--cream); color: var(--text-main); min-height: 100vh; overflow: hidden; }
+
+/* ===== BG ===== */
+.bg-texture {
+  position: fixed; inset: 0; z-index: 0;
+  background:
+    radial-gradient(ellipse at 10% 20%, rgba(201,85,58,0.08) 0%, transparent 55%),
+    radial-gradient(ellipse at 90% 80%, rgba(200,135,10,0.1) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 50%, rgba(30,77,53,0.06) 0%, transparent 70%),
+    linear-gradient(160deg, #fdf6ec, #f5ede0 50%, #fdf0e2);
+}
+.bg-pattern {
+  position: fixed; inset: 0; z-index: 0; opacity: 0.03; pointer-events: none;
+  background-image: repeating-linear-gradient(0deg, var(--navy), var(--navy) 1px, transparent 1px, transparent 48px),
+    repeating-linear-gradient(90deg, var(--navy), var(--navy) 1px, transparent 1px, transparent 48px);
+}
+.bg-emojis { position: fixed; inset: 0; z-index: 1; pointer-events: none; overflow: hidden; }
+.bg-emojis span {
+  position: absolute; opacity: 0.07;
+  animation: floatEmoji linear infinite;
+}
+@keyframes floatEmoji {
+  0%{transform:translateY(110vh) rotate(0deg);opacity:0.04}
+  10%{opacity:0.09} 90%{opacity:0.07}
+  100%{transform:translateY(-15vh) rotate(360deg);opacity:0.03}
+}
+
+/* ===== PASSWORD MODAL ===== */
+#pwOverlay {
+  position: fixed; inset: 0; z-index: 9999;
+  background: rgba(42,31,20,0.95);
+  display: flex; align-items: center; justify-content: center;
+}
+.pw-card {
+  background: var(--cream);
+  border: 2px solid var(--border-strong);
+  border-radius: 24px; padding: 2.6rem 3rem 2.2rem;
+  text-align: center; max-width: 420px; width: 90%;
+  box-shadow: 0 24px 80px rgba(42,31,20,0.4);
+  position: relative; overflow: hidden;
+}
+.pw-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 5px;
+  background: linear-gradient(90deg, var(--terracotta), var(--gold), var(--forest));
+}
+.pw-card .lock-icon { font-size: 3.2rem; margin-bottom: 0.7rem; display: block; }
+.pw-card h2 {
+  font-family: 'Playfair Display', serif; font-size: 1.25rem;
+  color: var(--terracotta); margin-bottom: 0.25rem;
+}
+.pw-card p { font-size: 0.88rem; color: var(--text-muted); margin-bottom: 1.4rem; }
+#pwInput {
+  width: 100%; padding: 0.72rem 1.1rem; border-radius: 10px;
+  border: 1.5px solid var(--border-strong); background: var(--cream2);
+  color: var(--text-main); font-family: 'Nunito', sans-serif; font-size: 1rem;
+  outline: none; text-align: center; letter-spacing: 3px; transition: border 0.2s;
+}
+#pwInput:focus { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(200,135,10,0.15); }
+#pwInput.shake { animation: shake 0.4s; border-color: var(--red); }
+#pwError { color: var(--red); font-size: 0.86rem; margin-top: 0.5rem; min-height: 1.2em; }
+#pwBtn {
+  margin-top: 1rem; width: 100%; padding: 0.75rem; border-radius: 10px; border: none;
+  background: linear-gradient(90deg, var(--terracotta), var(--gold));
+  color: #fff; font-family: 'Playfair Display', serif; font-size: 1.05rem;
+  cursor: pointer; letter-spacing: 0.5px;
+  box-shadow: 0 4px 18px rgba(201,85,58,0.35); transition: transform 0.15s, box-shadow 0.15s;
+}
+#pwBtn:hover { transform: translateY(-2px); box-shadow: 0 8px 26px rgba(201,85,58,0.45); }
+@keyframes shake { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-8px)} 40%{transform:translateX(8px)} 60%{transform:translateX(-6px)} 80%{transform:translateX(6px)} }
+
+/* ===== MAIN APP ===== */
+#app { display: none; position: relative; z-index: 2; height: 100vh; flex-direction: column; }
+#app.visible { display: flex; }
+
+/* ===== HEADER ===== */
+header {
+  background: rgba(253,246,236,0.95);
+  border-bottom: 2px solid var(--border);
+  backdrop-filter: blur(12px);
+  padding: 0.5rem 1.5rem;
+  display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+  flex-shrink: 0; flex-wrap: wrap; z-index: 10;
+  box-shadow: 0 2px 12px rgba(42,31,20,0.08);
+}
+.header-title h1 {
+  font-family: 'Playfair Display', serif; font-size: 1.05rem;
+  color: var(--terracotta); letter-spacing: 0.3px;
+}
+.header-title p { font-size: 0.75rem; color: var(--text-muted); }
+
+.header-controls { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; }
+
+#timerBtn {
+  padding: 0.4rem 1rem; border-radius: 20px; border: 1.5px solid var(--forest);
+  background: rgba(30,77,53,0.08); color: var(--forest);
+  font-family: 'Nunito', sans-serif; font-size: 0.84rem; font-weight: 700; cursor: pointer; transition: all 0.2s;
+}
+#timerBtn:hover { background: rgba(30,77,53,0.16); }
+#timerDisplay {
+  font-family: 'Playfair Display', serif; font-size: 1.25rem; color: var(--gold);
+  min-width: 60px; text-align: center; display: none; font-style: italic;
+}
+#timerDisplay.danger { color: var(--red); animation: pulse 0.8s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+#pauseBtn {
+  display: none; padding: 0.35rem 0.85rem; border-radius: 20px;
+  border: 1.5px solid var(--gold); background: rgba(200,135,10,0.1);
+  color: var(--gold); font-size: 0.8rem; font-weight: 700; cursor: pointer; font-family: 'Nunito',sans-serif;
+}
+
+.progress-bar-wrap { flex: 1; min-width: 110px; max-width: 200px; }
+.progress-label { font-size: 0.72rem; color: var(--text-muted); margin-bottom: 3px; }
+.progress-bar { background: rgba(42,31,20,0.1); border-radius: 10px; height: 7px; overflow: hidden; }
+.progress-fill { height: 100%; background: linear-gradient(90deg,var(--terracotta),var(--gold)); border-radius: 10px; transition: width 0.4s; width: 0%; }
+
+#submitBtn {
+  padding: 0.46rem 1.1rem; border-radius: 20px; border: none;
+  background: linear-gradient(90deg, var(--forest), var(--forest-light));
+  color: #fff; font-family: 'Playfair Display', serif; font-size: 0.88rem;
+  cursor: pointer; white-space: nowrap; letter-spacing: 0.3px;
+  box-shadow: 0 3px 14px rgba(30,77,53,0.35); transition: transform 0.15s;
+}
+#submitBtn:hover { transform: translateY(-2px); }
+
+/* ===== SPLIT SCREEN ===== */
+.split-screen { display: flex; flex: 1; overflow: hidden; }
+
+/* ===== LEFT PANEL ===== */
+.left-panel {
+  width: 46%; flex-shrink: 0; overflow-y: auto; overflow-x: hidden;
+  padding: 1.2rem 1rem 1.5rem 1.3rem;
+  border-right: 2px solid var(--border);
+  scroll-behavior: smooth; background: rgba(253,246,236,0.5);
+}
+.left-panel::-webkit-scrollbar { width: 5px; }
+.left-panel::-webkit-scrollbar-thumb { background: rgba(201,85,58,0.3); border-radius: 10px; }
+
+.exercise-block { margin-bottom: 2rem; }
+
+.exercise-label {
+  display: inline-block;
+  background: linear-gradient(90deg, var(--terracotta), var(--gold));
+  color: #fff; font-family: 'Playfair Display', serif; font-size: 0.8rem;
+  padding: 0.25rem 0.9rem; border-radius: 20px; margin-bottom: 0.7rem;
+}
+.passage-title {
+  font-family: 'Playfair Display', serif; font-size: 1.08rem; color: var(--navy);
+  margin-bottom: 0.4rem; text-align: center;
+}
+.passage-source { font-size: 0.76rem; color: var(--text-muted); text-align: right; font-style: italic; margin-bottom: 0.55rem; }
+
+.passage-card {
+  background: var(--card-bg);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius); padding: 1rem 1.15rem;
+  font-size: 0.96rem; line-height: 1.88; margin-bottom: 0.6rem;
+  box-shadow: var(--shadow);
+  color: var(--text-main);
+}
+.passage-card::first-letter {
+  font-family: 'Playfair Display', serif; font-size: 2.2rem;
+  font-weight: 900; color: var(--terracotta);
+  float: left; line-height: 1; margin-right: 6px; margin-top: 2px;
+}
+
+.blank {
+  display: inline-block; min-width: 85px; padding: 0 6px;
+  border-bottom: 2px solid var(--gold);
+  text-align: center; font-weight: 800; font-size: 0.91rem;
+  transition: color 0.3s, border-color 0.3s; color: var(--text-muted);
+}
+.blank.correct { color: var(--green); border-color: var(--green); }
+.blank.wrong { color: var(--red); border-color: var(--red); text-decoration: line-through; }
+
+.translate-btn {
+  display: block; margin: 0 auto 0.3rem;
+  background: rgba(200,135,10,0.1); border: 1.5px solid rgba(200,135,10,0.4);
+  color: var(--gold); font-family: 'Nunito', sans-serif; font-size: 0.82rem; font-weight: 700;
+  padding: 0.3rem 1rem; border-radius: 20px; cursor: pointer; transition: all 0.2s;
+}
+.translate-btn:hover { background: rgba(200,135,10,0.2); }
+
+.translation-box {
+  display: none;
+  background: var(--gold-light);
+  border: 1.5px solid rgba(200,135,10,0.3);
+  border-radius: var(--radius-sm); padding: 0.75rem 1rem;
+  font-size: 0.88rem; line-height: 1.72;
+  color: #5c3d00; margin-bottom: 0.65rem;
+}
+
+.glossary-title {
+  font-family: 'Playfair Display', serif; font-size: 0.92rem;
+  color: var(--forest); margin: 1rem 0 0.5rem; font-style: italic;
+}
+.glossary-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+.glossary-table th {
+  background: rgba(30,77,53,0.1); color: var(--forest);
+  padding: 0.38rem 0.65rem; text-align: left;
+  border-bottom: 1.5px solid rgba(30,77,53,0.2);
+}
+.glossary-table td {
+  padding: 0.35rem 0.65rem; border-bottom: 1px solid rgba(42,31,20,0.07); vertical-align: top;
+}
+.glossary-table tr:hover td { background: rgba(201,85,58,0.04); }
+.word-cell { font-weight: 800; color: var(--terracotta); }
+.pos-cell { color: var(--gold); font-style: italic; }
+.vi-cell { color: var(--text-muted); }
+
+/* ===== RIGHT PANEL ===== */
+.right-panel {
+  flex: 1; overflow-y: auto; overflow-x: hidden;
+  padding: 1.2rem 1.3rem 1.5rem 1rem; scroll-behavior: smooth;
+  background: rgba(245,237,224,0.35);
+}
+.right-panel::-webkit-scrollbar { width: 5px; }
+.right-panel::-webkit-scrollbar-thumb { background: rgba(201,85,58,0.25); border-radius: 10px; }
+
+.q-section-title {
+  font-family: 'Playfair Display', serif; font-size: 0.9rem; font-style: italic;
+  color: var(--terracotta); margin-bottom: 0.8rem; margin-top: 0.5rem;
+  border-left: 3px solid var(--gold); padding-left: 0.65rem;
+}
+
+.question-card {
+  background: var(--card-bg);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius); padding: 1rem 1.1rem;
+  margin-bottom: 0.85rem;
+  box-shadow: 0 2px 10px rgba(42,31,20,0.07);
+  transition: box-shadow 0.2s, border-color 0.2s;
+}
+.question-card:hover { box-shadow: 0 4px 20px rgba(201,85,58,0.12); border-color: rgba(200,135,10,0.4); }
+
+.q-number {
+  display: inline-block;
+  background: linear-gradient(135deg, var(--terracotta), var(--gold));
+  color: #fff; font-family: 'Playfair Display', serif; font-size: 0.78rem;
+  padding: 0.14rem 0.6rem; border-radius: 20px; margin-bottom: 0.5rem;
+}
+.q-text { font-size: 0.97rem; font-weight: 700; color: var(--navy); margin-bottom: 0.7rem; line-height: 1.55; }
+
+.options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.46rem; }
+.option-btn {
+  background: rgba(253,246,236,0.7);
+  border: 1.5px solid rgba(200,135,10,0.2);
+  border-radius: var(--radius-sm); padding: 0.46rem 0.7rem;
+  color: var(--text-main); font-family: 'Nunito', sans-serif; font-size: 0.91rem; font-weight: 600;
+  cursor: pointer; text-align: left; line-height: 1.4; transition: all 0.18s;
+}
+.option-btn:hover:not(:disabled) { background: var(--option-hover); border-color: var(--terracotta); transform: translateY(-1px); }
+.option-btn:disabled { cursor: default; }
+.option-btn.correct { background: rgba(30,138,80,0.12); border-color: var(--green); color: var(--green); }
+.option-btn.wrong { background: rgba(192,57,43,0.1); border-color: var(--red); color: var(--red); }
+.option-btn.correct-reveal { background: rgba(30,138,80,0.09); border-color: var(--green); color: var(--green); animation: pulseGreen 0.5s; }
+.option-btn.shake { animation: shake 0.4s; }
+@keyframes pulseGreen { 0%,100%{box-shadow:none} 50%{box-shadow:0 0 0 4px rgba(30,138,80,0.25)} }
+
+.opt-letter {
+  display: inline-block; font-family: 'Playfair Display', serif;
+  font-size: 0.78rem; margin-right: 5px; color: var(--terracotta); font-style: italic;
+}
+.option-btn.correct .opt-letter, .option-btn.correct-reveal .opt-letter { color: var(--green); }
+.option-btn.wrong .opt-letter { color: var(--red); }
+
+.explanation-box {
+  display: none; margin-top: 0.7rem;
+  background: rgba(245,237,224,0.9);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm); padding: 0.8rem 0.9rem;
+  font-size: 0.87rem; line-height: 1.72;
+}
+.exp-q-vi { color: var(--gold); font-weight: 700; margin-bottom: 0.5rem; font-size: 0.88rem; font-family: 'Playfair Display', serif; }
+.exp-option { margin: 0.2rem 0; }
+.correct-tag { color: var(--green); font-weight: 800; }
+.wrong-tag { color: var(--red); font-weight: 700; }
+.exp-evidence {
+  margin-top: 0.55rem; background: rgba(200,135,10,0.07);
+  border-left: 3px solid var(--gold); padding: 0.5rem 0.7rem; border-radius: 0 8px 8px 0;
+}
+.ev-label { font-size: 0.76rem; color: var(--gold); font-weight: 700; margin-bottom: 0.22rem; font-family: 'Playfair Display', serif; }
+.ev-en { color: var(--navy); font-style: italic; }
+.ev-vi { color: #5c3d00; margin-top: 0.18rem; }
+.kw { color: var(--red); font-weight: 900; }
+
+/* ===== TIMEOUT BANNER ===== */
+#timeoutBanner {
+  display: none; position: fixed; top: 60px; left: 50%; transform: translateX(-50%);
+  background: rgba(192,57,43,0.95); color: #fff;
+  padding: 0.65rem 1.4rem; border-radius: 12px; font-size: 0.87rem; font-weight: 700;
+  z-index: 100; max-width: 92vw; text-align: center; line-height: 1.5;
+  box-shadow: 0 4px 22px rgba(192,57,43,0.4);
+}
+
+/* ===== MODALS ===== */
+.modal-overlay {
+  display: none; position: fixed; inset: 0; z-index: 500;
+  background: rgba(42,31,20,0.85); align-items: center; justify-content: center; backdrop-filter: blur(8px);
+}
+.modal-overlay.active { display: flex; }
+.modal-card {
+  background: var(--cream); border: 2px solid var(--border-strong);
+  border-radius: 24px; padding: 2rem 2.3rem; max-width: 420px; width: 92%;
+  text-align: center; box-shadow: 0 24px 70px rgba(42,31,20,0.35);
+  position: relative; overflow: hidden;
+}
+.modal-card::before {
+  content:''; position:absolute; top:0; left:0; right:0; height:4px;
+  background: linear-gradient(90deg,var(--terracotta),var(--gold),var(--forest));
+}
+.modal-card h2 { font-family: 'Playfair Display', serif; font-size: 1.3rem; color: var(--terracotta); margin-bottom: 0.5rem; }
+.modal-card p { color: var(--text-muted); font-size: 0.88rem; margin-bottom: 1.2rem; }
+#nameInput {
+  width: 100%; padding: 0.7rem 1rem; border-radius: 10px;
+  border: 1.5px solid var(--border-strong); background: var(--cream2);
+  color: var(--text-main); font-family: 'Nunito', sans-serif; font-size: 1rem; outline: none;
+}
+#nameInput:focus { border-color: var(--gold); }
+#nameInput.err { border-color: var(--red); }
+#nameError { color: var(--red); font-size: 0.82rem; margin-top: 0.4rem; min-height: 1.1em; }
+#nameSubmitBtn {
+  margin-top: 1rem; width: 100%; padding: 0.7rem; border-radius: 10px; border: none;
+  background: linear-gradient(90deg, var(--terracotta), var(--gold));
+  color: #fff; font-family: 'Playfair Display', serif; font-size: 1rem; cursor: pointer;
+  box-shadow: 0 4px 18px rgba(201,85,58,0.3); transition: transform 0.15s;
+}
+#nameSubmitBtn:hover { transform: translateY(-2px); }
+
+#resultModal .modal-card { max-width: 480px; }
+.result-title { font-family: 'Playfair Display', serif; font-size: 1.25rem; color: var(--terracotta); margin-bottom: 0.35rem; line-height: 1.35; }
+.result-score {
+  font-family: 'Playfair Display', serif; font-size: 3.4rem; font-style: italic;
+  background: linear-gradient(90deg,var(--terracotta),var(--gold));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  margin: 0.4rem 0;
+}
+.result-comment { font-size: 0.97rem; color: var(--text-main); margin-bottom: 1rem; line-height: 1.65; }
+.result-meme { width: 100%; max-height: 180px; object-fit: contain; border-radius: 12px; margin-bottom: 1rem; }
+.result-btns { display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap; }
+.result-btn { padding: 0.56rem 1.3rem; border-radius: 20px; border: none; font-family: 'Playfair Display', serif; font-size: 0.9rem; cursor: pointer; transition: transform 0.15s; }
+.result-btn:hover { transform: translateY(-2px); }
+.btn-retry { background: linear-gradient(90deg, var(--terracotta), var(--gold)); color: #fff; }
+.btn-review { background: rgba(42,31,20,0.08); color: var(--text-main); border: 1.5px solid var(--border-strong); }
+
+/* Confetti */
+.confetti-piece {
+  position: fixed; pointer-events: none; z-index: 9999;
+  animation: confettiFall 1.2s ease forwards;
+}
+@keyframes confettiFall { 0%{opacity:1;transform:translateY(0) rotate(0deg)} 100%{opacity:0;transform:translateY(200px) rotate(720deg)} }
+
+@media(max-width:700px){
+  .split-screen{flex-direction:column;overflow-y:auto}
+  .left-panel,.right-panel{width:100%;overflow:visible}
+  .left-panel{border-right:none;border-bottom:2px solid var(--border)}
+  body{overflow:auto} #app.visible{height:auto;overflow:auto}
+  .options-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<div class="bg-texture"></div>
+<div class="bg-pattern"></div>
+<div class="bg-emojis" id="bgEmojis"></div>
+
+<!-- Password Modal -->
+<div id="pwOverlay">
+  <div class="pw-card">
+    <span class="lock-icon">📰</span>
+    <h2>TEST 6 – ĐỌC ĐIỀN QUẢNG CÁO</h2>
+    <p>Ms Mai An ULIS · Nhập mật khẩu để bắt đầu</p>
+    <input type="password" id="pwInput" placeholder="Mật khẩu..." autocomplete="off">
+    <div id="pwError"></div>
+    <button id="pwBtn">✦ VÀO BÀI THI</button>
+  </div>
+</div>
+
+<!-- Name Modal -->
+<div class="modal-overlay" id="nameModal">
+  <div class="modal-card">
+    <h2>Nhập tên của bạn</h2>
+    <p>Để cá nhân hóa kết quả bài thi nha!</p>
+    <input type="text" id="nameInput" placeholder="Ví dụ: Nguyễn Văn A..." maxlength="50">
+    <div id="nameError"></div>
+    <button id="nameSubmitBtn">✦ Xem kết quả</button>
+  </div>
+</div>
+
+<!-- Result Modal -->
+<div class="modal-overlay" id="resultModal">
+  <div class="modal-card">
+    <div class="result-title" id="resultTitle"></div>
+    <div class="result-score" id="resultScore"></div>
+    <div class="result-comment" id="resultComment"></div>
+    <img class="result-meme" id="resultMeme" src="" alt="" onerror="this.style.display='none'">
+    <div class="result-btns">
+      <button class="result-btn btn-retry" onclick="location.reload()">🔄 Làm lại</button>
+      <button class="result-btn btn-review" onclick="document.getElementById('resultModal').classList.remove('active')">👀 Xem lại bài</button>
+    </div>
+  </div>
+</div>
+
+<div id="timeoutBanner">⏰ Đã hết giờ! Trong phòng thi thật, hãy hoàn thành bài đọc điền trong 10 phút nhé.</div>
+
+<!-- Main App -->
+<div id="app">
+  <header>
+    <div class="header-title">
+      <h1>TEST 6 – ĐỌC ĐIỀN QUẢNG CÁO</h1>
+      <p>Giáo viên: Ms Mai An ULIS</p>
+    </div>
+    <div class="header-controls">
+      <button id="timerBtn" onclick="startTimer()">⏱ Bắt đầu tính giờ</button>
+      <div id="timerDisplay">10:00</div>
+      <button id="pauseBtn" onclick="togglePause()">⏸ Tạm dừng</button>
+      <div class="progress-bar-wrap">
+        <div class="progress-label">Tiến độ: <span id="progressText">0/18</span></div>
+        <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+      </div>
+      <button id="submitBtn" onclick="openNameModal()">✦ Nộp bài</button>
+    </div>
+  </header>
+  <div class="split-screen">
+    <div class="left-panel" id="leftPanel"></div>
+    <div class="right-panel" id="rightPanel"></div>
+  </div>
+</div>
+
+<script>
+// ===== PASSWORD (ASCII) =====
+const _k=[99,111,109,97,105,97,110,117,108,105,115];
+const _p=_k.map(c=>String.fromCharCode(c)).join('');
+
+document.getElementById('pwBtn').addEventListener('click',checkPW);
+document.getElementById('pwInput').addEventListener('keydown',e=>{if(e.key==='Enter')checkPW();});
+function checkPW(){
+  const v=document.getElementById('pwInput').value;
+  if(v===_p){
+    document.getElementById('pwOverlay').style.display='none';
+    document.getElementById('app').classList.add('visible');
+    buildApp();
+  } else {
+    document.getElementById('pwError').textContent='❌ Mật khẩu không đúng. Vui lòng thử lại!';
+    const inp=document.getElementById('pwInput');
+    inp.classList.remove('shake'); void inp.offsetWidth; inp.classList.add('shake');
+    inp.value=''; setTimeout(()=>inp.classList.remove('shake'),500);
+  }
+}
+
+// ===== BG EMOJIS =====
+(function(){
+  const emojis=['😰','🏙️','🌱','🎓','📚','🤧','🧘','🎬','📱','🌿','🏫','💨','😷','🌫️','📖','🧠','💡','🌏'];
+  const c=document.getElementById('bgEmojis');
+  for(let i=0;i<18;i++){
+    const e=document.createElement('span');
+    e.textContent=emojis[i%emojis.length];
+    e.style.cssText=`left:${Math.random()*100}%;font-size:${1.3+Math.random()*1.7}rem;animation-duration:${20+Math.random()*20}s;animation-delay:${Math.random()*20}s;`;
+    c.appendChild(e);
+  }
+})();
+
+// ===== SHUFFLE =====
+function shuffleArray(a){const r=[...a];for(let i=r.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[r[i],r[j]]=[r[j],r[i]];}return r;}
+
+// ===== DATA =====
+const rawQuestions=[
+  {
+    id:1,blank:1,
+    qText:'Question 1: Accustomed (1)_______ through endless updates on social media, they often feel surprised.',
+    options:[{letter:'A',text:'to scrolling'},{letter:'B',text:'scroll'},{letter:'C',text:'scrolling'},{letter:'D',text:'to scroll'}],
+    correct:'A',
+    qVi:'Câu 1: Quen (1)_______ qua vô số bài đăng trên mạng xã hội, họ thường cảm thấy ngạc nhiên.',
+    explanations:{
+      A:'to scrolling ✅ Đúng — "be accustomed to + V-ing" = quen với việc làm gì (cấu trúc cố định; "to" là giới từ nên theo sau là V-ing).',
+      B:'scroll (nguyên mẫu) ❌ Sai — không thể dùng động từ nguyên mẫu trực tiếp sau "accustomed to".',
+      C:'scrolling ❌ Sai — thiếu giới từ "to"; phải là "accustomed TO scrolling".',
+      D:'to scroll ❌ Sai — "to" ở đây là giới từ, không phải to-infinitive, nên phải đi với V-ing.'
+    },
+    evidenceEn:'"Accustomed (1) ______ through endless updates on social media..."',
+    evidenceVi:'Quen <span class="kw">cuộn mãi</span> qua vô số bài đăng trên mạng xã hội...',
+    keyword:'be accustomed to + V-ing (giới từ + danh động từ)'
+  },
+  {
+    id:2,blank:2,
+    qText:'Question 2: ...they often feel (2)_______ or even upset when they see friends attending events...',
+    options:[{letter:'A',text:'surprise'},{letter:'B',text:'surprised'},{letter:'C',text:'surprising'},{letter:'D',text:'surprisingly'}],
+    correct:'B',
+    qVi:'Câu 2: ...họ thường cảm thấy (2)_______ hoặc thậm chí khó chịu khi thấy bạn bè tham gia các sự kiện...',
+    explanations:{
+      A:'surprise (danh từ/động từ) ❌ Sai — không phải tính từ, không đứng sau "feel".',
+      B:'surprised (tính từ: ngạc nhiên) ✅ Đúng — "feel + adj"; "surprised" mô tả cảm xúc của người khi thấy bạn bè tham gia sự kiện mà mình không biết.',
+      C:'surprising (tính từ: gây ngạc nhiên) ❌ Sai — "surprising" mô tả thứ gây ngạc nhiên, không dùng cho người.',
+      D:'surprisingly (trạng từ) ❌ Sai — trạng từ không đứng sau "feel".'
+    },
+    evidenceEn:'"...they often feel (2) ______ or even upset when they see friends attending events."',
+    evidenceVi:'...họ thường cảm thấy <span class="kw">ngạc nhiên</span> hoặc thậm chí khó chịu khi thấy bạn bè tham gia sự kiện.',
+    keyword:'feel + adj (surprised = tính từ chỉ cảm xúc của người)'
+  },
+  {
+    id:3,blank:3,
+    qText:'Question 3: ...some advertisers (3)_______ advantage of this fear on purpose...',
+    options:[{letter:'A',text:'keep'},{letter:'B',text:'take'},{letter:'C',text:'make'},{letter:'D',text:'lay'}],
+    correct:'B',
+    qVi:'Câu 3: ...một số nhà quảng cáo (3)_______ lợi dụng nỗi sợ này một cách có chủ đích...',
+    explanations:{
+      A:'keep ❌ Sai — "keep advantage of" không phải cụm từ.',
+      B:'take ✅ Đúng — "take advantage of" = tận dụng, lợi dụng (cụm từ cố định).',
+      C:'make ❌ Sai — "make advantage of" không tồn tại.',
+      D:'lay ❌ Sai — "lay advantage of" không phải cụm từ.'
+    },
+    evidenceEn:'"...some advertisers (3) ______ advantage of this fear on purpose."',
+    evidenceVi:'...một số nhà quảng cáo <span class="kw">lợi dụng</span> nỗi sợ này một cách có chủ đích.',
+    keyword:'take advantage of = tận dụng, lợi dụng (cụm từ cố định)'
+  },
+  {
+    id:4,blank:4,
+    qText:'Question 4: ...advertisers take advantage of this fear (4)_______ purpose in their ads...',
+    options:[{letter:'A',text:'for'},{letter:'B',text:'by'},{letter:'C',text:'to'},{letter:'D',text:'on'}],
+    correct:'D',
+    qVi:'Câu 4: ...nhà quảng cáo lợi dụng nỗi sợ này (4)_______ chủ đích trong quảng cáo của họ...',
+    explanations:{
+      A:'for ❌ Sai — "for purpose" không phải thành ngữ.',
+      B:'by ❌ Sai — "by purpose" không chuẩn, cần dùng "by chance/accident" thì mới đúng.',
+      C:'to ❌ Sai — "to purpose" không tồn tại.',
+      D:'on ✅ Đúng — "on purpose" = một cách có chủ đích, cố ý (thành ngữ cố định, đối lập với "by accident").'
+    },
+    evidenceEn:'"...advertisers take advantage of this fear (4) ______ purpose in their ads."',
+    evidenceVi:'...nhà quảng cáo lợi dụng nỗi sợ này <span class="kw">một cách có chủ đích</span> trong quảng cáo.',
+    keyword:'on purpose = cố ý, có chủ đích (thành ngữ cố định)'
+  },
+  {
+    id:5,blank:5,
+    qText:'Question 5: ...in their ads to encourage quick purchases, (5)_______ the problem worse.',
+    options:[{letter:'A',text:'making'},{letter:'B',text:'to make'},{letter:'C',text:'made'},{letter:'D',text:'is made'}],
+    correct:'A',
+    qVi:'Câu 5: ...trong quảng cáo để thúc đẩy mua sắm nhanh, (5)_______ vấn đề trở nên tệ hơn.',
+    explanations:{
+      A:'making ✅ Đúng — rút gọn mệnh đề quan hệ chủ động: "which makes" → "making".',
+      B:'to make ❌ Sai — to-infinitive không dùng để rút gọn mệnh đề quan hệ chủ động.',
+      C:'made ❌ Sai — "made" = rút gọn bị động; nhưng vế câu này là chủ động.',
+      D:'is made ❌ Sai — mệnh đề đầy đủ, thiếu "which".'
+    },
+    evidenceEn:'"...to encourage quick purchases, (5) ______ the problem worse."',
+    evidenceVi:'...để thúc đẩy mua sắm nhanh, <span class="kw">khiến vấn đề</span> trở nên tệ hơn.',
+    keyword:'which makes → making (rút gọn mệnh đề quan hệ chủ động)'
+  },
+  {
+    id:6,blank:6,
+    qText:'Question 6: Focus on...such as building meaningful connections and pursuing (6)_______.',
+    options:[{letter:'A',text:'fulfilling goal lives'},{letter:'B',text:'fulfilling life goals'},{letter:'C',text:'goal fulfilling lives'},{letter:'D',text:'life fulfilling goals'}],
+    correct:'B',
+    qVi:'Câu 6: Hãy tập trung vào...như xây dựng các mối kết nối ý nghĩa và theo đuổi (6)_______.',
+    explanations:{
+      A:'fulfilling goal lives ❌ Sai — "goal" không đứng trước "lives" trong cụm này; sai trật tự.',
+      B:'fulfilling life goals ✅ Đúng — cấu trúc Adj (fulfilling) + N phụ (life) + N chính (goals). "Fulfilling life goals" = những mục tiêu cuộc sống đầy ý nghĩa.',
+      C:'goal fulfilling lives ❌ Sai — "goal" không đứng đầu trong cụm danh từ như thế này.',
+      D:'life fulfilling goals ❌ Sai — "fulfilling" (adj đánh giá) phải đứng trước "life" (adj phân loại).'
+    },
+    evidenceEn:'"...building meaningful connections and pursuing (6) _______ fulfilling life goals."',
+    evidenceVi:'...xây dựng các mối kết nối ý nghĩa và theo đuổi <span class="kw">những mục tiêu cuộc sống đầy ý nghĩa</span>.',
+    keyword:'fulfilling life goals = Adj đánh giá + N phụ + N chính'
+  },
+  {
+    id:7,blank:7,
+    qText:'Question 7: Hanoi was declared the world\'s most (7)_______ city, with air quality reaching hazardous levels.',
+    options:[{letter:'A',text:'pollute'},{letter:'B',text:'polluted'},{letter:'C',text:'polluting'},{letter:'D',text:'pollution'}],
+    correct:'B',
+    qVi:'Câu 7: Hà Nội được tuyên bố là thành phố (7)_______ nhất thế giới, với chất lượng không khí đạt mức nguy hiểm.',
+    explanations:{
+      A:'pollute (động từ) ❌ Sai — cần tính từ để bổ nghĩa cho "city".',
+      B:'polluted (tính từ: bị ô nhiễm) ✅ Đúng — adj bổ nghĩa cho "city"; "polluted city" = thành phố bị ô nhiễm.',
+      C:'polluting (tính từ: gây ô nhiễm) ❌ Sai — "polluting" mô tả thứ gây ô nhiễm, không phải thành phố bị ô nhiễm.',
+      D:'pollution (danh từ: ô nhiễm) ❌ Sai — danh từ không bổ nghĩa trực tiếp cho danh từ khác ở đây.'
+    },
+    evidenceEn:'"Hanoi was declared the world\'s most (7) ______ city, with air quality reaching hazardous levels."',
+    evidenceVi:'Hà Nội được tuyên bố là thành phố <span class="kw">ô nhiễm nhất</span> thế giới.',
+    keyword:'polluted (adj) = bị ô nhiễm → bổ nghĩa cho "city"'
+  },
+  {
+    id:8,blank:8,
+    qText:'Question 8: This severe pollution...poses (8)_______.',
+    options:[{letter:'A',text:'health serious risks'},{letter:'B',text:'serious risk health'},{letter:'C',text:'serious health risks'},{letter:'D',text:'risk serious health'}],
+    correct:'C',
+    qVi:'Câu 8: Ô nhiễm nghiêm trọng này...đặt ra (8)_______.',
+    explanations:{
+      A:'health serious risks ❌ Sai — "health" không đứng trước "serious" trong cụm; sai trật tự.',
+      B:'serious risk health ❌ Sai — "health" phải là danh từ phụ bổ nghĩa, cần đứng sát "risks".',
+      C:'serious health risks ✅ Đúng — Adj (serious) + N phụ (health) + N chính (risks). "Serious health risks" = các rủi ro sức khỏe nghiêm trọng.',
+      D:'risk serious health ❌ Sai — trật tự hoàn toàn sai.'
+    },
+    evidenceEn:'"This severe pollution...poses (8) ______ serious health risks."',
+    evidenceVi:'Ô nhiễm nghiêm trọng này đặt ra <span class="kw">các rủi ro sức khỏe nghiêm trọng</span>.',
+    keyword:'serious health risks = Adj + N phụ + N chính'
+  },
+  {
+    id:9,blank:9,
+    qText:'Question 9: Residents are (9)_______ alert, advised to wear masks and limit outdoor activities.',
+    options:[{letter:'A',text:'in'},{letter:'B',text:'at'},{letter:'C',text:'with'},{letter:'D',text:'on'}],
+    correct:'D',
+    qVi:'Câu 9: Cư dân đang (9)_______ tình trạng cảnh giác, được khuyến cáo đeo khẩu trang và hạn chế hoạt động ngoài trời.',
+    explanations:{
+      A:'in ❌ Sai — "in alert" không phải cụm từ chuẩn.',
+      B:'at ❌ Sai — "at alert" không tồn tại.',
+      C:'with ❌ Sai — "with alert" sai hoàn toàn.',
+      D:'on ✅ Đúng — "be on alert" = trong trạng thái cảnh giác, trong tình trạng báo động (cụm từ cố định).'
+    },
+    evidenceEn:'"Residents are (9) ______ alert, advised to wear masks and limit outdoor activities."',
+    evidenceVi:'Cư dân đang <span class="kw">trong trạng thái cảnh giác</span>, được khuyến cáo đeo khẩu trang.',
+    keyword:'be on alert = trong trạng thái cảnh giác (cụm từ cố định)'
+  },
+  {
+    id:10,blank:10,
+    qText:'Question 10: To safeguard your health, it\'s essential to (10)_______ measures, such as using high-quality air purifiers.',
+    options:[{letter:'A',text:'take'},{letter:'B',text:'catch'},{letter:'C',text:'give'},{letter:'D',text:'set'}],
+    correct:'A',
+    qVi:'Câu 10: Để bảo vệ sức khỏe, điều cần thiết là (10)_______ các biện pháp, như sử dụng máy lọc không khí chất lượng cao.',
+    explanations:{
+      A:'take ✅ Đúng — "take measures" = thực hiện các biện pháp (collocation chuẩn).',
+      B:'catch ❌ Sai — "catch measures" không phải collocation.',
+      C:'give ❌ Sai — "give measures" không có nghĩa trong ngữ cảnh này.',
+      D:'set ❌ Sai — "set measures" không chuẩn; "set up measures" thì mới gần đúng nhưng khác cấu trúc.'
+    },
+    evidenceEn:'"...it\'s essential to (10) ______ measures, such as using high-quality air purifiers."',
+    evidenceVi:'...điều cần thiết là <span class="kw">thực hiện các biện pháp</span>, như sử dụng máy lọc không khí.',
+    keyword:'take measures = thực hiện các biện pháp (collocation chuẩn)'
+  },
+  {
+    id:11,blank:11,
+    qText:'Question 11: Our advanced air purifiers, (11)_______ with HEPA filters, effectively remove harmful particles.',
+    options:[{letter:'A',text:'to equip'},{letter:'B',text:'equipped'},{letter:'C',text:'equipping'},{letter:'D',text:'are equipped'}],
+    correct:'B',
+    qVi:'Câu 11: Máy lọc không khí tiên tiến của chúng tôi, (11)_______ bộ lọc HEPA, loại bỏ hiệu quả các hạt có hại.',
+    explanations:{
+      A:'to equip ❌ Sai — to-infinitive không dùng để rút gọn mệnh đề quan hệ.',
+      B:'equipped ✅ Đúng — rút gọn mệnh đề quan hệ bị động: "which are equipped" → "equipped".',
+      C:'equipping ❌ Sai — V-ing = rút gọn chủ động; nhưng máy lọc được trang bị (bị động).',
+      D:'are equipped ❌ Sai — mệnh đề đầy đủ, thiếu "which".'
+    },
+    evidenceEn:'"Our advanced air purifiers, (11) ______ with HEPA filters, effectively remove harmful particles."',
+    evidenceVi:'Máy lọc không khí tiên tiến của chúng tôi, <span class="kw">được trang bị</span> bộ lọc HEPA, loại bỏ hiệu quả các hạt có hại.',
+    keyword:'which are equipped → equipped (rút gọn mệnh đề quan hệ bị động)'
+  },
+  {
+    id:12,blank:12,
+    qText:'Question 12: We remind you (12)_______ air quality updates regularly and ensure your living spaces remain safe.',
+    options:[{letter:'A',text:'checking'},{letter:'B',text:'check'},{letter:'C',text:'to check'},{letter:'D',text:'to checking'}],
+    correct:'C',
+    qVi:'Câu 12: Chúng tôi nhắc bạn (12)_______ cập nhật chất lượng không khí thường xuyên.',
+    explanations:{
+      A:'checking (V-ing) ❌ Sai — "remind sb + V-ing" không phải cấu trúc chuẩn.',
+      B:'check (nguyên mẫu) ❌ Sai — cần "to" trước động từ sau "remind sb".',
+      C:'to check ✅ Đúng — "remind sb to + V" = nhắc nhở ai đó làm gì (cấu trúc cố định).',
+      D:'to checking ❌ Sai — không có cấu trúc "to + V-ing".'
+    },
+    evidenceEn:'"We remind you (12) ______ air quality updates regularly."',
+    evidenceVi:'Chúng tôi <span class="kw">nhắc bạn kiểm tra</span> cập nhật chất lượng không khí thường xuyên.',
+    keyword:'remind sb to + V = nhắc nhở ai đó làm gì (cấu trúc cố định)'
+  },
+  {
+    id:13,blank:13,
+    qText:'Question 13: At our company, we aim (13)_______ the way you learn by offering personalized learning experiences.',
+    options:[{letter:'A',text:'revolutionize'},{letter:'B',text:'to revolutionize'},{letter:'C',text:'revolutionizing'},{letter:'D',text:'to revolutionizing'}],
+    correct:'B',
+    qVi:'Câu 13: Tại công ty chúng tôi, chúng tôi có mục tiêu (13)_______ cách bạn học bằng cách cung cấp các trải nghiệm học tập được cá nhân hóa.',
+    explanations:{
+      A:'revolutionize (nguyên mẫu) ❌ Sai — cần "to" trước động từ sau "aim".',
+      B:'to revolutionize ✅ Đúng — "aim to + V" = có mục tiêu làm gì (cấu trúc cố định).',
+      C:'revolutionizing (V-ing) ❌ Sai — "aim + V-ing" không phải cấu trúc chuẩn.',
+      D:'to revolutionizing ❌ Sai — không có cấu trúc "to + V-ing".'
+    },
+    evidenceEn:'"...we aim (13) ______ the way you learn by offering personalized learning experiences."',
+    evidenceVi:'...chúng tôi <span class="kw">nhằm mục tiêu cách mạng hóa</span> cách bạn học.',
+    keyword:'aim to + V = có mục tiêu làm gì (cấu trúc cố định)'
+  },
+  {
+    id:14,blank:14,
+    qText:'Question 14: ...we aim to revolutionize the way you learn by offering (14)_______ designed just for you.',
+    options:[{letter:'A',text:'experience personalized learning'},{letter:'B',text:'personalized experience learning'},{letter:'C',text:'personalized learning experiences'},{letter:'D',text:'learning personalized experiences'}],
+    correct:'C',
+    qVi:'Câu 14: ...chúng tôi nhằm cách mạng hóa cách bạn học bằng cách cung cấp (14)_______ được thiết kế riêng cho bạn.',
+    explanations:{
+      A:'experience personalized learning ❌ Sai — "experience" đứng đầu nhưng là danh từ chính, hai tính từ bị tách ra sai.',
+      B:'personalized experience learning ❌ Sai — "learning" (adj phân loại) phải đứng sát danh từ chính.',
+      C:'personalized learning experiences ✅ Đúng — Adj (personalized) + N phụ (learning) + N chính (experiences). "Personalized learning experiences" = trải nghiệm học tập được cá nhân hóa.',
+      D:'learning personalized experiences ❌ Sai — "personalized" (adj) phải đứng trước "learning" (adj phân loại).'
+    },
+    evidenceEn:'"...by offering (14) ______ designed just for you."',
+    evidenceVi:'...bằng cách cung cấp <span class="kw">trải nghiệm học tập được cá nhân hóa</span> được thiết kế riêng cho bạn.',
+    keyword:'personalized learning experiences = Adj + N phụ + N chính'
+  },
+  {
+    id:15,blank:15,
+    qText:'Question 15: ...cutting-edge tools and technologies that are compatible (15)_______ diverse learning styles.',
+    options:[{letter:'A',text:'in'},{letter:'B',text:'for'},{letter:'C',text:'to'},{letter:'D',text:'with'}],
+    correct:'D',
+    qVi:'Câu 15: ...các công cụ và công nghệ tiên tiến tương thích (15)_______ các phong cách học tập đa dạng.',
+    explanations:{
+      A:'in ❌ Sai — "compatible in" không phải collocation chuẩn.',
+      B:'for ❌ Sai — "compatible for" không tồn tại.',
+      C:'to ❌ Sai — "compatible to" không chuẩn.',
+      D:'with ✅ Đúng — "be compatible with" = tương thích với (collocation cố định).'
+    },
+    evidenceEn:'"...tools and technologies that are compatible (15) ______ diverse learning styles."',
+    evidenceVi:'...các công cụ và công nghệ <span class="kw">tương thích với</span> các phong cách học tập đa dạng.',
+    keyword:'be compatible with = tương thích với (collocation cố định)'
+  },
+  {
+    id:16,blank:16,
+    qText:'Question 16: Our expert educators, (16)_______ to guide you through this transformation, will help you stay engaged.',
+    options:[{letter:'A',text:'trained'},{letter:'B',text:'to train'},{letter:'C',text:'to train'},{letter:'D',text:'are training'}],
+    correct:'A',
+    qVi:'Câu 16: Các nhà giáo dục chuyên gia của chúng tôi, (16)_______ để hướng dẫn bạn trong quá trình chuyển đổi này, sẽ giúp bạn luôn gắn bó.',
+    explanations:{
+      A:'trained ✅ Đúng — rút gọn mệnh đề quan hệ bị động: "who are trained" → "trained".',
+      B:'to train ❌ Sai — to-infinitive không dùng để rút gọn mệnh đề quan hệ.',
+      C:'to train (trùng B) ❌ Sai — xem giải thích B.',
+      D:'are training ❌ Sai — mệnh đề đầy đủ, thiếu "who".'
+    },
+    evidenceEn:'"Our expert educators, (16) ______ to guide you through this transformation..."',
+    evidenceVi:'Các nhà giáo dục chuyên gia của chúng tôi, <span class="kw">được đào tạo</span> để hướng dẫn bạn trong quá trình chuyển đổi này...',
+    keyword:'who are trained → trained (rút gọn mệnh đề quan hệ bị động)'
+  },
+  {
+    id:17,blank:17,
+    qText:'Question 17: ...will help you stay (17)_______ and succeed.',
+    options:[{letter:'A',text:'engage'},{letter:'B',text:'engaged'},{letter:'C',text:'engaging'},{letter:'D',text:'engagement'}],
+    correct:'B',
+    qVi:'Câu 17: ...sẽ giúp bạn luôn (17)_______ và thành công.',
+    explanations:{
+      A:'engage (động từ) ❌ Sai — cần tính từ sau "stay".',
+      B:'engaged (tính từ: tập trung, gắn bó) ✅ Đúng — "stay + adj"; "engaged" = tập trung, gắn bó, hứng thú.',
+      C:'engaging (tính từ: lôi cuốn) ❌ Sai — "engaging" mô tả thứ gây hứng thú cho người khác, không mô tả người học.',
+      D:'engagement (danh từ) ❌ Sai — danh từ không dùng trong cấu trúc "stay + adj".'
+    },
+    evidenceEn:'"...will help you stay (17) ______ and succeed."',
+    evidenceVi:'...sẽ giúp bạn luôn <span class="kw">tập trung, gắn bó</span> và thành công.',
+    keyword:'stay + adj (engaged = tập trung, gắn bó)'
+  },
+  {
+    id:18,blank:18,
+    qText:'Question 18: ...(18)_______ use of the innovative strategies we offer to enhance your learning.',
+    options:[{letter:'A',text:'set'},{letter:'B',text:'take'},{letter:'C',text:'make'},{letter:'D',text:'give'}],
+    correct:'C',
+    qVi:'Câu 18: ...(18)_______ dụng các chiến lược đổi mới mà chúng tôi cung cấp để nâng cao việc học của bạn.',
+    explanations:{
+      A:'set ❌ Sai — "set use of" không phải cụm từ.',
+      B:'take ❌ Sai — "take use of" không tồn tại.',
+      C:'make ✅ Đúng — "make use of" = tận dụng, sử dụng (cụm từ cố định).',
+      D:'give ❌ Sai — "give use of" không phải collocation.'
+    },
+    evidenceEn:'"...(18) ______ use of the innovative strategies we offer to enhance your learning."',
+    evidenceVi:'...<span class="kw">tận dụng</span> các chiến lược đổi mới mà chúng tôi cung cấp để nâng cao việc học.',
+    keyword:'make use of = tận dụng, sử dụng (cụm từ cố định)'
+  }
+];
+
+const questions=rawQuestions.map(q=>({...q,options:shuffleArray(q.options)}));
+
+const passages=[
+  {
+    exNum:1, label:'Exercise 1',
+    title:'Don\'t Let FOMO Control Your Life',
+    source:'(Adapted from Scientific Research Publishing)',
+    paragraphs:[{
+      text:`Many young people today face FOMO (Fear of Missing Out), a growing problem that creates anxiety and stress. Accustomed <span class="blank" id="b1">___</span> through endless updates on social media, they often feel <span class="blank" id="b2">___</span> or even upset when they see friends attending events or trying trendy activities they didn't know about. Or some advertisers <span class="blank" id="b3">___</span> advantage of this fear <span class="blank" id="b4">___</span> purpose in their ads to encourage quick purchases, <span class="blank" id="b5">___</span> the problem worse. It's crucial to keep track of your emotions and remind yourself that life isn't just about being part of every event. Focus on what truly matters to you, such as building meaningful connections and pursuing <span class="blank" id="b6">___</span>, which can be achieved by stepping back from the constant pressure of comparison.`,
+      translation:`Nhiều bạn trẻ ngày nay phải đối mặt với FOMO (Nỗi sợ bị bỏ lỡ), một vấn đề ngày càng tăng gây lo lắng và căng thẳng. <strong>Quen cuộn mãi</strong> qua vô số bài đăng trên mạng xã hội, họ thường cảm thấy <strong>ngạc nhiên</strong> hoặc thậm chí khó chịu khi thấy bạn bè tham gia các sự kiện hoặc thử các hoạt động thịnh hành mà họ không biết. Hoặc một số nhà quảng cáo <strong>lợi dụng</strong> nỗi sợ này <strong>một cách có chủ đích</strong> trong quảng cáo để thúc đẩy mua sắm nhanh, <strong>khiến vấn đề</strong> trở nên tệ hơn. Điều quan trọng là phải theo dõi cảm xúc của bạn và nhắc nhở bản thân rằng cuộc sống không chỉ là tham gia mọi sự kiện. Hãy tập trung vào những điều thực sự quan trọng với bạn, như xây dựng các mối kết nối ý nghĩa và theo đuổi <strong>những mục tiêu cuộc sống đầy ý nghĩa</strong>, điều có thể đạt được bằng cách bước ra khỏi áp lực so sánh liên tục.`
+    }],
+    glossary:[
+      {word:'FOMO',pos:'n.',vi:'nỗi sợ bị bỏ lỡ (Fear of Missing Out)'},
+      {word:'anxiety',pos:'n.',vi:'lo lắng, sự lo âu'},
+      {word:'accustomed',pos:'adj.',vi:'đã quen với, có thói quen'},
+      {word:'trendy',pos:'adj.',vi:'thịnh hành, hợp mốt'},
+      {word:'advertiser',pos:'n.',vi:'nhà quảng cáo'},
+      {word:'purchase',pos:'n./v.',vi:'việc mua sắm; mua'},
+      {word:'comparison',pos:'n.',vi:'sự so sánh'},
+      {word:'meaningful',pos:'adj.',vi:'có ý nghĩa, ý nghĩa sâu sắc'},
+      {word:'pursue',pos:'v.',vi:'theo đuổi, theo đuổi mục tiêu'},
+      {word:'on purpose',pos:'phrase',vi:'một cách cố ý, có chủ đích'}
+    ]
+  },
+  {
+    exNum:2, label:'Exercise 2',
+    title:'Protect Yourself from Hanoi\'s Air Pollution',
+    source:'(Adapted from Spotify and People)',
+    paragraphs:[{
+      text:`On December 12, Hanoi was declared the world's most <span class="blank" id="b7">___</span> city, with air quality reaching hazardous levels. This severe pollution, caused by factors like heavy traffic and industrial emissions, poses <span class="blank" id="b8">___</span>. Residents are <span class="blank" id="b9">___</span> alert, advised to wear masks and limit outdoor activities. To safeguard your health, it's essential to <span class="blank" id="b10">___</span> measures, such as using high-quality air purifiers at home. Our advanced air purifiers, <span class="blank" id="b11">___</span> with HEPA filters, effectively remove harmful particles from your indoor environment. We remind you <span class="blank" id="b12">___</span> air quality updates regularly and ensure your living spaces remain safe. Breathe easier with our reliable air purifiers, designed to protect you and your loved ones from the dangers of air pollution.`,
+      translation:`Vào ngày 12 tháng 12, Hà Nội được tuyên bố là thành phố <strong>ô nhiễm nhất</strong> thế giới, với chất lượng không khí đạt mức nguy hiểm. Ô nhiễm nghiêm trọng này, do các yếu tố như giao thông đông đúc và khí thải công nghiệp gây ra, đặt ra <strong>các rủi ro sức khỏe nghiêm trọng</strong>. Cư dân đang <strong>trong trạng thái cảnh giác</strong>, được khuyến cáo đeo khẩu trang và hạn chế hoạt động ngoài trời. Để bảo vệ sức khỏe, điều cần thiết là <strong>thực hiện các biện pháp</strong>, như sử dụng máy lọc không khí chất lượng cao tại nhà. Máy lọc không khí tiên tiến của chúng tôi, <strong>được trang bị</strong> bộ lọc HEPA, loại bỏ hiệu quả các hạt có hại khỏi môi trường trong nhà của bạn. Chúng tôi <strong>nhắc bạn kiểm tra</strong> cập nhật chất lượng không khí thường xuyên và đảm bảo không gian sống của bạn luôn an toàn.`
+    }],
+    glossary:[
+      {word:'hazardous',pos:'adj.',vi:'nguy hiểm, có hại'},
+      {word:'emission',pos:'n.',vi:'khí thải, sự phát thải'},
+      {word:'safeguard',pos:'v.',vi:'bảo vệ, bảo đảm an toàn'},
+      {word:'purifier',pos:'n.',vi:'máy lọc (không khí/nước)'},
+      {word:'HEPA filter',pos:'n.',vi:'bộ lọc HEPA (hiệu quả cao)'},
+      {word:'particle',pos:'n.',vi:'hạt bụi, hạt mịn'},
+      {word:'declare',pos:'v.',vi:'tuyên bố, công bố'},
+      {word:'reliable',pos:'adj.',vi:'đáng tin cậy, bền bỉ'},
+      {word:'be on alert',pos:'phrase',vi:'trong trạng thái cảnh giác, báo động'},
+      {word:'take measures',pos:'phrase',vi:'thực hiện các biện pháp'}
+    ]
+  },
+  {
+    exNum:3, label:'Exercise 3',
+    title:'Transform Your Learning Experience Today',
+    source:'(Adapted from eSchool News)',
+    paragraphs:[{
+      text:`Are you ready to embrace the future of education? At our company, we aim <span class="blank" id="b13">___</span> the way you learn by offering <span class="blank" id="b14">___</span> designed just for you. With cutting-edge tools and technologies that are compatible <span class="blank" id="b15">___</span> diverse learning styles, we ensure that your educational journey is as unique as you are. Our expert educators, <span class="blank" id="b16">___</span> to guide you through this transformation, will help you stay <span class="blank" id="b17">___</span> and succeed. Don't be shocked by the rapid changes – <span class="blank" id="b18">___</span> use of the innovative strategies we offer to enhance your learning. Join us and experience a dynamic, tailored education that puts you in control!`,
+      translation:`Bạn đã sẵn sàng đón nhận tương lai của giáo dục chưa? Tại công ty chúng tôi, chúng tôi <strong>nhằm mục tiêu cách mạng hóa</strong> cách bạn học bằng cách cung cấp <strong>trải nghiệm học tập được cá nhân hóa</strong> được thiết kế riêng cho bạn. Với các công cụ và công nghệ tiên tiến <strong>tương thích với</strong> các phong cách học tập đa dạng, chúng tôi đảm bảo hành trình giáo dục của bạn độc đáo như chính bạn. Các nhà giáo dục chuyên gia của chúng tôi, <strong>được đào tạo</strong> để hướng dẫn bạn trong quá trình chuyển đổi này, sẽ giúp bạn luôn <strong>tập trung, gắn bó</strong> và thành công. Đừng bị sốc bởi những thay đổi nhanh chóng – hãy <strong>tận dụng</strong> các chiến lược đổi mới mà chúng tôi cung cấp để nâng cao việc học của bạn.`
+    }],
+    glossary:[
+      {word:'embrace',pos:'v.',vi:'đón nhận, chào đón nhiệt tình'},
+      {word:'cutting-edge',pos:'adj.',vi:'tiên tiến nhất, cắt đứt ranh giới'},
+      {word:'compatible',pos:'adj.',vi:'tương thích, phù hợp'},
+      {word:'transformation',pos:'n.',vi:'sự chuyển đổi, biến đổi'},
+      {word:'tailored',pos:'adj.',vi:'được thiết kế riêng, tùy chỉnh'},
+      {word:'innovative',pos:'adj.',vi:'đổi mới, sáng tạo'},
+      {word:'revolutionize',pos:'v.',vi:'cách mạng hóa'},
+      {word:'engaged',pos:'adj.',vi:'tập trung, gắn bó, hứng thú'},
+      {word:'personalized',pos:'adj.',vi:'được cá nhân hóa, riêng biệt'},
+      {word:'make use of',pos:'phrase',vi:'tận dụng, sử dụng'}
+    ]
+  }
+];
+
+// State
+let answered={},timerInterval=null,timeLeft=600,timerRunning=false,studentName='';
+
+function buildApp(){ buildLeft(); buildRight(); }
+
+function buildLeft(){
+  const p=document.getElementById('leftPanel'); p.innerHTML='';
+  passages.forEach(pass=>{
+    const block=document.createElement('div'); block.className='exercise-block';
+    let html=`<div class="exercise-label">${pass.label}</div>
+<div class="passage-title">✦ ${pass.title}</div>`;
+    pass.paragraphs.forEach((para,idx)=>{
+      const uid=`${pass.exNum}_${idx}`;
+      html+=`<div class="passage-card">${para.text}</div>
+<button class="translate-btn" onclick="toggleTr('tr_${uid}',this)">🌟 Mở dịch đoạn này</button>
+<div class="translation-box" id="tr_${uid}">${para.translation}</div>`;
+    });
+    html+=`<div class="passage-source">${pass.source}</div>
+<div class="glossary-title">✦ Từ vựng – ${pass.title}</div>
+<table class="glossary-table"><thead><tr><th>Từ vựng</th><th>Loại từ</th><th>Nghĩa tiếng Việt</th></tr></thead><tbody>`;
+    pass.glossary.forEach(g=>{
+      html+=`<tr><td class="word-cell">${g.word}</td><td class="pos-cell">${g.pos}</td><td class="vi-cell">${g.vi}</td></tr>`;
+    });
+    html+=`</tbody></table>`;
+    block.innerHTML=html; p.appendChild(block);
+  });
+}
+
+function buildRight(){
+  const p=document.getElementById('rightPanel'); p.innerHTML='';
+  const secMap={1:'Exercise 1 — Don\'t Let FOMO Control Your Life',7:'Exercise 2 — Protect Yourself from Hanoi\'s Air Pollution',13:'Exercise 3 — Transform Your Learning Experience Today'};
+  questions.forEach(q=>{
+    if(secMap[q.id]){const s=document.createElement('div');s.className='q-section-title';s.textContent=secMap[q.id];p.appendChild(s);}
+    const card=document.createElement('div'); card.className='question-card'; card.id=`qcard_${q.id}`;
+    let opts='';
+    q.options.forEach(o=>{
+      opts+=`<button class="option-btn" id="opt_${q.id}_${o.letter}" onclick="sel(${q.id},'${o.letter}',this)"><span class="opt-letter">${o.letter}.</span> ${o.text}</button>`;
+    });
+    card.innerHTML=`<div class="q-number">Câu ${q.id}</div><div class="q-text">${q.qText}</div><div class="options-grid" id="opts_${q.id}">${opts}</div><div class="explanation-box" id="exp_${q.id}"></div>`;
+    p.appendChild(card);
+  });
+}
+
+function sel(qId,letter,btn){
+  if(answered[qId]) return;
+  const q=questions.find(x=>x.id===qId);
+  const ok=letter===q.correct;
+  document.querySelectorAll(`#opts_${qId} .option-btn`).forEach(b=>b.disabled=true);
+  answered[qId]={selected:letter,correct:ok};
+  updateProgress();
+  if(ok){
+    btn.classList.add('correct'); playOK(); spawnConfetti(btn);
+    setBlank(qId,q.options.find(o=>o.letter===letter).text,true,false);
+  } else {
+    btn.classList.add('wrong','shake'); playFail();
+    setBlank(qId,q.options.find(o=>o.letter===letter).text,false,false);
+    setTimeout(()=>setBlank(qId,q.options.find(o=>o.letter===q.correct).text,false,true),600);
+    setTimeout(()=>{const cb=document.getElementById(`opt_${qId}_${q.correct}`);if(cb)cb.classList.add('correct-reveal');},120);
+  }
+  showExp(qId,q);
+}
+
+function setBlank(qId,text,correct,fix){
+  const el=document.getElementById(`b${qId}`); if(!el)return;
+  el.textContent=text; el.className='blank';
+  el.classList.add(correct||fix?'correct':'wrong');
+}
+
+function showExp(qId,q){
+  const box=document.getElementById(`exp_${qId}`);
+  let html=`<div class="exp-q-vi">💬 ${q.qVi}</div>`;
+  q.options.forEach(o=>{
+    const isC=o.letter===q.correct;
+    html+=`<div class="exp-option"><span class="${isC?'correct-tag':'wrong-tag'}">${o.letter}. ${o.text}</span> — ${q.explanations[o.letter]||''}</div>`;
+  });
+  html+=`<div class="exp-evidence"><div class="ev-label">✦ Dẫn chứng trong bài:</div><div class="ev-en">${q.evidenceEn}</div><div class="ev-vi">👉 ${q.evidenceVi}</div></div>`;
+  box.innerHTML=html; box.style.display='block';
+}
+
+function toggleTr(id,btn){
+  const b=document.getElementById(id);
+  b.style.display=b.style.display==='block'?(btn.textContent='🌟 Mở dịch đoạn này','none'):(btn.textContent='🔼 Ẩn bản dịch','block');
+}
+
+function updateProgress(){
+  const c=Object.keys(answered).length;
+  document.getElementById('progressText').textContent=`${c}/18`;
+  document.getElementById('progressFill').style.width=`${c/18*100}%`;
+}
+
+function startTimer(){
+  document.getElementById('timerBtn').style.display='none';
+  document.getElementById('timerDisplay').style.display='block';
+  document.getElementById('pauseBtn').style.display='inline-block';
+  timerRunning=true; timerInterval=setInterval(tick,1000);
+}
+function tick(){
+  if(!timerRunning)return;
+  timeLeft--;
+  const m=Math.floor(Math.max(0,timeLeft)/60),s=Math.max(0,timeLeft)%60;
+  document.getElementById('timerDisplay').textContent=`${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  if(timeLeft<=60)document.getElementById('timerDisplay').classList.add('danger');
+  if(timeLeft<=0){
+    clearInterval(timerInterval);
+    const tb=document.getElementById('timeoutBanner');tb.style.display='block';
+    document.getElementById('pauseBtn').style.display='none';
+    setTimeout(()=>tb.style.display='none',12000);
+  }
+}
+function togglePause(){
+  timerRunning=!timerRunning;
+  document.getElementById('pauseBtn').textContent=timerRunning?'⏸ Tạm dừng':'▶️ Tiếp tục';
+}
+
+function openNameModal(){document.getElementById('nameModal').classList.add('active');document.getElementById('nameInput').focus();}
+document.getElementById('nameInput').addEventListener('keydown',e=>{if(e.key==='Enter')confirmName();});
+document.getElementById('nameSubmitBtn').addEventListener('click',confirmName);
+function confirmName(){
+  const v=document.getElementById('nameInput').value.trim();
+  if(!v){document.getElementById('nameError').textContent='⚠️ Vui lòng nhập tên trước!';document.getElementById('nameInput').classList.add('err');return;}
+  studentName=v;document.getElementById('nameModal').classList.remove('active');showResult();
+}
+function showResult(){
+  const score=Object.values(answered).filter(a=>a.correct).length,pct=score/18*100;
+  let title,comment,gif;
+  if(pct===100){title=`✦ HOÀN HẢO! ${studentName} thật xuất sắc!`;comment=`Toàn bộ 18/18 câu đúng! Đây là thành tích không thể tin được. Ms Mai An tự hào về bạn lắm! 🎉`;gif='https://media.giphy.com/media/26u4cqiYI30juCOGY/giphy.gif';}
+  else if(pct>=60){title=`✦ GIỎI LẮM, ${studentName}!`;comment=`Bạn đạt ${score}/18 câu đúng. Còn một chút nữa là hoàn hảo! Ôn lại phần giải thích và thử lại nhé. 💪`;gif='https://media.giphy.com/media/xT9IgG50Lg7rusQ5y8/giphy.gif';}
+  else {title=`✦ CỐ LÊN NÀO, ${studentName}!`;comment=`Bạn đạt ${score}/18 câu. Đừng nản lòng! Đọc kỹ phần giải thích rồi thử lại, bạn sẽ làm được thôi! 🌱`;gif='https://media.giphy.com/media/d2lcHJTG5Tscg/giphy.gif';}
+  document.getElementById('resultTitle').textContent=title;
+  document.getElementById('resultScore').textContent=`${score} / 18`;
+  document.getElementById('resultComment').textContent=comment;
+  document.getElementById('resultMeme').src=gif;
+  document.getElementById('resultModal').classList.add('active');
+}
+
+// Audio
+let _ctx=null;
+function getCtx(){if(!_ctx)_ctx=new(window.AudioContext||window.webkitAudioContext)();return _ctx;}
+function playOK(){try{const c=getCtx();[[523,0],[659,.1],[784,.2],[1047,.3]].forEach(([f,d])=>{const o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);o.type='sine';o.frequency.value=f;g.gain.setValueAtTime(.15,c.currentTime+d);g.gain.exponentialRampToValueAtTime(.001,c.currentTime+d+.28);o.start(c.currentTime+d);o.stop(c.currentTime+d+.32);});}catch(e){}}
+function playFail(){try{const c=getCtx();[[320,0],[260,.1],[200,.22]].forEach(([f,d])=>{const o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);o.type='sawtooth';o.frequency.value=f;g.gain.setValueAtTime(.11,c.currentTime+d);g.gain.exponentialRampToValueAtTime(.001,c.currentTime+d+.2);o.start(c.currentTime+d);o.stop(c.currentTime+d+.25);});}catch(e){}}
+
+function spawnConfetti(el){
+  const r=el.getBoundingClientRect();
+  const cols=['#c9553a','#c8870a','#1e4d35','#e07050','#fde9b2','#2d7a50','#1a2340','#f3c5bb'];
+  for(let i=0;i<40;i++){
+    const c=document.createElement('div');c.className='confetti-piece';
+    c.style.left=(r.left+r.width/2+(Math.random()-.5)*100)+'px';
+    c.style.top=(r.top+r.height/2+(Math.random()-.5)*40)+'px';
+    c.style.background=cols[Math.floor(Math.random()*cols.length)];
+    c.style.width=(7+Math.random()*8)+'px';c.style.height=(7+Math.random()*8)+'px';
+    c.style.borderRadius=Math.random()>.5?'50%':'2px';
+    c.style.animationDuration=(.8+Math.random()*.6)+'s';
+    c.style.animationDelay=(Math.random()*.15)+'s';
+    document.body.appendChild(c);setTimeout(()=>c.remove(),1500);
+  }
+}
+</script>
+</body>
+</html>

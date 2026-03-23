@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Practice Test 13 - Ms Mai An ULIS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Quicksand:wght@500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #8854C0;
+            --secondary: #FDCB6E;
+            --tertiary: #00C9A7;
+            --correct: #00D26A;
+            --wrong: #FF4757;
+            --text: #2D3436;
+            --glass-bg: rgba(255, 255, 255, 0.65);
+            --glass-border: rgba(255, 255, 255, 0.8);
+            --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Nunito', sans-serif;
+        }
+
+        body {
+            color: var(--text);
+            overflow: hidden;
+            height: 100vh;
+            background: linear-gradient(45deg, var(--primary), var(--secondary), var(--tertiary), #FF9FF3);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Floating SVG Background */
+        .bg-pattern {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Ctext x='10' y='30' font-size='20'%3E📚%3C/text%3E%3Ctext x='60' y='80' font-size='20'%3E🎓%3C/text%3E%3Ctext x='40' y='50' font-size='15'%3E🌟%3C/text%3E%3Ctext x='80' y='20' font-size='25'%3E🚀%3C/text%3E%3C/svg%3E");
+            opacity: 0.4;
+            z-index: -1;
+            pointer-events: none;
+            animation: floatPattern 40s linear infinite;
+        }
+
+        @keyframes floatPattern {
+            from { background-position: 0 0; }
+            to { background-position: 100vw 100vh; }
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 10px; }
+        ::-webkit-scrollbar-track { background: rgba(255,255,255,0.2); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.6); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.9); }
+
+        /* Modals */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(0,0,0,0.4);
+            backdrop-filter: blur(8px);
+            display: flex; justify-content: center; align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--glass-shadow);
+            border-radius: 25px;
+            padding: 40px;
+            text-align: center;
+            max-width: 450px;
+            width: 90%;
+            animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0.8); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .modal-content h2 { font-family: 'Quicksand', sans-serif; font-size: 1.8rem; margin-bottom: 20px; color: #2D3436; }
+        
+        .input-style {
+            width: 100%; padding: 15px; border-radius: 15px;
+            border: 2px solid rgba(255,255,255,0.8);
+            background: rgba(255,255,255,0.9);
+            font-size: 1.2rem; outline: none; transition: 0.3s;
+            text-align: center; font-family: 'Nunito', sans-serif;
+            margin-bottom: 20px;
+        }
+        .input-style:focus { border-color: var(--primary); box-shadow: 0 0 10px rgba(136, 84, 192, 0.3); }
+        .input-error { border-color: var(--wrong); background: #ffeaa7; }
+
+        .btn-primary {
+            background: var(--primary); color: white;
+            border: none; padding: 15px 30px; border-radius: 20px;
+            font-size: 1.2rem; font-weight: 700; cursor: pointer;
+            box-shadow: 0 6px 0 #5f27cd; transition: 0.2s;
+            width: 100%; font-family: 'Quicksand', sans-serif;
+        }
+        .btn-primary:active { transform: translateY(6px); box-shadow: 0 0 0 #5f27cd; }
+        
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            50% { transform: translateX(10px); }
+            75% { transform: translateX(-10px); }
+        }
+        .shake { animation: shake 0.4s ease-in-out; }
+
+        /* Main App Layout */
+        #app-container { display: none; height: 100vh; flex-direction: column; }
+        
+        header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 15px 30px; background: rgba(255,255,255,0.4);
+            backdrop-filter: blur(10px); border-bottom: 1px solid rgba(255,255,255,0.5);
+            z-index: 10;
+        }
+        .header-left h1 { font-size: 1.2rem; font-family: 'Quicksand', sans-serif; color: #5f27cd; }
+        
+        .timer-container { display: flex; align-items: center; gap: 15px; }
+        #timer-display { font-size: 1.5rem; font-weight: 800; color: var(--wrong); background: rgba(255,255,255,0.8); padding: 5px 15px; border-radius: 10px; }
+        .btn-timer { background: var(--tertiary); color: white; border: none; padding: 10px 20px; border-radius: 15px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 0 #00b894; transition: 0.2s; }
+        .btn-timer:active { transform: translateY(4px); box-shadow: 0 0 0 #00b894; }
+
+        .main-content {
+            display: flex; flex: 1; overflow: hidden; gap: 20px; padding: 20px;
+        }
+
+        .split-pane {
+            flex: 1; background: var(--glass-bg); backdrop-filter: blur(12px);
+            border-radius: 25px; border: 1px solid var(--glass-border);
+            box-shadow: var(--glass-shadow); padding: 25px;
+            overflow-y: auto; position: relative;
+        }
+
+        /* Typography inside Panes */
+        .passage-title { font-size: 1.8rem; font-family: 'Quicksand', sans-serif; color: #5f27cd; margin-bottom: 20px; text-align: center;}
+        .passage-text { font-size: 1.15rem; line-height: 1.8; margin-bottom: 15px; text-align: justify; color: #1e272e; }
+        
+        .btn-translate {
+            background: #ffeaa7; color: #d63031; border: none; padding: 8px 15px;
+            border-radius: 12px; font-weight: bold; cursor: pointer;
+            box-shadow: 0 3px 0 #fdcb6e; transition: 0.2s; margin-bottom: 20px;
+            display: inline-flex; align-items: center; gap: 5px;
+        }
+        .btn-translate:active { transform: translateY(3px); box-shadow: 0 0 0 #fdcb6e; }
+        .translation-text {
+            display: none; background: rgba(255,255,255,0.9); padding: 15px;
+            border-radius: 15px; border-left: 5px solid #00C9A7; margin-bottom: 20px;
+            font-size: 1.05rem; line-height: 1.6; color: #2d3436;
+        }
+
+        /* Glossary Table */
+        .glossary-table { width: 100%; border-collapse: collapse; margin: 20px 0 40px 0; background: rgba(255,255,255,0.8); border-radius: 15px; overflow: hidden; }
+        .glossary-table th, .glossary-table td { padding: 12px 15px; text-align: left; border-bottom: 1px solid rgba(0,0,0,0.1); }
+        .glossary-table th { background: var(--primary); color: white; font-family: 'Quicksand', sans-serif; }
+        .glossary-table tr:last-child td { border-bottom: none; }
+
+        /* Questions */
+        .question-card {
+            background: rgba(255,255,255,0.85); border-radius: 20px;
+            padding: 20px; margin-bottom: 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+        .question-text { font-size: 1.15rem; font-weight: 700; margin-bottom: 15px; color: #2d3436; }
+        
+        .options-grid { display: flex; flex-direction: column; gap: 12px; }
+        .option-btn {
+            background: white; border: 2px solid #dfe6e9; padding: 15px;
+            border-radius: 15px; font-size: 1.08rem; text-align: left;
+            cursor: pointer; transition: all 0.2s ease;
+            box-shadow: 0 4px 0 #dfe6e9; position: relative; font-family: 'Nunito', sans-serif;
+            display: flex; align-items: flex-start; gap: 8px; line-height: 1.5;
+        }
+        .option-btn:hover { transform: scale(1.02); border-color: var(--primary); }
+        .option-btn:active { transform: scale(1) translateY(4px); box-shadow: 0 0 0 #dfe6e9; }
+        
+        .option-btn.correct { background: var(--correct); color: white; border-color: #00b894; box-shadow: 0 4px 0 #00b894; }
+        .option-btn.wrong { background: var(--wrong); color: white; border-color: #d63031; box-shadow: 0 4px 0 #d63031; }
+        .option-btn.disabled { pointer-events: none; }
+
+        /* Explanation */
+        .explanation-box {
+            display: none; margin-top: 15px; padding: 20px;
+            background: #ffffff; border-radius: 15px; border-left: 5px solid var(--secondary);
+            font-size: 1rem; line-height: 1.6; animation: fadeIn 0.5s ease; box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        .expl-quote { font-style: italic; background: #ffeaa7; padding: 2px 5px; border-radius: 4px; display: inline-block; margin-top: 5px; margin-bottom: 5px;}
+        .keyword { color: #d63031; font-weight: bold; }
+
+        .submit-container { text-align: center; margin-top: 30px; padding-bottom: 30px; }
+        .btn-submit {
+            background: linear-gradient(45deg, #FF9FF3, #feca57); color: white;
+            border: none; padding: 18px 40px; border-radius: 25px;
+            font-size: 1.5rem; font-weight: 800; cursor: pointer;
+            box-shadow: 0 8px 0 #ff9f43; transition: 0.2s; font-family: 'Quicksand', sans-serif;
+        }
+        .btn-submit:active { transform: translateY(8px); box-shadow: 0 0 0 #ff9f43; }
+
+        /* Confetti */
+        .confetti {
+            position: absolute; width: 10px; height: 10px;
+            background-color: #f00; z-index: 1000;
+            animation: fall linear forwards;
+        }
+        @keyframes fall {
+            to { transform: translateY(100vh) rotate(720deg); }
+        }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            .main-content { flex-direction: column; overflow-y: auto; }
+            .split-pane { overflow-y: visible; }
+            body { overflow: auto; }
+            header { flex-direction: column; gap: 10px; }
+        }
+
+        .result-gif { width: 100%; max-height: 250px; object-fit: contain; border-radius: 15px; margin: 15px 0; }
+        #result-message { font-size: 1.3rem; font-weight: bold; color: #5f27cd; margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+    <div class="bg-pattern"></div>
+
+    <div id="password-modal" class="modal-overlay">
+        <div class="modal-content" id="password-content">
+            <h2>🔒 Nhập Mật Khẩu Khóa Thi</h2>
+            <p style="margin-bottom: 15px; color: #636e72;">Bật mí: Tên cô giáo viết liền không dấu nhé!</p>
+            <input type="password" id="pass-input" class="input-style" placeholder="Nhập mật khẩu...">
+            <button class="btn-primary" onclick="checkPassword()">Mở Khóa Bài Thi 🚀</button>
+            <p id="pass-error" style="color: var(--wrong); font-weight: bold; margin-top: 10px; display: none;">Sai mật khẩu rồi! Thử lại nhé ❌</p>
+        </div>
+    </div>
+
+    <div id="name-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-content" id="name-content">
+            <h2>🎓 Điền Tên Để Nộp Bài</h2>
+            <input type="text" id="name-input" class="input-style" placeholder="Ví dụ: Nguyễn Văn A...">
+            <button class="btn-primary" onclick="submitName()">Xem Kết Quả 🎯</button>
+            <p id="name-error" style="color: var(--wrong); font-weight: bold; margin-top: 10px; display: none;">⚠️ Vui lòng nhập tên trước khi xem điểm nhé!</p>
+        </div>
+    </div>
+
+    <div id="result-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <h2 id="result-title">Kết Quả Của Bạn!</h2>
+            <img id="result-gif" class="result-gif" src="" alt="Result GIF">
+            <p id="result-score" style="font-size: 2rem; font-weight: 800; color: var(--wrong); margin: 10px 0;">0/20</p>
+            <p id="result-message"></p>
+            <button class="btn-primary" onclick="location.reload()">Làm Lại Bài Thi 🔄</button>
+        </div>
+    </div>
+
+    <div id="app-container">
+        <header>
+            <div class="header-left">
+                <h1>Ms Mai An ULIS - Luyện Thi Tiếng Anh</h1>
+            </div>
+            <div class="timer-container">
+                <span id="timer-display">10:00</span>
+                <button id="btn-timer-control" class="btn-timer" onclick="toggleTimer()">BẮT ĐẦU TÍNH GIỜ LÀM BÀI</button>
+            </div>
+        </header>
+
+        <div class="main-content">
+            <div class="split-pane" id="reading-pane"></div>
+
+            <div class="split-pane" id="question-pane">
+                <div class="submit-container">
+                    <button class="btn-submit" onclick="openNameModal()">🎯 NỘP BÀI & XEM KẾT QUẢ</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- DATA STRUCTURE ---
+        // Đã sửa lại lỗi option dư A B C D và lỗi Quote
+        const testData = [
+            {
+                title: "PART 1: SCHOOL LOGO DESIGN CONTEST",
+                paragraphs: [
+                    {
+                        en: "Dear all students, We are excited to launch a School Logo Design Contest for all students! This is the chance to show your creativity and school pride by designing a new logo for our school. All submitted designs will be posted (13) ________ the school's official fan page. The winning logo will be chosen based on two (14) ________: the judges' scores and the number of votes from school members. The contest (15) ________ next week, and more details will be shared in your classes. We look forward to your creative ideas. Let's design (16) ________ great together!",
+                        vi: "Gửi toàn thể học sinh, Chúng tôi rất hào hứng phát động Cuộc thi Thiết kế Logo Trường học dành cho tất cả học sinh! Đây là cơ hội để thể hiện sự sáng tạo và niềm tự hào về trường của bạn bằng cách thiết kế một logo mới cho trường chúng ta. Tất cả các thiết kế được nộp sẽ được đăng (13) trên trang fanpage chính thức của trường. Logo chiến thắng sẽ được chọn dựa trên hai (14) tiêu chí: điểm số của ban giám khảo và số lượng bình chọn từ các thành viên trong trường. Cuộc thi (15) bắt đầu vào tuần tới, và thông tin chi tiết sẽ được chia sẻ trong các lớp học của các bạn. Chúng tôi mong chờ những ý tưởng sáng tạo của các bạn. Hãy cùng nhau thiết kế (16) một điều gì đó tuyệt vời nhé!"
+                    }
+                ],
+                glossary: [
+                    {w: "launch", p: "verb", m: "phát động, ra mắt"},
+                    {w: "creativity", p: "noun", m: "sự sáng tạo"},
+                    {w: "pride", p: "noun", m: "niềm tự hào"},
+                    {w: "submit", p: "verb", m: "nộp, đệ trình"},
+                    {w: "official", p: "adj", m: "chính thức"},
+                    {w: "base on", p: "phrasal verb", m: "dựa trên"},
+                    {w: "criteria / factor", p: "noun", m: "tiêu chí / yếu tố"},
+                    {w: "judge", p: "noun", m: "giám khảo"},
+                    {w: "vote", p: "noun", m: "sự bình chọn"},
+                    {w: "look forward to", p: "phrasal verb", m: "mong đợi, mong chờ"}
+                ],
+                questions: [
+                    {
+                        id: 13, text: "Question 13. All submitted designs will be posted (13) ________ the school's official fan page.",
+                        options: [{t: "at"}, {t: "on", correct: true}, {t: "in"}, {t: "through"}],
+                        expl: `<b>Dịch câu hỏi:</b> Tất cả các thiết kế nộp sẽ được đăng ___ trang fanpage chính thức của trường.<br>A. at (ở, tại) ❌ Sai vì không dùng với nền tảng mạng.<br>B. on (trên) ✅ Đúng. Dùng giới từ 'on' trước các nền tảng Internet (on the website, on the fan page).<br>C. in (trong) ❌ Sai ngữ pháp.<br>D. through (thông qua) ❌ Sai ngữ nghĩa.<br>🔍 <b>Dẫn chứng:</b> <span class="expl-quote">"...posted (13) ________ the school's official fan page."</span><br>👉 Dịch: Tất cả các thiết kế được nộp sẽ được đăng <span class="keyword">trên trang fanpage chính thức</span> của trường.`
+                    },
+                    {
+                        id: 14, text: "Question 14. The winning logo will be chosen based on two (14) ________: the judges' scores and the number of votes...",
+                        options: [{t: "factors", correct: true}, {t: "items"}, {t: "ideas"}, {t: "functions"}],
+                        expl: `<b>Dịch câu hỏi:</b> Logo chiến thắng sẽ được chọn dựa trên hai ___: điểm số của ban giám khảo và số lượt bình chọn...<br>A. factors (yếu tố/tiêu chí) ✅ Đúng. Nghĩa phù hợp nhất.<br>B. items (món đồ) ❌ Sai nghĩa.<br>C. ideas (ý tưởng) ❌ Sai nghĩa.<br>D. functions (chức năng) ❌ Sai nghĩa.<br>🔍 <b>Dẫn chứng:</b> <span class="expl-quote">"chosen based on two (14) ________: the judges' scores and the number of votes..."</span><br>👉 Dịch: được chọn dựa trên hai <span class="keyword">yếu tố</span>...`
+                    },
+                    {
+                        id: 15, text: "Question 15. The contest (15) ________ next week...",
+                        options: [{t: "will be started"}, {t: "will have started"}, {t: "has started"}, {t: "starts", correct: true}],
+                        expl: `<b>Dịch câu hỏi:</b> Cuộc thi (15) ___ vào tuần tới...<br>A. will be started (bị động tương lai) ❌ Sai vì 'start' thường dùng chủ động ở đây.<br>B. will have started (tương lai hoàn thành) ❌ Sai ngữ cảnh.<br>C. has started (hiện tại hoàn thành) ❌ Sai vì có 'next week'.<br>D. starts (hiện tại đơn) ✅ Đúng. Dùng thì Hiện tại đơn để nói về một lịch trình, thời gian biểu cố định trong tương lai.<br>🔍 <b>Dẫn chứng:</b> <span class="expl-quote">"The contest (15) ________ next week"</span><br>👉 Dịch: Cuộc thi <span class="keyword">bắt đầu</span> vào tuần tới.`
+                    },
+                    {
+                        id: 16, text: "Question 16. Let's design (16) ________ great together!",
+                        options: [{t: "anything"}, {t: "some things"}, {t: "something", correct: true}, {t: "everything"}],
+                        expl: `<b>Dịch câu hỏi:</b> Hãy cùng nhau thiết kế ___ tuyệt vời nhé!<br>A. anything (bất cứ thứ gì) ❌ Dùng trong câu phủ định/nghi vấn.<br>B. some things ❌ Sai cấu trúc khi đi kèm tính từ bổ nghĩa phía sau.<br>C. something (điều gì đó) ✅ Đúng. Đại từ bất định + Tính từ (something great).<br>D. everything (mọi thứ) ❌ Không hợp nghĩa.<br>🔍 <b>Dẫn chứng:</b> <span class="expl-quote">"Let's design (16) ________ great together!"</span><br>👉 Dịch: Hãy cùng nhau thiết kế <span class="keyword">một điều gì đó</span> tuyệt vời nhé!`
+                    }
+                ]
+            },
+            {
+                title: "PART 2: MOBILE MONEY IN KENYA",
+                paragraphs: [
+                    {
+                        en: "In Kenya, mobile phones are not just for calling or texting - they are (19) ________ in the way people use money. A service called M-Pesa, introduced by Safaricom and Vodafone, allows users to (20) ________ money through text messages. This system is especially helpful for people who have never used traditional banking services. To use M-Pesa, customers have to go to (21) ________, who adds the cash to a virtual account on their phone. They can then send money (22) ________ SMS to any mobile number, even if the person uses a different network. The receiver must enter a PIN code and show ID to collect the cash.",
+                        vi: "Ở Kenya, điện thoại di động không chỉ dùng để gọi hay nhắn tin - chúng đang đóng một vai trò quan trọng trong cách mọi người sử dụng tiền. Một dịch vụ gọi là M-Pesa, được giới thiệu bởi Safaricom và Vodafone, cho phép người dùng gửi và nhận tiền thông qua tin nhắn văn bản. Hệ thống này đặc biệt hữu ích cho những người chưa từng sử dụng các dịch vụ ngân hàng truyền thống. Để sử dụng M-Pesa, khách hàng phải đến gặp một đại lý đã đăng ký, người này sẽ nạp tiền mặt vào một tài khoản ảo trên điện thoại của họ. Sau đó, họ có thể gửi tiền qua SMS tới bất kỳ số di động nào, ngay cả khi người đó sử dụng mạng khác. Người nhận phải nhập mã PIN và xuất trình CMND/CCCD để nhận tiền mặt."
+                    },
+                    {
+                        en: "In rural areas, mobile banking is becoming more popular. (23) ________ are now paying wages directly to workers' phones. Some companies are even exploring ways to allow people to repay loans through this system. (24) ________, many other countries are beginning to adopt similar models. With low service fees, services like M-Pesa could completely change how families send money abroad.",
+                        vi: "Ở các vùng nông thôn, ngân hàng di động đang trở nên phổ biến hơn. Các nhà tuyển dụng hiện đang trả lương trực tiếp vào điện thoại của công nhân. Một số công ty thậm chí đang khám phá các cách để cho phép mọi người trả nợ khoản vay thông qua hệ thống này. Khi việc sử dụng ngân hàng di động mở rộng, nhiều quốc gia khác cũng đang bắt đầu áp dụng các mô hình tương tự. Với phí dịch vụ thấp, các dịch vụ như M-Pesa có thể thay đổi hoàn toàn cách các gia đình gửi tiền ra nước ngoài."
+                    }
+                ],
+                glossary: [
+                    {w: "introduce", p: "verb", m: "giới thiệu, ra mắt"},
+                    {w: "traditional", p: "adj", m: "truyền thống"},
+                    {w: "virtual", p: "adj", m: "ảo (trên mạng)"},
+                    {w: "rural", p: "adj", m: "thuộc nông thôn"},
+                    {w: "wage", p: "noun", m: "tiền lương (tuần/ngày)"},
+                    {w: "directly", p: "adv", m: "một cách trực tiếp"},
+                    {w: "explore", p: "verb", m: "khám phá, tìm hiểu"},
+                    {w: "repay", p: "verb", m: "trả lại, hoàn tiền"},
+                    {w: "loan", p: "noun", m: "khoản vay"},
+                    {w: "adopt", p: "verb", m: "áp dụng, nhận nuôi"}
+                ],
+                questions: [
+                    {
+                        id: 19, text: "Question 19. ...they are (19) ________ in the way people use money.",
+                        options: [{t: "making a serious situation"}, {t: "taking a useful part"}, {t: "doing an essential act"}, {t: "playing an important role", correct: true}],
+                        expl: `<b>Dịch câu hỏi:</b> ...chúng đang ___ trong cách mọi người sử dụng tiền.<br>A, B, C ❌ Các cụm từ không chuẩn (collocation sai).<br>D. playing an important role ✅ Đúng. Cụm từ cố định 'play an important role in something' (đóng vai trò quan trọng trong việc gì).<br>🔍 <b>Dẫn chứng:</b> <span class="expl-quote">"they are (19) ________ in the way people use money."</span><br>👉 Dịch: chúng đang <span class="keyword">đóng một vai trò quan trọng</span> trong cách mọi người dùng tiền.`
+                    },
+                    {
+                        id: 20, text: "Question 20. A service called M-Pesa... allows users to (20) ________ money through text messages.",
+                        options: [{t: "send and receive", correct: true}, {t: "give and take"}, {t: "bring and get"}, {t: "buy and sell"}],
+                        expl: `<b>Dịch câu hỏi:</b> Dịch vụ M-Pesa cho phép người dùng ___ tiền qua tin nhắn.<br>A. send and receive (gửi và nhận) ✅ Đúng. Hợp lý nhất với dịch vụ chuyển tiền.<br>B, C, D ❌ Sai nghĩa.<br>🔍 <b>Dẫn chứng:</b> <span class="expl-quote">"allows users to (20) ________ money through text messages."</span><br>👉 Dịch: cho phép người dùng <span class="keyword">gửi và nhận</span> tiền qua tin nhắn.`
+                    },
+                    {
+                        id: 21, text: "Question 21. To use M-Pesa, customers have to go to (21) ________, who adds the cash...",
+                        options: [{t: "an agent registration"}, {t: "a register-agent"}, {t: "a registered agent", correct: true}, {t: "an agent registering"}],
+                        expl: `<b>Dịch câu hỏi:</b> Khách hàng phải đến gặp ___, người mà sẽ nạp tiền...<br>A, B, D ❌ Sai cấu trúc từ vựng.<br>C. a registered agent (một đại lý đã đăng ký) ✅ Đúng. Dùng phân từ hai (V-ed) đóng vai trò tính từ để chỉ đại lý 'được/đã đăng ký'.<br>🔍 <b>Dẫn chứng:</b> <span class="expl-quote">"customers have to go to (21) ________"</span><br>👉 Dịch: khách hàng phải đến gặp một <span class="keyword">đại lý đã đăng ký</span>...`
+                    },
+                    {
+                        id: 22, text: "Question 22. They can then send money (22) ________ SMS to any mobile number...",
+                        options: [{t: "beside"}, {t: "via", correct: true}, {t: "under"}, {t: "without"}],
+                        expl: `<b>Dịch câu hỏi:</b> Họ có thể gửi tiền ___ SMS...<br>A. beside (bên cạnh) ❌<br>B. via (thông qua) ✅ Đúng. Nghĩa là bằng phương tiện gì.<br>C. under (dưới) ❌<br>D. without (mà không có) ❌<br>🔍 <b>Dẫn chứng:</b> <span class="expl-quote">"send money (22) ________ SMS"</span><br>👉 Dịch: gửi tiền <span class="keyword">thông qua</span> SMS.`
+                    },
+                    {
+                        id: 23, text: "Question 23. (23) ________ are now paying wages directly to workers' phones.",
+                        options: [{t: "Employees"}, {t: "Employment"}, {t: "Employers", correct: true}, {t: "Employing"}],
+                        expl: `<b>Dịch câu hỏi:</b> ___ hiện đang trả lương trực tiếp vào điện thoại công nhân.<br>A. Employees (Người lao động) ❌ Họ là người nhận lương.<br>B. Employment (Sự việc làm) ❌ Danh từ trừu tượng.<br>C. Employers (Người sử dụng lao động/Ông chủ) ✅ Đúng. Ông chủ trả lương cho công nhân (workers).<br>D. Employing ❌ Sai loại từ.<br>🔍 <b>Dẫn chứng:</b> <span class="expl-quote">"(23) ________ are now paying wages directly to workers' phones."</span><br>👉 Dịch: <span class="keyword">Các ông chủ</span> hiện đang trả lương...`
+                    },
+                    {
+                        id: 24, text: "Question 24. (24) ________, many other countries are beginning to adopt similar models.",
+                        options: [{t: "As the use of mobile banking expands", correct: true}, {t: "Because expanding the use of mobile banking"}, {t: "In spite of the use of mobile banking expands"}, {t: "Since the expansion of using mobile banking"}],
+                        expl: `<b>Dịch câu hỏi:</b> ___, nhiều quốc gia khác đang bắt đầu áp dụng mô hình tương tự.<br>A. As + clause (Khi/Bởi vì...) ✅ Đúng ngữ pháp và ngữ nghĩa: Khi việc sử dụng ngân hàng di động mở rộng.<br>B, D ❌ Sai cấu trúc ngữ pháp mệnh đề.<br>C. In spite of + N/V-ing (Mặc dù) ❌ Sau 'In spite of' không được cộng mệnh đề (expands).<br>🔍 <b>Dẫn chứng:</b> <span class="expl-quote">"(24) ________, many other countries are beginning..."</span><br>👉 Dịch: <span class="keyword">Khi việc sử dụng ngân hàng di động mở rộng</span>, nhiều quốc gia...`
+                    }
+                ]
+            },
+            {
+                title: "PART 3: HISTORIANS AND VIDEOS",
+                paragraphs: [
+                    {
+                        en: "For many years, historians have used books and written documents to study the past. They usually share their work through writing. But today, videos and films are becoming more popular, and they are changing the way history is told. Many people now record local events, school yearbooks, or family memories on video. These recordings could also become valuable sources for historians in the future.",
+                        vi: "Trong nhiều năm, các nhà sử học đã sử dụng sách và tài liệu viết để nghiên cứu quá khứ. Họ thường chia sẻ công việc của mình qua việc viết lách. Nhưng ngày nay, video và phim ảnh đang trở nên phổ biến hơn, và chúng đang thay đổi cách lịch sử được kể lại. Nhiều người hiện nay ghi lại các sự kiện địa phương, kỷ yếu trường học, hoặc kỷ niệm gia đình qua video. Những bản ghi này cũng có thể trở thành nguồn tài liệu quý giá cho các nhà sử học trong tương lai."
+                    },
+                    {
+                        en: "However, most university historians still focus only on writing. This creates a gap between popular and academic history. Some historians question the validity of using videos in research. But just as the printing press once changed history, moving images may now bring another big change. Videos don't just show words - they include body language, emotions, and voice tone, which are missing from a written transcript.",
+                        vi: "Tuy nhiên, hầu hết các nhà sử học đại học vẫn chỉ tập trung vào việc viết. Điều này tạo ra một khoảng cách giữa lịch sử đại chúng và lịch sử học thuật. Một số nhà sử học đặt câu hỏi về tính hợp lệ của việc sử dụng video trong nghiên cứu. Nhưng giống như máy in từng thay đổi lịch sử, hình ảnh chuyển động (video) ngày nay có thể mang lại một sự thay đổi lớn khác. Video không chỉ hiển thị từ ngữ - chúng bao gồm ngôn ngữ cơ thể, cảm xúc và giọng điệu, những thứ bị thiếu trong một bản ghi chép bằng văn bản."
+                    },
+                    {
+                        en: "Videos can also help historians during interviews. The interviewer can focus on asking questions while the camera records everything, including gestures and surroundings. Later, the video can be studied in detail. Although dealing with videos requires new skills, they offer new ways to study and understand history. In the future, more historians may use both writing and film to share stories of the past.",
+                        vi: "Video cũng có thể giúp các nhà sử học trong các cuộc phỏng vấn. Người phỏng vấn có thể tập trung vào việc đặt câu hỏi trong khi máy quay ghi lại mọi thứ, bao gồm cả điệu bộ và khung cảnh xung quanh. Sau đó, video có thể được nghiên cứu chi tiết. Mặc dù làm việc với video đòi hỏi những kỹ năng mới, nhưng chúng cung cấp những cách mới để nghiên cứu và hiểu lịch sử. Trong tương lai, có thể sẽ có nhiều nhà sử học sử dụng cả văn bản và phim ảnh để chia sẻ những câu chuyện về quá khứ."
+                    }
+                ],
+                glossary: [
+                    {w: "historian", p: "noun", m: "nhà sử học"},
+                    {w: "document", p: "noun", m: "tài liệu"},
+                    {w: "valuable", p: "adj", m: "có giá trị"},
+                    {w: "gap", p: "noun", m: "khoảng cách, sự chênh lệch"},
+                    {w: "academic", p: "adj", m: "thuộc học thuật"},
+                    {w: "validity", p: "noun", m: "tính hợp lệ, tính xác đáng"},
+                    {w: "printing press", p: "noun", m: "máy in"},
+                    {w: "transcript", p: "noun", m: "bản ghi chép lại"},
+                    {w: "gesture", p: "noun", m: "điệu bộ, cử chỉ"},
+                    {w: "surroundings", p: "noun", m: "môi trường/khung cảnh xung quanh"}
+                ],
+                questions: [
+                    {
+                        id: 31, text: "Question 31. What is the main idea of the passage?",
+                        options: [
+                            {t: "Films are replacing books in teaching languages."},
+                            {t: "Historians now write less about school yearbooks."},
+                            {t: "Videos are changing how people study and share history.", correct: true},
+                            {t: "Printing press is no longer important in modern history."}
+                        ],
+                        expl: `<b>Dịch câu hỏi:</b> Ý chính của đoạn văn là gì?<br>A, B, D ❌ Sai vì chỉ là ý phụ hoặc không được nhắc tới.<br>C. Video đang thay đổi cách mọi người nghiên cứu và chia sẻ lịch sử. ✅ Đúng, toàn bài nói về sự chuyển dịch từ sách sang video trong nghiên cứu lịch sử.<br>🔍 <b>Dẫn chứng (Đoạn 1):</b> <span class="expl-quote">"...videos and films are becoming more popular, and they are changing the way history is told."</span><br>👉 Dịch: ...video và phim ảnh đang trở nên phổ biến hơn, và chúng <span class="keyword">đang thay đổi cách lịch sử được kể lại</span>.`
+                    },
+                    {
+                        id: 32, text: "Question 32. According to the passage, the word 'validity' is OPPOSITE in meaning to ___",
+                        options: [
+                            {t: "weakness", correct: true},
+                            {t: "accuracy"},
+                            {t: "usefulness"},
+                            {t: "truth"}
+                        ],
+                        expl: `<b>Dịch câu hỏi:</b> Từ 'validity' (tính hợp lệ/xác đáng) TRÁI NGHĨA với từ nào?<br>A. weakness (sự yếu kém, không vững chắc) ✅ Đúng. Tính hợp lệ mang ý nghĩa vững chắc, chính xác, nên trái nghĩa là sự yếu kém/không chính xác.<br>B. accuracy (sự chính xác) ❌ Đây là từ đồng nghĩa.<br>C. usefulness (sự hữu ích) ❌<br>D. truth (sự thật) ❌<br>🔍 <b>Dẫn chứng:</b> <span class="expl-quote">"Some historians question the validity of using videos..."</span><br>👉 Dịch: Một số nhà sử học đặt câu hỏi về <span class="keyword">tính xác đáng</span> của việc dùng video...`
+                    },
+                    {
+                        id: 33, text: "Question 33. According to the passage, the word 'gestures' is CLOSEST in meaning to ___",
+                        options: [
+                            {t: "spoken questions"},
+                            {t: "body movements", correct: true},
+                            {t: "video transcripts"},
+                            {t: "written instructions"}
+                        ],
+                        expl: `<b>Dịch câu hỏi:</b> Từ 'gestures' (điệu bộ, cử chỉ) ĐỒNG NGHĨA với từ nào?<br>A. spoken questions ❌<br>B. body movements (chuyển động cơ thể) ✅ Đúng.<br>C. video transcripts ❌<br>D. written instructions ❌<br>🔍 <b>Dẫn chứng:</b> <span class="expl-quote">"...the camera records everything, including gestures and surroundings."</span><br>👉 Dịch: ...máy quay ghi lại mọi thứ, bao gồm cả <span class="keyword">điệu bộ</span> và khung cảnh.`
+                    },
+                    {
+                        id: 34, text: "Question 34. What is suggested about videos in comparison with written texts?",
+                        options: [
+                            {t: "They are clearer because they use fewer words."},
+                            {t: "They include personal features that writing cannot show.", correct: true},
+                            {t: "They offer the same type of information as printed books."},
+                            {t: "They only show people talking, not their actions."}
+                        ],
+                        expl: `<b>Dịch câu hỏi:</b> Điều gì được gợi ý về video khi so sánh với văn bản viết?<br>A, C, D ❌ Sai nội dung.<br>B. Chúng bao gồm các đặc điểm cá nhân mà văn bản không thể hiện được. ✅ Đúng.<br>🔍 <b>Dẫn chứng (Đoạn 2):</b> <span class="expl-quote">"Videos don't just show words - they include body language, emotions, and voice tone, which are missing from a written transcript."</span><br>👉 Dịch: Video bao gồm <span class="keyword">ngôn ngữ cơ thể, cảm xúc và giọng điệu</span>, những thứ bị thiếu trong văn bản.`
+                    },
+                    {
+                        id: 35, text: "Question 35. How do videos help when conducting interviews?",
+                        options: [
+                            {t: "They let historians read old newspapers and expand their research."},
+                            {t: "They help researchers write the transcript faster after talking with the interviewees."},
+                            {t: "They record body language and the setting while the interviewer focuses on questions.", correct: true},
+                            {t: "They allow the camera to ask questions automatically."}
+                        ],
+                        expl: `<b>Dịch câu hỏi:</b> Video giúp ích thế nào trong các cuộc phỏng vấn?<br>A, B, D ❌ Sai nội dung.<br>C. Chúng ghi lại ngôn ngữ cơ thể và khung cảnh trong khi người phỏng vấn tập trung đặt câu hỏi. ✅ Đúng.<br>🔍 <b>Dẫn chứng (Đoạn 3):</b> <span class="expl-quote">"The interviewer can focus on asking questions while the camera records everything, including gestures and surroundings."</span><br>👉 Dịch: Người phỏng vấn có thể <span class="keyword">tập trung hỏi trong khi máy quay ghi lại mọi thứ</span>...`
+                    },
+                    {
+                        id: 36, text: "Question 36. Which of the following is NOT true, according to the passage?",
+                        options: [
+                            {t: "Videos can record emotional reactions."},
+                            {t: "Writing has been the traditional way to share history."},
+                            {t: "Video interviews show body language and surroundings."},
+                            {t: "Most historians now use only film for their research.", correct: true}
+                        ],
+                        expl: `<b>Dịch câu hỏi:</b> Điều nào sau đây là KHÔNG đúng theo đoạn văn?<br>A, B, C ❌ Đây là các ý đúng trong bài nên không chọn.<br>D. Hầu hết các nhà sử học hiện nay CHỈ sử dụng phim cho nghiên cứu. ✅ Sai với bài (nên là đáp án đúng cho câu hỏi NOT true). Bài nói họ vẫn tập trung vào viết lách.<br>🔍 <b>Dẫn chứng (Đoạn 2):</b> <span class="expl-quote">"However, most university historians still focus only on writing."</span><br>👉 Dịch: Tuy nhiên, <span class="keyword">hầu hết các nhà sử học đại học vẫn chỉ tập trung vào việc viết</span>.`
+                    }
+                ]
+            },
+            {
+                title: "PART 4: AI IN HOMEWORK",
+                paragraphs: [
+                    {
+                        en: "Today, students have many new tools to help them with homework. One of the most popular tools is Artificial Intelligence (AI), (37) ________. AI tools are fast and easy to use. Students can type a question and get the answer quickly. As long as an Internet connection is available, they can use AI anywhere. Many students use it to get ideas or even full essays. (38) ________. However, relying on AI too much can be harmful. If students always use AI, they may not improve their own writing. They might find it difficult to write on their own during exams, (39) ________. Also, using AI too often can make students lazier and less creative. It is important for students to write essays by themselves. (40) ________. Writing without help also allows them to share their personal thoughts and opinions. In the end, while AI can help, students should use it cautiously. Developing their own writing skills is vital for the future.",
+                        vi: "Ngày nay, học sinh có nhiều công cụ mới để giúp làm bài tập về nhà. Một trong những công cụ phổ biến nhất là Trí tuệ Nhân tạo (AI), (37) cái mà có thể giúp các nhiệm vụ viết lách. Các công cụ AI rất nhanh và dễ sử dụng. Học sinh có thể gõ một câu hỏi và nhận câu trả lời nhanh chóng. Miễn là có kết nối Internet, họ có thể sử dụng AI ở bất cứ đâu. Nhiều học sinh sử dụng nó để lấy ý tưởng hoặc thậm chí là các bài luận hoàn chỉnh. (38) Điều này tiết kiệm thời gian và giúp họ hoàn thành bài tập nhanh hơn. Tuy nhiên, dựa dẫm quá nhiều vào AI có thể gây hại. Nếu học sinh luôn sử dụng AI, họ có thể không cải thiện được kỹ năng viết của chính mình. Họ có thể thấy khó khăn khi tự viết trong các kỳ thi, (39) nơi mà điện thoại hoặc máy tính không được phép mang vào. Ngoài ra, sử dụng AI quá thường xuyên có thể làm học sinh lười biếng và ít sáng tạo hơn. Điều quan trọng là học sinh phải tự mình viết các bài luận. (40) Điều này giúp họ suy nghĩ rõ ràng, sắp xếp ý tưởng và quản lý thời gian. Viết mà không cần sự trợ giúp cũng cho phép họ chia sẻ những suy nghĩ và ý kiến cá nhân của mình. Cuối cùng, mặc dù AI có thể giúp ích, nhưng học sinh nên sử dụng nó một cách cẩn thận. Việc phát triển kỹ năng viết của bản thân là điều rất quan trọng cho tương lai."
+                    }
+                ],
+                glossary: [
+                    {w: "tool", p: "noun", m: "công cụ"},
+                    {w: "rely on", p: "phrasal verb", m: "dựa dẫm, phụ thuộc vào"},
+                    {w: "harmful", p: "adj", m: "có hại"},
+                    {w: "improve", p: "verb", m: "cải thiện"},
+                    {w: "lazy", p: "adj", m: "lười biếng"},
+                    {w: "creative", p: "adj", m: "sáng tạo"},
+                    {w: "cautiously", p: "adv", m: "một cách cẩn thận"},
+                    {w: "develop", p: "verb", m: "phát triển"},
+                    {w: "vital", p: "adj", m: "thiết yếu, cực kỳ quan trọng"},
+                    {w: "opinion", p: "noun", m: "ý kiến"}
+                ],
+                questions: [
+                    {
+                        id: 37, text: "Question 37. One of the most popular tools is Artificial Intelligence (AI), (37) ________.",
+                        options: [
+                            {t: "This saves time and helps them finish homework faster"},
+                            {t: "where phones or computers are not allowed"},
+                            {t: "This helps them think clearly, organise their ideas, and manage their time"},
+                            {t: "which can help with writing tasks", correct: true}
+                        ],
+                        expl: `<b>Dịch câu hỏi điền câu:</b> Một trong những công cụ phổ biến nhất là AI, ___<br>D. which can help with writing tasks ✅ Đúng. Dùng đại từ quan hệ 'which' thay thế cho 'AI' ở mệnh đề trước.<br>🔍 <b>Ngữ cảnh:</b> Đang giới thiệu về AI, mệnh đề quan hệ (D) bổ sung ý nghĩa hoàn hảo.`
+                    },
+                    {
+                        id: 38, text: "Question 38. Many students use it to get ideas or even full essays. (38) ________.",
+                        options: [
+                            {t: "This saves time and helps them finish homework faster", correct: true},
+                            {t: "where phones or computers are not allowed"},
+                            {t: "This helps them think clearly, organise their ideas..."},
+                            {t: "which can help with writing tasks"}
+                        ],
+                        expl: `<b>Dịch câu hỏi điền câu:</b> Nhiều học sinh dùng nó để lấy bài luận. (38) ___<br>A. Điều này tiết kiệm thời gian... ✅ Đúng. Nó giải thích kết quả của câu đằng trước (việc dùng AI giúp làm gì).<br>🔍 <b>Ngữ cảnh:</b> Đang nói về lợi ích nhanh chóng của AI.`
+                    },
+                    {
+                        id: 39, text: "Question 39. They might find it difficult to write on their own during exams, (39) ________.",
+                        options: [
+                            {t: "This saves time and helps them finish homework faster"},
+                            {t: "where phones or computers are not allowed", correct: true},
+                            {t: "This helps them think clearly, organise their ideas..."},
+                            {t: "which can help with writing tasks"}
+                        ],
+                        expl: `<b>Dịch câu hỏi điền câu:</b> Họ có thể thấy khó khăn khi tự viết trong các kỳ thi, (39) ___<br>B. nơi mà điện thoại hoặc máy tính không được phép mang vào. ✅ Đúng. 'where' thay cho 'exams' (phòng thi).<br>🔍 <b>Ngữ cảnh:</b> Giải thích tại sao phụ thuộc AI lại gây hại khi đi thi.`
+                    },
+                    {
+                        id: 40, text: "Question 40. It is important for students to write essays by themselves. (40) ________.",
+                        options: [
+                            {t: "This saves time and helps them finish homework faster"},
+                            {t: "where phones or computers are not allowed"},
+                            {t: "This helps them think clearly, organise their ideas, and manage their time", correct: true},
+                            {t: "which can help with writing tasks"}
+                        ],
+                        expl: `<b>Dịch câu hỏi điền câu:</b> Quan trọng là học sinh tự viết bài luận. (40) ___<br>C. Điều này giúp họ suy nghĩ rõ ràng... ✅ Đúng. Giải thích lợi ích của việc tự viết.<br>🔍 <b>Ngữ cảnh:</b> Củng cố luận điểm tại sao tự viết lại quan trọng.`
+                    }
+                ]
+            }
+        ];
+
+        // --- GLOBAL VARIABLES ---
+        let score = 0;
+        let totalQuestions = 0;
+        let isTimerRunning = false;
+        let timeLeft = 600; // 10 minutes
+        let timerInterval;
+        const explanationsDict = {}; // Lưu trữ riêng HTML để không bị lỗi dấu ngoặc kép
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        // --- INITIALIZATION ---
+        function initApp() {
+            renderContent();
+        }
+
+        // --- PASSWORD LOGIC ---
+        const pArr = [100-1, 110+1, 110-1, 90+7, 100+5, 90+7, 115-5, 110+7, 100+8, 105, 115];
+        
+        function checkPassword() {
+            const input = document.getElementById('pass-input').value;
+            const target = pArr.map(c => String.fromCharCode(c)).join('');
+            if (input === target) {
+                document.getElementById('password-modal').style.display = 'none';
+                document.getElementById('app-container').style.display = 'flex';
+                playSound('correct');
+            } else {
+                const modal = document.getElementById('password-content');
+                modal.classList.add('shake');
+                document.getElementById('pass-error').style.display = 'block';
+                document.getElementById('pass-input').classList.add('input-error');
+                playSound('wrong');
+                setTimeout(() => modal.classList.remove('shake'), 400);
+            }
+        }
+
+        // --- AUDIO API ---
+        function playSound(type) {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            
+            if (type === 'correct') {
+                oscillator.type = 'sine';
+                oscillator.frequency.setValueAtTime(523.25, audioCtx.currentTime);
+                oscillator.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.1);
+                gainNode.gain.setValueAtTime(0.5, audioCtx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+                oscillator.start(); oscillator.stop(audioCtx.currentTime + 0.5);
+            } else {
+                oscillator.type = 'sawtooth';
+                oscillator.frequency.setValueAtTime(300, audioCtx.currentTime);
+                oscillator.frequency.linearRampToValueAtTime(150, audioCtx.currentTime + 0.3);
+                gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                gainNode.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+                oscillator.start(); oscillator.stop(audioCtx.currentTime + 0.3);
+            }
+        }
+
+        // --- TIMER LOGIC ---
+        function toggleTimer() {
+            const btn = document.getElementById('btn-timer-control');
+            if (isTimerRunning) {
+                clearInterval(timerInterval);
+                btn.innerText = "TIẾP TỤC TÍNH GIỜ";
+                btn.style.background = "#00C9A7";
+            } else {
+                btn.innerText = "TẠM DỪNG TÍNH GIỜ";
+                btn.style.background = "#FF4757";
+                timerInterval = setInterval(() => {
+                    timeLeft--;
+                    let m = Math.floor(timeLeft / 60);
+                    let s = timeLeft % 60;
+                    document.getElementById('timer-display').innerText = `${m < 10 ? '0'+m : m}:${s < 10 ? '0'+s : s}`;
+                    if (timeLeft <= 0) {
+                        clearInterval(timerInterval);
+                        alert("Đã hết giờ làm bài! Bạn vẫn có thể tiếp tục làm, nhưng nhớ là trong phòng thi thật, bạn chỉ nên làm một bài như thế này trong 10 phút thôi nha.");
+                    }
+                }, 1000);
+            }
+            isTimerRunning = !isTimerRunning;
+        }
+
+        // --- SHUFFLE FUNCTION ---
+        function shuffleArray(array) {
+            let curId = array.length;
+            while (0 !== curId) {
+                let randId = Math.floor(Math.random() * curId);
+                curId -= 1;
+                let tmp = array[curId];
+                array[curId] = array[randId];
+                array[randId] = tmp;
+            }
+            return array;
+        }
+
+        // --- RENDER CONTENT ---
+        function renderContent() {
+            const readingPane = document.getElementById('reading-pane');
+            const questionPane = document.getElementById('question-pane');
+            let readingHtml = '';
+            let questionHtml = '';
+
+            testData.forEach((part, pIndex) => {
+                // Reading Side
+                readingHtml += `<h2 class="passage-title">${part.title}</h2>`;
+                part.paragraphs.forEach((para, prIndex) => {
+                    const transId = `trans-${pIndex}-${prIndex}`;
+                    readingHtml += `
+                        <p class="passage-text">${para.en}</p>
+                        <button class="btn-translate" onclick="toggleTranslation('${transId}')">🌟 Mở dịch đoạn này</button>
+                        <div id="${transId}" class="translation-text">${para.vi}</div>
+                    `;
+                });
+
+                // Glossary Table
+                if (part.glossary.length > 0) {
+                    readingHtml += `
+                        <table class="glossary-table">
+                            <tr><th>Từ vựng</th><th>Loại từ</th><th>Nghĩa Tiếng Việt</th></tr>
+                            ${part.glossary.map(g => `<tr><td><b>${g.w}</b></td><td><i>${g.p}</i></td><td>${g.m}</td></tr>`).join('')}
+                        </table>
+                    `;
+                }
+
+                // Question Side
+                part.questions.forEach((q) => {
+                    totalQuestions++;
+                    let optionsHTML = '';
+                    explanationsDict[q.id] = q.expl; // Lưu giải thích ra object riêng lẻ
+                    
+                    const shuffledOpts = shuffleArray([...q.options]);
+                    const letters = ['A', 'B', 'C', 'D'];
+                    
+                    shuffledOpts.forEach((opt, oIndex) => {
+                        const isCorr = opt.correct ? 'true' : 'false';
+                        optionsHTML += `
+                            <button class="option-btn" id="btn-${q.id}-${oIndex}" onclick="checkAnswer(${q.id}, ${oIndex}, ${isCorr})">
+                                <div><b>${letters[oIndex]}.</b></div>
+                                <div>${opt.t}</div>
+                            </button>
+                        `;
+                    });
+
+                    questionHtml += `
+                        <div class="question-card" id="qcard-${q.id}">
+                            <div class="question-text">${q.text}</div>
+                            <div class="options-grid" id="opts-${q.id}">
+                                ${optionsHTML}
+                            </div>
+                            <div class="explanation-box" id="expl-${q.id}"></div>
+                        </div>
+                    `;
+                });
+            });
+
+            readingPane.innerHTML = readingHtml;
+            // Insert questions before the submit container
+            questionPane.innerHTML = questionHtml + questionPane.innerHTML;
+        }
+
+        function toggleTranslation(id) {
+            const el = document.getElementById(id);
+            if (el.style.display === 'block') {
+                el.style.display = 'none';
+            } else {
+                el.style.display = 'block';
+            }
+        }
+
+        // --- ANSWER LOGIC ---
+        function checkAnswer(qId, oIndex, isCorrect) {
+            const optsContainer = document.getElementById(`opts-${qId}`);
+            const buttons = optsContainer.getElementsByClassName('option-btn');
+            const clickedBtn = document.getElementById(`btn-${qId}-${oIndex}`);
+            const explBox = document.getElementById(`expl-${qId}`);
+
+            // Disable all buttons in this question
+            for (let btn of buttons) {
+                btn.classList.add('disabled');
+            }
+
+            if (isCorrect) {
+                clickedBtn.classList.add('correct');
+                playSound('correct');
+                createConfetti();
+                score++;
+            } else {
+                clickedBtn.classList.add('wrong');
+                clickedBtn.classList.add('shake');
+                playSound('wrong');
+                
+                // Show the correct one automatically
+                for (let btn of buttons) {
+                    if (btn.getAttribute('onclick').includes('true')) {
+                        btn.classList.add('correct');
+                        btn.style.boxShadow = '0 0 15px #00D26A';
+                    }
+                }
+            }
+
+            // Gọi HTML giải thích ra từ Dictionary
+            explBox.innerHTML = explanationsDict[qId];
+            explBox.style.display = 'block';
+        }
+
+        // --- CONFETTI ---
+        function createConfetti() {
+            for (let i = 0; i < 30; i++) {
+                const conf = document.createElement('div');
+                conf.classList.add('confetti');
+                conf.style.left = Math.random() * 100 + 'vw';
+                conf.style.top = '-10px';
+                conf.style.backgroundColor = ['#FF4757', '#00D26A', '#FDCB6E', '#8854C0', '#0984e3'][Math.floor(Math.random() * 5)];
+                conf.style.animationDuration = (Math.random() * 2 + 1) + 's';
+                document.body.appendChild(conf);
+                setTimeout(() => conf.remove(), 3000);
+            }
+        }
+
+        // --- SUBMIT LOGIC ---
+        function openNameModal() {
+            document.getElementById('name-modal').style.display = 'flex';
+        }
+
+        function submitName() {
+            const name = document.getElementById('name-input').value.trim();
+            if (!name) {
+                document.getElementById('name-error').style.display = 'block';
+                document.getElementById('name-input').classList.add('input-error');
+                return;
+            }
+
+            document.getElementById('name-modal').style.display = 'none';
+            showResults(name);
+        }
+
+        function showResults(name) {
+            const modal = document.getElementById('result-modal');
+            const title = document.getElementById('result-title');
+            const scoreEl = document.getElementById('result-score');
+            const gif = document.getElementById('result-gif');
+            const msg = document.getElementById('result-message');
+
+            const percent = (score / totalQuestions) * 100;
+            scoreEl.innerText = `${score}/${totalQuestions}`;
+
+            if (percent === 100) {
+                title.innerText = `🌟 THIÊN TÀI!`;
+                msg.innerText = `${name} xuất sắc tuyệt đối! Giỏi quá đi mất!`;
+                gif.src = "https://media.giphy.com/media/11sBLVxNs7v6WA/giphy.gif";
+                playSound('correct'); createConfetti(); setTimeout(createConfetti, 1000);
+            } else if (percent >= 60) {
+                title.innerText = `👍 LÀM TỐT LẮM!`;
+                msg.innerText = `${name} đã rất cố gắng! Tiếp tục phát huy nhé!`;
+                gif.src = "https://media.giphy.com/media/3o7abKhOpu0NwenH3O/giphy.gif";
+                playSound('correct'); createConfetti();
+            } else {
+                title.innerText = `💪 CỐ LÊN NHÉ!`;
+                msg.innerText = `Không sao đâu ${name}! Sai ở đâu mình học ở đó, lần sau chắc chắn sẽ tốt hơn!`;
+                gif.src = "https://media.giphy.com/media/l2JhtKtDWYNKdRpoA/giphy.gif";
+                playSound('wrong');
+            }
+
+            modal.style.display = 'flex';
+        }
+
+        // --- KEY PRESS FOR MODALS ---
+        document.getElementById('pass-input').addEventListener('keypress', function(e) {
+            if(e.key === 'Enter') checkPassword();
+        });
+        document.getElementById('name-input').addEventListener('keypress', function(e) {
+            if(e.key === 'Enter') submitName();
+        });
+
+        // Run
+        initApp();
+    </script>
+</body>
+</html>

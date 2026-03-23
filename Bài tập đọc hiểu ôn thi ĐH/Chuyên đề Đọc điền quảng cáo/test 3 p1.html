@@ -1,0 +1,1320 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TEST 3 – ĐỌC ĐIỀN QUẢNG CÁO | Ms Mai An ULIS</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Baloo+2:wght@700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --green: #00D26A;
+  --green-light: #b8f5d8;
+  --red: #FF4757;
+  --gold: #FFD700;
+  --teal: #00C9A7;
+  --purple: #8854C0;
+  --bg1: #0f4c35;
+  --bg2: #1a6b4a;
+  --bg3: #0d3d2c;
+  --glass: rgba(255,255,255,0.12);
+  --glass-border: rgba(255,255,255,0.22);
+  --text-main: #f0fff8;
+  --text-muted: #a8dfc7;
+  --card-bg: rgba(15,76,53,0.72);
+  --option-bg: rgba(255,255,255,0.10);
+  --option-hover: rgba(0,210,106,0.18);
+  --shadow: 0 8px 32px rgba(0,0,0,0.28);
+  --radius: 18px;
+  --radius-sm: 12px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Nunito', sans-serif;
+  background: var(--bg1);
+  color: var(--text-main);
+  min-height: 100vh;
+  overflow: hidden;
+}
+
+/* ===== ANIMATED BACKGROUND ===== */
+.bg-gradient {
+  position: fixed; inset: 0; z-index: 0;
+  background: linear-gradient(135deg, #0f4c35, #1a6b4a, #0d3d2c, #165a40, #0a2e20);
+  background-size: 400% 400%;
+  animation: bgShift 12s ease infinite;
+}
+@keyframes bgShift {
+  0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%}
+}
+
+.bg-emojis {
+  position: fixed; inset: 0; z-index: 1; pointer-events: none;
+  overflow: hidden;
+}
+.bg-emojis span {
+  position: absolute;
+  font-size: 2.2rem;
+  opacity: 0.13;
+  animation: floatEmoji linear infinite;
+}
+@keyframes floatEmoji {
+  0%{transform:translateY(110vh) rotate(0deg);opacity:0.08}
+  10%{opacity:0.15}
+  90%{opacity:0.13}
+  100%{transform:translateY(-15vh) rotate(360deg);opacity:0.05}
+}
+
+/* ===== PASSWORD MODAL ===== */
+#pwOverlay {
+  position: fixed; inset: 0; z-index: 9999;
+  background: rgba(5,30,18,0.97);
+  display: flex; align-items: center; justify-content: center;
+}
+.pw-card {
+  background: rgba(15,76,53,0.9);
+  border: 2px solid var(--glass-border);
+  border-radius: 28px;
+  padding: 2.5rem 2.8rem 2.2rem;
+  text-align: center;
+  max-width: 400px; width: 90%;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  backdrop-filter: blur(20px);
+}
+.pw-card .lock-icon { font-size: 3.5rem; margin-bottom: 0.8rem; }
+.pw-card h2 { font-family: 'Baloo 2', sans-serif; font-size: 1.5rem; color: var(--gold); margin-bottom: 0.3rem; }
+.pw-card p { font-size: 0.93rem; color: var(--text-muted); margin-bottom: 1.4rem; }
+#pwInput {
+  width: 100%; padding: 0.75rem 1.1rem; border-radius: 12px; border: 2px solid var(--glass-border);
+  background: rgba(255,255,255,0.08); color: var(--text-main); font-family: 'Nunito', sans-serif;
+  font-size: 1.05rem; outline: none; transition: border 0.2s; text-align: center; letter-spacing: 2px;
+}
+#pwInput:focus { border-color: var(--teal); }
+#pwInput.shake { animation: shake 0.4s; border-color: var(--red); }
+#pwError { color: var(--red); font-size: 0.88rem; margin-top: 0.5rem; min-height: 1.2em; }
+#pwBtn {
+  margin-top: 1rem; width: 100%; padding: 0.75rem; border-radius: 12px; border: none;
+  background: linear-gradient(90deg, var(--teal), var(--green));
+  color: #fff; font-family: 'Baloo 2', sans-serif; font-size: 1.1rem; cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+  box-shadow: 0 4px 16px rgba(0,201,167,0.35);
+}
+#pwBtn:hover { transform: translateY(-2px); box-shadow: 0 7px 22px rgba(0,201,167,0.45); }
+@keyframes shake {
+  0%,100%{transform:translateX(0)} 20%{transform:translateX(-8px)} 40%{transform:translateX(8px)}
+  60%{transform:translateX(-6px)} 80%{transform:translateX(6px)}
+}
+
+/* ===== MAIN APP ===== */
+#app { display: none; position: relative; z-index: 2; height: 100vh; flex-direction: column; }
+#app.visible { display: flex; }
+
+/* ===== HEADER ===== */
+header {
+  background: rgba(10,46,32,0.85);
+  border-bottom: 1px solid var(--glass-border);
+  backdrop-filter: blur(16px);
+  padding: 0.55rem 1.5rem;
+  display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+  flex-shrink: 0; flex-wrap: wrap;
+  z-index: 10;
+}
+.header-title h1 {
+  font-family: 'Baloo 2', sans-serif; font-size: 1.18rem; color: var(--gold);
+  line-height: 1.2;
+}
+.header-title p { font-size: 0.78rem; color: var(--text-muted); }
+
+.header-controls { display: flex; align-items: center; gap: 0.7rem; flex-wrap: wrap; }
+
+#timerBtn {
+  padding: 0.45rem 1.1rem; border-radius: 20px; border: 2px solid var(--teal);
+  background: rgba(0,201,167,0.15); color: var(--teal); font-family: 'Nunito', sans-serif;
+  font-size: 0.88rem; font-weight: 700; cursor: pointer; transition: all 0.2s;
+}
+#timerBtn:hover { background: rgba(0,201,167,0.28); }
+
+#timerDisplay {
+  font-family: 'Baloo 2', sans-serif; font-size: 1.35rem; color: var(--gold);
+  min-width: 60px; text-align: center; display: none;
+}
+#timerDisplay.danger { color: var(--red); animation: pulse 0.8s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
+
+#pauseBtn {
+  display: none; padding: 0.38rem 0.9rem; border-radius: 20px; border: 2px solid var(--gold);
+  background: rgba(255,215,0,0.12); color: var(--gold); font-family: 'Nunito', sans-serif;
+  font-size: 0.82rem; font-weight: 700; cursor: pointer;
+}
+
+.progress-bar-wrap {
+  flex: 1; min-width: 120px; max-width: 220px;
+}
+.progress-label { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 3px; }
+.progress-bar { background: rgba(255,255,255,0.1); border-radius: 10px; height: 8px; overflow: hidden; }
+.progress-fill { height: 100%; background: linear-gradient(90deg, var(--teal), var(--green)); border-radius: 10px; transition: width 0.4s; width: 0%; }
+
+#submitBtn {
+  padding: 0.5rem 1.2rem; border-radius: 20px; border: none;
+  background: linear-gradient(90deg, var(--gold), #ffb300);
+  color: #1a1a1a; font-family: 'Baloo 2', sans-serif; font-size: 0.92rem; font-weight: 800;
+  cursor: pointer; white-space: nowrap;
+  box-shadow: 0 3px 12px rgba(255,215,0,0.35); transition: transform 0.15s;
+}
+#submitBtn:hover { transform: translateY(-2px); }
+
+/* ===== SPLIT SCREEN ===== */
+.split-screen {
+  display: flex; flex: 1; overflow: hidden; gap: 0;
+}
+
+/* ===== LEFT PANEL ===== */
+.left-panel {
+  width: 46%; flex-shrink: 0;
+  overflow-y: auto; overflow-x: hidden;
+  padding: 1.2rem 1rem 1.2rem 1.2rem;
+  border-right: 1px solid var(--glass-border);
+  scroll-behavior: smooth;
+}
+.left-panel::-webkit-scrollbar { width: 5px; }
+.left-panel::-webkit-scrollbar-track { background: transparent; }
+.left-panel::-webkit-scrollbar-thumb { background: rgba(0,210,106,0.3); border-radius: 10px; }
+
+.exercise-block { margin-bottom: 2rem; }
+.exercise-label {
+  display: inline-block; background: linear-gradient(90deg, var(--teal), var(--green));
+  color: #fff; font-family: 'Baloo 2', sans-serif; font-size: 0.9rem;
+  padding: 0.3rem 1rem; border-radius: 20px; margin-bottom: 0.7rem;
+}
+.passage-title {
+  font-family: 'Baloo 2', sans-serif; font-size: 1.12rem; color: var(--gold);
+  margin-bottom: 0.5rem; text-align: center;
+}
+.passage-source {
+  font-size: 0.78rem; color: var(--text-muted); text-align: right; font-style: italic; margin-bottom: 0.6rem;
+}
+
+.passage-card {
+  background: var(--glass);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius);
+  padding: 1rem 1.1rem;
+  backdrop-filter: blur(10px);
+  font-size: 0.97rem;
+  line-height: 1.8;
+  margin-bottom: 0.7rem;
+}
+
+.blank {
+  display: inline-block;
+  min-width: 90px; padding: 0 6px;
+  border-bottom: 2px solid var(--teal);
+  text-align: center; font-weight: 700; font-size: 0.93rem;
+  transition: color 0.3s, border-color 0.3s;
+  color: var(--text-muted);
+}
+.blank.correct { color: var(--green); border-color: var(--green); }
+.blank.wrong { color: var(--red); border-color: var(--red); text-decoration: line-through; }
+
+.translate-btn {
+  display: block; margin: 0 auto 0.3rem;
+  background: rgba(255,215,0,0.12); border: 1.5px solid var(--gold);
+  color: var(--gold); font-family: 'Nunito', sans-serif; font-size: 0.83rem; font-weight: 700;
+  padding: 0.35rem 1rem; border-radius: 20px; cursor: pointer; transition: all 0.2s;
+}
+.translate-btn:hover { background: rgba(255,215,0,0.22); }
+
+.translation-box {
+  display: none;
+  background: rgba(255,215,0,0.08);
+  border: 1px solid rgba(255,215,0,0.25);
+  border-radius: var(--radius-sm);
+  padding: 0.75rem 1rem;
+  font-size: 0.88rem; line-height: 1.7;
+  color: #ffe08a; margin-bottom: 0.7rem;
+}
+
+/* Glossary */
+.glossary-title {
+  font-family: 'Baloo 2', sans-serif; font-size: 0.98rem; color: var(--teal);
+  margin: 1rem 0 0.5rem;
+}
+.glossary-table { width: 100%; border-collapse: collapse; font-size: 0.83rem; }
+.glossary-table th {
+  background: rgba(0,201,167,0.18); color: var(--teal);
+  padding: 0.4rem 0.6rem; text-align: left;
+  border-bottom: 1px solid rgba(0,201,167,0.3);
+}
+.glossary-table td {
+  padding: 0.38rem 0.6rem; border-bottom: 1px solid rgba(255,255,255,0.06);
+  vertical-align: top;
+}
+.glossary-table tr:hover td { background: rgba(255,255,255,0.04); }
+.word-cell { font-weight: 800; color: var(--text-main); }
+.pos-cell { color: var(--gold); font-style: italic; }
+.vi-cell { color: var(--text-muted); }
+
+/* ===== RIGHT PANEL ===== */
+.right-panel {
+  flex: 1;
+  overflow-y: auto; overflow-x: hidden;
+  padding: 1.2rem 1.2rem 1.2rem 1rem;
+  scroll-behavior: smooth;
+}
+.right-panel::-webkit-scrollbar { width: 5px; }
+.right-panel::-webkit-scrollbar-thumb { background: rgba(0,210,106,0.3); border-radius: 10px; }
+
+.q-section-title {
+  font-family: 'Baloo 2', sans-serif; font-size: 0.92rem;
+  color: var(--teal); margin-bottom: 0.8rem; margin-top: 0.5rem;
+  border-left: 3px solid var(--teal); padding-left: 0.6rem;
+}
+
+.question-card {
+  background: var(--glass);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius);
+  padding: 1rem 1.1rem;
+  margin-bottom: 1rem;
+  backdrop-filter: blur(10px);
+  transition: box-shadow 0.2s;
+}
+.question-card:hover { box-shadow: 0 6px 24px rgba(0,210,106,0.12); }
+
+.q-number {
+  display: inline-block; background: linear-gradient(135deg, var(--teal), var(--green));
+  color: #fff; font-family: 'Baloo 2', sans-serif; font-size: 0.82rem;
+  padding: 0.18rem 0.65rem; border-radius: 20px; margin-bottom: 0.55rem;
+}
+.q-text { font-size: 1rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.75rem; line-height: 1.5; }
+
+.options-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;
+}
+.option-btn {
+  background: var(--option-bg);
+  border: 2px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+  padding: 0.5rem 0.7rem;
+  color: var(--text-main);
+  font-family: 'Nunito', sans-serif; font-size: 0.93rem; font-weight: 600;
+  cursor: pointer; text-align: left; line-height: 1.4;
+  transition: all 0.18s;
+  position: relative; overflow: hidden;
+}
+.option-btn:hover:not(:disabled) {
+  background: var(--option-hover); border-color: var(--green); transform: translateY(-1px);
+}
+.option-btn:disabled { cursor: default; }
+.option-btn.correct {
+  background: rgba(0,210,106,0.22); border-color: var(--green); color: var(--green);
+}
+.option-btn.wrong {
+  background: rgba(255,71,87,0.22); border-color: var(--red); color: var(--red);
+}
+.option-btn.correct-reveal {
+  background: rgba(0,210,106,0.15); border-color: var(--green); color: var(--green);
+  animation: pulse-green 0.6s;
+}
+@keyframes pulse-green { 0%,100%{box-shadow:none} 50%{box-shadow:0 0 0 4px rgba(0,210,106,0.3)} }
+.option-btn.shake { animation: shake 0.4s; }
+
+.opt-letter {
+  display: inline-block; font-family: 'Baloo 2', sans-serif;
+  font-size: 0.82rem; margin-right: 5px; color: var(--teal);
+}
+.option-btn.correct .opt-letter, .option-btn.correct-reveal .opt-letter { color: var(--green); }
+.option-btn.wrong .opt-letter { color: var(--red); }
+
+/* Explanation */
+.explanation-box {
+  display: none;
+  margin-top: 0.7rem;
+  background: rgba(0,0,0,0.25);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: var(--radius-sm);
+  padding: 0.8rem 0.9rem;
+  font-size: 0.88rem; line-height: 1.7;
+}
+.exp-q-vi { color: var(--gold); font-weight: 700; margin-bottom: 0.5rem; font-size: 0.9rem; }
+.exp-option { margin: 0.22rem 0; }
+.exp-option .opt-tag { font-weight: 800; }
+.exp-option .correct-tag { color: var(--green); }
+.exp-option .wrong-tag { color: var(--red); }
+.exp-evidence {
+  margin-top: 0.55rem;
+  background: rgba(0,201,167,0.08);
+  border-left: 3px solid var(--teal);
+  padding: 0.5rem 0.7rem;
+  border-radius: 0 8px 8px 0;
+}
+.exp-evidence .ev-label { font-size: 0.78rem; color: var(--teal); font-weight: 700; margin-bottom: 0.25rem; }
+.exp-evidence .ev-en { color: var(--text-main); font-style: italic; }
+.exp-evidence .ev-vi { color: #ffe08a; margin-top: 0.2rem; }
+.kw { color: var(--red); font-weight: 900; }
+
+/* ===== TIMEOUT BANNER ===== */
+#timeoutBanner {
+  display: none; position: fixed; top: 60px; left: 50%; transform: translateX(-50%);
+  background: rgba(255,71,87,0.95); color: #fff;
+  padding: 0.7rem 1.5rem; border-radius: 12px; font-size: 0.88rem; font-weight: 700;
+  z-index: 100; max-width: 92vw; text-align: center; line-height: 1.5;
+  box-shadow: 0 4px 20px rgba(255,71,87,0.4);
+}
+
+/* ===== NAME MODAL ===== */
+.modal-overlay {
+  display: none; position: fixed; inset: 0; z-index: 500;
+  background: rgba(5,30,18,0.88); align-items: center; justify-content: center;
+  backdrop-filter: blur(6px);
+}
+.modal-overlay.active { display: flex; }
+.modal-card {
+  background: rgba(15,76,53,0.95);
+  border: 2px solid var(--glass-border);
+  border-radius: 24px; padding: 2rem 2.2rem;
+  max-width: 420px; width: 92%; text-align: center;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+}
+.modal-card h2 { font-family: 'Baloo 2', sans-serif; font-size: 1.4rem; color: var(--gold); margin-bottom: 0.5rem; }
+.modal-card p { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.2rem; }
+#nameInput {
+  width: 100%; padding: 0.7rem 1rem; border-radius: 12px;
+  border: 2px solid var(--glass-border); background: rgba(255,255,255,0.08);
+  color: var(--text-main); font-family: 'Nunito', sans-serif; font-size: 1rem; outline: none;
+}
+#nameInput:focus { border-color: var(--teal); }
+#nameInput.err { border-color: var(--red); }
+#nameError { color: var(--red); font-size: 0.83rem; margin-top: 0.4rem; min-height: 1.1em; }
+#nameSubmitBtn {
+  margin-top: 1rem; width: 100%; padding: 0.72rem;
+  border-radius: 12px; border: none;
+  background: linear-gradient(90deg, var(--teal), var(--green));
+  color: #fff; font-family: 'Baloo 2', sans-serif; font-size: 1.1rem; cursor: pointer;
+  box-shadow: 0 4px 16px rgba(0,201,167,0.3); transition: transform 0.15s;
+}
+#nameSubmitBtn:hover { transform: translateY(-2px); }
+
+/* ===== RESULT MODAL ===== */
+#resultModal .modal-card { max-width: 480px; }
+.result-title { font-family: 'Baloo 2', sans-serif; font-size: 1.6rem; color: var(--gold); margin-bottom: 0.3rem; line-height: 1.3; }
+.result-score { font-family: 'Baloo 2', sans-serif; font-size: 3rem; color: var(--green); margin: 0.5rem 0; }
+.result-comment { font-size: 1rem; color: var(--text-main); margin-bottom: 1rem; line-height: 1.6; }
+.result-meme {
+  width: 100%; max-height: 200px; object-fit: contain;
+  border-radius: 14px; margin-bottom: 1rem;
+}
+.result-btns { display: flex; gap: 0.8rem; justify-content: center; flex-wrap: wrap; }
+.result-btn {
+  padding: 0.6rem 1.4rem; border-radius: 20px; border: none;
+  font-family: 'Baloo 2', sans-serif; font-size: 0.95rem; cursor: pointer; transition: transform 0.15s;
+}
+.result-btn:hover { transform: translateY(-2px); }
+.btn-retry { background: linear-gradient(90deg,var(--teal),var(--green)); color: #fff; }
+.btn-review { background: rgba(255,255,255,0.12); color: var(--text-main); border: 1.5px solid var(--glass-border); }
+
+/* ===== CONFETTI ===== */
+.confetti-piece {
+  position: fixed; width: 10px; height: 10px; border-radius: 2px;
+  pointer-events: none; z-index: 9999;
+  animation: confettiFall 1.2s ease forwards;
+}
+@keyframes confettiFall {
+  0%{transform:translateY(0) rotate(0deg);opacity:1}
+  100%{transform:translateY(200px) rotate(720deg);opacity:0}
+}
+
+/* ===== RESPONSIVE ===== */
+@media(max-width:700px) {
+  .split-screen { flex-direction: column; overflow-y: auto; overflow-x: hidden; }
+  .left-panel, .right-panel { width: 100%; overflow: visible; }
+  .left-panel { border-right: none; border-bottom: 1px solid var(--glass-border); }
+  body { overflow: auto; }
+  #app.visible { height: auto; overflow: auto; }
+  .options-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- Animated Background -->
+<div class="bg-gradient"></div>
+<div class="bg-emojis" id="bgEmojis"></div>
+
+<!-- Password Modal -->
+<div id="pwOverlay">
+  <div class="pw-card">
+    <div class="lock-icon">🔐</div>
+    <h2>TEST 3 – ĐỌC ĐIỀN QUẢNG CÁO</h2>
+    <p>Ms Mai An ULIS · Nhập mật khẩu để bắt đầu</p>
+    <input type="password" id="pwInput" placeholder="Mật khẩu..." autocomplete="off">
+    <div id="pwError"></div>
+    <button id="pwBtn">🚀 VÀO BÀI THI</button>
+  </div>
+</div>
+
+<!-- Name Modal -->
+<div class="modal-overlay" id="nameModal">
+  <div class="modal-card">
+    <h2>📝 Nhập tên của bạn</h2>
+    <p>Để cá nhân hóa kết quả bài thi nha!</p>
+    <input type="text" id="nameInput" placeholder="Ví dụ: Nguyễn Văn A..." maxlength="50">
+    <div id="nameError"></div>
+    <button id="nameSubmitBtn">✅ XEM KẾT QUẢ</button>
+  </div>
+</div>
+
+<!-- Result Modal -->
+<div class="modal-overlay" id="resultModal">
+  <div class="modal-card">
+    <div class="result-title" id="resultTitle"></div>
+    <div class="result-score" id="resultScore"></div>
+    <div class="result-comment" id="resultComment"></div>
+    <img class="result-meme" id="resultMeme" src="" alt="meme" onerror="this.style.display='none'">
+    <div class="result-btns">
+      <button class="result-btn btn-retry" onclick="retryQuiz()">🔄 Làm lại</button>
+      <button class="result-btn btn-review" onclick="closeResult()">👀 Xem lại bài</button>
+    </div>
+  </div>
+</div>
+
+<!-- Timeout Banner -->
+<div id="timeoutBanner">
+  ⏰ Đã hết giờ làm bài. Bạn vẫn có thể tiếp tục làm, nhưng nhớ là trong phòng thi thật, bạn chỉ nên làm một bài như thế này trong 10 phút thôi nha.
+</div>
+
+<!-- Main App -->
+<div id="app">
+  <!-- Header -->
+  <header>
+    <div class="header-title">
+      <h1>TEST 3 – ĐỌC ĐIỀN QUẢNG CÁO</h1>
+      <p>Giáo viên: Ms Mai An ULIS</p>
+    </div>
+    <div class="header-controls">
+      <button id="timerBtn" onclick="startTimer()">⏱ BẮT ĐẦU TÍNH GIỜ</button>
+      <div id="timerDisplay">10:00</div>
+      <button id="pauseBtn" onclick="togglePause()">⏸ Tạm dừng</button>
+      <div class="progress-bar-wrap">
+        <div class="progress-label">Tiến độ: <span id="progressText">0/18</span></div>
+        <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+      </div>
+      <button id="submitBtn" onclick="openNameModal()">🎯 NỘP BÀI & XEM KẾT QUẢ</button>
+    </div>
+  </header>
+
+  <!-- Split Screen -->
+  <div class="split-screen">
+    <!-- LEFT PANEL: Reading Passages -->
+    <div class="left-panel" id="leftPanel"></div>
+    <!-- RIGHT PANEL: Questions -->
+    <div class="right-panel" id="rightPanel"></div>
+  </div>
+</div>
+
+<script>
+// ===== PASSWORD =====
+const PW_ASCII = [99,111,109,97,105,97,110,117,108,105,115];
+const correctPW = PW_ASCII.map(c=>String.fromCharCode(c)).join('');
+
+document.getElementById('pwBtn').addEventListener('click', checkPW);
+document.getElementById('pwInput').addEventListener('keydown', e => { if(e.key==='Enter') checkPW(); });
+
+function checkPW() {
+  const val = document.getElementById('pwInput').value;
+  const err = document.getElementById('pwError');
+  if(val === correctPW) {
+    document.getElementById('pwOverlay').style.display = 'none';
+    document.getElementById('app').classList.add('visible');
+    buildApp();
+  } else {
+    err.textContent = '❌ Mật khẩu không đúng. Vui lòng thử lại!';
+    const inp = document.getElementById('pwInput');
+    inp.classList.remove('shake');
+    void inp.offsetWidth;
+    inp.classList.add('shake');
+    inp.value = '';
+    setTimeout(()=>inp.classList.remove('shake'),500);
+  }
+}
+
+// ===== FLOATING EMOJIS =====
+function buildEmojis() {
+  const emojis = ['🚦','🌿','📚','🎓','🌱','♻️','🛣️','🇻🇳','📖','🌍','🚗','✏️','🏫','🌳'];
+  const cont = document.getElementById('bgEmojis');
+  cont.innerHTML = '';
+  for(let i=0;i<18;i++){
+    const s = document.createElement('span');
+    s.textContent = emojis[i%emojis.length];
+    s.style.left = (Math.random()*100)+'%';
+    s.style.animationDuration = (18+Math.random()*20)+'s';
+    s.style.animationDelay = (Math.random()*18)+'s';
+    s.style.fontSize = (1.4+Math.random()*1.8)+'rem';
+    cont.appendChild(s);
+  }
+}
+buildEmojis();
+
+// ===== DATA =====
+// Shuffle utility
+function shuffleArray(arr) {
+  const a = [...arr];
+  for(let i=a.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+  return a;
+}
+
+// Each question: id, blank (number in passage), text (displayed as fill-in), options [{letter,text}], correct (letter), explanation
+const rawQuestions = [
+  {
+    id:1, blank:1,
+    qText:'Question 1: New fines for (1)_______ the traffic lights in Vietnam...',
+    options:[
+      {letter:'A',text:'walking'},{letter:'B',text:'skipping'},
+      {letter:'C',text:'jumping'},{letter:'D',text:'kicking'}
+    ],
+    correct:'C',
+    qVi:'Câu 1: Tiền phạt mới cho việc (1)_______ đèn giao thông ở Việt Nam...',
+    explanations:{
+      A:'walking (đi bộ) ❌ Sai — không có cụm từ "walk the traffic lights" trong tiếng Anh.',
+      B:'skipping (nhảy qua) ❌ Sai — "skip the traffic lights" không phải thành ngữ cố định.',
+      C:'jumping (vượt) ✅ Đúng — "jump the traffic lights" là thành ngữ cố định nghĩa là vượt đèn đỏ.',
+      D:'kicking (đá) ❌ Sai — không tồn tại cụm "kick the traffic lights".'
+    },
+    evidenceEn:'"New fines for (1) ____ the traffic lights in Vietnam are now effective from January 1, 2025."',
+    evidenceVi:'Tiền phạt mới cho việc <span class="kw">vượt đèn đỏ</span> ở Việt Nam hiện có hiệu lực từ ngày 1 tháng 1 năm 2025.',
+    keyword:'jump the traffic lights'
+  },
+  {
+    id:2, blank:2,
+    qText:'Question 2: ...are now (2)_______ from January 1, 2025.',
+    options:[
+      {letter:'A',text:'effect'},{letter:'B',text:'affect'},
+      {letter:'C',text:'effective'},{letter:'D',text:'effectively'}
+    ],
+    correct:'C',
+    qVi:'Câu 2: ...hiện có (2)_______ từ ngày 1 tháng 1 năm 2025.',
+    explanations:{
+      A:'effect (danh từ: hiệu quả, tác dụng) ❌ Sai — vị trí này cần tính từ (be + adj), không phải danh từ.',
+      B:'affect (động từ: ảnh hưởng) ❌ Sai — là động từ, không dùng sau "are now".',
+      C:'effective (tính từ: có hiệu lực) ✅ Đúng — "be effective from" = có hiệu lực từ. Cấu trúc be + adj.',
+      D:'effectively (trạng từ: một cách hiệu quả) ❌ Sai — trạng từ không đứng sau "are now" trong cấu trúc này.'
+    },
+    evidenceEn:'"...are now (2) ______ from January 1, 2025."',
+    evidenceVi:'...hiện <span class="kw">có hiệu lực</span> từ ngày 1 tháng 1 năm 2025.',
+    keyword:'be effective from'
+  },
+  {
+    id:3, blank:3,
+    qText:'Question 3: Drivers (3)_______ this law will face penalties up to VND20 million.',
+    options:[
+      {letter:'A',text:'violated'},{letter:'B',text:'to violate'},
+      {letter:'C',text:'violating'},{letter:'D',text:'are violated'}
+    ],
+    correct:'C',
+    qVi:'Câu 3: Tài xế (3)_______ luật này sẽ đối mặt với mức phạt lên đến 20 triệu đồng.',
+    explanations:{
+      A:'violated (quá khứ đơn/quá khứ phân từ) ❌ Sai — nếu dùng V-ed rút gọn bị động thì cần "who are violated" nhưng nghĩa không hợp lý.',
+      B:'to violate (động từ nguyên mẫu) ❌ Sai — to V không dùng để rút gọn mệnh đề quan hệ chủ động.',
+      C:'violating (V-ing) ✅ Đúng — rút gọn mệnh đề quan hệ chủ động: "who violate" → "violating".',
+      D:'are violated (bị động) ❌ Sai — tài xế là chủ thể hành động, không bị động.'
+    },
+    evidenceEn:'"Drivers (3) ______ this law will face penalties up to VND20 million."',
+    evidenceVi:'Tài xế <span class="kw">vi phạm</span> luật này sẽ đối mặt với mức phạt lên đến 20 triệu đồng.',
+    keyword:'rút gọn mệnh đề quan hệ chủ động → V-ing'
+  },
+  {
+    id:4, blank:4,
+    qText:'Question 4: Be aware (4)_______ these changes and help create...',
+    options:[
+      {letter:'A',text:'of'},{letter:'B',text:'with'},
+      {letter:'C',text:'at'},{letter:'D',text:'about'}
+    ],
+    correct:'A',
+    qVi:'Câu 4: Hãy nhận thức (4)_______ những thay đổi này và giúp tạo ra...',
+    explanations:{
+      A:'of ✅ Đúng — "be aware of" là collocation cố định nghĩa là "nhận thức được về điều gì".',
+      B:'with ❌ Sai — "be aware with" không tồn tại.',
+      C:'at ❌ Sai — "be aware at" không phải cụm từ chuẩn.',
+      D:'about ❌ Sai — "be aware about" không phải collocation chuẩn trong tiếng Anh; phải dùng "of".'
+    },
+    evidenceEn:'"Be aware (4) ______ these changes..."',
+    evidenceVi:'Hãy <span class="kw">nhận thức được về</span> những thay đổi này...',
+    keyword:'be aware of (collocation cố định)'
+  },
+  {
+    id:5, blank:5,
+    qText:'Question 5: ...and help create a (5)_______.',
+    options:[
+      {letter:'A',text:'driving responsible culture'},
+      {letter:'B',text:'responsible driving culture'},
+      {letter:'C',text:'culture responsible driving'},
+      {letter:'D',text:'responsible culture driving'}
+    ],
+    correct:'B',
+    qVi:'Câu 5: ...và giúp tạo ra một (5)_______.',
+    explanations:{
+      A:'driving responsible culture ❌ Sai — sai trật tự từ; tính từ phải đứng trước danh từ nó bổ nghĩa.',
+      B:'responsible driving culture ✅ Đúng — "responsible" bổ nghĩa cho "driving culture", trật tự Adj + N + N chuẩn tiếng Anh.',
+      C:'culture responsible driving ❌ Sai — danh từ không đứng trước tính từ trong cấu trúc này.',
+      D:'responsible culture driving ❌ Sai — "culture driving" không có nghĩa.'
+    },
+    evidenceEn:'"...and help create a (5) ______ responsible driving culture."',
+    evidenceVi:'...và giúp tạo ra một <span class="kw">văn hóa lái xe có trách nhiệm</span>.',
+    keyword:'responsible driving culture = Adj + N + N'
+  },
+  {
+    id:6, blank:6,
+    qText:'Question 6: ...and avoid (6)_______ hefty fines.',
+    options:[
+      {letter:'A',text:'to face'},{letter:'B',text:'facing'},
+      {letter:'C',text:'face'},{letter:'D',text:'to facing'}
+    ],
+    correct:'B',
+    qVi:'Câu 6: ...và tránh (6)_______ mức phạt nặng.',
+    explanations:{
+      A:'to face ❌ Sai — sau "avoid" không dùng to-infinitive.',
+      B:'facing (V-ing) ✅ Đúng — "avoid + V-ing" là cấu trúc bắt buộc; "avoid facing" = tránh phải đối mặt.',
+      C:'face (nguyên mẫu) ❌ Sai — động từ nguyên mẫu không đứng sau "avoid".',
+      D:'to facing ❌ Sai — không có cấu trúc "to + V-ing".'
+    },
+    evidenceEn:'"...follow traffic rules and avoid (6) ______ hefty fines."',
+    evidenceVi:'...tuân thủ luật giao thông và <span class="kw">tránh phải chịu</span> mức phạt nặng.',
+    keyword:'avoid + V-ing (cấu trúc bắt buộc)'
+  },
+  {
+    id:7, blank:7,
+    qText:'Question 7: Vietnam is embracing a (7)_______ with projects like the \'House with Many Leaves\'...',
+    options:[
+      {letter:'A',text:'fascinating movement green'},
+      {letter:'B',text:'movement fascinating green'},
+      {letter:'C',text:'green fascinating movement'},
+      {letter:'D',text:'fascinating green movement'}
+    ],
+    correct:'D',
+    qVi:'Câu 7: Việt Nam đang đón nhận một (7)_______ với các dự án như "Ngôi nhà nhiều lá"...',
+    explanations:{
+      A:'fascinating movement green ❌ Sai — "green" (tính từ phân loại) phải đứng sát trước danh từ.',
+      B:'movement fascinating green ❌ Sai — danh từ không đứng đầu cụm danh từ có tính từ bổ nghĩa.',
+      C:'green fascinating movement ❌ Sai — "fascinating" (tính từ đánh giá) phải đứng trước "green".',
+      D:'fascinating green movement ✅ Đúng — trật tự: Adj đánh giá (fascinating) + Adj phân loại/màu sắc (green) + N (movement).'
+    },
+    evidenceEn:'"Vietnam is embracing a (7) ______ with projects like the \'House with Many Leaves\' in Ho Chi Minh City."',
+    evidenceVi:'Việt Nam đang đón nhận một <span class="kw">phong trào xanh đầy hấp dẫn</span> với các dự án như "Ngôi nhà nhiều lá" ở TP.HCM.',
+    keyword:'fascinating green movement = Adj đánh giá + Adj phân loại + N'
+  },
+  {
+    id:8, blank:8,
+    qText:'Question 8: ...projects like the \'House with Many Leaves\' in Ho Chi Minh City, (8)_______ to promote eco-friendly living.',
+    options:[
+      {letter:'A',text:'to established'},{letter:'B',text:'established'},
+      {letter:'C',text:'are established'},{letter:'D',text:'establishing'}
+    ],
+    correct:'B',
+    qVi:'Câu 8: ...các dự án như "Ngôi nhà nhiều lá", (8)_______ để thúc đẩy lối sống thân thiện môi trường.',
+    explanations:{
+      A:'to established ❌ Sai — "to + V-ed" không phải cấu trúc đúng.',
+      B:'established ✅ Đúng — rút gọn mệnh đề quan hệ bị động: "which is established" → "established".',
+      C:'are established ❌ Sai — mệnh đề quan hệ đầy đủ, không phải dạng rút gọn phù hợp ở đây.',
+      D:'establishing ❌ Sai — V-ing = rút gọn chủ động; nhưng dự án được thành lập (bị động) nên dùng V-ed.'
+    },
+    evidenceEn:'"...the \'House with Many Leaves\' in Ho Chi Minh City, (8) ______ to promote eco-friendly living."',
+    evidenceVi:'..."Ngôi nhà nhiều lá" ở TP.HCM, <span class="kw">được thành lập</span> để thúc đẩy lối sống thân thiện với môi trường.',
+    keyword:'which is established → established (rút gọn bị động)'
+  },
+  {
+    id:9, blank:9,
+    qText:'Question 9: These initiatives aim (9)_______ a sustainable and environmentally friendly future.',
+    options:[
+      {letter:'A',text:'creating'},{letter:'B',text:'to create'},
+      {letter:'C',text:'create'},{letter:'D',text:'to creating'}
+    ],
+    correct:'B',
+    qVi:'Câu 9: Những sáng kiến này nhằm (9)_______ một tương lai bền vững và thân thiện với môi trường.',
+    explanations:{
+      A:'creating (V-ing) ❌ Sai — sau "aim" không dùng V-ing trực tiếp.',
+      B:'to create ✅ Đúng — "aim to + V" là cấu trúc cố định, nghĩa là "có mục tiêu làm gì".',
+      C:'create (nguyên mẫu) ❌ Sai — cần "to" trước động từ sau "aim".',
+      D:'to creating ❌ Sai — không có cấu trúc "to + V-ing".'
+    },
+    evidenceEn:'"These initiatives aim (9) ______ a sustainable and environmentally friendly future."',
+    evidenceVi:'Những sáng kiến này <span class="kw">nhằm mục tiêu tạo ra</span> một tương lai bền vững và thân thiện với môi trường.',
+    keyword:'aim to + V (cấu trúc cố định)'
+  },
+  {
+    id:10, blank:10,
+    qText:'Question 10: ...begin to pay attention (10)_______ the importance of protecting the environment.',
+    options:[
+      {letter:'A',text:'for'},{letter:'B',text:'to'},
+      {letter:'C',text:'about'},{letter:'D',text:'with'}
+    ],
+    correct:'B',
+    qVi:'Câu 10: ...bắt đầu chú ý (10)_______ tầm quan trọng của việc bảo vệ môi trường.',
+    explanations:{
+      A:'for ❌ Sai — "pay attention for" không phải collocation chuẩn.',
+      B:'to ✅ Đúng — "pay attention to" là collocation cố định, nghĩa là "chú ý đến điều gì".',
+      C:'about ❌ Sai — "pay attention about" không tồn tại.',
+      D:'with ❌ Sai — "pay attention with" sai hoàn toàn.'
+    },
+    evidenceEn:'"As communities begin to pay attention (10) ______ the importance of protecting the environment..."',
+    evidenceVi:'Khi các cộng đồng bắt đầu <span class="kw">chú ý đến</span> tầm quan trọng của việc bảo vệ môi trường...',
+    keyword:'pay attention to (collocation cố định)'
+  },
+  {
+    id:11, blank:11,
+    qText:'Question 11: ...it\'s a reminder not to (11)_______ nature\'s resources for granted.',
+    options:[
+      {letter:'A',text:'take'},{letter:'B',text:'catch'},
+      {letter:'C',text:'give'},{letter:'D',text:'bring'}
+    ],
+    correct:'A',
+    qVi:'Câu 11: ...đây là lời nhắc nhở không được (11)_______ tài nguyên thiên nhiên là điều hiển nhiên.',
+    explanations:{
+      A:'take ✅ Đúng — "take sth for granted" là idiom cố định = coi điều gì đó là hiển nhiên, không biết trân trọng.',
+      B:'catch ❌ Sai — "catch sth for granted" không phải idiom tiếng Anh.',
+      C:'give ❌ Sai — "give sth for granted" không tồn tại.',
+      D:'bring ❌ Sai — "bring sth for granted" không phải idiom.'
+    },
+    evidenceEn:'"...it\'s a reminder not to (11) ______ nature\'s resources for granted."',
+    evidenceVi:'...đây là lời nhắc nhở không được <span class="kw">coi tài nguyên thiên nhiên là điều hiển nhiên</span>.',
+    keyword:'take sth for granted (idiom cố định)'
+  },
+  {
+    id:12, blank:12,
+    qText:'Question 12: Together, we can build a (12)_______ future!',
+    options:[
+      {letter:'A',text:'sustain'},{letter:'B',text:'sustainable'},
+      {letter:'C',text:'sustenance'},{letter:'D',text:'sustainably'}
+    ],
+    correct:'B',
+    qVi:'Câu 12: Cùng nhau, chúng ta có thể xây dựng một tương lai (12)_______!',
+    explanations:{
+      A:'sustain (động từ: duy trì) ❌ Sai — cần tính từ để bổ nghĩa cho "future".',
+      B:'sustainable (tính từ: bền vững) ✅ Đúng — Adj + N; "sustainable" bổ nghĩa cho "future".',
+      C:'sustenance (danh từ: lương thực, sự duy trì) ❌ Sai — danh từ không đứng trước danh từ khác làm tính từ trong trường hợp này.',
+      D:'sustainably (trạng từ: một cách bền vững) ❌ Sai — trạng từ không bổ nghĩa trực tiếp cho danh từ.'
+    },
+    evidenceEn:'"Together, we can build a (12) ______ future!"',
+    evidenceVi:'Cùng nhau, chúng ta có thể xây dựng một <span class="kw">tương lai bền vững</span>!',
+    keyword:'sustainable (Adj) + future (N)'
+  },
+  {
+    id:13, blank:13,
+    qText:'Question 13: Vietnam is on the verge of an (13)_______ with reforms set to bring a change for the better.',
+    options:[
+      {letter:'A',text:'inspiring educational reform'},
+      {letter:'B',text:'inspiring reform educational'},
+      {letter:'C',text:'educational inspiring reform'},
+      {letter:'D',text:'educational reform inspiring'}
+    ],
+    correct:'A',
+    qVi:'Câu 13: Việt Nam đang đứng trước một (13)_______ với các cải cách được đặt ra để mang lại sự thay đổi tốt hơn.',
+    explanations:{
+      A:'inspiring educational reform ✅ Đúng — trật tự: Adj đánh giá (inspiring) + Adj phân loại (educational) + N (reform).',
+      B:'inspiring reform educational ❌ Sai — danh từ không đứng giữa, tính từ phân loại phải đứng sát trước danh từ.',
+      C:'educational inspiring reform ❌ Sai — "inspiring" (tính từ đánh giá) phải đứng trước "educational" (tính từ phân loại).',
+      D:'educational reform inspiring ❌ Sai — tính từ không đứng sau danh từ trong cụm danh từ.'
+    },
+    evidenceEn:'"Vietnam is on the verge of an (13) ______ with reforms..."',
+    evidenceVi:'Việt Nam đang đứng trước một <span class="kw">cuộc cải cách giáo dục đầy cảm hứng</span> với các cải cách...',
+    keyword:'inspiring educational reform = Adj đánh giá + Adj phân loại + N'
+  },
+  {
+    id:14, blank:14,
+    qText:'Question 14: ...with reforms (14)_______ to bring a change for the better.',
+    options:[
+      {letter:'A',text:'setting'},{letter:'B',text:'to set'},
+      {letter:'C',text:'set'},{letter:'D',text:'are set'}
+    ],
+    correct:'C',
+    qVi:'Câu 14: ...với các cải cách (14)_______ để mang lại sự thay đổi tốt hơn.',
+    explanations:{
+      A:'setting (V-ing) ❌ Sai — rút gọn chủ động, nhưng "reforms" được thiết lập (bị động).',
+      B:'to set ❌ Sai — to-infinitive không dùng để rút gọn mệnh đề quan hệ bị động.',
+      C:'set ✅ Đúng — rút gọn mệnh đề quan hệ bị động: "which are set" → "set".',
+      D:'are set ❌ Sai — mệnh đề đầy đủ, không phải dạng rút gọn.'
+    },
+    evidenceEn:'"...with reforms (14) ______ to bring a change for the better."',
+    evidenceVi:'...với các cải cách <span class="kw">được đặt ra</span> để mang lại sự thay đổi tốt hơn.',
+    keyword:'which are set → set (rút gọn bị động)'
+  },
+  {
+    id:15, blank:15,
+    qText:'Question 15: ...reforms set to bring a change (15)_______ the better.',
+    options:[
+      {letter:'A',text:'with'},{letter:'B',text:'for'},
+      {letter:'C',text:'in'},{letter:'D',text:'to'}
+    ],
+    correct:'B',
+    qVi:'Câu 15: ...các cải cách để mang lại sự thay đổi (15)_______ tốt hơn.',
+    explanations:{
+      A:'with ❌ Sai — "a change with the better" không phải thành ngữ.',
+      B:'for ✅ Đúng — "a change for the better/worse" là thành ngữ cố định nghĩa là "sự thay đổi dẫn đến tốt hơn/tệ hơn".',
+      C:'in ❌ Sai — không có thành ngữ "a change in the better".',
+      D:'to ❌ Sai — "a change to the better" không phải cụm từ chuẩn.'
+    },
+    evidenceEn:'"...set to bring a change (15) ______ the better."',
+    evidenceVi:'...để mang lại <span class="kw">sự thay đổi tích cực</span>.',
+    keyword:'a change for the better (thành ngữ cố định)'
+  },
+  {
+    id:16, blank:16,
+    qText:'Question 16: The Teacher Law...is anticipated (16)_______ the teaching profession and learning standards.',
+    options:[
+      {letter:'A',text:'elevating'},{letter:'B',text:'to elevate'},
+      {letter:'C',text:'elevate'},{letter:'D',text:'to elevating'}
+    ],
+    correct:'B',
+    qVi:'Câu 16: Luật Nhà giáo...được kỳ vọng (16)_______ nghề dạy học và tiêu chuẩn học tập.',
+    explanations:{
+      A:'elevating (V-ing) ❌ Sai — sau "be anticipated" cần to-infinitive.',
+      B:'to elevate ✅ Đúng — "be anticipated to + V" = được dự kiến sẽ làm gì (cấu trúc cố định).',
+      C:'elevate (nguyên mẫu) ❌ Sai — cần "to" trước động từ.',
+      D:'to elevating ❌ Sai — không có cấu trúc "to + V-ing".'
+    },
+    evidenceEn:'"The Teacher Law...is anticipated (16) ______ the teaching profession and learning standards."',
+    evidenceVi:'Luật Nhà giáo được <span class="kw">kỳ vọng nâng cao</span> nghề dạy học và tiêu chuẩn học tập.',
+    keyword:'be anticipated to + V (cấu trúc cố định)'
+  },
+  {
+    id:17, blank:17,
+    qText:'Question 17: ...the Education Development Strategy...which is set to (17)_______ into effect...',
+    options:[
+      {letter:'A',text:'gain'},{letter:'B',text:'set'},
+      {letter:'C',text:'come'},{letter:'D',text:'put'}
+    ],
+    correct:'C',
+    qVi:'Câu 17: ...Chiến lược Phát triển Giáo dục...dự kiến sẽ (17)_______ vào hiệu lực...',
+    explanations:{
+      A:'gain ❌ Sai — "gain into effect" không phải cụm từ.',
+      B:'set ❌ Sai — "set into effect" không chuẩn, đúng phải là "set sth in motion".',
+      C:'come ✅ Đúng — "come into effect" là cụm từ cố định nghĩa là "có hiệu lực".',
+      D:'put ❌ Sai — "put into effect" có nghĩa là "thực hiện/triển khai" nhưng chủ thể phải là người, không phải văn bản.'
+    },
+    evidenceEn:'"...the Education Development Strategy...which is set to (17) ______ into effect."',
+    evidenceVi:'...Chiến lược Phát triển Giáo dục dự kiến sẽ <span class="kw">có hiệu lực</span>.',
+    keyword:'come into effect (cụm từ cố định)'
+  },
+  {
+    id:18, blank:18,
+    qText:'Question 18: The inspiring changes will create a more (18)_______ and dynamic learning environment.',
+    options:[
+      {letter:'A',text:'engage'},{letter:'B',text:'engaged'},
+      {letter:'C',text:'engaging'},{letter:'D',text:'engagement'}
+    ],
+    correct:'C',
+    qVi:'Câu 18: Những thay đổi đầy cảm hứng sẽ tạo ra một môi trường học tập (18)_______ và năng động hơn.',
+    explanations:{
+      A:'engage (động từ) ❌ Sai — cần tính từ để bổ nghĩa cho "learning environment".',
+      B:'engaged (tính từ: chú tâm, bận rộn) ❌ Sai — "engaged" thường mô tả người, không phải môi trường.',
+      C:'engaging (tính từ: lôi cuốn, thu hút) ✅ Đúng — Adj + N; "engaging" là tính từ mô tả môi trường học tập thú vị và cuốn hút.',
+      D:'engagement (danh từ) ❌ Sai — danh từ không bổ nghĩa trực tiếp cho danh từ khác ở đây.'
+    },
+    evidenceEn:'"The inspiring changes will create a more (18) ______ and dynamic learning environment."',
+    evidenceVi:'Những thay đổi đầy cảm hứng sẽ tạo ra một môi trường học tập <span class="kw">lôi cuốn và năng động</span> hơn.',
+    keyword:'engaging (Adj) = lôi cuốn, thu hút'
+  }
+];
+
+// Shuffle options for each question
+const questions = rawQuestions.map(q => ({
+  ...q,
+  options: shuffleArray(q.options)
+}));
+
+// Passages data
+const passages = [
+  {
+    exNum: 1,
+    label: 'Exercise 1',
+    title: 'Stop! Think! Save Lives!',
+    source: '(Adapted from Vietnam News)',
+    paragraphs: [
+      {
+        text: `New fines for <span class="blank" id="b1">___</span> the traffic lights in Vietnam are now <span class="blank" id="b2">___</span> from January 1, 2025. Drivers <span class="blank" id="b3">___</span> this law will face penalties up to VND20 million, which is aimed at ensuring safer roads for everyone. Be aware <span class="blank" id="b4">___</span> these changes and help create a <span class="blank" id="b5">___</span>. While some may refuse to comply, saying the fines are too high, the focus is on reducing accidents and saving lives. Take action now – follow traffic rules and avoid <span class="blank" id="b6">___</span> hefty fines. Together, we can make a big difference in road safety!`,
+        translation: `Mức phạt mới đối với hành vi <strong>vượt đèn đỏ</strong> ở Việt Nam hiện đã <strong>có hiệu lực</strong> từ ngày 1 tháng 1 năm 2025. Các tài xế <strong>vi phạm</strong> luật này sẽ phải đối mặt với mức phạt lên đến 20 triệu đồng, nhằm đảm bảo an toàn đường bộ cho mọi người. Hãy <strong>nhận thức</strong> về những thay đổi này và giúp tạo ra một <strong>văn hóa lái xe có trách nhiệm</strong>. Trong khi một số người từ chối tuân thủ vì cho rằng mức phạt quá cao, trọng tâm vẫn là giảm thiểu tai nạn và cứu sống người. Hãy hành động ngay – tuân thủ luật giao thông và <strong>tránh phải chịu</strong> mức phạt nặng. Cùng nhau, chúng ta có thể tạo ra sự khác biệt lớn về an toàn đường bộ!`
+      }
+    ],
+    glossary: [
+      {word:'fine',pos:'n.',vi:'tiền phạt'},
+      {word:'penalty',pos:'n.',vi:'hình phạt, mức phạt'},
+      {word:'comply',pos:'v.',vi:'tuân thủ, chấp hành'},
+      {word:'violation',pos:'n.',vi:'vi phạm'},
+      {word:'hefty',pos:'adj.',vi:'lớn, đáng kể (về số tiền)'},
+      {word:'effective',pos:'adj.',vi:'có hiệu lực; hiệu quả'},
+      {word:'ensure',pos:'v.',vi:'đảm bảo'},
+      {word:'aware',pos:'adj.',vi:'nhận thức được, biết về'},
+      {word:'reduce',pos:'v.',vi:'giảm thiểu'},
+      {word:'responsible',pos:'adj.',vi:'có trách nhiệm'}
+    ]
+  },
+  {
+    exNum: 2,
+    label: 'Exercise 2',
+    title: 'Embrace Green Living in Vietnam!',
+    source: '(Adapted from Vietnam Investment Review)',
+    paragraphs: [
+      {
+        text: `Vietnam is embracing a <span class="blank" id="b7">___</span> with projects like the 'House with Many Leaves' in Ho Chi Minh City, <span class="blank" id="b8">___</span> to promote eco-friendly living. These initiatives aim <span class="blank" id="b9">___</span> a sustainable and environmentally friendly future, encouraging people to adopt green habits, such as reducing waste and conserving energy. As communities begin to pay attention <span class="blank" id="b10">___</span> the importance of protecting the environment, it's a reminder not to <span class="blank" id="b11">___</span> nature's resources for granted. Let's join hands and make green living a part of our everyday lives for a cleaner, healthier Vietnam. Together, we can build a <span class="blank" id="b12">___</span> future!`,
+        translation: `Việt Nam đang đón nhận một <strong>phong trào xanh đầy hấp dẫn</strong> với các dự án như 'Ngôi nhà nhiều lá' ở Thành phố Hồ Chí Minh, <strong>được thành lập</strong> để thúc đẩy lối sống thân thiện với môi trường. Những sáng kiến này <strong>nhằm mục tiêu tạo ra</strong> một tương lai bền vững và thân thiện với môi trường, khuyến khích mọi người áp dụng thói quen xanh như giảm rác thải và tiết kiệm năng lượng. Khi các cộng đồng bắt đầu <strong>chú ý đến</strong> tầm quan trọng của việc bảo vệ môi trường, đây là lời nhắc nhở không được <strong>coi tài nguyên thiên nhiên là điều hiển nhiên</strong>. Hãy cùng chung tay biến lối sống xanh thành một phần cuộc sống hàng ngày của chúng ta vì một Việt Nam sạch hơn và khỏe mạnh hơn. Cùng nhau, chúng ta có thể xây dựng một <strong>tương lai bền vững</strong>!`
+      }
+    ],
+    glossary: [
+      {word:'embrace',pos:'v.',vi:'đón nhận, chào đón nhiệt tình'},
+      {word:'eco-friendly',pos:'adj.',vi:'thân thiện với môi trường'},
+      {word:'initiative',pos:'n.',vi:'sáng kiến, chương trình khởi xướng'},
+      {word:'sustainable',pos:'adj.',vi:'bền vững'},
+      {word:'conserve',pos:'v.',vi:'bảo tồn, tiết kiệm'},
+      {word:'take for granted',pos:'idiom',vi:'coi là hiển nhiên, không biết trân trọng'},
+      {word:'adopt',pos:'v.',vi:'áp dụng, tiếp nhận'},
+      {word:'movement',pos:'n.',vi:'phong trào'},
+      {word:'fascinating',pos:'adj.',vi:'hấp dẫn, quyến rũ, thú vị'},
+      {word:'community',pos:'n.',vi:'cộng đồng'}
+    ]
+  },
+  {
+    exNum: 3,
+    label: 'Exercise 3',
+    title: 'Transform Education, Transform Vietnam!',
+    source: '(Adapted from Research Gate)',
+    paragraphs: [
+      {
+        text: `Vietnam is on the verge of an <span class="blank" id="b13">___</span> with reforms <span class="blank" id="b14">___</span> to bring a change <span class="blank" id="b15">___</span> the better. The Teacher Law, which will soon be passed, is anticipated <span class="blank" id="b16">___</span> the teaching profession and learning standards. Additionally, the Education Development Strategy for 2025-2030, which is set to <span class="blank" id="b17">___</span> into effect, will further reshape the future of education in the country. These reforms are not just policies - they're an opportunity for every student to succeed! The inspiring changes will create a more <span class="blank" id="b18">___</span> and dynamic learning environment. Let's embrace the future of education in Vietnam together!`,
+        translation: `Việt Nam đang đứng trước ngưỡng cửa của một <strong>cuộc cải cách giáo dục đầy cảm hứng</strong> với các cải cách <strong>được đặt ra</strong> để mang lại <strong>sự thay đổi tích cực</strong>. Luật Nhà giáo, sắp được thông qua, <strong>được kỳ vọng sẽ nâng tầm</strong> nghề dạy học và tiêu chuẩn học tập. Ngoài ra, Chiến lược Phát triển Giáo dục 2025-2030, dự kiến sẽ <strong>có hiệu lực</strong>, sẽ tiếp tục định hình lại tương lai giáo dục của đất nước. Những cải cách này không chỉ là chính sách — đây là cơ hội để mỗi học sinh thành công! Những thay đổi đầy cảm hứng sẽ tạo ra một môi trường học tập <strong>lôi cuốn và năng động</strong> hơn. Hãy cùng nhau đón nhận tương lai của giáo dục Việt Nam!`
+      }
+    ],
+    glossary: [
+      {word:'on the verge of',pos:'phrase',vi:'đứng trước ngưỡng cửa của, sắp sửa'},
+      {word:'reform',pos:'n./v.',vi:'cải cách'},
+      {word:'anticipate',pos:'v.',vi:'dự đoán, kỳ vọng'},
+      {word:'profession',pos:'n.',vi:'nghề nghiệp'},
+      {word:'strategy',pos:'n.',vi:'chiến lược'},
+      {word:'reshape',pos:'v.',vi:'định hình lại'},
+      {word:'dynamic',pos:'adj.',vi:'năng động, sôi nổi'},
+      {word:'engaging',pos:'adj.',vi:'lôi cuốn, thu hút'},
+      {word:'inspiring',pos:'adj.',vi:'đầy cảm hứng, truyền cảm hứng'},
+      {word:'come into effect',pos:'phrase',vi:'có hiệu lực'}
+    ]
+  }
+];
+
+// Question to passage mapping
+const qToPassage = {1:'p1',2:'p1',3:'p1',4:'p1',5:'p1',6:'p1',7:'p2',8:'p2',9:'p2',10:'p2',11:'p2',12:'p2',13:'p3',14:'p3',15:'p3',16:'p3',17:'p3',18:'p3'};
+
+// State
+let answered = {}; // {qId: {selected:letter, correct:bool}}
+let timerInterval = null;
+let timeLeft = 600;
+let timerRunning = false;
+let studentName = '';
+
+// ===== BUILD APP =====
+function buildApp() {
+  buildLeftPanel();
+  buildRightPanel();
+}
+
+function buildLeftPanel() {
+  const panel = document.getElementById('leftPanel');
+  panel.innerHTML = '';
+  passages.forEach(pass => {
+    const block = document.createElement('div');
+    block.className = 'exercise-block';
+    let html = `<div class="exercise-label">${pass.label}</div>
+<div class="passage-title">📰 ${pass.title}</div>`;
+    pass.paragraphs.forEach((para, pIdx) => {
+      const uid = `${pass.exNum}_${pIdx}`;
+      html += `<div class="passage-card">${para.text}</div>
+<button class="translate-btn" onclick="toggleTranslation('tr_${uid}',this)">🌟 Mở dịch đoạn này</button>
+<div class="translation-box" id="tr_${uid}">${para.translation}</div>`;
+    });
+    html += `<div class="passage-source">${pass.source}</div>`;
+    // Glossary
+    html += `<div class="glossary-title">📖 Bảng từ vựng – ${pass.title}</div>
+<table class="glossary-table">
+<thead><tr><th>Từ vựng</th><th>Loại từ</th><th>Nghĩa tiếng Việt</th></tr></thead>
+<tbody>`;
+    pass.glossary.forEach(g => {
+      html += `<tr><td class="word-cell">${g.word}</td><td class="pos-cell">${g.pos}</td><td class="vi-cell">${g.vi}</td></tr>`;
+    });
+    html += `</tbody></table>`;
+    block.innerHTML = html;
+    panel.appendChild(block);
+  });
+}
+
+function buildRightPanel() {
+  const panel = document.getElementById('rightPanel');
+  panel.innerHTML = '';
+  let currentEx = 0;
+  const exTitles = ['','Exercise 1 – Stop! Think! Save Lives!','Exercise 2 – Embrace Green Living in Vietnam!','Exercise 3 – Transform Education, Transform Vietnam!'];
+  questions.forEach(q => {
+    const ex = q.id <= 6 ? 1 : q.id <= 12 ? 2 : 3;
+    if(ex !== currentEx) {
+      currentEx = ex;
+      const sec = document.createElement('div');
+      sec.className = 'q-section-title';
+      sec.textContent = exTitles[ex];
+      panel.appendChild(sec);
+    }
+    const card = document.createElement('div');
+    card.className = 'question-card';
+    card.id = `qcard_${q.id}`;
+
+    let optHtml = '';
+    q.options.forEach(opt => {
+      optHtml += `<button class="option-btn" id="opt_${q.id}_${opt.letter}" onclick="selectAnswer(${q.id},'${opt.letter}',this)">
+        <span class="opt-letter">${opt.letter}.</span> ${opt.text}
+      </button>`;
+    });
+
+    card.innerHTML = `
+      <div class="q-number">Câu ${q.id}</div>
+      <div class="q-text">${q.qText}</div>
+      <div class="options-grid" id="opts_${q.id}">${optHtml}</div>
+      <div class="explanation-box" id="exp_${q.id}"></div>
+    `;
+    panel.appendChild(card);
+  });
+}
+
+// ===== INTERACTION =====
+function selectAnswer(qId, selectedLetter, btnEl) {
+  if(answered[qId]) return;
+  const q = questions.find(x=>x.id===qId);
+  const isCorrect = selectedLetter === q.correct;
+
+  // Disable all options
+  const allOpts = document.querySelectorAll(`#opts_${qId} .option-btn`);
+  allOpts.forEach(b => b.disabled = true);
+
+  answered[qId] = {selected: selectedLetter, correct: isCorrect};
+  updateProgress();
+
+  if(isCorrect) {
+    btnEl.classList.add('correct');
+    playCorrect();
+    spawnConfetti(btnEl);
+    updateBlank(qId, q.options.find(o=>o.letter===selectedLetter).text, true, false);
+  } else {
+    btnEl.classList.add('wrong');
+    btnEl.classList.add('shake');
+    playWrong();
+    // Update blank: show wrong briefly then correct
+    updateBlank(qId, q.options.find(o=>o.letter===selectedLetter).text, false, false);
+    setTimeout(()=>{
+      updateBlank(qId, q.options.find(o=>o.letter===q.correct).text, false, true);
+    }, 600);
+    // Reveal correct answer
+    const correctBtn = document.getElementById(`opt_${qId}_${q.correct}`);
+    if(correctBtn) {
+      setTimeout(()=>correctBtn.classList.add('correct-reveal'), 100);
+    }
+  }
+
+  showExplanation(qId, q);
+}
+
+function updateBlank(qId, text, correct, fixWrong) {
+  const el = document.getElementById(`b${qId}`);
+  if(!el) return;
+  el.textContent = text;
+  el.className = 'blank';
+  if(correct) {
+    el.classList.add('correct');
+  } else if(fixWrong) {
+    el.classList.add('correct');
+  } else {
+    el.classList.add('wrong');
+  }
+}
+
+function showExplanation(qId, q) {
+  const box = document.getElementById(`exp_${qId}`);
+  const letters = ['A','B','C','D'];
+  let html = `<div class="exp-q-vi">💬 ${q.qVi}</div>`;
+  letters.forEach(l => {
+    const opt = q.options.find(o=>o.letter===l);
+    if(!opt) return;
+    const exp = q.explanations[l] || '';
+    const isC = l === q.correct;
+    html += `<div class="exp-option"><span class="opt-tag ${isC?'correct-tag':'wrong-tag'}">${l}. ${opt.text}</span> — ${exp}</div>`;
+  });
+  html += `<div class="exp-evidence">
+    <div class="ev-label">🔍 Dẫn chứng trong bài:</div>
+    <div class="ev-en">${q.evidenceEn}</div>
+    <div class="ev-vi">👉 ${q.evidenceVi}</div>
+  </div>`;
+  box.innerHTML = html;
+  box.style.display = 'block';
+}
+
+function toggleTranslation(id, btn) {
+  const box = document.getElementById(id);
+  if(box.style.display === 'block') {
+    box.style.display = 'none';
+    btn.textContent = '🌟 Mở dịch đoạn này';
+  } else {
+    box.style.display = 'block';
+    btn.textContent = '🔼 Ẩn bản dịch';
+  }
+}
+
+function updateProgress() {
+  const count = Object.keys(answered).length;
+  document.getElementById('progressText').textContent = `${count}/18`;
+  document.getElementById('progressFill').style.width = `${(count/18)*100}%`;
+}
+
+// ===== TIMER =====
+function startTimer() {
+  document.getElementById('timerBtn').style.display = 'none';
+  document.getElementById('timerDisplay').style.display = 'block';
+  document.getElementById('pauseBtn').style.display = 'inline-block';
+  timerRunning = true;
+  timerInterval = setInterval(tickTimer, 1000);
+}
+
+function tickTimer() {
+  if(!timerRunning) return;
+  timeLeft--;
+  updateTimerDisplay();
+  if(timeLeft <= 0) {
+    clearInterval(timerInterval);
+    document.getElementById('timerDisplay').classList.add('danger');
+    document.getElementById('timeoutBanner').style.display = 'block';
+    document.getElementById('pauseBtn').style.display = 'none';
+    setTimeout(()=>{ document.getElementById('timeoutBanner').style.display='none'; }, 12000);
+  }
+  if(timeLeft <= 60) document.getElementById('timerDisplay').classList.add('danger');
+}
+
+function updateTimerDisplay() {
+  const m = Math.floor(Math.max(0,timeLeft)/60);
+  const s = Math.max(0,timeLeft)%60;
+  document.getElementById('timerDisplay').textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+}
+
+function togglePause() {
+  timerRunning = !timerRunning;
+  document.getElementById('pauseBtn').textContent = timerRunning ? '⏸ Tạm dừng' : '▶️ Tiếp tục';
+}
+
+// ===== SUBMIT =====
+function openNameModal() {
+  document.getElementById('nameModal').classList.add('active');
+  document.getElementById('nameInput').focus();
+}
+
+document.getElementById('nameInput').addEventListener('keydown', e => {
+  if(e.key==='Enter') confirmName();
+});
+document.getElementById('nameSubmitBtn').addEventListener('click', confirmName);
+
+function confirmName() {
+  const val = document.getElementById('nameInput').value.trim();
+  if(!val) {
+    document.getElementById('nameError').textContent = '⚠️ Vui lòng nhập tên trước khi xem điểm nhé!';
+    document.getElementById('nameInput').classList.add('err');
+    return;
+  }
+  studentName = val;
+  document.getElementById('nameModal').classList.remove('active');
+  showResult();
+}
+
+function showResult() {
+  const score = Object.values(answered).filter(a=>a.correct).length;
+  const total = 18;
+  const pct = (score/total)*100;
+
+  let title, comment, memeUrl;
+  if(pct === 100) {
+    title = `🌟 THIÊN TÀI! ${studentName} xuất sắc tuyệt đối!`;
+    comment = `Bạn trả lời đúng toàn bộ ${total}/${total} câu! Đây là thành tích hoàn hảo. Ms Mai An tự hào về bạn lắm! 🎉`;
+    memeUrl = 'https://media.giphy.com/media/26u4cqiYI30juCOGY/giphy.gif';
+  } else if(pct >= 60) {
+    title = `👏 LÀM TỐT LẮM, ${studentName}!`;
+    comment = `Bạn đạt ${score}/${total} câu đúng. Cố gắng thêm một chút nữa là hoàn hảo rồi! 💪`;
+    memeUrl = 'https://media.giphy.com/media/xT9IgG50Lg7rusQ5y8/giphy.gif';
+  } else {
+    title = `💪 CỐ LÊN NHÉ, ${studentName}!`;
+    comment = `Bạn đạt ${score}/${total} câu. Đừng nản lòng! Ôn lại phần giải thích và thử lại nhé. Bạn làm được mà! 🌱`;
+    memeUrl = 'https://media.giphy.com/media/d2lcHJTG5Tscg/giphy.gif';
+  }
+
+  document.getElementById('resultTitle').textContent = title;
+  document.getElementById('resultScore').textContent = `${score} / ${total}`;
+  document.getElementById('resultComment').textContent = comment;
+  document.getElementById('resultMeme').src = memeUrl;
+  document.getElementById('resultModal').classList.add('active');
+}
+
+function closeResult() {
+  document.getElementById('resultModal').classList.remove('active');
+}
+
+function retryQuiz() {
+  location.reload();
+}
+
+// ===== AUDIO =====
+let audioCtx = null;
+function getAudioCtx() {
+  if(!audioCtx) audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+  return audioCtx;
+}
+
+function playCorrect() {
+  try {
+    const ctx = getAudioCtx();
+    [[523,0],[659,0.1],[784,0.2],[1047,0.3]].forEach(([freq,delay])=>{
+      const o=ctx.createOscillator(), g=ctx.createGain();
+      o.connect(g); g.connect(ctx.destination);
+      o.type='sine'; o.frequency.value=freq;
+      g.gain.setValueAtTime(0.18,ctx.currentTime+delay);
+      g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+delay+0.3);
+      o.start(ctx.currentTime+delay); o.stop(ctx.currentTime+delay+0.35);
+    });
+  } catch(e){}
+}
+
+function playWrong() {
+  try {
+    const ctx = getAudioCtx();
+    [[300,0],[250,0.12],[200,0.24]].forEach(([freq,delay])=>{
+      const o=ctx.createOscillator(), g=ctx.createGain();
+      o.connect(g); g.connect(ctx.destination);
+      o.type='sawtooth'; o.frequency.value=freq;
+      g.gain.setValueAtTime(0.12,ctx.currentTime+delay);
+      g.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+delay+0.2);
+      o.start(ctx.currentTime+delay); o.stop(ctx.currentTime+delay+0.25);
+    });
+  } catch(e){}
+}
+
+// ===== CONFETTI =====
+function spawnConfetti(target) {
+  const rect = target.getBoundingClientRect();
+  const colors = ['#00D26A','#FFD700','#00C9A7','#FF6B9D','#A78BFA','#60A5FA','#F59E0B'];
+  for(let i=0;i<40;i++){
+    const c = document.createElement('div');
+    c.className = 'confetti-piece';
+    c.style.left = (rect.left + rect.width/2 + (Math.random()-0.5)*100) + 'px';
+    c.style.top = (rect.top + rect.height/2 + (Math.random()-0.5)*40) + 'px';
+    c.style.background = colors[Math.floor(Math.random()*colors.length)];
+    c.style.width = (8+Math.random()*8)+'px';
+    c.style.height = (8+Math.random()*8)+'px';
+    c.style.transform = `rotate(${Math.random()*360}deg)`;
+    c.style.animationDuration = (0.8+Math.random()*0.6)+'s';
+    c.style.animationDelay = Math.random()*0.15+'s';
+    document.body.appendChild(c);
+    setTimeout(()=>c.remove(), 1500);
+  }
+}
+</script>
+</body>
+</html>

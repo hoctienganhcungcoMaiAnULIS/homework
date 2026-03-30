@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bài Test Gamification - Ms Mai An ULIS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --glass-bg: rgba(255, 255, 255, 0.45);
+            --glass-border: rgba(255, 255, 255, 0.6);
+            --glass-shadow: 0 8px 32px 0 rgba(255, 182, 193, 0.3);
+            --color-primary: #ff8fab;
+            --color-secondary: #fb6f92;
+            --color-text: #333;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Nunito', sans-serif; }
+
+        /* Animated Pastel Background */
+        body {
+            background: linear-gradient(-45deg, #ffb6c1, #add8e6, #ffefd5, #e0ffff);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            color: var(--color-text);
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Floating Cats & Flowers Pattern */
+        .floating-bg {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; z-index: -1;
+            overflow: hidden;
+        }
+        .float-icon {
+            position: absolute;
+            font-size: 2rem;
+            animation: floatUp 10s linear infinite;
+            opacity: 0.5;
+        }
+        @keyframes floatUp {
+            0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+            10% { opacity: 0.6; }
+            90% { opacity: 0.6; }
+            100% { transform: translateY(-10vh) rotate(360deg); opacity: 0; }
+        }
+
+        /* Header */
+        header {
+            padding: 10px 20px;
+            text-align: right;
+            font-size: 0.9rem;
+            font-weight: bold;
+            color: #fb6f92;
+            background: rgba(255,255,255,0.3);
+            backdrop-filter: blur(5px);
+            z-index: 10;
+        }
+
+        /* Split Screen Layout */
+        .container {
+            display: flex;
+            flex: 1;
+            padding: 20px;
+            gap: 20px;
+            height: calc(100vh - 40px);
+        }
+
+        .panel {
+            flex: 1;
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            box-shadow: var(--glass-shadow);
+            padding: 30px;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .panel::-webkit-scrollbar { width: 8px; }
+        .panel::-webkit-scrollbar-thumb { background: #ffb6c1; border-radius: 10px; }
+
+        /* Reading Passage Styles */
+        .passage {
+            font-size: 1.15rem;
+            line-height: 1.8;
+            margin-bottom: 20px;
+        }
+        .gap {
+            display: inline-block;
+            min-width: 80px;
+            border-bottom: 2px dashed #fb6f92;
+            text-align: center;
+            color: #fb6f92;
+            font-weight: bold;
+            padding: 0 5px;
+            transition: all 0.3s;
+        }
+        .gap.filled { border-bottom: 2px solid #28a745; color: #28a745; }
+
+        .btn-translate {
+            background: linear-gradient(135deg, #ffd1dc, #ffb6c1);
+            border: none;
+            padding: 8px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+            color: #d81159;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            transition: transform 0.2s;
+            display: block;
+            margin: 10px 0 20px 0;
+        }
+        .btn-translate:hover { transform: scale(1.05); }
+        .translation-text {
+            display: none;
+            background: rgba(255,255,255,0.6);
+            padding: 15px;
+            border-radius: 15px;
+            border-left: 4px solid #ff8fab;
+            font-size: 1rem;
+            margin-bottom: 20px;
+            font-style: italic;
+        }
+
+        /* Question Styles */
+        .question-card {
+            background: rgba(255,255,255,0.7);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            border: 1px solid white;
+        }
+        .question-title { font-weight: 900; color: #d81159; margin-bottom: 15px; font-size: 1.2rem; }
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        .option-btn {
+            background: white;
+            border: 2px solid #ffb6c1;
+            padding: 12px;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: #555;
+        }
+        .option-btn:hover { background: #fff0f5; transform: translateY(-2px); }
+        .option-btn.correct { background: #d4edda; border-color: #28a745; color: #155724; }
+        .option-btn.incorrect { background: #f8d7da; border-color: #dc3545; color: #721c24; animation: shake 0.4s; }
+        .option-btn:disabled { cursor: not-allowed; }
+
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            50% { transform: translateX(5px); }
+            75% { transform: translateX(-5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* Explanation Box & CSS Rules Requirements */
+        .explanation-box {
+            display: none;
+            margin-top: 15px;
+            background: #fff;
+            padding: 15px;
+            border-radius: 12px;
+            border-left: 5px solid #ffca28;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            animation: fadeIn 0.5s ease;
+        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* STRICT MASTER COLORS */
+        .p-word { color: #007bff; font-weight: bold; } /* English Word */
+        .p-mean { color: #cc4a33; font-weight: bold; } /* Meaning */
+        .p-grammar { text-decoration: underline; text-decoration-color: red; text-decoration-thickness: 2px; } /* Grammar */
+        .hl-green { color: #28a745; font-weight: bold; } /* Correct Content */
+        .hl-red { color: #dc3545; text-decoration: line-through; } /* Incorrect Content */
+        .quote-bold-red { color: red; font-weight: bold; }
+
+        /* Submit Button */
+        .btn-submit {
+            background: linear-gradient(135deg, #ff416c, #ff4b2b);
+            color: white;
+            font-size: 1.2rem;
+            font-weight: 900;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 30px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 20px;
+            box-shadow: 0 10px 20px rgba(255, 65, 108, 0.4);
+            transition: transform 0.2s;
+        }
+        .btn-submit:hover { transform: scale(1.02); }
+
+        /* Popup Scorecard */
+        .overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5); backdrop-filter: blur(5px);
+            display: none; justify-content: center; align-items: center; z-index: 1000;
+        }
+        .popup {
+            background: rgba(255,255,255,0.9);
+            padding: 40px; border-radius: 30px; text-align: center;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+            width: 400px;
+            animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        @keyframes popIn { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        .popup input { width: 100%; padding: 10px; margin: 15px 0; border: 2px solid #ffb6c1; border-radius: 10px; font-size: 1rem; }
+        .popup img { width: 200px; border-radius: 15px; margin-top: 15px; }
+
+        /* Confetti */
+        .confetti {
+            position: fixed; width: 10px; height: 10px;
+            top: -10px; z-index: 9999;
+            animation: fall linear forwards;
+        }
+        @keyframes fall { to { transform: translateY(100vh) rotate(720deg); } }
+    </style>
+</head>
+<body>
+
+    <div class="floating-bg" id="floatBg"></div>
+
+    <header>Giáo viên tạo: Ms Mai An ULIS 🌸</header>
+
+    <div class="container">
+        <div class="panel left-panel">
+            <h2 style="color: #d81159; text-align: center; margin-bottom: 20px;">📖 THE BIG CHANGE 🐈</h2>
+            
+            <div class="passage">
+                "I’d like to talk about a time I made a massive career shift. A few years ago, right in the middle of a global <span class="gap" id="gap-1">(1)</span>, I realized I was utterly exhausted from the corporate <span class="gap" id="gap-2">(2)</span>. Every day felt like endless corporate <span class="gap" id="gap-3">(3)</span>, and I desperately wanted to <span class="gap" id="gap-4">(4)</span> that conventional lifestyle completely. <span class="gap" id="gap-5">(5)</span> the constant distressing news on TV about <span class="gap" id="gap-6">(6)</span>, I had an epiphany that life is simply too short to be miserable."
+            </div>
+            <button class="btn-translate" onclick="toggleTranslation('trans1')">Mở dịch đoạn này 🌟</button>
+            <div class="translation-text" id="trans1">
+                "Tôi muốn kể về một lần tôi có sự thay đổi lớn trong sự nghiệp. Vài năm trước, ngay giữa một cuộc khủng hoảng tài chính toàn cầu, tôi nhận ra mình đã hoàn toàn kiệt sức vì guồng quay cạnh tranh chốn công sở. Mỗi ngày trôi qua giống như sự nhồi sọ liên miên của công ty, và tôi khao khát từ bỏ hoàn toàn lối sống rập khuôn đó. Trong bối cảnh những tin tức đáng buồn liên tục trên TV về các quốc gia bị tàn phá bởi chiến tranh, tôi đã giác ngộ rằng cuộc đời quá ngắn ngủi để sống trong đau khổ."
+            </div>
+
+            <div class="passage">
+                "I had always loved to go star-gazing in my youth, so I decided to launch one of my own new business ventures—a rural astronomy retreat. Making the decision to quit my stable job was definitely <span class="gap" id="gap-7">(7)</span>. My mother, who protects our family like a lioness, caused quite an <span class="gap" id="gap-8">(8)</span> when I told her, genuinely fearing my life would completely <span class="gap" id="gap-9">(9)</span>. I admit, I was a tad overwhelmed and almost <span class="gap" id="gap-10">(10)</span> to her pressure, but my best friend gave me the gentle <span class="gap" id="gap-11">(11)</span> I needed to stay firm. I had read snippets about astrotourism and finally jumped on the bandwagon."
+            </div>
+            <button class="btn-translate" onclick="toggleTranslation('trans2')">Mở dịch đoạn này 🌟</button>
+            <div class="translation-text" id="trans2">
+                "Tôi luôn yêu thích việc ngắm sao từ khi còn trẻ, nên tôi quyết định bắt đầu một trong những dự án kinh doanh mới của riêng mình—một khu nghỉ dưỡng thiên văn ở vùng nông thôn. Quyết định từ bỏ công việc ổn định chắc chắn là một quyết định vô cùng khó khăn. Mẹ tôi, người bảo vệ gia đình như một con sư tử cái, đã phản ứng bằng một sự phản đối kịch liệt khi tôi kể với bà, thực sự lo sợ cuộc đời tôi sẽ hoàn toàn trật bánh. Tôi thừa nhận, tôi đã có chút choáng ngợp và suýt nhượng bộ trước áp lực của bà, nhưng người bạn thân đã dành cho tôi một cú hích nhẹ nhàng mà tôi cần để giữ vững lập trường. Tôi đã đọc được những mẩu thông tin về du lịch thiên văn và cuối cùng đã đuổi theo trào lưu đó."
+            </div>
+
+            <div class="passage">
+                "To get the retreat running, I <span class="gap" id="gap-12">(12)</span> on some professional equipment. I had been <span class="gap" id="gap-13">(13)</span> a top-tier telescope for months. The price was incredibly <span class="gap" id="gap-14">(14)</span>, but I knew the cheaper models on the market were absolute <span class="gap" id="gap-15">(15)</span>. I also took a quick <span class="gap" id="gap-16">(16)</span> in advanced astronomy to brush up on my knowledge."
+            </div>
+            <button class="btn-translate" onclick="toggleTranslation('trans3')">Mở dịch đoạn này 🌟</button>
+            <div class="translation-text" id="trans3">
+                "Để khu nghỉ dưỡng đi vào hoạt động, tôi đã vung tiền cho một số thiết bị chuyên dụng. Tôi đã để mắt đến một chiếc kính thiên văn hàng đầu từ nhiều tháng nay. Mức giá vô cùng đắt đỏ, nhưng tôi biết những mẫu rẻ hơn trên thị trường thực chất chỉ là những món đồ lừa đảo kém chất lượng. Tôi cũng tham gia một khóa học cấp tốc về thiên văn học nâng cao để trau dồi lại kiến thức."
+            </div>
+
+            <div class="passage">
+                "Of course, there were some <span class="gap" id="gap-17">(17)</span> administrative issues getting in the way. Dealing with the local bureaucracy felt like an unstoppable <span class="gap" id="gap-18">(18)</span> threatening to crush my plans, which I suppose is a necessary evil in business. Thankfully, hiring a local consultant was an absolute <span class="gap" id="gap-19">(19)</span>. It might be a <span class="gap" id="gap-20">(20)</span> to say that pursuing your passion is always a fairytale, as the transition was incredibly hard. However, seeing my first clients marvel at the night sky made it a model of success worthy of emulation."
+            </div>
+            <button class="btn-translate" onclick="toggleTranslation('trans4')">Mở dịch đoạn này 🌟</button>
+            <div class="translation-text" id="trans4">
+                "Tất nhiên, có những vấn đề hành chính phiền toái cản đường. Việc giải quyết các thủ tục quan liêu địa phương giống như một thế lực khổng lồ không thể cản phá đe dọa đè bẹp các kế hoạch của tôi, điều mà tôi cho là một điều ác tất yếu trong kinh doanh. Thật may mắn, việc thuê một nhà tư vấn địa phương là một vị cứu tinh tuyệt đối. Có thể là một sự đánh đồng khi nói rằng theo đuổi đam mê luôn giống như một câu chuyện cổ tích, vì quá trình chuyển đổi thực sự rất gian nan. Tuy nhiên, việc chứng kiến những vị khách đầu tiên kinh ngạc trước bầu trời đêm đã khiến nó thành mô hình thành công đáng noi theo."
+            </div>
+        </div>
+
+        <div class="panel right-panel" id="quiz-panel">
+            <h2 style="color: #d81159; text-align: center; margin-bottom: 20px;">🎮 LÀM BÀI TẬP NÀO! 🐾</h2>
+            <div id="questions-container"></div>
+            <button class="btn-submit" onclick="showSubmitPopup()">🎯 NỘP BÀI TÍNH ĐIỂM & XEM KẾT QUẢ</button>
+        </div>
+    </div>
+
+    <div class="overlay" id="submitOverlay">
+        <div class="popup" id="namePopup">
+            <h2 style="color:#d81159;">Nộp bài thi 🐾</h2>
+            <p>Nhập tên của con để Ms Mai An chấm điểm nhé!</p>
+            <input type="text" id="studentName" placeholder="Nhập tên của con...">
+            <button class="btn-submit" onclick="calculateScore()">Xác nhận nộp bài</button>
+        </div>
+        <div class="popup" id="resultPopup" style="display:none;">
+            <h2 style="color:#28a745;">Kết quả của <span id="resName"></span></h2>
+            <h1 style="font-size: 3rem; color: #ff416c; margin: 10px 0;" id="resScore">0/20</h1>
+            <p id="resFeedback" style="font-weight:bold; font-size:1.1rem; color:#555;"></p>
+            <img id="resGif" src="" alt="gif">
+            <button class="btn-submit" onclick="location.reload()" style="margin-top:20px;">Làm lại từ đầu 🔄</button>
+        </div>
+    </div>
+
+    <script>
+        // Data Questions & Explanations
+        const qData = [
+            {
+                id: 1, correct: "fiscal crisis",
+                options: ["emulation", "blanket statement", "rip-off", "fiscal crisis"],
+                exp: `
+                    <p><b>Dịch:</b> Vài năm trước, ngay giữa một cuộc ______ toàn cầu, tôi nhận ra mình đã kiệt sức...</p>
+                    <p><b>Phân tích:</b><br>
+                    - emulation (sự noi gương): <span class='hl-red'>❌ Sai vì không hợp bối cảnh toàn cầu.</span><br>
+                    - blanket statement (sự đánh đồng): <span class='hl-red'>❌ Sai.</span><br>
+                    - rip-off (đồ lừa đảo): <span class='hl-red'>❌ Sai.</span><br>
+                    - fiscal crisis: <span class='hl-green'>✅ Đúng.</span> <span class='p-word'>fiscal crisis</span> là <span class='p-mean'>khủng hoảng tài chính</span>. Loại từ: <span class='p-grammar'>Noun phrase (Danh từ ghép)</span>.
+                    </p>
+                    <p>🔍 <b>Dẫn chứng:</b> "...right in the middle of a global <b>fiscal crisis</b>, I realized..."</p>
+                    <p>👉 <b>Dịch:</b> "...ngay giữa một cuộc <span class='quote-bold-red'>khủng hoảng tài chính</span> toàn cầu..."</p>
+                `
+            },
+            {
+                id: 2, correct: "rat race",
+                options: ["juggernaut", "hamster wheel", "rat race", "crash course"],
+                exp: `
+                    <p><b>Dịch:</b> ...tôi nhận ra mình đã kiệt sức vì ______ chốn công sở.</p>
+                    <p><b>Phân tích:</b><br>
+                    - juggernaut (thế lực khổng lồ): <span class='hl-red'>❌ Sai.</span><br>
+                    - crash course (khóa học cấp tốc): <span class='hl-red'>❌ Sai.</span><br>
+                    - rat race: <span class='hl-green'>✅ Đúng.</span> Idiom <span class='p-word'>rat race</span> chỉ <span class='p-mean'>guồng quay cạnh tranh, ganh đua mệt mỏi</span>. Cấu trúc <span class='p-grammar'>Idiomatic Noun</span>.
+                    </p>
+                    <p>🔍 <b>Dẫn chứng:</b> "...utterly exhausted from the corporate <b>rat race</b>."</p>
+                    <p>👉 <b>Dịch:</b> "...kiệt sức vì <span class='quote-bold-red'>guồng quay cạnh tranh</span> chốn công sở."</p>
+                `
+            },
+            {
+                id: 3, correct: "indoctrination",
+                options: ["indoctrination", "nudge", "lifesaver", "snippet"],
+                exp: `
+                    <p><b>Dịch:</b> Mỗi ngày trôi qua giống như sự ______ liên miên của công ty...</p>
+                    <p><b>Phân tích:</b><br>
+                    - nudge (cú hích nhẹ): <span class='hl-red'>❌ Sai.</span><br>
+                    - lifesaver (cứu tinh): <span class='hl-red'>❌ Sai.</span><br>
+                    - indoctrination: <span class='hl-green'>✅ Đúng.</span> <span class='p-word'>indoctrination</span> mang nghĩa <span class='p-mean'>sự nhồi sọ, truyền bá tư tưởng</span>. Loại từ: <span class='p-grammar'>Uncountable Noun</span>.
+                    </p>
+                    <p>🔍 <b>Dẫn chứng:</b> "Every day felt like endless corporate <b>indoctrination</b>..."</p>
+                    <p>👉 <b>Dịch:</b> "Mỗi ngày trôi qua giống như sự <span class='quote-bold-red'>nhồi sọ</span> liên miên..."</p>
+                `
+            },
+            {
+                id: 4, correct: "eschew",
+                options: ["jump on", "eschew", "embrace", "cave in"],
+                exp: `
+                    <p><b>Dịch:</b> ...và tôi khao khát ______ hoàn toàn lối sống rập khuôn đó.</p>
+                    <p><b>Phân tích:</b><br>
+                    - embrace (đón nhận): <span class='hl-red'>❌ Sai nghĩa hoàn toàn.</span><br>
+                    - cave in (nhượng bộ): <span class='hl-red'>❌ Sai ngữ pháp và ngữ cảnh.</span><br>
+                    - eschew: <span class='hl-green'>✅ Đúng.</span> <span class='p-word'>eschew</span> nghĩa là <span class='p-mean'>cố ý tránh xa, từ bỏ</span>. Theo sau "wanted to" là <span class='p-grammar'>Infinitive Verb</span>.
+                    </p>
+                    <p>🔍 <b>Dẫn chứng:</b> "...desperately wanted to <b>eschew</b> that conventional lifestyle completely."</p>
+                    <p>👉 <b>Dịch:</b> "...khao khát <span class='quote-bold-red'>từ bỏ</span> hoàn toàn lối sống rập khuôn đó."</p>
+                `
+            },
+            {
+                id: 5, correct: "In light of",
+                options: ["Regardless of", "In spite of", "As a result", "In light of"],
+                exp: `
+                    <p><b>Dịch:</b> ______ những tin tức đáng buồn liên tục trên TV...</p>
+                    <p><b>Phân tích:</b><br>
+                    - Regardless of / In spite of (Mặc dù): <span class='hl-red'>❌ Sai vì tạo nét nghĩa tương phản sai logic.</span><br>
+                    - In light of: <span class='hl-green'>✅ Đúng.</span> Cụm <span class='p-word'>In light of</span> có nghĩa <span class='p-mean'>trong bối cảnh, do xét thấy</span>. Đi kèm <span class='p-grammar'>Prepositional phrase + Noun phrase</span>.
+                    </p>
+                    <p>🔍 <b>Dẫn chứng:</b> "<b>In light of</b> the constant distressing news..."</p>
+                    <p>👉 <b>Dịch:</b> "<span class='quote-bold-red'>Trong bối cảnh</span> những tin tức đáng buồn liên tục..."</p>
+                `
+            },
+            {
+                id: 6, correct: "war-torn countries",
+                options: ["war-torn countries", "new business ventures", "peace treaties", "rip-offs"],
+                exp: `
+                    <p><b>Dịch:</b> ...tin tức trên TV về ______, tôi đã giác ngộ...</p>
+                    <p><b>Phân tích:</b><br>
+                    - peace treaties (hiệp ước hòa bình): <span class='hl-red'>❌ Sai vì tivi đang chiếu "distressing news" (tin buồn).</span><br>
+                    - war-torn countries: <span class='hl-green'>✅ Đúng.</span> <span class='p-word'>war-torn countries</span> là <span class='p-mean'>các quốc gia bị tàn phá bởi chiến tranh</span>. Cấu trúc <span class='p-grammar'>Compound Adjective + Noun</span>.
+                    </p>
+                    <p>🔍 <b>Dẫn chứng:</b> "...distressing news on TV about <b>war-torn countries</b>..."</p>
+                    <p>👉 <b>Dịch:</b> "...tin tức đáng buồn trên TV về <span class='quote-bold-red'>các quốc gia bị chiến tranh tàn phá</span>..."</p>
+                `
+            },
+            {
+                id: 7, correct: "a toughie",
+                options: ["a lifesaver", "a tad", "a toughie", "a juggernaut"],
+                exp: `
+                    <p><b>Dịch:</b> Quyết định từ bỏ công việc ổn định chắc chắn là ______.</p>
+                    <p><b>Phân tích:</b><br>
+                    - a lifesaver (vị cứu tinh): <span class='hl-red'>❌ Sai bối cảnh.</span><br>
+                    - a tad (một chút): <span class='hl-red'>❌ Sai cấu trúc từ.</span><br>
+                    - a toughie: <span class='hl-green'>✅ Đúng.</span> Lóng <span class='p-word'>a toughie</span> chỉ <span class='p-mean'>một quyết định/vấn đề khó khăn</span>. Loại từ <span class='p-grammar'>Slang Noun</span>.
+                    </p>
+                    <p>🔍 <b>Dẫn chứng:</b> "Making the decision... was definitely <b>a toughie</b>."</p>
+                    <p>👉 <b>Dịch:</b> "Quyết định từ bỏ... chắc chắn là một <span class='quote-bold-red'>quyết định vô cùng khó khăn</span>."</p>
+                `
+            },
+            {
+                id: 8, correct: "outcry",
+                options: ["emulation", "nudge", "indoctrination", "outcry"],
+                exp: `
+                    <p><b>Dịch:</b> Mẹ tôi... đã phản ứng bằng một ______ khi tôi kể với bà...</p>
+                    <p><b>Phân tích:</b><br>
+                    - nudge (cú hích nhẹ): <span class='hl-red'>❌ Sai vì bà mẹ đang tức giận/phản đối.</span><br>
+                    - outcry: <span class='hl-green'>✅ Đúng.</span> <span class='p-word'>outcry</span> nghĩa là <span class='p-mean'>sự phản đối kịch liệt, la ó</span>. Loại từ: <span class='p-grammar'>Countable Noun</span>.
+                    </p>
+                    <p>🔍 <b>Dẫn chứng:</b> "...caused quite an <b>outcry</b> when I told her..."</p>
+                    <p>👉 <b>Dịch:</b> "...đã phản ứng bằng một <span class='quote-bold-red'>sự phản đối kịch liệt</span> khi tôi kể..."</p>
+                `
+            },
+            {
+                id: 9, correct: "go off the rails",
+                options: ["splash out", "go off the rails", "go star-gazing", "jump on the bandwagon"],
+                exp: `
+                    <p><b>Dịch:</b> ...thực sự lo sợ cuộc đời tôi sẽ hoàn toàn ______.</p>
+                    <p><b>Phân tích:</b><br>
+                    - splash out (vung tiền): <span class='hl-red'>❌ Sai logic (mẹ đang sợ con thất bại).</span><br>
+                    - go off the rails: <span class='hl-green'>✅ Đúng.</span> Idiom <span class='p-word'>go off the rails</span> nghĩa là <span class='p-mean'>trật bánh, mất kiểm soát, thất bại</span>. Đi với <span class='p-grammar'>Modal verb "would" + Bare Infinitive</span>.
+                    </p>
+                    <p>🔍 <b>Dẫn chứng:</b> "...fearing my life would completely <b>go off the rails</b>."</p>
+                    <p>👉 <b>Dịch:</b> "...lo sợ cuộc đời tôi sẽ hoàn toàn <span class='quote-bold-red'>trật bánh</span>."</p>
+                `
+            },
+            {
+                id: 10, correct: "caved in",
+                options: ["caved in", "eschewed", "eyed", "nudged"],
+                exp: `
+                    <p><b>Dịch:</b> Tôi thừa nhận, tôi đã hơi choáng ngợp và suýt ______ trước áp lực của bà.</p>
+                    <p><b>Phân tích:</b><br>
+                    - eschewed (từ bỏ): <span class='hl-red'>❌ Sai vì không đi với giới từ "to".</span><br>
+                    - caved in: <span class='hl-green'>✅ Đúng.</span> Phrasal verb <span class='p-word'>cave in (to sb/sth)</span> nghĩa là <span class='p-mean'>nhượng bộ, đầu hàng trước áp lực</span>. Chia ở <span class='p-grammar'>Past Simple Tense</span>.
+                    </p>
+                    <p>🔍 <b>Dẫn chứng:</b> "...and almost <b>caved in</b> to her pressure..."</p>
+                    <p>👉 <b>Dịch:</b> "...và suýt <span class='quote-bold-red'>nhượng bộ</span> trước áp lực của bà..."</p>
+                `
+            },
+            {
+                id: 11, correct: "nudge",
+                options: ["rip-off", "toughie", "nudge", "juggernaut"],
+                exp: `
+                    <p><b>Dịch:</b> ...nhưng bạn thân đã dành cho tôi một ______ nhẹ nhàng mà tôi cần.</p>
+                    <p><b>Phân tích:</b><br>
+                    - juggernaut (thế lực): <span class='hl-red'>❌ Sai nghĩa.</span><br>
+                    - nudge: <span class='hl-green'>✅ Đúng.</span> <span class='p-word'>nudge</span> là <span class='p-mean'>một cú hích nhẹ, sự khích lệ</span>. Kết hợp với tính từ "gentle" tạo thành <span class='p-grammar'>Noun phrase</span>.
+                    </p>
+                    <p>🔍 <b>Dẫn chứng:</b> "...gave me the gentle <b>nudge</b> I needed..."</p>
+                    <p>👉 <b>Dịch:</b> "...đã dành cho tôi một <span class='quote-bold-red'>cú hích nhẹ</span> mà tôi cần..."</p>
+                `
+            },
+            {
+                id: 12, correct: "splashed out",
+                options: ["caved in", "went off", "jumped out", "splashed out"],
+                exp: `
+                    <p><b>Dịch:</b> Để khu nghỉ dưỡng hoạt động, tôi đã ______ cho một số thiết bị chuyên dụng.</p>
+                    <p><b>Phân tích:</b><br>
+                    - went off (đổ chuông/ôi thiu): <span class='hl-red'>❌ Sai nghĩa.</span><br>
+                    - splashed out: <span class='hl-green'>✅ Đúng.</span> Phrasal verb <span class='p-word'>splash out (on sth)</span> mang nghĩa <span class='p-mean'>vung tiền, phung phí mua đồ đắt tiền</span>. Chia thì <span class='p-grammar'>Past Simple</span>.
+                    </p>
+                    <p>🔍 <b>Dẫn chứng:</b> "...I <b>splashed out</b> on some professional equipment."</p>
+                    <p>👉 <b>Dịch:</b> "...tôi đã <span class='quote-bold-red'>vung tiền</span> cho một số thiết bị chuyên dụng."</p>
+                `
+            },
+            {
+                id: 13, correct: "eyeing",
+                options: ["gazing", "eyeing", "staring", "seeing"],
+                exp: `
+                    <p><b>Dịch:</b> Tôi đã ______ một chiếc kính thiên văn hàng đầu từ nhiều tháng nay.</p>
+                    <p><b>Phân tích:</b><br>
+                    - staring (nhìn chằm chằm): <span class='hl-red'>❌ Sai vì mang nghĩa nhìn chằm chằm thiếu tế nhị.</span><br>
+                    - eyeing: <span class='hl-green'>✅ Đúng.</span> Động từ <span class='p-word'>eye</span> dạng V-ing mang nghĩa <span class='p-mean'>để mắt tới, ngắm nghía muốn mua</span>. Chia thì <span class='p-grammar'>Past Perfect Continuous</span> (had been + V-ing).
+                    </p>
+                    <p>🔍 <b>Dẫn chứng:</b> "I had been <b>eyeing</b> a top-tier telescope..."</p>
+                    <p>👉 <b>Dịch:</b> "Tôi đã <span class='quote-bold-red'>để mắt tới</span> một chiếc kính..."</p>
+                `
+            },
+            {
+                id: 14, correct: "steep",
+                options: ["steep", "pesky", "cheap", "necessary"],
+                exp: `
+                    <p><b>Dịch:</b> Mức giá vô cùng ______, nhưng tôi biết những mẫu rẻ hơn...</p>
+                    <p><b>Phân tích:</b><br>
+                    - cheap (rẻ): <span class='hl-red'>❌ Sai logic vì mệnh đề sau nối bằng "but" nói về đồ rẻ hơn.</span><br>
+                    - steep: <span class='hl-green'>✅ Đúng.</span> Tính từ <span class='p-word'>steep</span> dùng cho giá cả có nghĩa là <span class='p-mean'>rất đắt đỏ</span>. Cấu trúc <span class='p-grammar'>Adjective sau To be</span>.
+                    </p>
+                    <p>🔍 <b>Dẫn chứng:</b> "The price was incredibly <b>steep</b>, but I knew..."</p>
+                    <p>👉 <b>Dịch:</b> "Mức giá vô cùng <span class='quote-bold-red'>đắt đỏ</span>, nhưng..."</p>
+                `
+            },
+            {
+                id: 15, correct: "rip-offs",
+                options: ["lifesavers", "juggernauts", "rip-offs", "snippets"],
+                exp: `
+                    <p><b>Dịch:</b> ...tôi biết những mẫu rẻ hơn trên thị trường thực chất chỉ là ______.</p>
+                    <p><b>Phân tích:</b><br>
+                    - lifesavers (cứu tinh): <span class='hl-red'>❌ Sai nghĩa.</span><br>
+                    - rip-offs: <span class='hl-green'>✅ Đúng.</span> <span class='p-word'>rip-off</span> nghĩa là <span class='p-mean'>đồ bị hớ, đồ giá cao mà kém chất lượng</span>. Dạng số nhiều <span class='p-grammar'>Plural Noun</span>.
+                    </p>
+                    <p>🔍 <b>Dẫn chứng:</b> "...the cheaper models on the market were absolute <b>rip-offs</b>."</p>
+                    <p>👉 <b>Dịch:</b> "...những mẫu rẻ hơn... thực chất chỉ là <span class='quote-bold-red'>đồ kém chất lượng</span>."</p>
+                `
+            },
+            {
+                id: 16, correct: "crash course",
+                options: ["blanket statement", "rat race", "necessary evil", "crash course"],
+                exp: `
+                    <p><b>Dịch:</b> Tôi cũng tham gia một ______ về thiên văn học nâng cao...</p>
+                    <p><b>Phân tích:</b><br>
+                    - rat race (guồng quay): <span class='hl-red'>❌ Sai nghĩa.</span><br>
+                    - crash course: <span class='hl-green'>✅ Đúng.</span> <span class='p-word'>crash course</span> là <span class='p-mean'>khóa học cấp tốc</span>. Đi với cấu trúc <span class='p-grammar'>take a course in sth</span>.
+                    </p>
+                    <p>🔍 <b>Dẫn chứng:</b> "I also took a quick <b>crash course</b> in advanced astronomy..."</p>
+                    <p>👉 <b>Dịch:</b> "Tôi cũng tham gia một <span class='quote-bold-red'>khóa học cấp tốc</span> về thiên văn học..."</p>
+                `
+            },
+            {
+                id: 17, correct: "pesky",
+                options: ["pesky", "steep", "war-torn", "off the rails"],
+                exp: `
+                    <p><b>Dịch:</b> Tất nhiên, có những vấn đề hành chính ______ cản đường.</p>
+                    <p><b>Phân tích:</b><br>
+                    - war-torn (bị chiến tranh tàn phá): <span class='hl-red'>❌ Sai.</span><br>
+                    - pesky: <span class='hl-green'>✅ Đúng.</span> Tính từ <span class='p-word'>pesky</span> mang nghĩa <span class='p-mean'>phiền toái, gây bực mình</span>. Bổ nghĩa cho <span class='p-grammar'>Noun (issues)</span>.
+                    </p>
+                    <p>🔍 <b>Dẫn chứng:</b> "...there were some <b>pesky</b> administrative issues..."</p>
+                    <p>👉 <b>Dịch:</b> "...có những vấn đề hành chính <span class='quote-bold-red'>phiền toái</span>..."</p>
+                `
+            },
+            {
+                id: 18, correct: "juggernaut",
+                options: ["rip-off", "juggernaut", "crash course", "lifesaver"],
+                exp: `
+                    <p><b>Dịch:</b> Việc giải quyết các thủ tục quan liêu giống như một ______ không thể cản phá...</p>
+                    <p><b>Phân tích:</b><br>
+                    - lifesaver (cứu tinh): <span class='hl-red'>❌ Sai bối cảnh vì đây là vật cản đe dọa đè bẹp kế hoạch.</span><br>
+                    - juggernaut: <span class='hl-green'>✅ Đúng.</span> Từ <span class='p-word'>juggernaut</span> chỉ <span class='p-mean'>một thế lực, sức mạnh khổng lồ không thể cản nổi</span>.
+                    </p>
+                    <p>🔍 <b>Dẫn chứng:</b> "...felt like an unstoppable <b>juggernaut</b> threatening to crush my plans..."</p>
+                    <p>👉 <b>Dịch:</b> "...giống như một <span class='quote-bold-red'>thế lực khổng lồ</span> không thể cản phá..."</p>
+                `
+            },
+            {
+                id: 19, correct: "lifesaver",
+                options: ["toughie", "nudge", "lifesaver", "blanket statement"],
+                exp: `
+                    <p><b>Dịch:</b> Thật may, việc thuê một nhà tư vấn địa phương là một ______ tuyệt đối.</p>
+                    <p><b>Phân tích:</b><br>
+                    - toughie (điều khó khăn): <span class='hl-red'>❌ Sai vì có từ "Thankfully" (May mắn thay).</span><br>
+                    - lifesaver: <span class='hl-green'>✅ Đúng.</span> Từ <span class='p-word'>lifesaver</span> mang nghĩa <span class='p-mean'>vị cứu tinh</span>. Loại từ <span class='p-grammar'>Noun</span>.
+                    </p>
+                    <p>🔍 <b>Dẫn chứng:</b> "Thankfully, hiring a local consultant was an absolute <b>lifesaver</b>."</p>
+                    <p>👉 <b>Dịch:</b> "Thật may mắn, việc thuê một nhà tư vấn địa phương là một <span class='quote-bold-red'>vị cứu tinh</span>."</p>
+                `
+            },
+            {
+                id: 20, correct: "blanket statement",
+                options: ["snippet", "indoctrination", "necessary evil", "blanket statement"],
+                exp: `
+                    <p><b>Dịch:</b> Có thể là một ______ khi nói rằng theo đuổi đam mê luôn giống như cổ tích...</p>
+                    <p><b>Phân tích:</b><br>
+                    - snippet (mẩu tin): <span class='hl-red'>❌ Sai.</span><br>
+                    - blanket statement: <span class='hl-green'>✅ Đúng.</span> Cụm từ <span class='p-word'>blanket statement</span> là <span class='p-mean'>sự tuyên bố đánh đồng, quơ đũa cả nắm</span>. Cấu trúc <span class='p-grammar'>Noun phrase</span>.
+                    </p>
+                    <p>🔍 <b>Dẫn chứng:</b> "It might be a <b>blanket statement</b> to say that pursuing your passion is always a fairytale..."</p>
+                    <p>👉 <b>Dịch:</b> "Có thể là một <span class='quote-bold-red'>sự đánh đồng</span> khi nói rằng..."</p>
+                `
+            }
+        ];
+
+        let score = 0;
+        let answered = 0;
+
+        // Audio Setup
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playDing() {
+            if(audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(800, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.1);
+            gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.5);
+        }
+        function playTing() {
+            if(audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+            gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.3);
+        }
+
+        // Confetti Effect
+        function fireConfetti() {
+            const colors = ['#ff8fab', '#ffb6c1', '#add8e6', '#ffe4e1', '#28a745'];
+            for(let i=0; i<40; i++) {
+                let conf = document.createElement('div');
+                conf.className = 'confetti';
+                conf.style.left = Math.random() * 100 + 'vw';
+                conf.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                conf.style.animationDuration = (Math.random() * 2 + 1) + 's';
+                document.body.appendChild(conf);
+                setTimeout(() => conf.remove(), 3000);
+            }
+        }
+
+        // Background Emojis
+        const emojis = ['🌸', '🐱', '🐈', '🌺', '🐾', '🌻', '🐝', '🤖', '🌟'];
+        const floatBg = document.getElementById('floatBg');
+        for(let i=0; i<25; i++) {
+            let el = document.createElement('div');
+            el.className = 'float-icon';
+            el.innerText = emojis[Math.floor(Math.random() * emojis.length)];
+            el.style.left = Math.random() * 100 + 'vw';
+            el.style.animationDuration = (Math.random() * 15 + 10) + 's';
+            el.style.animationDelay = (Math.random() * 5) + 's';
+            floatBg.appendChild(el);
+        }
+
+        // Shuffle Array
+        function shuffle(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function toggleTranslation(id) {
+            const el = document.getElementById(id);
+            el.style.display = el.style.display === 'block' ? 'none' : 'block';
+        }
+
+        // Render Questions
+        const container = document.getElementById('questions-container');
+        qData.forEach((q, index) => {
+            const card = document.createElement('div');
+            card.className = 'question-card';
+            
+            let shuffledOptions = shuffle([...q.options]);
+            
+            let optionsHTML = shuffledOptions.map((opt, i) => 
+                `<button class="option-btn" id="btn-${q.id}-${i}" onclick="checkAnswer(${q.id}, '${opt}', this, [${shuffledOptions.map(o=>`'${o}'`).join(',')}])">${opt}</button>`
+            ).join('');
+
+            card.innerHTML = `
+                <div class="question-title">Câu ${q.id}: Điền vào chỗ trống (${q.id})</div>
+                <div class="options-grid">${optionsHTML}</div>
+                <div class="explanation-box" id="exp-${q.id}">${q.exp}</div>
+            `;
+            container.appendChild(card);
+        });
+
+        function checkAnswer(qId, selectedOpt, btnElement, allOptsArr) {
+            const q = qData.find(x => x.id === qId);
+            const parent = btnElement.parentElement;
+            const buttons = parent.querySelectorAll('button');
+            
+            buttons.forEach(b => b.disabled = true); // Disable all
+            answered++;
+
+            if(selectedOpt === q.correct) {
+                btnElement.classList.add('correct');
+                playDing();
+                fireConfetti();
+                score++;
+            } else {
+                btnElement.classList.add('incorrect');
+                playTing();
+                // Highlight correct
+                buttons.forEach(b => {
+                    if(b.innerText === q.correct) b.classList.add('correct');
+                });
+            }
+
+            // Fill Gap
+            const gap = document.getElementById(`gap-${qId}`);
+            if(gap) {
+                gap.innerText = q.correct;
+                gap.classList.add('filled');
+            }
+
+            // Show explanation
+            document.getElementById(`exp-${qId}`).style.display = 'block';
+        }
+
+        function showSubmitPopup() {
+            if(answered < 20) {
+                alert("Con hãy làm hết 20 câu trước khi nộp bài nhé! 🐾");
+                return;
+            }
+            document.getElementById('submitOverlay').style.display = 'flex';
+        }
+
+        function calculateScore() {
+            const name = document.getElementById('studentName').value.trim();
+            if(!name) { alert("Nhập tên vào nhé con ơi!"); return; }
+
+            document.getElementById('namePopup').style.display = 'none';
+            document.getElementById('resultPopup').style.display = 'block';
+
+            document.getElementById('resName').innerText = name;
+            document.getElementById('resScore').innerText = `${score}/20`;
+
+            const percent = score / 20;
+            let fb = "", gif = "";
+            if(percent === 1) {
+                fb = "Thiên tài ngoại ngữ xuất hiện! Quá xuất sắc! 🌟";
+                gif = "https://media.giphy.com/media/l41YkxvU8c7J7Bba0/giphy.gif"; // Celebrate
+            } else if (percent >= 0.6) {
+                fb = "Rất tốt! Con đã cố gắng hết sức, hãy phát huy nhé! 😻";
+                gif = "https://media.giphy.com/media/3o7TKoWXm3okO1kgHC/giphy.gif"; // High five
+            } else {
+                fb = "Ôi không sao, lần sau chúng mình làm lại sẽ tốt hơn! Cố lên nhé! 😿";
+                gif = "https://media.giphy.com/media/OPU6wzx8JrHna/giphy.gif"; // Crying/sad cat
+            }
+
+            document.getElementById('resFeedback').innerText = fb;
+            document.getElementById('resGif').src = gif;
+            if(percent === 1) fireConfetti();
+        }
+    </script>
+</body>
+</html>

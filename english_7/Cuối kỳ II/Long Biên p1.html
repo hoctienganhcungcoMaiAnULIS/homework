@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bài Kiểm Tra Tiếng Anh - Gamification</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <style>
+        :root {
+            --primary: #8854C0;
+            --secondary: #FDCB6E;
+            --tertiary: #00C9A7;
+            --glass-bg: rgba(255, 255, 255, 0.25);
+            --glass-border: rgba(255, 255, 255, 0.4);
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            margin: 0;
+            min-height: 100vh;
+            /* Animated Linear Gradient */
+            background: linear-gradient(-45deg, #8854C0, #FDCB6E, #00C9A7, #FF8A9A, #6C5CE7);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            color: #2D3436;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* SVG Pattern Overlay */
+        .bg-pattern {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; opacity: 0.4;
+            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        }
+
+        /* Glassmorphism Classes */
+        .glass-panel {
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+        }
+
+        .glass-header {
+            background: rgba(255, 255, 255, 0.4);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        /* Blooket/Duolingo Style 3D Buttons */
+        .btn-3d {
+            background: rgba(255, 255, 255, 0.9);
+            border: 2px solid transparent;
+            border-bottom-width: 6px;
+            border-radius: 18px;
+            transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+            color: #4A4A4A;
+            font-size: 1.08rem;
+            font-weight: 700;
+        }
+
+        .btn-3d:hover:not(:disabled) {
+            transform: scale(1.03) translateY(-2px);
+            border-color: var(--primary);
+            color: var(--primary);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+
+        .btn-3d:active:not(:disabled) {
+            transform: scale(0.98) translateY(4px);
+            border-bottom-width: 2px;
+            margin-top: 4px;
+        }
+
+        /* Correct/Wrong States */
+        .btn-correct {
+            background-color: #00D26A !important;
+            border-color: #00A855 !important;
+            color: white !important;
+        }
+
+        .btn-wrong {
+            background-color: #FF4757 !important;
+            border-color: #D63031 !important;
+            color: white !important;
+        }
+
+        /* Shake Animation */
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-8px); }
+            40%, 80% { transform: translateX(8px); }
+        }
+        .shake { animation: shake 0.4s ease-in-out; }
+
+        /* Explanation Styling Tags */
+        .expl-box {
+            display: none;
+            animation: slideDown 0.4s ease-out forwards;
+            background: rgba(255,255,255,0.85);
+            border-left: 5px solid var(--primary);
+        }
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .p-word { color: #0984e3; font-weight: 800; }
+        .p-phonetic { background-color: #e0b0ff; color: #4a0e4e; padding: 2px 6px; border-radius: 6px; font-family: monospace; font-weight: bold; }
+        .p-mean { color: #d35400; font-style: italic; font-weight: 700; }
+        .p-grammar { text-decoration: underline; text-decoration-color: #e74c3c; text-underline-offset: 3px; font-weight: 800; color: #2c3e50; }
+        .hl-green { color: #00b894; font-weight: 900; }
+        .hl-red { color: #d63031; text-decoration: line-through; text-decoration-color: #2d3436; font-weight: 800; }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: rgba(255,255,255,0.2); }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.6); border-radius: 10px; }
+    </style>
+</head>
+<body class="pb-24">
+    <div class="bg-pattern"></div>
+
+    <header class="glass-header sticky top-0 z-50 px-6 py-3 flex justify-between items-center shadow-sm">
+        <div class="text-sm font-bold text-purple-800 bg-white/60 px-3 py-1 rounded-full flex items-center gap-2">
+            <span>👩‍🏫</span> Giáo viên tạo: Ms Mai An ULIS
+        </div>
+        <div class="font-extrabold text-gray-800 bg-white/60 px-4 py-1 rounded-full">
+            Điểm: <span id="score-display" class="text-green-600">0</span>
+        </div>
+    </header>
+
+    <main class="max-w-4xl mx-auto mt-8 px-4" id="quiz-container">
+        </main>
+
+    <div class="fixed bottom-0 left-0 w-full p-4 glass-header flex justify-center z-40">
+        <button onclick="openNameModal()" class="bg-gradient-to-r from-purple-500 to-pink-500 text-white font-extrabold text-xl py-4 px-12 rounded-2xl shadow-lg hover:scale-105 transition-transform border-b-4 border-purple-700">
+            🎯 NỘP BÀI & XEM KẾT QUẢ
+        </button>
+    </div>
+
+    <div id="name-modal" class="fixed inset-0 z-[100] hidden items-center justify-center bg-black/50 backdrop-blur-sm">
+        <div class="glass-panel p-8 rounded-3xl w-11/12 max-w-md text-center bg-white/90">
+            <h2 class="text-2xl font-black text-gray-800 mb-2">Bạn tên là gì nhỉ? 🤔</h2>
+            <p class="text-gray-600 mb-6 font-semibold">Nhập tên để xem bảng điểm xuất sắc của bạn nhé!</p>
+            <input type="text" id="student-name" placeholder="Ví dụ: Nguyễn Văn A..." 
+                class="w-full text-lg p-4 rounded-xl border-2 border-gray-300 focus:outline-none focus:border-purple-500 font-bold text-center mb-2 transition-colors">
+            <p id="name-error" class="text-red-500 font-bold text-sm hidden mb-4">Nhập tên đi nào, đừng để trống nhé! 🚀</p>
+            <button onclick="submitQuiz()" class="w-full bg-green-500 text-white font-black text-xl py-4 rounded-xl hover:bg-green-600 border-b-4 border-green-700 transition-colors mt-4">
+                XEM ĐIỂM NGAY
+            </button>
+        </div>
+    </div>
+
+    <div id="result-modal" class="fixed inset-0 z-[100] hidden items-center justify-center bg-black/70 backdrop-blur-md">
+        <div class="glass-panel p-8 rounded-3xl w-11/12 max-w-lg text-center bg-white shadow-2xl relative overflow-hidden">
+            <div class="absolute top-0 left-0 w-full h-3 bg-gradient-to-r from-green-400 to-blue-500"></div>
+            <h1 id="result-greeting" class="text-3xl font-black text-purple-700 mb-2 mt-4"></h1>
+            <div class="text-6xl font-black text-gray-800 my-6 flex justify-center items-end gap-2">
+                <span id="result-score" class="text-green-500"></span><span class="text-3xl text-gray-400">/20</span>
+            </div>
+            <img id="result-gif" src="" alt="Result Meme" class="w-full h-48 object-cover rounded-2xl mb-6 shadow-md border-4 border-gray-100">
+            <button onclick="location.reload()" class="w-full bg-blue-500 text-white font-black text-xl py-4 rounded-xl hover:bg-blue-600 border-b-4 border-blue-700 transition-colors">
+                🔄 CHƠI LẠI TỪ ĐẦU
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // --- DATA BÀI TẬP ---
+        const quizData = [
+            {
+                qText: "Question 41. Lan and Hoa ________ ice cream at the moment.",
+                options: ["was eating", "is eating", "eating", "are eating"],
+                correctAnswer: "are eating",
+                expl: `
+                    <div class="mb-2"><strong>1. Dịch câu hỏi:</strong> Lan và Hoa ______ kem vào lúc này.</div>
+                    <div class="mb-2"><strong>2. Các đáp án:</strong> <span class='p-word'>was eating</span> (<span class='p-mean'>đã đang ăn</span>), <span class='p-word'>is eating</span> (<span class='p-mean'>đang ăn - số ít</span>), <span class='p-word'>eating</span> (<span class='p-mean'>ăn</span>), <span class='p-word'>are eating</span> (<span class='p-mean'>đang ăn - số nhiều</span>).</div>
+                    <div class="mb-2"><strong>3. Tại sao chọn?</strong> Dấu hiệu <span class='p-grammar'>at the moment</span> yêu cầu thì Hiện tại tiếp diễn (S + is/am/are + V-ing). Chủ ngữ <span class='p-word'>Lan and Hoa</span> là 2 người (số nhiều) nên dùng tobe "are". <span class='hl-green'>Chọn "are eating".</span></div>
+                    <div><strong>4. Phân tích bẫy:</strong> <span class='hl-red'>was eating</span> sai thì quá khứ. <span class='hl-red'>is eating</span> thiếu hòa hợp chủ vị (dùng cho số ít). <span class='hl-red'>eating</span> thiếu động từ tobe.</div>
+                `
+            },
+            {
+                qText: "Question 42. Huong and Hoa are talking about some activities at the weekend.<br>Huong: “We will have 2 days off, so what shall we do this weekend?”<br>Hoa: “________”",
+                options: ["Let’s visit the art gallery.", "Thank you.", "I will go out.", "I don’t like it"],
+                correctAnswer: "Let’s visit the art gallery.",
+                expl: `
+                    <div class="mb-2"><strong>1. Dịch câu hỏi:</strong> Hương: "Chúng ta sẽ có 2 ngày nghỉ, vậy chúng ta sẽ làm gì cuối tuần này?" - Hoa: "____"</div>
+                    <div class="mb-2"><strong>2. Các đáp án:</strong> A. <span class='p-mean'>Hãy đến thăm phòng tranh.</span> B. <span class='p-mean'>Cảm ơn bạn.</span> C. <span class='p-mean'>Tớ sẽ đi ra ngoài.</span> D. <span class='p-mean'>Tớ không thích nó.</span></div>
+                    <div class="mb-2"><strong>3. Tại sao chọn?</strong> Đây là câu hỏi xin ý kiến/gợi ý hoạt động (<span class='p-grammar'>what shall we do...?</span>). Đáp lại bằng một lời rủ rê <span class='p-grammar'>Let's + V</span> là phù hợp nhất về giao tiếp. <span class='hl-green'>Chọn A.</span></div>
+                    <div><strong>4. Phân tích bẫy:</strong> <span class='hl-red'>Thank you</span> sai ngữ cảnh. <span class='hl-red'>I will go out</span> chỉ nói lịch trình cá nhân, không trả lời cho từ "we" (chúng ta). <span class='hl-red'>I don't like it</span> thô lỗ và không đúng logic đoạn hội thoại.</div>
+                `
+            },
+            {
+                qText: "Question 43. You can see ________ moon clearly in the Mid-Autumn festival.",
+                options: ["the", "an", "a", "x (no article)"],
+                correctAnswer: "the",
+                expl: `
+                    <div class="mb-2"><strong>1. Dịch câu hỏi:</strong> Bạn có thể nhìn thấy ______ mặt trăng một cách rõ ràng vào dịp Tết Trung thu.</div>
+                    <div class="mb-2"><strong>2. Các đáp án:</strong> Mạo từ: the, an, a, rỗng.</div>
+                    <div class="mb-2"><strong>3. Tại sao chọn?</strong> <span class='p-word'>moon</span> (<span class='p-mean'>mặt trăng</span>) là danh từ chỉ vật thể duy nhất trong tự nhiên. Theo <span class='p-grammar'>quy tắc mạo từ xác định</span>, ta phải dùng "the" trước các danh từ duy nhất (the sun, the earth, the moon...). <span class='hl-green'>Chọn "the".</span></div>
+                    <div><strong>4. Phân tích bẫy:</strong> <span class='hl-red'>a/an</span> dùng cho danh từ đếm được số ít nói chung chưa xác định. Không được bỏ trống mạo từ trước danh từ đếm được số ít.</div>
+                `
+            },
+            {
+                qText: "Question 44. Mai speaks English well ________ her native language is Vietnamese.",
+                options: ["so", "because", "However", "although"],
+                correctAnswer: "although",
+                expl: `
+                    <div class="mb-2"><strong>1. Dịch câu hỏi:</strong> Mai nói tiếng Anh tốt ______ ngôn ngữ mẹ đẻ của cô ấy là tiếng Việt.</div>
+                    <div class="mb-2"><strong>2. Các đáp án:</strong> <span class='p-word'>so</span> (<span class='p-mean'>vì vậy</span>), <span class='p-word'>because</span> (<span class='p-mean'>bởi vì</span>), <span class='p-word'>However</span> (<span class='p-mean'>Tuy nhiên</span>), <span class='p-word'>although</span> (<span class='p-mean'>mặc dù</span>).</div>
+                    <div class="mb-2"><strong>3. Tại sao chọn?</strong> Hai mệnh đề mang ý nghĩa tương phản (tiếng mẹ đẻ là tiếng Việt >< nhưng nói tiếng Anh lại tốt). Dùng liên từ nhượng bộ đứng giữa câu kết nối 2 mệnh đề: <span class='p-grammar'>S1 + V1 + although + S2 + V2</span>. <span class='hl-green'>Chọn "although".</span></div>
+                    <div><strong>4. Phân tích bẫy:</strong> <span class='hl-red'>so</span> và <span class='hl-red'>because</span> sai logic nghĩa. <span class='hl-red'>However</span> thường đứng đầu câu độc lập, ngăn cách bởi dấu phẩy hoặc chấm phẩy, không nối trực tiếp 2 mệnh đề như thế này.</div>
+                `
+            },
+            {
+                qText: "Question 45. There are many available ________ power sources in Vietnam including sun, wind, water, etc.",
+                options: ["nuclear", "hydro", "renewable", "solar"],
+                correctAnswer: "renewable",
+                expl: `
+                    <div class="mb-2"><strong>1. Dịch câu hỏi:</strong> Có rất nhiều nguồn năng lượng ______ sẵn có ở Việt Nam bao gồm mặt trời, gió, nước, v.v.</div>
+                    <div class="mb-2"><strong>2. Các đáp án:</strong> <span class='p-word'>nuclear</span> (<span class='p-mean'>hạt nhân</span>), <span class='p-word'>hydro</span> (<span class='p-mean'>thủy điện</span>), <span class='p-word'>renewable</span> (<span class='p-mean'>có thể tái tạo</span>), <span class='p-word'>solar</span> (<span class='p-mean'>mặt trời</span>).</div>
+                    <div class="mb-2"><strong>3. Tại sao chọn?</strong> Dựa vào liệt kê phía sau "sun, wind, water" - đây đều là các nguồn <span class='hl-green'>năng lượng có thể tái tạo (renewable power sources)</span>.</div>
+                    <div><strong>4. Phân tích bẫy:</strong> <span class='hl-red'>solar</span> và <span class='hl-red'>hydro</span> chỉ là các tập con (chỉ mặt trời hoặc chỉ nước), không bao quát được toàn bộ danh sách. <span class='hl-red'>nuclear</span> là năng lượng không tái tạo.</div>
+                `
+            },
+            {
+                qText: "Question 46. Scientists ________ for a new energy source to replace coal nowadays.",
+                options: ["looks", "is looking", "are looking", "will look"],
+                correctAnswer: "are looking",
+                expl: `
+                    <div class="mb-2"><strong>1. Dịch câu hỏi:</strong> Các nhà khoa học ______ một nguồn năng lượng mới để thay thế than đá ngày nay.</div>
+                    <div class="mb-2"><strong>2. Các đáp án:</strong> Từ gốc "look for" (<span class='p-mean'>tìm kiếm</span>) chia ở các thì khác nhau.</div>
+                    <div class="mb-2"><strong>3. Tại sao chọn?</strong> Dấu hiệu thời gian <span class='p-grammar'>nowadays</span> (ngày nay) thường đi với thì Hiện tại tiếp diễn chỉ một xu hướng đang diễn ra. Chủ ngữ <span class='p-word'>Scientists</span> (có 's') là số nhiều -> dùng tobe "are". <span class='hl-green'>Chọn "are looking".</span></div>
+                    <div><strong>4. Phân tích bẫy:</strong> <span class='hl-red'>looks</span> và <span class='hl-red'>is looking</span> chia sai chủ ngữ (dành cho số ít). <span class='hl-red'>will look</span> sai thời (tương lai).</div>
+                `
+            },
+            {
+                qText: "Question 47. We want to visit ________ attraction in Sydney.",
+                options: ["a", "an", "the", "x (no article)"],
+                correctAnswer: "an",
+                expl: `
+                    <div class="mb-2"><strong>1. Dịch câu hỏi:</strong> Chúng tôi muốn đến thăm ______ điểm thu hút khách du lịch ở Sydney.</div>
+                    <div class="mb-2"><strong>2. Các đáp án:</strong> Mạo từ a, an, the, rỗng.</div>
+                    <div class="mb-2"><strong>3. Tại sao chọn?</strong> Từ <span class='p-word'>attraction</span> (<span class='p-mean'>điểm thu hút</span>) là danh từ đếm được số ít, bắt đầu bằng một nguyên âm <span class='p-phonetic'>/ə/</span> (mặt chữ 'a'). Do chưa xác định cụ thể điểm nào, ta dùng mạo từ không xác định. <span class='hl-green'>Chọn "an".</span></div>
+                    <div><strong>4. Phân tích bẫy:</strong> <span class='hl-red'>a</span> sai vì trước nguyên âm. <span class='hl-red'>the</span> sai vì điểm này chưa được nhắc đến từ trước. Không thể để trống.</div>
+                `
+            },
+            {
+                qText: "Question 48. Nicolas wanted to see the romantic movie. ________, Tracy refused to go with him.",
+                options: ["However", "Although", "But", "Though"],
+                correctAnswer: "However",
+                expl: `
+                    <div class="mb-2"><strong>1. Dịch câu hỏi:</strong> Nicolas muốn xem bộ phim lãng mạn. ________, Tracy từ chối đi cùng anh ấy.</div>
+                    <div class="mb-2"><strong>2. Các đáp án:</strong> <span class='p-word'>However</span> (<span class='p-mean'>Tuy nhiên</span>), <span class='p-word'>Although/Though</span> (<span class='p-mean'>Mặc dù</span>), <span class='p-word'>But</span> (<span class='p-mean'>Nhưng</span>).</div>
+                    <div class="mb-2"><strong>3. Tại sao chọn?</strong> Chỗ trống đứng đầu câu, phía sau có DẤU PHẨY, kết nối 2 câu mang ý nghĩa trái ngược. Cấu trúc chuẩn là <span class='p-grammar'>Sentence 1. However, Sentence 2.</span> <span class='hl-green'>Chọn "However".</span></div>
+                    <div><strong>4. Phân tích bẫy:</strong> <span class='hl-red'>Although</span> và <span class='hl-red'>Though</span> cộng trực tiếp mệnh đề (S+V) KHÔNG CÓ dấu phẩy ngay sau. <span class='hl-red'>But</span> không đứng đầu câu nối bằng dấu phẩy theo chuẩn ngữ pháp hàn lâm.</div>
+                `
+            },
+            {
+                qText: "Question 49. ________ bicycle is here. ________ is over there.",
+                options: ["Mine - Him", "My - His", "Mine - His", "My - Him"],
+                correctAnswer: "My - His",
+                expl: `
+                    <div class="mb-2"><strong>1. Dịch câu hỏi:</strong> Xe đạp của ______ thì ở đây. Của ______ thì ở đằng kia.</div>
+                    <div class="mb-2"><strong>2. Các đáp án:</strong> Các tổ hợp Tính từ sở hữu và Đại từ sở hữu.</div>
+                    <div class="mb-2"><strong>3. Tại sao chọn?</strong> Ô trống 1 đứng trước danh từ "bicycle", cần một <span class='p-grammar'>Tính từ sở hữu</span> (My). Ô trống 2 đứng độc lập đóng vai trò Chủ ngữ, thay thế cho "his bicycle", cần một <span class='p-grammar'>Đại từ sở hữu</span> (His - vừa là tính từ vừa là đại từ). <span class='hl-green'>Chọn "My - His".</span></div>
+                    <div><strong>4. Phân tích bẫy:</strong> <span class='hl-red'>Mine</span> là đại từ sở hữu, không đứng trước danh từ. <span class='hl-red'>Him</span> là tân ngữ, không chỉ sự sở hữu.</div>
+                `
+            },
+            {
+                qText: "Question 50. Because vehicles using fossil fuels cause pollution, scientists want to find a cheaper and ________ replacement.",
+                options: ["inconvenient", "dangerous", "polluted", "eco-friendly"],
+                correctAnswer: "eco-friendly",
+                expl: `
+                    <div class="mb-2"><strong>1. Dịch câu hỏi:</strong> Bởi vì xe cộ dùng nhiên liệu hóa thạch gây ô nhiễm, các nhà khoa học muốn tìm một sự thay thế rẻ hơn và _____.</div>
+                    <div class="mb-2"><strong>2. Các đáp án:</strong> <span class='p-word'>inconvenient</span> (<span class='p-mean'>bất tiện</span>), <span class='p-word'>dangerous</span> (<span class='p-mean'>nguy hiểm</span>), <span class='p-word'>polluted</span> (<span class='p-mean'>bị ô nhiễm</span>), <span class='p-word'>eco-friendly</span> (<span class='p-mean'>thân thiện môi trường</span>).</div>
+                    <div class="mb-2"><strong>3. Tại sao chọn?</strong> Liên từ "and" nối 2 tính từ đồng dạng mang nghĩa tích cực ("cheaper" - rẻ hơn). Do nhiên liệu cũ gây ô nhiễm, sự thay thế cần tích cực -> <span class='hl-green'>thân thiện môi trường (eco-friendly)</span>.</div>
+                    <div><strong>4. Phân tích bẫy:</strong> Các từ <span class='hl-red'>inconvenient, dangerous, polluted</span> đều mang sắc thái nghĩa tiêu cực, đi ngược lại mục tiêu tìm kiếm của nhà khoa học.</div>
+                `
+            },
+            {
+                qText: "Question 51. Jane: “Are you free this weekend? Let’s go to the Tulip Festival!”<br>Daisy: “________”",
+                options: ["I can bring you a bunch of flowers.", "Not at all.", "That’s great! I also want to go there.", "No. Don’t ask me."],
+                correctAnswer: "That’s great! I also want to go there.",
+                expl: `
+                    <div class="mb-2"><strong>1. Dịch câu hỏi:</strong> Jane: "Cuối tuần này cậu rảnh không? Cùng đến Lễ hội hoa Tulip nhé!" - Daisy: "____"</div>
+                    <div class="mb-2"><strong>2. Các đáp án:</strong> A. <span class='p-mean'>Tớ có thể mang cho cậu 1 bó hoa.</span> B. <span class='p-mean'>Không hề.</span> C. <span class='p-mean'>Thật tuyệt! Tớ cũng muốn đến đó.</span> D. <span class='p-mean'>Không. Đừng hỏi tớ.</span></div>
+                    <div class="mb-2"><strong>3. Tại sao chọn?</strong> Để đáp lại lời rủ rê (Let's + V), cần một câu đồng ý lịch sự và hào hứng. <span class='hl-green'>Chọn C. That's great!</span></div>
+                    <div><strong>4. Phân tích bẫy:</strong> <span class='hl-red'>Not at all</span> thường dùng đáp lại lời cảm ơn hoặc xin lỗi. Câu D quá bất lịch sự. Câu A lạc đề giao tiếp.</div>
+                `
+            },
+            {
+                qText: "Question 52. Don’t forget to ________ a signal before you turn left or right.",
+                options: ["take", "give", "make", "do"],
+                correctAnswer: "give",
+                expl: `
+                    <div class="mb-2"><strong>1. Dịch câu hỏi:</strong> Đừng quên ______ tín hiệu trước khi rẽ trái hoặc phải.</div>
+                    <div class="mb-2"><strong>2. Các đáp án:</strong> Các động từ thường gặp: take, give, make, do.</div>
+                    <div class="mb-2"><strong>3. Tại sao chọn?</strong> Đây là bài toán về sự kết hợp từ (Collocation). Ta có cụm từ cố định: <span class='p-grammar'>give a signal</span> (<span class='p-mean'>đưa ra/phát ra tín hiệu</span>). <span class='hl-green'>Chọn "give".</span></div>
+                    <div><strong>4. Phân tích bẫy:</strong> Trong tiếng Việt hay nói "làm tín hiệu" nên dễ chọn sai thành <span class='hl-red'>make a signal</span>. Tuy nhiên người bản xứ dùng "give".</div>
+                `
+            },
+            {
+                qText: "Question 69. Put the sentences (a-c) in the correct order...<br><i>My family joined the spring flower festival last weekend. We were excited to see the beautiful flowers. ________</i><br>a. Because the festival was more crowded than we expected.<br>b. However, it was difficult to find a parking spot.<br>c. Fortunately, we finally got to see the flowers and enjoyed taking pictures.",
+                options: ["b-a-c", "a-b-c", "c-b-a", "b-c-a"],
+                correctAnswer: "b-a-c",
+                expl: `
+                    <div class="mb-2"><strong>1. Dịch bài:</strong> ... Chúng tôi rất háo hức xem hoa. (b) Tuy nhiên, rất khó tìm chỗ đỗ xe. (a) Bởi vì lễ hội đông đúc hơn mong đợi. (c) May mắn thay, cuối cùng chúng tôi cũng được ngắm hoa...</div>
+                    <div class="mb-2"><strong>2. Phân tích Logic:</strong> Đang háo hức -> Gặp trở ngại: khó tìm bãi đỗ (b) -> Giải thích nguyên nhân: vì quá đông (a) -> Kết quả tích cực cuối cùng (c).</div>
+                    <div class="mb-2"><strong>3. Tại sao chọn?</strong> Chuỗi liên kết nhân quả và thời gian hợp lý nhất là <span class='hl-green'>b - a - c</span>.</div>
+                    <div><strong>4. Phân tích bẫy:</strong> Các thứ tự khác làm đứt đoạn mạch kể chuyện. Không thể đặt (c) lên trước vì chưa nói về khó khăn.</div>
+                `
+            },
+            {
+                qText: "Question 70. Choose the sentence that can end the text in question 69.",
+                options: ["We had to leave early because it became too crowded.", "In the end, we had a wonderful day despite the challenges.", "The flowers were not as beautiful as we expected.", "We decided not to go to the festival after all."],
+                correctAnswer: "In the end, we had a wonderful day despite the challenges.",
+                expl: `
+                    <div class="mb-2"><strong>1. Dịch câu hỏi:</strong> Chọn câu kết thúc phù hợp cho đoạn văn câu 69.</div>
+                    <div class="mb-2"><strong>2. Phân tích đoạn trước:</strong> Câu cuối là "... enjoyed taking pictures" (rất tận hưởng việc chụp ảnh). Giọng điệu (tone) đoạn kết đang rất tích cực.</div>
+                    <div class="mb-2"><strong>3. Tại sao chọn?</strong> Câu B "Cuối cùng, chúng tôi có một ngày tuyệt vời bất chấp thử thách" tổng kết lại hoàn hảo sự vất vả lúc đầu và niềm vui lúc sau. <span class='hl-green'>Chọn B.</span></div>
+                    <div><strong>4. Phân tích bẫy:</strong> Các câu A, C, D đều mang nghĩa tiêu cực (rời đi sớm, hoa không đẹp, quyết định không đi), hoàn toàn mâu thuẫn với câu "enjoyed taking pictures".</div>
+                `
+            },
+            {
+                qText: "Question 71. Put the sentences (a-c) in the correct order...<br><i>Traveling in the future will be much faster and easier. With new technology, people will have more ways to travel. ________</i><br>a. Finally, space tourism will become possible...<br>b. First, high-speed trains will help people travel...<br>c. Additionally, there might be flying cars...",
+                options: ["b-a-c", "a-b-c", "c-a-b", "b-c-a"],
+                correctAnswer: "b-c-a",
+                expl: `
+                    <div class="mb-2"><strong>1. Dịch câu hỏi:</strong> Sắp xếp (a-c) tạo thành đoạn văn có nghĩa. (a. Cuối cùng, du lịch vũ trụ... b. Đầu tiên, tàu cao tốc... c. Thêm vào đó, xe bay...)</div>
+                    <div class="mb-2"><strong>2. Phân tích Logic:</strong> Dựa vào các từ nối chỉ trình tự (Sequence Connectors): <span class='p-word'>First</span> -> <span class='p-word'>Additionally</span> -> <span class='p-word'>Finally</span>.</div>
+                    <div class="mb-2"><strong>3. Tại sao chọn?</strong> Rất rõ ràng, trình tự liệt kê phải bắt đầu bằng First (b), tiếp diễn bằng Additionally (c) và chốt lại bằng Finally (a). <span class='hl-green'>Thứ tự: b - c - a.</span></div>
+                    <div><strong>4. Phân tích bẫy:</strong> Bỏ qua các từ khóa nối câu sẽ dễ sắp xếp lộn xộn nội dung.</div>
+                `
+            },
+            {
+                qText: "Question 72. Choose the sentence that can end the text (in Question 71) most appropriately.",
+                options: ["In short, travel will be more exciting, and full of new possibilities soon.", "Traveling today is much better than in the future.", "Most people will stop traveling and stay at home.", "Bicycles will be the only way to travel."],
+                correctAnswer: "In short, travel will be more exciting, and full of new possibilities soon.",
+                expl: `
+                    <div class="mb-2"><strong>1. Dịch câu hỏi:</strong> Chọn câu kết thúc phù hợp cho đoạn văn câu 71.</div>
+                    <div class="mb-2"><strong>2. Các đáp án:</strong> A. <span class='p-mean'>Tóm lại, việc đi lại sẽ thú vị và đầy tiềm năng.</span> B. <span class='p-mean'>Đi lại hiện tại tốt hơn tương lai.</span> C. <span class='p-mean'>Mọi người sẽ ngừng đi lại.</span> D. <span class='p-mean'>Xe đạp là cách duy nhất.</span></div>
+                    <div class="mb-2"><strong>3. Tại sao chọn?</strong> Đoạn văn đang vẽ ra viễn cảnh tương lai rất hiện đại (xe bay, du lịch vũ trụ). Để kết bài, cần một câu tóm tắt mang tính dự đoán tích cực bắt đầu bằng <span class='p-grammar'>In short</span> (Tóm lại). <span class='hl-green'>Chọn A.</span></div>
+                    <div><strong>4. Phân tích bẫy:</strong> B, C, D đều mang nghĩa thụt lùi, tiêu cực, đi ngược lại sự phát triển công nghệ được ca ngợi ở phần thân bài.</div>
+                `
+            },
+            {
+                qText: "Question 73. Put the sentences (a-c) in the correct order...<br><i>OUR CLASS FIELD TRIP. Last Saturday, my class went on an unforgettable field trip to the countryside. ________</i><br>a. We participated in various activities...<br>b. After arriving at there in the morning, we listened to a guide...<br>c. Later, we had lunch under the trees...",
+                options: ["a-b-c", "b-a-c", "c-a-b", "b-c-a"],
+                correctAnswer: "b-a-c",
+                expl: `
+                    <div class="mb-2"><strong>1. Dịch bài:</strong> Thứ 7 tuần trước, lớp tôi đi dã ngoại. (a) Chúng tôi tham gia nhiều hoạt động... (b) Sau khi đến đó vào buổi sáng, chúng tôi nghe hướng dẫn viên... (c) Sau đó, chúng tôi ăn trưa dưới gốc cây...</div>
+                    <div class="mb-2"><strong>2. Phân tích Logic:</strong> Kể theo trình tự thời gian. Đến nơi (b) -> Bắt đầu chơi trò chơi (a) -> Trưa ăn cơm (c).</div>
+                    <div class="mb-2"><strong>3. Tại sao chọn?</strong> Sự kiện diễn ra nối tiếp nhau: arriving -> participated -> had lunch. <span class='hl-green'>Thứ tự chuẩn là b - a - c.</span></div>
+                    <div><strong>4. Phân tích bẫy:</strong> Ăn trưa (c) không thể đứng trước khi đến nơi (b). Tham gia chơi (a) thường diễn ra sau khi hướng dẫn viên phổ biến (b).</div>
+                `
+            },
+            {
+                qText: "Question 74. Choose the sentence that can end the text (in 73) most appropriately.",
+                options: ["It was a meaningful trip that helped us learn and bond with our classmates.", "The journey was too long, so we felt exhausted.", "Next time, I would prefer staying at home and relaxing.", "The trip reminded me of a time when I lost my backpack."],
+                correctAnswer: "It was a meaningful trip that helped us learn and bond with our classmates.",
+                expl: `
+                    <div class="mb-2"><strong>1. Dịch câu hỏi:</strong> Chọn câu kết bài cho đoạn 73.</div>
+                    <div class="mb-2"><strong>2. Phân tích:</strong> Câu mở đầu của đoạn là "went on an unforgettable field trip" (một chuyến đi khó quên). Các hoạt động cũng rất vui vẻ (exciting, peaceful). </div>
+                    <div class="mb-2"><strong>3. Tại sao chọn?</strong> Câu kết bài cần mang năng lượng tích cực, đúc kết lại ý nghĩa chuyến đi. <span class='hl-green'>Câu A (Đó là chuyến đi ý nghĩa giúp chúng tôi học hỏi và gắn kết)</span> là hoàn hảo.</div>
+                    <div><strong>4. Phân tích bẫy:</strong> B (quá mệt mỏi), C (thích ở nhà hơn), D (nhớ lại việc mất balo) đều mang sắc thái tiêu cực hoặc lạc đề hoàn toàn so với nội dung vui vẻ của bài.</div>
+                `
+            },
+            {
+                qText: "Question 75. Put the sentences (a-c) in the correct order...<br><i>... I was very nervous and, unfortunately, I could not do well. I felt disappointed and sad. ________</i><br>a. Her words made me feel better. I promised myself to study harder...<br>b. When I got home, my mother saw my face and knew...<br>c. She encouraged me and told me that I could try my best next time.",
+                options: ["b-c-a", "a-c-b", "c-b-a", "b-a-c"],
+                correctAnswer: "b-c-a",
+                expl: `
+                    <div class="mb-2"><strong>1. Dịch bài:</strong> ... Tôi thấy thất vọng và buồn bã. (a) Lời của bà làm tôi thấy khá hơn... (b) Khi tôi về nhà, mẹ nhìn mặt tôi và biết có chuyện. (c) Bà động viên tôi...</div>
+                    <div class="mb-2"><strong>2. Phân tích Logic:</strong> Đang buồn ở trường -> Về nhà mẹ phát hiện (b) -> Mẹ động viên an ủi (c) -> Cảm thấy khá hơn nhờ lời mẹ nói (a).</div>
+                    <div class="mb-2"><strong>3. Tại sao chọn?</strong> Trình tự diễn biến tâm lý và hành động hoàn toàn khớp nối. "Her words" ở câu (a) chính là ám chỉ lời động viên ở câu (c). <span class='hl-green'>Thứ tự: b - c - a.</span></div>
+                    <div><strong>4. Phân tích bẫy:</strong> Nếu đặt (a) trước (c) thì người đọc sẽ không biết "Her words" (những lời của bà ấy) là của ai và là lời gì.</div>
+                `
+            },
+            {
+                qText: "Question 76. Choose the sentence that most appropriately ends the text (in Question 75).",
+                options: ["I spent my days playing video games and going out with friends.", "With my mother’s support, I knew I could achieve my goals.", "I decided to give up on studying from then.", "When the next exam came, I was even less prepared and failed miserably."],
+                correctAnswer: "With my mother’s support, I knew I could achieve my goals.",
+                expl: `
+                    <div class="mb-2"><strong>1. Dịch câu hỏi:</strong> Chọn câu kết thúc cho đoạn văn 75.</div>
+                    <div class="mb-2"><strong>2. Phân tích:</strong> Câu ngay trước đó là "I promised myself to study harder and not give up" (Tự nhủ phải học chăm hơn và không bỏ cuộc). Sự chuyển biến tâm lý đã trở nên tích cực.</div>
+                    <div class="mb-2"><strong>3. Tại sao chọn?</strong> Câu B "Với sự ủng hộ của mẹ, tôi biết mình có thể đạt được mục tiêu" tiếp nối ý chí quyết tâm phấn đấu. <span class='hl-green'>Chọn B.</span></div>
+                    <div><strong>4. Phân tích bẫy:</strong> A (chơi game bời bời), C (quyết định bỏ học), D (thi trượt thảm hại) hoàn toàn đập nát lời hứa "không bỏ cuộc" ở câu liền trước.</div>
+                `
+            }
+        ];
+
+        // --- HỆ THỐNG AUDIO WEB API ---
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        
+        function playTone(freq, type, duration, vol=0.1) {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = type;
+            osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+            gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + duration);
+        }
+
+        function playCorrectSound() {
+            playTone(523.25, 'sine', 0.1); // C5
+            setTimeout(() => playTone(659.25, 'sine', 0.2), 100); // E5
+        }
+
+        function playWrongSound() {
+            playTone(250, 'sawtooth', 0.2, 0.2);
+            setTimeout(() => playTone(150, 'sawtooth', 0.3, 0.2), 150);
+        }
+
+        // --- XỬ LÝ LÔ GIC GAME ---
+        let currentScore = 0;
+        let answeredQuestions = new Set();
+
+        // Thuật toán xáo trộn mảng (Fisher-Yates)
+        function shuffleArray(array) {
+            let shuffled = [...array];
+            for (let i = shuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
+            return shuffled;
+        }
+
+        function renderQuestions() {
+            const container = document.getElementById('quiz-container');
+            container.innerHTML = '';
+
+            quizData.forEach((q, qIndex) => {
+                const qCard = document.createElement('div');
+                qCard.className = 'glass-panel p-6 md:p-8 rounded-3xl mb-8 relative';
+                
+                // Tiêu đề câu hỏi
+                const title = document.createElement('h3');
+                title.className = 'text-xl font-black text-gray-800 mb-6 leading-relaxed';
+                title.innerHTML = q.qText;
+                qCard.appendChild(title);
+
+                // Grid đáp án
+                const grid = document.createElement('div');
+                grid.className = 'grid grid-cols-1 md:grid-cols-2 gap-4 mb-4';
+                
+                const shuffledOptions = shuffleArray(q.options);
+                
+                shuffledOptions.forEach((opt) => {
+                    const btn = document.createElement('button');
+                    btn.className = 'btn-3d w-full py-4 px-6 text-left flex items-center justify-center text-center';
+                    btn.innerHTML = `<span>${opt}</span>`;
+                    
+                    btn.onclick = (e) => handleAnswer(e.currentTarget, qIndex, opt, q.correctAnswer, grid, qCard);
+                    grid.appendChild(btn);
+                });
+                
+                qCard.appendChild(grid);
+
+                // Hộp giải thích (ẩn lúc đầu)
+                const explBox = document.createElement('div');
+                explBox.id = `expl-${qIndex}`;
+                explBox.className = 'expl-box p-5 rounded-xl text-[1rem] leading-relaxed text-gray-700 mt-6 shadow-inner';
+                explBox.innerHTML = q.expl;
+                qCard.appendChild(explBox);
+
+                container.appendChild(qCard);
+            });
+        }
+
+        function handleAnswer(btn, qIndex, selectedOpt, correctOpt, grid, qCard) {
+            if (answeredQuestions.has(qIndex)) return; // Không cho bấm lại
+            
+            answeredQuestions.add(qIndex);
+            const isCorrect = selectedOpt === correctOpt;
+            const allBtns = grid.querySelectorAll('button');
+
+            // Khóa tất cả nút
+            allBtns.forEach(b => {
+                b.disabled = true;
+                b.classList.remove('hover:scale-1.03', 'hover:-translate-y-2');
+                b.style.opacity = '0.6';
+                
+                // Đánh dấu nút đúng nếu người dùng chọn sai
+                if (b.innerText.trim() === correctOpt) {
+                    b.classList.add('btn-correct');
+                    b.style.opacity = '1';
+                }
+            });
+
+            btn.style.opacity = '1';
+
+            if (isCorrect) {
+                btn.classList.add('btn-correct');
+                playCorrectSound();
+                currentScore++;
+                document.getElementById('score-display').innerText = currentScore;
+                
+                // Bắn pháo giấy mini tại vị trí thẻ câu hỏi
+                const rect = qCard.getBoundingClientRect();
+                confetti({
+                    particleCount: 60,
+                    spread: 70,
+                    origin: { 
+                        x: (rect.left + rect.width / 2) / window.innerWidth, 
+                        y: (rect.top + rect.height / 2) / window.innerHeight 
+                    },
+                    colors: ['#00D26A', '#FDCB6E', '#8854C0']
+                });
+            } else {
+                btn.classList.add('btn-wrong', 'shake');
+                playWrongSound();
+            }
+
+            // Mở hộp giải thích
+            const explBox = document.getElementById(`expl-${qIndex}`);
+            explBox.style.display = 'block';
+        }
+
+        // --- XỬ LÝ NỘP BÀI & MODAL KẾT QUẢ ---
+        function openNameModal() {
+            if (answeredQuestions.size < quizData.length) {
+                if(!confirm(`Bạn mới làm ${answeredQuestions.size}/${quizData.length} câu. Bạn có chắc chắn muốn nộp bài sớm không?`)) {
+                    return;
+                }
+            }
+            document.getElementById('name-modal').classList.remove('hidden');
+            document.getElementById('name-modal').classList.add('flex');
+        }
+
+        function submitQuiz() {
+            const nameInput = document.getElementById('student-name');
+            const nameErr = document.getElementById('name-error');
+            const studentName = nameInput.value.trim();
+
+            if (!studentName) {
+                nameErr.classList.remove('hidden');
+                nameInput.classList.add('border-red-500', 'shake');
+                setTimeout(() => nameInput.classList.remove('shake'), 400);
+                return;
+            }
+
+            // Ẩn modal nhập tên
+            document.getElementById('name-modal').classList.add('hidden');
+            document.getElementById('name-modal').classList.remove('flex');
+
+            // Show Result
+            showResultScreen(studentName);
+        }
+
+        function showResultScreen(name) {
+            const modal = document.getElementById('result-modal');
+            const greeting = document.getElementById('result-greeting');
+            const scoreText = document.getElementById('result-score');
+            const gif = document.getElementById('result-gif');
+            
+            const percentage = (currentScore / quizData.length) * 100;
+            scoreText.innerText = currentScore;
+
+            if (percentage === 100) {
+                greeting.innerText = `🌟 THIÊN TÀI! ${name} xuất sắc tuyệt đối!`;
+                gif.src = "https://media.giphy.com/media/11sBLVxNs7v6WA/giphy.gif"; // Minion happy
+                confetti({ particleCount: 200, spread: 100, origin: { y: 0.3 } });
+            } else if (percentage >= 60) {
+                greeting.innerText = `🔥 KHÁ LẮM! ${name} đã làm rất tốt!`;
+                gif.src = "https://media.giphy.com/media/3oz8xAFtjouKVTMAF2/giphy.gif"; // Thumbs up
+                confetti({ particleCount: 100, spread: 60, origin: { y: 0.5 } });
+            } else {
+                greeting.innerText = `🥺 CỐ LÊN NHÉ ${name}, ôn tập lại chút nào!`;
+                gif.src = "https://media.giphy.com/media/d2lcHJTG5Tscg/giphy.gif"; // Sad spongebob
+            }
+
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        // Bắt sự kiện Enter khi nhập tên
+        document.getElementById('student-name').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') submitQuiz();
+        });
+
+        // Khởi tạo bài thi
+        window.onload = renderQuestions;
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reading Challenge by Ms Mai An ULIS</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;800&family=Cinzel:wght@700&display=swap');
+
+        :root {
+            --primary: #ff9a9e;
+            --secondary: #fecfef;
+            --accent: #a18cd1;
+            --glass-bg: rgba(255, 255, 255, 0.45);
+            --glass-border: rgba(255, 255, 255, 0.7);
+            --text-main: #2d3436;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Nunito', sans-serif; }
+
+        body {
+            height: 100vh;
+            overflow: hidden;
+            color: var(--text-main);
+            background: radial-gradient(circle at 50% 50%, var(--secondary), var(--primary));
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Floating Background */
+        .bg-pattern {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1;
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="150" height="150"><text x="20" y="40" font-size="25" opacity="0.6">⚡</text><text x="100" y="90" font-size="25" opacity="0.6">🌍</text><text x="40" y="130" font-size="25" opacity="0.6">🚀</text><text x="110" y="30" font-size="25" opacity="0.6">🌸</text></svg>');
+            background-size: 150px 150px;
+            animation: float 20s linear infinite;
+        }
+
+        @keyframes float {
+            0% { background-position: 0 0; }
+            100% { background-position: 150px 150px; }
+        }
+
+        /* GIAO DIỆN MÀN HÌNH KHÓA */
+        #passwordModal {
+            position:fixed; inset:0; z-index:9999;
+            display:flex; align-items:center; justify-content:center;
+            background:rgba(5,2,15,0.92); backdrop-filter:blur(20px);
+        }
+        .pw-card {
+            background:linear-gradient(160deg, rgba(40,10,70,0.95) 0%, rgba(15,5,30,0.98) 100%);
+            border:1.5px solid rgba(240,192,64,0.4); border-radius:24px; padding:48px 40px 40px; 
+            max-width:440px; width:93%; text-align:center; position:relative; overflow:hidden;
+            box-shadow:0 0 60px rgba(106,5,114,0.6), 0 0 120px rgba(240,192,64,0.1), inset 0 1px 0 rgba(240,192,64,0.15);
+        }
+        .pw-card::before {
+            content:''; position:absolute; top:0; left:0; right:0; height:3px;
+            background:linear-gradient(90deg, #6A0572, #F0C040, #6A0572);
+        }
+        .pw-crest { font-size:4rem; margin-bottom:8px; display:block; }
+        .pw-title { font-family:'Cinzel', serif; font-size:1.4rem; font-weight:700; color:#F0C040; margin-bottom:6px; letter-spacing:1px; }
+        .pw-sub   { font-size:.87rem; color:rgba(200,200,212,0.6); margin-bottom:24px; }
+        .pw-input {
+            width:100%; padding:13px 20px; border-radius:12px;
+            border:1.5px solid rgba(240,192,64,0.3); background:rgba(255,255,255,0.05);
+            color:#FFE082; font-size:1rem; font-family:'Nunito', sans-serif;
+            outline:none; letter-spacing:3px; text-align:center; transition:all .3s;
+        }
+        .pw-input:focus { border-color:#F0C040; box-shadow:0 0 0 3px rgba(240,192,64,0.15); }
+        .pw-input.error { border-color:#FF4757; box-shadow:0 0 0 3px rgba(255,71,87,0.25); animation:shake .4s ease; }
+        .pw-input::placeholder { color:rgba(200,200,212,0.3); letter-spacing:1px; }
+        .pw-btn {
+            width:100%; padding:14px; margin-top:14px; border-radius:12px; border:none;
+            background:linear-gradient(135deg, #6A0572 0%, #9B1FA8 40%, #F0C040 100%);
+            color:#fff; font-size:1rem; font-weight:700; font-family:'Cinzel', serif;
+            cursor:pointer; letter-spacing:.5px; transition:transform .2s;
+        }
+        .pw-btn:hover { transform:translateY(-2px); box-shadow:0 8px 32px rgba(106,5,114,0.7); }
+        .pw-err { color:#ff8a9a; font-size:.84rem; margin-top:10px; display:none; font-weight:700; }
+        @keyframes shake { 0%,100%{transform:translateX(0)} 15%,45%,75%{transform:translateX(-6px)} 30%,60%,90%{transform:translateX(6px)} }
+
+        /* Main Layout */
+        #mainContent {
+            display: none; /* Ẩn đi chờ nhập mật khẩu */
+            flex-direction: column;
+            height: 100vh;
+            width: 100%;
+        }
+
+        header {
+            text-align: center; padding: 10px;
+            background: rgba(255, 255, 255, 0.3); backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--glass-border);
+            font-weight: 800; font-size: 1.2rem; color: #6c5ce7;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05); z-index: 10;
+        }
+
+        .container {
+            display: flex; flex: 1; overflow: hidden; gap: 20px; padding: 20px;
+        }
+
+        .panel {
+            flex: 1; overflow-y: auto;
+            background: var(--glass-bg); backdrop-filter: blur(15px);
+            border: 2px solid var(--glass-border); border-radius: 20px;
+            padding: 25px; box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        }
+
+        .panel::-webkit-scrollbar { width: 8px; }
+        .panel::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 10px; }
+
+        /* Typography & Elements */
+        h2 { color: #6c5ce7; margin-bottom: 15px; font-weight: 800; border-bottom: 2px dashed #a18cd1; padding-bottom: 5px; }
+        .passage-text { font-size: 1.15rem; line-height: 1.8; margin-bottom: 15px; text-align: justify; }
+        
+        .trans-btn {
+            background: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%);
+            color: white; border: none; padding: 8px 15px; border-radius: 20px;
+            cursor: pointer; font-weight: bold; font-size: 0.9rem;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-bottom: 15px; display: inline-block;
+        }
+        .trans-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 10px rgba(161, 140, 209, 0.5); }
+        .translation { display: none; background: rgba(255,255,255,0.7); padding: 15px; border-left: 4px solid #a18cd1; border-radius: 5px; margin-bottom: 20px; font-style: italic; }
+
+        .glossary { width: 100%; border-collapse: collapse; margin-bottom: 30px; font-size: 0.95rem; background: rgba(255,255,255,0.6); border-radius: 10px; overflow: hidden; }
+        .glossary th, .glossary td { padding: 10px; text-align: left; border-bottom: 1px solid var(--glass-border); }
+        .glossary th { background: #fbc2eb; color: #fff; font-weight: bold; text-transform: uppercase; }
+
+        .question-card { background: rgba(255,255,255,0.7); padding: 20px; border-radius: 15px; margin-bottom: 25px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); border: 1px solid var(--glass-border); }
+        .q-text { font-weight: 800; margin-bottom: 15px; font-size: 1.1rem; color: #2d3436; }
+        
+        .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .opt-btn {
+            background: white; border: 2px solid #dfe6e9; padding: 12px; border-radius: 12px;
+            cursor: pointer; font-size: 1rem; font-weight: 600; text-align: center;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+        .opt-btn:hover { background: #f1f2f6; border-color: #a18cd1; transform: scale(1.02); }
+        .opt-btn.correct { background: #00b894 !important; color: white !important; border-color: #00b894 !important; }
+        .opt-btn.wrong { background: #d63031 !important; color: white !important; border-color: #d63031 !important; }
+
+        .expl-box { display: none; margin-top: 15px; padding: 20px; background: #fff; border-radius: 12px; border-left: 6px solid #a18cd1; font-size: 0.95rem; line-height: 1.8; box-shadow: inset 0 0 10px rgba(0,0,0,0.02); }
+        .p-word { color: #0984e3; font-weight: bold; }
+        .p-mean { color: #d35400; font-weight: bold; }
+        .p-grammar { color: #2c3e50; text-decoration: underline; text-decoration-color: #c0392b; font-weight: bold; text-underline-offset: 3px; }
+        .hl-green { color: #27ae60; font-weight: bold; }
+        .hl-red { color: #c0392b; text-decoration: line-through; }
+        .quote-box { background: #fdfbfb; padding: 15px; border-radius: 8px; margin-top: 15px; font-style: italic; border: 1px dashed #a18cd1; }
+        .expl-title { font-weight: 800; color: #6c5ce7; margin-bottom: 8px; font-size: 1.05rem; }
+
+        .confetti { position: absolute; width: 10px; height: 10px; z-index: 1000; pointer-events: none; animation: fall linear forwards; }
+        @keyframes fall { to { transform: translateY(100vh) rotate(720deg); opacity: 0; } }
+
+        /* Modals Result */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(5px); display: none; justify-content: center; align-items: center; z-index: 999; }
+        .modal { background: white; padding: 30px; border-radius: 20px; text-align: center; max-width: 400px; width: 90%; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+        .modal input { width: 100%; padding: 10px; margin: 15px 0; border: 2px solid #a18cd1; border-radius: 10px; font-size: 1.1rem; text-align: center; }
+        .btn-submit { background: linear-gradient(135deg, #00b894, #00cec9); color: white; border: none; padding: 15px 30px; font-size: 1.2rem; font-weight: bold; border-radius: 30px; cursor: pointer; margin-top: 20px; display: block; width: 100%; text-transform: uppercase; box-shadow: 0 5px 15px rgba(0,184,148,0.4); }
+        .btn-submit:hover { transform: scale(1.05); }
+        .gif-result { width: 100%; border-radius: 10px; margin-top: 15px; }
+    </style>
+</head>
+<body>
+
+    <div class="bg-pattern"></div>
+
+    <div id="passwordModal">
+      <div class="pw-card">
+        <span class="pw-crest">🔒</span>
+        <div class="pw-title">BẢO MẬT</div>
+        <div class="pw-sub">Vui lòng nhập mật khẩu để làm bài</div>
+        <input type="password" class="pw-input" id="pwInput" placeholder="Nhập mật khẩu..." autocomplete="off" />
+        <button class="pw-btn" onclick="checkPassword()">XÁC NHẬN</button>
+        <div class="pw-err" id="pwErr">Mật khẩu không đúng! Vui lòng thử lại.</div>
+      </div>
+    </div>
+
+    <div id="mainContent">
+        <header>🌟 Giáo viên tạo: Ms Mai An ULIS - Thử Thách Đọc Hiểu Tiếng Anh 🌟</header>
+        <div class="container">
+            <div class="panel" id="reading-panel"></div>
+            <div class="panel" id="quiz-panel">
+                <div id="questions-container"></div>
+                <button class="btn-submit" onclick="showNameModal()">🎯 NỘP BÀI TÍNH ĐIỂM</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="nameModal">
+        <div class="modal">
+            <h2>Nhập tên của bạn để nộp bài!</h2>
+            <input type="text" id="studentName" placeholder="Ví dụ: Nguyễn Văn A">
+            <button class="btn-submit" onclick="submitQuiz()">Xác nhận</button>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="resultModal">
+        <div class="modal">
+            <h2 id="resName"></h2>
+            <h1 style="color: #6c5ce7; font-size: 3rem; margin: 10px 0;" id="resScore"></h1>
+            <p id="resComment" style="font-weight: bold; font-size: 1.1rem;"></p>
+            <img id="resGif" class="gif-result" src="" alt="Meme">
+            <button class="btn-submit" onclick="location.reload()">Làm lại</button>
+        </div>
+    </div>
+
+<script>
+// Logic Mật khẩu bảo mật
+const _k  = [49, 54, 49, 49]; 
+const _pw = _k.map(c => String.fromCharCode(c)).join(''); // Password is "1611"
+
+function checkPassword() {
+  const inp = document.getElementById('pwInput');
+  const err = document.getElementById('pwErr');
+  if (inp.value === _pw) {
+    document.getElementById('passwordModal').style.display = 'none';
+    const main = document.getElementById('mainContent');
+    // Thay đổi style display thành flex để không phá vỡ layout Grid/Flex
+    if(main) main.style.display = 'flex';
+    
+    // Khởi tạo bài trắc nghiệm sau khi mở khóa
+    if(typeof init === 'function') init();
+    
+    // Gắn link file nghe nếu có mã hóa _s
+    const audio = document.getElementById('audioPlayer');
+    if(audio && typeof _s !== 'undefined') audio.src = atob(_s);
+  } else {
+    inp.classList.remove('error'); void inp.offsetWidth; inp.classList.add('error');
+    err.style.display = 'block'; setTimeout(() => inp.classList.remove('error'), 500);
+  }
+}
+document.addEventListener('DOMContentLoaded', () => {
+  const pwInput = document.getElementById('pwInput');
+  if(pwInput) pwInput.addEventListener('keydown', e => { if (e.key==='Enter') checkPassword(); });
+});
+
+// Dữ liệu nội dung 3 đoạn trích chính (Master Class Explanations)
+const quizData = [
+    {
+        title: "Passage 1: Energy Sources",
+        paragraphs: [
+            {
+                en: "There are many sources of energy. Some are renewable, but others may (77) ____ in the future. Fossil fuels like coal, oil, and gas are non-renewable and used to produce (78) ____. However, they cause pollution and contribute to climate change.",
+                vi: "Có rất nhiều nguồn năng lượng. Một số là năng lượng có thể tái tạo, nhưng một số khác có thể cạn kiệt trong tương lai. Nhiên liệu hóa thạch như than đá, dầu mỏ và khí đốt là không thể tái tạo và được sử dụng để sản xuất điện. Tuy nhiên, chúng gây ô nhiễm và góp phần vào biến đổi khí hậu."
+            },
+            {
+                en: "Energy (79) ____ essential for modern life, so we must find ways to use it efficiently. To protect the environment, we should use more (80) ____ such as wind and solar power. Solar panels can (81) ____ electricity from sunlight, while wind turbines convert wind into energy. These clean sources are sustainable and widely used in many countries. In some places, wind turbines are built (82) ____ open fields to generate power efficiently.",
+                vi: "Năng lượng rất cần thiết cho cuộc sống hiện đại, vì vậy chúng ta phải tìm cách sử dụng nó một cách hiệu quả. Để bảo vệ môi trường, chúng ta nên sử dụng nhiều nguồn năng lượng tái tạo hơn như năng lượng gió và năng lượng mặt trời. Các tấm pin mặt trời có thể sản xuất điện từ ánh sáng mặt trời, trong khi tuabin gió chuyển đổi gió thành năng lượng. Những nguồn sạch này bền vững và được sử dụng rộng rãi ở nhiều quốc gia. Ở một số nơi, tuabin gió được xây dựng trên các cánh đồng mở để tạo ra năng lượng một cách hiệu quả."
+            }
+        ],
+        glossary: [
+            ["Renewable", "adj", "Có thể tái tạo"], ["Fossil fuel", "n", "Nhiên liệu hóa thạch"], ["Contribute to", "v", "Góp phần vào"], ["Efficiently", "adv", "Một cách hiệu quả"], ["Convert", "v", "Chuyển đổi"], ["Sustainable", "adj", "Bền vững"], ["Generate", "v", "Tạo ra, phát ra"], ["Pollution", "n", "Sự ô nhiễm"]
+        ],
+        questions: [
+            { qId: 77, text: "Some are renewable, but others may (77) ____ in the future.", options: ["give out", "turn off", "run out", "take up"], answer: "run out", 
+              expl: `<div class='expl-title'>Dịch câu hỏi:</div> Một số có thể tái tạo, nhưng số khác có thể (77) ____ trong tương lai.<br><br>
+              <div class='expl-title'>Phân tích 4 đáp án:</div>
+              A. give out (ngừng hoạt động/phân phát) ❌ <span class='hl-red'>Sai vì cụm này thường dùng cho máy móc bị hỏng.</span><br>
+              B. turn off (tắt đi) ❌ <span class='hl-red'>Sai vì các nguồn năng lượng tự nhiên không dùng với động từ "tắt".</span><br>
+              C. run out (cạn kiệt) ✅ <span class='hl-green'>Đúng. Phù hợp với ngữ cảnh đối lập với "renewable".</span><br>
+              D. take up (bắt đầu một thói quen) ❌ <span class='hl-red'>Sai hoàn toàn về nghĩa.</span><br>
+              <div class='quote-box'>🔍 <b>Dẫn chứng trong bài:</b> "Some are renewable, but others may run out in the future."<br>👉 <b>Dịch:</b> "Một số có thể tái tạo, nhưng số khác có thể <b style='color:red'>cạn kiệt</b> trong tương lai."<br>Từ vựng: <span class='p-word'>run out</span> có nghĩa là <span class='p-mean'>cạn kiệt</span>.</div>` },
+            
+            { qId: 78, text: "...Fossil fuels like coal, oil, and gas are non-renewable and used to produce (78) ____.", options: ["energy", "pollution", "environment", "electricity"], answer: "electricity", 
+              expl: `<div class='expl-title'>Dịch câu hỏi:</div> Nhiên liệu hóa thạch như than đá, dầu mỏ, khí đốt là không thể tái tạo và được dùng để sản xuất (78) ____.<br><br>
+              <div class='expl-title'>Phân tích 4 đáp án:</div>
+              A. energy (năng lượng) ❌ <span class='hl-red'>Sai vì từ này quá chung chung, nhiên liệu hóa thạch cụ thể được đốt để lấy điện.</span><br>
+              B. pollution (ô nhiễm) ❌ <span class='hl-red'>Sai vì con người không cố ý "sản xuất" ra ô nhiễm.</span><br>
+              C. environment (môi trường) ❌ <span class='hl-red'>Sai hoàn toàn về logic.</span><br>
+              D. electricity (điện năng) ✅ <span class='hl-green'>Đúng. Than đá, khí đốt là nguyên liệu chính cho các nhà máy điện.</span><br>
+              <div class='quote-box'>🔍 <b>Dẫn chứng trong bài:</b> "Fossil fuels like coal, oil, and gas are non-renewable and used to produce electricity."<br>👉 <b>Dịch:</b> "Nhiên liệu hóa thạch... được sử dụng để sản xuất <b style='color:red'>điện</b>."<br>Từ vựng: <span class='p-word'>produce electricity</span> có nghĩa là <span class='p-mean'>sản xuất điện</span>.</div>` },
+
+            { qId: 79, text: "Energy (79) ____ essential for modern life...", options: ["is", "are", "was", "were"], answer: "is", 
+              expl: `<div class='expl-title'>Dịch câu hỏi:</div> Năng lượng (79) ____ thiết yếu cho cuộc sống hiện đại...<br><br>
+              <div class='expl-title'>Phân tích 4 đáp án:</div>
+              A. is ✅ <span class='hl-green'>Đúng. Vì đang miêu tả một sự thật hiển nhiên ở hiện tại.</span><br>
+              B. are ❌ <span class='hl-red'>Sai vì "Energy" không dùng động từ số nhiều.</span><br>
+              C. was / D. were ❌ <span class='hl-red'>Sai thì (Quá khứ).</span><br>
+              <span class='p-grammar'>Ngữ pháp: Danh từ không đếm được (Energy) luôn đi với động từ to be số ít (is) ở thì Hiện tại đơn để diễn tả sự thật hiển nhiên.</span><br>
+              <div class='quote-box'>🔍 <b>Dẫn chứng trong bài:</b> "Energy is essential for modern life..."<br>👉 <b>Dịch:</b> "Năng lượng <b style='color:red'>là</b> thiết yếu cho cuộc sống hiện đại..."</div>` },
+
+            { qId: 80, text: "...we should use more (80) ____ such as wind and solar power.", options: ["energy consumption", "electric cars", "renewable energy sources", "power stations"], answer: "renewable energy sources", 
+              expl: `<div class='expl-title'>Dịch câu hỏi:</div> ...chúng ta nên sử dụng nhiều (80) ____ hơn, chẳng hạn như năng lượng gió và mặt trời.<br><br>
+              <div class='expl-title'>Phân tích 4 đáp án:</div>
+              A. energy consumption (sự tiêu thụ) ❌ <span class='hl-red'>Sai vì gió và mặt trời không phải là "sự tiêu thụ".</span><br>
+              B. electric cars (ô tô điện) ❌ <span class='hl-red'>Sai vì ô tô điện không phải là gió/mặt trời.</span><br>
+              C. renewable energy sources (nguồn năng lượng tái tạo) ✅ <span class='hl-green'>Đúng. Gió và mặt trời chính là ví dụ tiêu biểu.</span><br>
+              D. power stations (nhà máy điện) ❌ <span class='hl-red'>Sai logic.</span><br>
+              <div class='quote-box'>🔍 <b>Dẫn chứng trong bài:</b> "...we should use more renewable energy sources such as wind and solar power."<br>👉 <b>Dịch:</b> "...chúng ta nên sử dụng nhiều <b style='color:red'>nguồn năng lượng tái tạo</b> hơn như năng lượng gió và mặt trời."</div>` },
+
+            { qId: 81, text: "Solar panels can (81) ____ electricity from sunlight...", options: ["produce", "protect", "consume", "avoid"], answer: "produce", 
+              expl: `<div class='expl-title'>Dịch câu hỏi:</div> Các tấm pin mặt trời có thể (81) ____ điện từ ánh sáng mặt trời...<br><br>
+              <div class='expl-title'>Phân tích 4 đáp án:</div>
+              A. produce (sản xuất/tạo ra) ✅ <span class='hl-green'>Đúng chức năng của tấm pin mặt trời.</span><br>
+              B. protect (bảo vệ) ❌ <span class='hl-red'>Sai nghĩa, pin mặt trời không bảo vệ điện.</span><br>
+              C. consume (tiêu thụ) ❌ <span class='hl-red'>Sai, pin mặt trời tạo ra điện chứ không tiêu thụ điện.</span><br>
+              D. avoid (tránh) ❌ <span class='hl-red'>Sai hoàn toàn.</span><br>
+              <div class='quote-box'>🔍 <b>Dẫn chứng trong bài:</b> "Solar panels can produce electricity from sunlight..."<br>👉 <b>Dịch:</b> "Các tấm pin mặt trời có thể <b style='color:red'>sản xuất</b> điện từ ánh sáng mặt trời..."</div>` },
+
+            { qId: 82, text: "In some places, wind turbines are built (82) ____ open fields...", options: ["on", "in", "of", "to"], answer: "in", 
+              expl: `<div class='expl-title'>Dịch câu hỏi:</div> Ở một số nơi, tuabin gió được xây dựng (82) ____ những cánh đồng mở...<br><br>
+              <div class='expl-title'>Phân tích 4 đáp án:</div>
+              A. on (trên bề mặt) ❌ <span class='hl-red'>Trong tiếng Việt ta nói "trên cánh đồng", nhưng tiếng Anh chuẩn dùng "in".</span><br>
+              B. in (ở trong khu vực) ✅ <span class='hl-green'>Đúng chuẩn Collocation tiếng Anh.</span><br>
+              C. of / D. to ❌ <span class='hl-red'>Sai ngữ pháp.</span><br>
+              <span class='p-grammar'>Ngữ pháp: Giới từ chỉ vị trí: đi với "field" (cánh đồng) ta dùng "in the field" để chỉ việc ở bên trong khu vực không gian đó.</span><br>
+              <div class='quote-box'>🔍 <b>Dẫn chứng trong bài:</b> "In some places, wind turbines are built in open fields..."<br>👉 <b>Dịch:</b> "Ở một số nơi, tuabin gió được xây dựng <b style='color:red'>trên (trong khu vực)</b> những cánh đồng mở..."</div>` }
+        ]
+    },
+    {
+        title: "Passage 2: English Language",
+        paragraphs: [
+            {
+                en: "English is the main language in some countries such as the United States, the United Kingdom, Canada, Australia, and New Zealand. (83) ____, many people around the world learn it for work and travel. Each country has a (84) ____ culture. In the United Kingdom, people enjoy tea, while in Australia, surfing is popular.",
+                vi: "Tiếng Anh là ngôn ngữ chính ở một số quốc gia như Hoa Kỳ, Anh, Canada, Úc và New Zealand. Vì vậy, nhiều người trên thế giới học nó để làm việc và du lịch. Mỗi quốc gia có một nền văn hóa độc đáo. Ở Anh, người ta thích uống trà, trong khi ở Úc, lướt sóng lại rất phổ biến."
+            },
+            {
+                en: "The United States (85) ____ its modern cities like New York. English helps people communicate with (86) ____ worldwide. Many companies require employees to (87) ____. Learning it opens doors (88) ____.",
+                vi: "Hoa Kỳ nổi tiếng với các thành phố hiện đại như New York. Tiếng Anh giúp mọi người giao tiếp với những người khác trên toàn thế giới. Nhiều công ty yêu cầu nhân viên phải nói tiếng Anh trôi chảy. Học tiếng Anh mở ra cánh cửa đến với những cơ hội tốt hơn."
+            }
+        ],
+        glossary: [
+            ["Communicate", "v", "Giao tiếp"], ["Unique", "adj", "Độc đáo"], ["Require", "v", "Yêu cầu"], ["Fluently", "adv", "Trôi chảy"]
+        ],
+        questions: [
+            { qId: 83, text: "English is the main language in some countries... (83) ____, many people around the world learn it...", options: ["However", "Because", "So", "Although"], answer: "So", 
+              expl: `<div class='expl-title'>Dịch câu hỏi:</div> Tiếng Anh là ngôn ngữ chính ở một số quốc gia... (83) ____, nhiều người trên thế giới học nó.<br><br>
+              <div class='expl-title'>Phân tích 4 đáp án:</div>
+              A. However (Tuy nhiên) ❌ <span class='hl-red'>Sai vì không có sự tương phản ở đây.</span><br>
+              B. Because (Bởi vì) ❌ <span class='hl-red'>Sai vì "Because" không đứng độc lập trước dấu phẩy ở đầu câu như vậy trong cấu trúc này.</span><br>
+              C. So (Vì vậy) ✅ <span class='hl-green'>Đúng. Mệnh đề sau chỉ kết quả.</span><br>
+              D. Although (Mặc dù) ❌ <span class='hl-red'>Sai hoàn toàn về logic nguyên nhân - kết quả.</span><br>
+              <div class='quote-box'>🔍 <b>Dẫn chứng trong bài:</b> "English is the main language... So, many people around the world learn it..."<br>👉 <b>Dịch:</b> "Tiếng Anh là ngôn ngữ chính... <b style='color:red'>Vì vậy</b>, nhiều người học nó..."</div>` },
+            
+            { qId: 84, text: "Each country has a (84) ____ culture.", options: ["unique", "similar", "boring", "difficult"], answer: "unique", 
+              expl: `<div class='expl-title'>Dịch câu hỏi:</div> Mỗi quốc gia có một nền văn hóa (84) ____.<br><br>
+              <div class='expl-title'>Phân tích 4 đáp án:</div>
+              A. unique (độc đáo/riêng biệt) ✅ <span class='hl-green'>Đúng. Câu tiếp theo đưa ra dẫn chứng chứng tỏ văn hóa khác biệt và độc đáo.</span><br>
+              B. similar (giống nhau) ❌ <span class='hl-red'>Sai vì ví dụ phía sau cho thấy sự khác biệt chứ không hề giống nhau.</span><br>
+              C. boring (nhàm chán) / D. difficult (khó khăn) ❌ <span class='hl-red'>Sai logic bài đọc.</span><br>
+              <div class='quote-box'>🔍 <b>Dẫn chứng trong bài:</b> "Each country has a unique culture. In the UK, people enjoy tea, while in Australia, surfing is popular."<br>👉 <b>Dịch:</b> "Mỗi quốc gia có một nền văn hóa <b style='color:red'>độc đáo</b>. Ở Anh thích trà, Úc thích lướt sóng."</div>` },
+
+            { qId: 85, text: "The United States (85) ____ its modern cities like New York.", options: ["is known to", "is known for", "is for known", "known for"], answer: "is known for", 
+              expl: `<div class='expl-title'>Dịch câu hỏi:</div> Nước Mỹ (85) ____ những thành phố hiện đại như New York.<br><br>
+              <div class='expl-title'>Phân tích 4 đáp án:</div>
+              A. is known to ❌ <span class='hl-red'>Sai cấu trúc. "Be known to" nghĩa là "được biết đến BỞI ai đó".</span><br>
+              B. is known for ✅ <span class='hl-green'>Đúng cấu trúc "nổi tiếng VÌ điều gì".</span><br>
+              C. is for known ❌ <span class='hl-red'>Không tồn tại cấu trúc này.</span><br>
+              D. known for ❌ <span class='hl-red'>Sai vì thiếu động từ to be (is) làm vị ngữ cho câu.</span><br>
+              <span class='p-grammar'>Ngữ pháp: Cấu trúc <b>S + be known for + N/V-ing</b> mang nghĩa "Nổi tiếng vì điều gì / có đặc điểm gì nổi bật".</span><br>
+              <div class='quote-box'>🔍 <b>Dẫn chứng trong bài:</b> "The United States is known for its modern cities like New York."<br>👉 <b>Dịch:</b> "Nước Mỹ <b style='color:red'>nổi tiếng với</b> những thành phố hiện đại..."</div>` },
+
+            { qId: 87, text: "Many companies require employees to (87) ____.", options: ["speak English fluent", "speak English fluently", "speak fluently English", "speak fluent English"], answer: "speak English fluently", 
+              expl: `<div class='expl-title'>Dịch câu hỏi:</div> Nhiều công ty yêu cầu nhân viên phải (87) ____.<br><br>
+              <div class='expl-title'>Phân tích 4 đáp án:</div>
+              A. speak English fluent ❌ <span class='hl-red'>Sai vì "fluent" là tính từ, không thể bổ nghĩa cho động từ "speak" ở vị trí này.</span><br>
+              B. speak English fluently ✅ <span class='hl-green'>Đúng. Trạng từ "fluently" đứng cuối câu bổ nghĩa cho động từ thường "speak".</span><br>
+              C. speak fluently English ❌ <span class='hl-red'>Sai trật tự từ. Trạng từ không được chen vào giữa Động từ và Tân ngữ trực tiếp.</span><br>
+              D. speak fluent English ❌ <span class='hl-red'>Tuy cụm này đúng ngữ pháp, nhưng trong bài trắc nghiệm này, đáp án ưu tiên luôn là B (kiểm tra trạng từ).</span><br>
+              <span class='p-grammar'>Ngữ pháp: Cấu trúc câu cơ bản <b>S + V + O + Adv</b>. Động từ thường (speak) + Tân ngữ (English) + Trạng từ thể cách (fluently).</span><br>
+              <div class='quote-box'>🔍 <b>Dẫn chứng trong bài:</b> "...require employees to speak English fluently."<br>👉 <b>Dịch:</b> "...yêu cầu nhân viên <b style='color:red'>nói tiếng Anh một cách trôi chảy</b>."</div>` }
+        ]
+    },
+    {
+        title: "Passage 4: Wind Power",
+        paragraphs: [
+            {
+                en: "Wind is a form of solar energy. It happens because the Sun heats different parts of the Earth unevenly. Wind moves in different directions because of mountains, water, and trees. People can use wind to create electricity by using wind turbines.",
+                vi: "Gió là một dạng năng lượng mặt trời. Nó xảy ra do Mặt trời đốt nóng các phần khác nhau của Trái đất một cách không đồng đều. Gió di chuyển theo các hướng khác nhau do núi non, nước và cây cối. Con người có thể sử dụng gió để tạo ra điện bằng cách sử dụng các tuabin gió."
+            },
+            {
+                en: "Wind turbines come in different sizes. The largest ones are as tall as a 20-story building and can produce enough electricity for 1,400 homes. Smaller wind turbines, with blades between 8 and 25 feet long, stand about 30 feet tall. They can generate power for a modern house or a small business. There are also very small wind turbines, producing less than 50 kilowatts of power.",
+                vi: "Tuabin gió có nhiều kích cỡ khác nhau. Những cái lớn nhất cao bằng tòa nhà 20 tầng và có thể sản xuất đủ điện cho 1.400 ngôi nhà. Những tuabin nhỏ hơn, với cánh quạt dài từ 8 đến 25 feet, cao khoảng 30 feet. Chúng có thể tạo ra năng lượng cho một ngôi nhà hiện đại hoặc một doanh nghiệp nhỏ. Cũng có những tuabin gió rất nhỏ, sản xuất dưới 50 kilowatt điện năng."
+            }
+        ],
+        glossary: [
+            ["Unevenly", "adv", "Không đồng đều"], ["Turbine", "n", "Tuabin"], ["Generate", "v", "Tạo ra (điện)"], ["Blade", "n", "Cánh quạt"]
+        ],
+        questions: [
+            { qId: 1, text: "What is the main idea of the passage?", options: ["The different sizes of wind turbines", "Wind power and how it is used", "Why wind moves in different directions", "The history of wind energy"], answer: "Wind power and how it is used", 
+              expl: `<div class='expl-title'>Dịch câu hỏi:</div> Ý chính của đoạn văn là gì?<br><br>
+              <div class='expl-title'>Phân tích 4 đáp án:</div>
+              A. Các kích cỡ khác nhau của tuabin gió ❌ <span class='hl-red'>Sai vì đây chỉ là ý chi tiết nằm ở đoạn thứ 2.</span><br>
+              B. Năng lượng gió và cách nó được sử dụng ✅ <span class='hl-green'>Đúng. Đoạn 1 giải thích nguồn gốc gió, đoạn 2 giải thích cách tuabin dùng gió để tạo ra điện cho các mục đích khác nhau.</span><br>
+              C. Tại sao gió di chuyển theo nhiều hướng ❌ <span class='hl-red'>Sai vì đây chỉ là 1 câu nhỏ xíu ở đoạn 1.</span><br>
+              D. Lịch sử của năng lượng gió ❌ <span class='hl-red'>Sai vì bài văn hoàn toàn không đề cập đến các mốc thời gian lịch sử.</span><br>
+              <span class='p-grammar'>Mẹo làm bài: Ý chính (Main idea) luôn là ý bao quát toàn bộ nội dung của cả 2 đoạn văn, không chọn ý quá hẹp hoặc không có trong bài.</span><br>` },
+            
+            { qId: 2, text: "Why does wind exist?", options: ["Because the Sun heats the Earth unevenly", "Because of wind turbines", "Because it is created by people", "Because of electricity"], answer: "Because the Sun heats the Earth unevenly", 
+              expl: `<div class='expl-title'>Dịch câu hỏi:</div> Tại sao lại có gió?<br><br>
+              <div class='expl-title'>Phân tích 4 đáp án:</div>
+              A. Vì Mặt trời làm nóng Trái đất không đồng đều ✅ <span class='hl-green'>Đúng hoàn toàn theo nội dung câu 2 đoạn 1.</span><br>
+              B. Vì các tuabin gió ❌ <span class='hl-red'>Sai. Tuabin dùng gió chứ không tạo ra gió.</span><br>
+              C. Vì nó được tạo ra bởi con người ❌ <span class='hl-red'>Sai. Gió là hiện tượng tự nhiên.</span><br>
+              D. Vì điện năng ❌ <span class='hl-red'>Sai logic nghiêm trọng.</span><br>
+              <div class='quote-box'>🔍 <b>Dẫn chứng trong bài:</b> "It [Wind] happens because the Sun heats different parts of the Earth unevenly."<br>👉 <b>Dịch:</b> "Gió xảy ra bởi vì Mặt trời làm nóng các phần khác nhau của Trái đất <b style='color:red'>một cách không đồng đều</b>."<br>Từ vựng: <span class='p-word'>unevenly</span> có nghĩa là <span class='p-mean'>không đồng đều</span>.</div>` },
+
+            { qId: 3, text: "The word 'produce' in the text is CLOSEST in meaning to", options: ["stop", "create", "destroy", "lose"], answer: "create", 
+              expl: `<div class='expl-title'>Dịch câu hỏi:</div> Từ 'produce' trong đoạn văn GẦN NGHĨA NHẤT với từ nào?<br><br>
+              <div class='expl-title'>Phân tích 4 đáp án:</div>
+              A. stop (dừng lại) ❌ <span class='hl-red'>Sai hoàn toàn.</span><br>
+              B. create (tạo ra) ✅ <span class='hl-green'>Đúng. Sản xuất điện chính là tạo ra điện năng.</span><br>
+              C. destroy (phá hủy) ❌ <span class='hl-red'>Trái nghĩa.</span><br>
+              D. lose (đánh mất) ❌ <span class='hl-red'>Sai nghĩa.</span><br>
+              <div class='quote-box'>🔍 <b>Dẫn chứng trong bài:</b> "...and can produce enough electricity for 1,400 homes."<br>👉 <b>Dịch:</b> "...và có thể <b style='color:red'>sản xuất (tạo ra)</b> đủ điện cho 1.400 ngôi nhà."<br>Từ vựng: <span class='p-word'>produce = create</span> có nghĩa là <span class='p-mean'>sản xuất, tạo ra</span>.</div>` },
+
+            { qId: 4, text: "The word 'modern' is OPPOSITE in meaning to", options: ["traditional", "amazing", "plentiful", "abundant"], answer: "traditional", 
+              expl: `<div class='expl-title'>Dịch câu hỏi:</div> Từ 'modern' TRÁI NGHĨA với từ nào sau đây?<br><br>
+              <div class='expl-title'>Phân tích 4 đáp án:</div>
+              A. traditional (truyền thống) ✅ <span class='hl-green'>Đúng. Trái nghĩa của "Hiện đại" chính là "Truyền thống".</span><br>
+              B. amazing (tuyệt vời) ❌ <span class='hl-red'>Không liên quan.</span><br>
+              C. plentiful / D. abundant (dồi dào, phong phú) ❌ <span class='hl-red'>Không liên quan.</span><br>
+              <div class='quote-box'>🔍 <b>Dẫn chứng từ vựng:</b><br>Từ vựng: <span class='p-word'>modern</span> có nghĩa là <span class='p-mean'>hiện đại</span>. Đối lập với nó là <span class='p-word'>traditional</span> mang nghĩa <span class='p-mean'>cổ truyền, truyền thống</span>.</div>` },
+
+            { qId: 6, text: "How much power do single small turbines generate?", options: ["About 30 kilowatts", "more than 50 kilowatts", "About 750 kilowatts", "less than 50 kilowatts"], answer: "less than 50 kilowatts", 
+              expl: `<div class='expl-title'>Dịch câu hỏi:</div> Những tuabin gió kích cỡ rất nhỏ tạo ra bao nhiêu điện?<br><br>
+              <div class='expl-title'>Phân tích 4 đáp án:</div>
+              A. Khoảng 30 kw ❌ <span class='hl-red'>Sai vì con số 30 trong bài là chỉ chiều cao.</span><br>
+              B. Nhiều hơn 50 kw ❌ <span class='hl-red'>Sai vì bài ghi là "less than" (ít hơn).</span><br>
+              C. Khoảng 750 kw ❌ <span class='hl-red'>Số liệu không có trong bài.</span><br>
+              D. Ít hơn 50 kw ✅ <span class='hl-green'>Đúng hoàn toàn với thông tin đoạn 2.</span><br>
+              <div class='quote-box'>🔍 <b>Dẫn chứng trong bài:</b> "There are also very small wind turbines, producing less than 50 kilowatts of power."<br>👉 <b>Dịch:</b> "Cũng có những tuabin gió rất nhỏ, sản xuất <b style='color:red'>ít hơn 50 kilowatt</b> điện."<br>Từ vựng: <span class='p-word'>less than</span> có nghĩa là <span class='p-mean'>ít hơn, dưới mức</span>.</div>` }
+        ]
+    }
+];
+
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+function playSound(type) {
+    if(audioCtx.state === 'suspended') audioCtx.resume();
+    const osc = audioCtx.createOscillator(); const gainNode = audioCtx.createGain();
+    osc.connect(gainNode); gainNode.connect(audioCtx.destination);
+    
+    if(type === 'correct') {
+        osc.type = 'sine'; osc.frequency.setValueAtTime(523.25, audioCtx.currentTime); 
+        osc.frequency.exponentialRampToValueAtTime(1046.50, audioCtx.currentTime + 0.1);
+        gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime); gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+        osc.start(); osc.stop(audioCtx.currentTime + 0.5);
+    } else {
+        osc.type = 'sawtooth'; osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.2);
+        gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime); gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
+        osc.start(); osc.stop(audioCtx.currentTime + 0.2);
+    }
+}
+
+function createConfetti() {
+    for (let i = 0; i < 40; i++) {
+        let conf = document.createElement('div'); conf.classList.add('confetti');
+        conf.style.left = Math.random() * 100 + 'vw';
+        conf.style.backgroundColor = `hsl(${Math.random() * 360}, 100%, 50%)`;
+        conf.style.animationDuration = Math.random() * 2 + 1 + 's';
+        document.body.appendChild(conf); setTimeout(() => conf.remove(), 3000);
+    }
+}
+
+function shuffleArray(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+}
+
+let totalQuestions = 0; let score = 0; let answeredCount = 0;
+
+function init() {
+    const rPanel = document.getElementById('reading-panel');
+    const qPanel = document.getElementById('questions-container');
+    rPanel.innerHTML = ''; // Reset container
+    qPanel.innerHTML = ''; // Reset container
+    
+    quizData.forEach((passage, pIdx) => {
+        let htmlR = `<h2>${passage.title}</h2>`;
+        passage.paragraphs.forEach((para, prIdx) => {
+            let pId = `trans-${pIdx}-${prIdx}`;
+            htmlR += `<p class="passage-text">${para.en}</p>`;
+            htmlR += `<button class="trans-btn" onclick="toggleTrans('${pId}')">Mở dịch đoạn này 🌟</button>`;
+            htmlR += `<div class="translation" id="${pId}">${para.vi}</div>`;
+        });
+
+        if(passage.glossary && passage.glossary.length > 0) {
+            htmlR += `<table class="glossary"><tr><th>Từ vựng</th><th>Loại từ</th><th>Nghĩa</th></tr>`;
+            passage.glossary.forEach(g => {
+                htmlR += `<tr><td><strong class="p-word">${g[0]}</strong></td><td><i>${g[1]}</i></td><td class="p-mean">${g[2]}</td></tr>`;
+            });
+            htmlR += `</table><hr style="border:1px dashed #a18cd1; margin: 30px 0;">`;
+        }
+        rPanel.innerHTML += htmlR;
+
+        passage.questions.forEach((q, qIdx) => {
+            totalQuestions++;
+            let globalQIdx = `q_${pIdx}_${qIdx}`;
+            let shuffledOpts = shuffleArray([...q.options]);
+            
+            let htmlQ = `<div class="question-card" id="card_${globalQIdx}">`;
+            htmlQ += `<div class="q-text">Câu ${totalQuestions}: ${q.text}</div>`;
+            htmlQ += `<div class="options-grid">`;
+            
+            shuffledOpts.forEach((opt, oIdx) => {
+                let isCorrect = (opt === q.answer);
+                let safeExpl = q.expl.replace(/"/g, '&quot;');
+                htmlQ += `<button class="opt-btn" id="btn_${globalQIdx}_${oIdx}" 
+                            onclick="checkAnswer(this, '${globalQIdx}', ${isCorrect}, \`${safeExpl}\`)">
+                            ${opt}
+                          </button>`;
+            });
+            
+            htmlQ += `</div><div class="expl-box" id="expl_${globalQIdx}"></div></div>`;
+            qPanel.innerHTML += htmlQ;
+        });
+    });
+}
+
+function toggleTrans(id) {
+    const el = document.getElementById(id);
+    el.style.display = (el.style.display === 'block') ? 'none' : 'block';
+}
+
+function checkAnswer(btn, qId, isCorrect, explHtml) {
+    const card = document.getElementById(`card_${qId}`);
+    if(card.classList.contains('answered')) return; 
+    card.classList.add('answered');
+    answeredCount++;
+
+    const explBox = document.getElementById(`expl_${qId}`);
+    explBox.innerHTML = explHtml;
+    explBox.style.display = 'block';
+
+    const buttons = card.querySelectorAll('.opt-btn');
+    buttons.forEach(b => {
+        b.style.pointerEvents = 'none';
+        b.style.opacity = '0.6';
+    });
+
+    if(isCorrect) {
+        btn.classList.add('correct');
+        btn.style.opacity = '1';
+        playSound('correct');
+        createConfetti();
+        score++;
+    } else {
+        btn.classList.add('wrong');
+        btn.style.opacity = '1';
+        btn.classList.add('shake');
+        playSound('wrong');
+        
+        buttons.forEach(b => {
+            if(quizData.flatMap(p=>p.questions).find(qq=> qq.answer === b.innerText.trim())) {
+                b.classList.add('correct');
+                b.style.opacity = '1';
+            }
+        });
+    }
+}
+
+function showNameModal() {
+    if(answeredCount < totalQuestions) {
+        alert(`Bạn mới làm ${answeredCount}/${totalQuestions} câu. Hãy hoàn thành hết trước khi nộp nhé!`);
+        return;
+    }
+    document.getElementById('nameModal').style.display = 'flex';
+}
+
+function submitQuiz() {
+    const name = document.getElementById('studentName').value.trim();
+    if(!name) { alert('Vui lòng nhập tên của bạn!'); return; }
+    
+    document.getElementById('nameModal').style.display = 'none';
+    const percent = Math.round((score / totalQuestions) * 100);
+    
+    let comment, gifUrl;
+    if(percent === 100) {
+        comment = "Thiên tài xuất chúng! Ms Mai An siêu tự hào về bạn! 🌟";
+        gifUrl = "https://media.giphy.com/media/xT0xezQGU5xCDzqYCR/giphy.gif"; 
+    } else if(percent >= 60) {
+        comment = "Rất tốt! Bạn đã cực kỳ nỗ lực! High-five! 👏";
+        gifUrl = "https://media.giphy.com/media/11sBLVxNs7v6WA/giphy.gif";
+    } else {
+        comment = "Cố lên nhé! Lần sau chắc chắn sẽ làm tốt hơn! 💪";
+        gifUrl = "https://media.giphy.com/media/d2lcHJTG5Tscg/giphy.gif";
+    }
+
+    document.getElementById('resName').innerText = `Học sinh: ${name}`;
+    document.getElementById('resScore').innerText = `${score} / ${totalQuestions}`;
+    document.getElementById('resComment').innerText = comment;
+    document.getElementById('resGif').src = gifUrl;
+    
+    document.getElementById('resultModal').style.display = 'flex';
+}
+</script>
+
+</body>
+</html>

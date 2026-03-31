@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>English Gamified Test - Ms Mai An ULIS</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Cinzel:wght@700&display=swap');
+
+        /* GIAO DIỆN MÀN HÌNH KHÓA */
+        #passwordModal {
+          position:fixed; inset:0; z-index:9999;
+          display:flex; align-items:center; justify-content:center;
+          background:rgba(5,2,15,0.92); backdrop-filter:blur(20px);
+        }
+        .pw-card {
+          background:linear-gradient(160deg, rgba(40,10,70,0.95) 0%, rgba(15,5,30,0.98) 100%);
+          border:1.5px solid rgba(240,192,64,0.4); border-radius:24px; padding:48px 40px 40px; 
+          max-width:440px; width:93%; text-align:center; position:relative; overflow:hidden;
+          box-shadow:0 0 60px rgba(106,5,114,0.6), 0 0 120px rgba(240,192,64,0.1), inset 0 1px 0 rgba(240,192,64,0.15);
+        }
+        .pw-card::before {
+          content:''; position:absolute; top:0; left:0; right:0; height:3px;
+          background:linear-gradient(90deg, #6A0572, #F0C040, #6A0572);
+        }
+        .pw-crest { font-size:4rem; margin-bottom:8px; display:block; }
+        .pw-title { font-family:'Cinzel', serif; font-size:1.4rem; font-weight:700; color:#F0C040; margin-bottom:6px; letter-spacing:1px; }
+        .pw-sub   { font-size:.87rem; color:rgba(200,200,212,0.6); margin-bottom:24px; }
+        .pw-input {
+          width:100%; padding:13px 20px; border-radius:12px;
+          border:1.5px solid rgba(240,192,64,0.3); background:rgba(255,255,255,0.05);
+          color:#FFE082; font-size:1rem; font-family:'Nunito', sans-serif;
+          outline:none; letter-spacing:3px; text-align:center; transition:all .3s;
+        }
+        .pw-input:focus { border-color:#F0C040; box-shadow:0 0 0 3px rgba(240,192,64,0.15); }
+        .pw-input.error { border-color:#FF4757; box-shadow:0 0 0 3px rgba(255,71,87,0.25); animation:shake .4s ease; }
+        .pw-input::placeholder { color:rgba(200,200,212,0.3); letter-spacing:1px; }
+        .pw-btn {
+          width:100%; padding:14px; margin-top:14px; border-radius:12px; border:none;
+          background:linear-gradient(135deg, #6A0572 0%, #9B1FA8 40%, #F0C040 100%);
+          color:#fff; font-size:1rem; font-weight:700; font-family:'Cinzel', serif;
+          cursor:pointer; letter-spacing:.5px; transition:transform .2s;
+        }
+        .pw-btn:hover { transform:translateY(-2px); box-shadow:0 8px 32px rgba(106,5,114,0.7); }
+        .pw-err { color:#ff8a9a; font-size:.84rem; margin-top:10px; display:none; font-weight:700; }
+        @keyframes shake { 0%,100%{transform:translateX(0)} 15%,45%,75%{transform:translateX(-6px)} 30%,60%,90%{transform:translateX(6px)} }
+
+        /* GIAO DIỆN BÀI TẬP CHÍNH */
+        :root {
+            --glass-bg: rgba(255, 255, 255, 0.45);
+            --glass-border: rgba(255, 255, 255, 0.6);
+            --text-dark: #2d3436;
+        }
+
+        body, html {
+            margin: 0; padding: 0; height: 100%;
+            font-family: 'Nunito', sans-serif; color: var(--text-dark); overflow: hidden;
+        }
+
+        .bg-container {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: linear-gradient(45deg, #ff9a9e, #fecfef, #a1c4fd, #c2e9fb);
+            background-size: 400% 400%; animation: gradientBG 15s ease infinite; z-index: -2;
+        }
+
+        @keyframes gradientBG { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+
+        .floating-emojis { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -1; pointer-events: none; overflow: hidden; }
+        .emoji { position: absolute; font-size: 2.5rem; animation: floatUp linear infinite; opacity: 0.5; }
+        @keyframes floatUp { 0% { transform: translateY(110vh) rotate(0deg); } 100% { transform: translateY(-10vh) rotate(360deg); } }
+
+        .app-header {
+            position: absolute; top: 12px; left: 25px;
+            font-size: 1rem; font-weight: 900; color: #fff; text-shadow: 2px 2px 4px rgba(0,0,0,0.4); z-index: 10;
+            background: rgba(0,0,0,0.2); padding: 5px 15px; border-radius: 20px; backdrop-filter: blur(5px);
+        }
+
+        .main-container { display: flex; height: 100vh; padding: 60px 20px 20px 20px; box-sizing: border-box; gap: 25px; }
+        .panel {
+            flex: 1; height: 100%; background: var(--glass-bg); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
+            border: 1px solid var(--glass-border); border-radius: 24px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            overflow-y: auto; padding: 25px; scroll-behavior: smooth;
+        }
+
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.9); border-radius: 10px; }
+
+        .passage-box { background: rgba(255,255,255,0.8); padding: 25px; border-radius: 16px; margin-bottom: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        .passage-title { color: #d63031; font-weight: 900; text-align: center; font-size: 1.5rem; margin-bottom: 20px; text-transform: uppercase;}
+        .passage-content { font-size: 1.2rem; line-height: 1.9; margin-bottom: 20px; font-weight: 600; color: #2d3436;}
+        .passage-content span.blank { display: inline-block; min-width: 70px; border-bottom: 3px solid #0984e3; text-align: center; color: #0984e3; }
+        
+        .btn-translate {
+            background: #fff; border: 2px solid #a1c4fd; color: #0984e3; padding: 10px 20px; border-radius: 25px;
+            font-weight: 800; cursor: pointer; transition: all 0.3s; font-size: 1rem; box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+        .btn-translate:hover { background: #a1c4fd; color: #fff; transform: translateY(-3px); box-shadow: 0 6px 12px rgba(161, 196, 253, 0.4);}
+        .translation-text { display: none; background: #e0f7fa; padding: 20px; border-radius: 15px; margin-top: 15px; font-size: 1.1rem; border-left: 5px solid #00bcd4; line-height: 1.6;}
+
+        .glossary { margin-top: 25px; border-collapse: collapse; width: 100%; background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.05);}
+        .glossary th, .glossary td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #f1f2f6; font-size: 1.05rem;}
+        .glossary th { background: #fecfef; color: #d63031; font-weight: 900; text-transform: uppercase; font-size: 0.95rem; letter-spacing: 1px;}
+
+        .question-box { background: rgba(255,255,255,0.9); padding: 25px; border-radius: 16px; margin-bottom: 25px; box-shadow: 0 5px 20px rgba(0,0,0,0.08); }
+        .q-title { font-weight: 900; font-size: 1.3rem; margin-bottom: 18px; color: #6c5ce7; border-bottom: 2px dashed #a29bfe; padding-bottom: 10px;}
+        .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .btn-option {
+            background: #f8f9fa; border: 2px solid #dfe6e9; padding: 15px; border-radius: 15px;
+            font-size: 1.15rem; font-weight: 800; color: #2d3436; cursor: pointer; transition: all 0.25s; text-align: center;
+        }
+        .btn-option:hover { border-color: #74b9ff; background: #e3f2fd; transform: scale(1.03); }
+        .btn-option.correct { background: #00b894 !important; border-color: #00b894 !important; color: #fff; box-shadow: 0 4px 15px rgba(0, 184, 148, 0.4);}
+        .btn-option.wrong { background: #ff7675 !important; border-color: #d63031 !important; color: #fff; }
+        .shake-err { animation: shake 0.4s; }
+
+        /* MÀU SẮC CHUẨN MASTER */
+        .explanation-box {
+            display: none; background: #fffde7; padding: 20px; border-radius: 12px; margin-top: 20px;
+            font-size: 1.05rem; border-left: 6px solid #fdcb6e; box-shadow: 0 5px 15px rgba(0,0,0,0.05); line-height: 1.7;
+        }
+        .explanation-box p { margin: 8px 0; }
+        .explanation-box ul { padding-left: 20px; margin: 10px 0; }
+        .explanation-box li { margin-bottom: 8px; }
+        .p-word { color: #0984e3; font-weight: 900; background: rgba(9, 132, 227, 0.1); padding: 2px 6px; border-radius: 4px;} 
+        .p-mean { color: #d35400; font-style: italic; font-weight: 600;} 
+        .p-grammar { text-decoration: underline; text-decoration-color: #d63031; text-decoration-style: wavy; text-decoration-thickness: 2px; font-weight: 900; color: #2d3436; } 
+        .hl-green { color: #00b894; font-weight: 900; } 
+        .hl-red { color: #d63031; font-weight: 800; text-decoration: line-through; } 
+
+        .submit-btn {
+            display: block; width: 100%; background: linear-gradient(135deg, #6c5ce7, #a29bfe); color: #fff; border: none;
+            padding: 18px; border-radius: 20px; font-size: 1.4rem; font-weight: 900; cursor: pointer; text-transform: uppercase;
+            box-shadow: 0 8px 25px rgba(108, 92, 231, 0.5); margin-top: 35px; transition: 0.3s; letter-spacing: 1px;
+        }
+        .submit-btn:hover { transform: translateY(-5px); box-shadow: 0 12px 30px rgba(108, 92, 231, 0.7); }
+
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px); display: none; justify-content: center; align-items: center; z-index: 100; }
+        .modal-content { background: #fff; padding: 35px; border-radius: 24px; text-align: center; max-width: 450px; width: 90%; box-shadow: 0 20px 50px rgba(0,0,0,0.3); }
+        .modal-content img { width: 100%; border-radius: 16px; margin-top: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.1);}
+        .modal-content input { width: 90%; padding: 15px; margin: 20px 0; border: 3px solid #dfe6e9; border-radius: 12px; font-size: 1.2rem; font-family: 'Nunito', sans-serif; font-weight: 700; text-align: center; outline: none; transition: 0.3s;}
+        .modal-content input:focus { border-color: #6c5ce7; box-shadow: 0 0 0 4px rgba(108, 92, 231, 0.2); }
+        .btn-confirm { background: #00b894; color: #fff; border: none; padding: 12px 30px; font-size: 1.2rem; border-radius: 12px; cursor: pointer; font-weight: 900; transition: 0.3s; box-shadow: 0 4px 15px rgba(0, 184, 148, 0.4);}
+        .btn-confirm:hover { transform: scale(1.05); background: #00cec9; }
+
+        .confetti { position: fixed; width: 12px; height: 12px; z-index: 99; pointer-events: none; border-radius: 50%;}
+
+        @media (max-width: 800px) { .main-container { flex-direction: column; height: auto; padding-top: 70px; } .panel { overflow-y: visible; margin-bottom: 20px; } }
+    </style>
+</head>
+<body>
+
+    <div id="passwordModal">
+      <div class="pw-card">
+        <span class="pw-crest">🔒</span>
+        <div class="pw-title">BẢO MẬT</div>
+        <div class="pw-sub">Vui lòng nhập mật khẩu để làm bài</div>
+        <input type="password" class="pw-input" id="pwInput" placeholder="Nhập mật khẩu..." autocomplete="off" />
+        <button class="pw-btn" onclick="checkPassword()">XÁC NHẬN</button>
+        <div class="pw-err" id="pwErr">Mật khẩu không đúng! Vui lòng thử lại.</div>
+      </div>
+    </div>
+
+    <div id="mainContent" style="display: none;">
+        <div class="bg-container"></div>
+        <div class="floating-emojis" id="emoji-bg"></div>
+        <div class="app-header">Giáo viên: Ms Mai An ULIS - Master of Applied Linguistics</div>
+
+        <div class="main-container">
+            <div class="panel left-panel" id="reading-panel"></div>
+            <div class="panel right-panel" id="quiz-panel">
+                <button class="submit-btn" onclick="openNameModal()">🎯 NỘP BÀI TÍNH ĐIỂM</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="name-modal">
+        <div class="modal-content">
+            <h2 style="color: #6c5ce7; font-weight: 900; font-size: 1.8rem;">Nhập tên học trò cưng! 🌟</h2>
+            <input type="text" id="student-name" placeholder="Ví dụ: Nguyễn Văn A" autocomplete="off">
+            <button class="btn-confirm" onclick="submitTest()">Sẵn sàng!</button>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="result-modal">
+        <div class="modal-content">
+            <h1 style="color: #d63031; font-size: 3rem; margin: 0; font-weight: 900;" id="r-score">0/16</h1>
+            <h2 id="r-name" style="color: #2d3436; margin: 15px 0; font-size: 1.5rem;"></h2>
+            <p id="r-comment" style="font-size: 1.2rem; font-weight: 800; color: #0984e3; line-height: 1.5;"></p>
+            <img id="r-gif" src="" alt="result gif">
+            <button class="btn-confirm" style="margin-top: 20px; background: #6c5ce7;" onclick="location.reload()">Làm lại bài</button>
+        </div>
+    </div>
+
+<script>
+    /* BẢO MẬT - Đã sửa thành chuỗi số đơn giản để tránh kẹt tập lệnh */
+    const _pw = "1611";
+
+    function checkPassword() {
+      const inp = document.getElementById('pwInput');
+      const err = document.getElementById('pwErr');
+      if (inp.value === _pw) {
+        document.getElementById('passwordModal').style.display = 'none';
+        const main = document.getElementById('mainContent');
+        if(main) main.style.display = 'block';
+        createFloatingEmojis();
+      } else {
+        inp.classList.remove('error'); void inp.offsetWidth; inp.classList.add('error');
+        err.style.display = 'block'; setTimeout(() => inp.classList.remove('error'), 500);
+      }
+    }
+    
+    document.addEventListener('DOMContentLoaded', () => {
+      const pwInput = document.getElementById('pwInput');
+      if(pwInput) pwInput.addEventListener('keydown', e => { if (e.key==='Enter') checkPassword(); });
+    });
+
+    /* DATA BÀI TẬP - PHIÊN BẢN MASTER (SIÊU CHI TIẾT) */
+    const exercisesData = [
+        {
+            id: 'ex4',
+            title: "EXERCISE 4: LEARN ENGLISH WITH US!",
+            content: `We are excited to offer a new English course for learners of all levels. Details include:<br>
+                • Classes will start <span class="blank">(53)</span> 1st March at the Language Learning Center.<br>
+                • Our teachers will help you <span class="blank">(54)</span> your confidence in speaking.<br>
+                • You will enjoy <span class="blank">(55)</span> lessons, fun activities, and helpful materials to develop all four skills: listening, speaking, reading and writing.<br>
+                • The course is designed to help learners improve <span class="blank">(56)</span>.`,
+            translation: `Chúng tôi rất hào hứng mang đến một khóa học tiếng Anh mới cho người học ở mọi trình độ. Chi tiết bao gồm:<br>
+                • Các lớp học sẽ bắt đầu <b>vào</b> ngày 1 tháng 3 tại Trung tâm Học Ngôn ngữ.<br>
+                • Giáo viên của chúng tôi sẽ giúp bạn <b>xây dựng</b> sự tự tin trong việc nói.<br>
+                • Bạn sẽ được tận hưởng các bài học <b>có tính tương tác</b>, các hoạt động thú vị và tài liệu hữu ích để phát triển cả bốn kỹ năng: nghe, nói, đọc và viết.<br>
+                • Khóa học được thiết kế để giúp người học cải thiện <b>từng bước một</b>.`,
+            glossary: [
+                { word: "Excited", pos: "adj", meaning: "Hào hứng, phấn khích (Cảm xúc con người)" },
+                { word: "Offer", pos: "v", meaning: "Cung cấp, mang đến, đề xuất" },
+                { word: "Confidence", pos: "n", meaning: "Sự tự tin (Gốc từ: Confide)" },
+                { word: "Interactive", pos: "adj", meaning: "Có tính tương tác qua lại" },
+                { word: "Material", pos: "n", meaning: "Tài liệu học tập/chất liệu" },
+                { word: "Improve", pos: "v", meaning: "Cải thiện, tiến bộ" }
+            ],
+            questions: [
+                {
+                    qNum: 53, options: ["in", "on", "at", "by"], correct: "on",
+                    explanation: `
+                        <p><b>Dịch câu hỏi:</b> Chọn giới từ (Preposition) chỉ thời gian thích hợp điền vào chỗ trống.</p>
+                        <p><b>Phân tích sâu 4 đáp án (Semantic & Syntactic Analysis):</b></p>
+                        <ul>
+                            <li><b>in</b> <span class="hl-red">❌ Sai.</span> Giới từ <span class="p-word">in</span> chỉ dùng cho các khoảng thời gian dài (Tháng, Năm, Mùa, Thế kỷ). Ví dụ: <i>in March</i> (vào tháng 3), <i>in 2024</i>. Ở đây có cụ thể "ngày 1" nên không được dùng "in".</li>
+                            <li><b>on</b> <span class="hl-green">✅ Đúng.</span> Theo <span class="p-grammar">Quy tắc hòa hợp giới từ thời gian</span>, ta bắt buộc phải dùng <span class="p-word">on</span> khi xuất hiện yếu tố <b>"Ngày" (Day/Date)</b>. Ví dụ: <i>on Monday, on Valentine's Day, on 1st March</i>. Mặc dù có tháng (March), nhưng hạt nhân ngữ nghĩa ở đây là "ngày mùng 1".</li>
+                            <li><b>at</b> <span class="hl-red">❌ Sai.</span> <span class="p-word">at</span> dùng cho mốc thời gian điểm (giờ đồng hồ, khoảnh khắc). VD: <i>at 7 o'clock, at noon</i>.</li>
+                            <li><b>by</b> <span class="hl-red">❌ Sai.</span> <span class="p-word">by</span> mang nghĩa là <span class="p-mean">trước một thời điểm</span> (tương đương <i>before</i>). Lớp học "bắt đầu" thì phải vào đúng ngày đó, không dùng "trước ngày đó".</li>
+                        </ul>
+                        <p><b>🔍 Dẫn chứng:</b> "Classes will start <span class="hl-green">on 1st March</span>..."<br>
+                        👉 <b>Dịch:</b> Các lớp học sẽ bắt đầu <b>vào</b> ngày mùng 1 tháng 3.</p>`
+                },
+                {
+                    qNum: 54, options: ["build", "builds", "building", "built"], correct: "build",
+                    explanation: `
+                        <p><b>Dịch câu hỏi:</b> Chọn hình thái động từ (Verb form) chính xác để hoàn thành cấu trúc câu.</p>
+                        <p><b>Phân tích sâu 4 đáp án (Morphological Analysis):</b></p>
+                        <ul>
+                            <li><b>build</b> <span class="hl-green">✅ Đúng.</span> Đây là dạng <span class="p-grammar">Động từ nguyên thể không to (Bare-infinitive)</span>. Trong tiếng Anh, động từ <i>Help</i> có 2 cấu trúc chuẩn: <span class="p-grammar">Help sb + V(bare)</span> (Phổ biến ở Anh-Mỹ) hoặc <span class="p-grammar">Help sb + to V</span>. Ở đây tân ngữ (sb) là "you", động từ theo sau bắt buộc giữ nguyên.</li>
+                            <li><b>builds</b> <span class="hl-red">❌ Sai.</span> Thêm "s" chỉ dành cho động từ chia theo chủ ngữ ngôi thứ 3 số ít ở thì Hiện tại đơn. Ở đây động từ chính "will help" đã chia rồi, động từ phụ không chia nữa.</li>
+                            <li><b>building</b> <span class="hl-red">❌ Sai.</span> Dạng V-ing (Gerund/Present Participle) không đứng sau cấu trúc tân ngữ của "help".</li>
+                            <li><b>built</b> <span class="hl-red">❌ Sai.</span> Đây là V2/V3 (Quá khứ/Phân từ hai), dùng trong thì hoàn thành hoặc bị động, hoàn toàn sai cú pháp ngữ cảnh này.</li>
+                        </ul>
+                        <p><b>🔍 Dẫn chứng:</b> "...help you <span class="hl-green">build</span> your confidence..."<br>
+                        👉 <b>Dịch:</b> "...giúp bạn <b>xây dựng</b> sự tự tin của bản thân..." Cụm Collocation cố định: <span class="p-word">build confidence</span> <span class="p-mean">(xây dựng sự tự tin)</span>.</p>`
+                },
+                {
+                    qNum: 55, options: ["inter", "interactive", "interact", "interactivity"], correct: "interactive",
+                    explanation: `
+                        <p><b>Dịch câu hỏi:</b> Xác định từ loại (Part of Speech) bổ nghĩa cho danh từ "lessons".</p>
+                        <p><b>Phân tích sâu 4 đáp án (Word Formation & Word Family):</b></p>
+                        <ul>
+                            <li><b>inter</b> <span class="hl-red">❌ Sai.</span> Đây chỉ là một Tiền tố (Prefix) mang nghĩa "giữa, lẫn nhau" (ví dụ: international, internet), nó không phải là một từ độc lập.</li>
+                            <li><b>interactive</b> <span class="hl-green">✅ Đúng.</span> Phân tích hình thái: Tiền tố <span class="p-word">inter-</span> + Gốc từ <span class="p-word">act</span> (hành động) + Hậu tố <span class="p-word">-ive</span> (tạo Tính từ). Tạo thành Tính từ mang nghĩa <span class="p-mean">có tính tương tác qua lại</span>. Đứng trước danh từ "lessons" để bổ nghĩa tạo thành Cụm danh từ (Noun Phrase).</li>
+                            <li><b>interact</b> <span class="hl-red">❌ Sai.</span> Đây là Động từ (Verb) <span class="p-mean">(tương tác)</span>. Động từ không thể đứng kẹp giữa động từ "enjoy" và danh từ "lessons".</li>
+                            <li><b>interactivity</b> <span class="hl-red">❌ Sai.</span> Hậu tố <i>-ity</i> tạo ra Danh từ trừu tượng (Abstract Noun) <span class="p-mean">(sự tương tác)</span>. Mặc dù Noun + Noun có thể tạo danh từ ghép, nhưng ở ngữ cảnh khóa học, ta cần miêu tả tính chất của bài học chứ không phải danh từ ghép.</li>
+                        </ul>
+                        <p><b>🔍 Dẫn chứng:</b> "You will enjoy <span class="hl-green">interactive</span> lessons..."<br>
+                        👉 Áp dụng cấu trúc <span class="p-grammar">Adjective + Noun</span>: Các bài học <span class="p-mean">(lessons)</span> có tính chất tương tác <span class="p-mean">(interactive)</span>.</p>`
+                },
+                {
+                    qNum: 56, options: ["step by step", "in a hurry", "fast and strong", "all at once"], correct: "step by step",
+                    explanation: `
+                        <p><b>Dịch câu hỏi:</b> Tìm một trạng ngữ (Adverbial Phrase) chỉ phương thức tiến bộ trong học tập.</p>
+                        <p><b>Phân tích sâu 4 đáp án (Semantic Appropriateness):</b></p>
+                        <ul>
+                            <li><b>step by step</b> <span class="hl-green">✅ Đúng.</span> Thành ngữ (Idiom) này có nghĩa là <span class="p-mean">từng bước một, theo lộ trình rõ ràng</span>. Đặc thù của việc học ngôn ngữ (Language Acquisition) là sự tích lũy dần dần, do đó từ này là sự kết hợp (collocation) hoàn hảo với động từ "improve" (cải thiện).</li>
+                            <li><b>in a hurry</b> <span class="hl-red">❌ Sai.</span> Nghĩa là <span class="p-mean">vội vã, hấp tấp</span>. Không có giáo trình giáo dục nào thiết kế để học sinh học một cách vội vã, sai hoàn toàn về mặt Logic ngữ nghĩa (Pragmatics).</li>
+                            <li><b>fast and strong</b> <span class="hl-red">❌ Sai.</span> Nghĩa là <span class="p-mean">nhanh và mạnh mẽ</span>. Cụm này thường dùng để miêu tả thể thao, máy móc hoặc bão tố, không dùng để miêu tả sự tiến bộ trong học thuật.</li>
+                            <li><b>all at once</b> <span class="hl-red">❌ Sai.</span> Nghĩa là <span class="p-mean">tất cả cùng một lúc / bất thình lình</span>. Học 4 kỹ năng Nghe-Nói-Đọc-Viết không thể giỏi ngay lập tức cùng một lúc được.</li>
+                        </ul>
+                        <p><b>🔍 Dẫn chứng:</b> "The course is designed to help learners improve <span class="hl-green">step by step</span>."<br>
+                        👉 <b>Dịch:</b> Khóa học được thiết kế để giúp người học tiến bộ <b>từng bước một</b>.</p>`
+                }
+            ]
+        },
+        {
+            id: 'ex5',
+            title: "EXERCISE 5: HOW TO USE SOLAR ENERGY EFFECTIVELY",
+            content: `The Environmental Club is hosting a workshop to guide everyone on <span class="blank">(57)</span> solar energy efficiently. Details include:<br>
+                • The workshop takes place next Saturday morning.<br>
+                • Participants will learn how solar panels produce energy <span class="blank">(58)</span> sunlight.<br>
+                • You will also discover useful ways to reduce energy waste in <span class="blank">(59)</span>.<br>
+                • Registration is free, but spots must be booked <span class="blank">(60)</span>.`,
+            translation: `Câu lạc bộ Môi trường đang tổ chức hội thảo hướng dẫn mọi người về <b>cách sử dụng</b> năng lượng mặt trời hiệu quả. Chi tiết:<br>
+                • Hội thảo diễn ra vào sáng thứ Bảy tuần sau.<br>
+                • Người tham gia sẽ học cách tấm pin mặt trời tạo năng lượng <b>từ</b> ánh sáng mặt trời.<br>
+                • Bạn cũng sẽ khám phá cách giảm lãng phí năng lượng trong <b>cuộc sống hàng ngày</b>.<br>
+                • Đăng ký miễn phí, nhưng chỗ ngồi phải được đặt <b>trước</b>.`,
+            glossary: [
+                { word: "Workshop", pos: "n", meaning: "Hội thảo, buổi học thực hành" },
+                { word: "Efficiently", pos: "adv", meaning: "Một cách hiệu quả (Tối ưu năng suất)" },
+                { word: "Participant", pos: "n", meaning: "Người tham gia (Gốc từ: Participate)" },
+                { word: "Reduce waste", pos: "v + n", meaning: "Giảm thiểu sự lãng phí" },
+                { word: "Registration", pos: "n", meaning: "Sự đăng ký ghi danh" }
+            ],
+            questions: [
+                {
+                    qNum: 57, options: ["how to use", "what to use", "to use", "to use how"], correct: "how to use",
+                    explanation: `
+                        <p><b>Dịch câu hỏi:</b> Chọn Mệnh đề danh ngữ rút gọn (Reduced Noun Clause) phù hợp sau giới từ "on".</p>
+                        <p><b>Phân tích sâu 4 đáp án (Syntactic Structure):</b></p>
+                        <ul>
+                            <li><b>how to use</b> <span class="hl-green">✅ Đúng.</span> Cấu trúc <span class="p-grammar">Wh-word + to-infinitive</span> đóng vai trò như một danh từ chỉ Cách thức. Cụm <span class="p-word">how to use</span> <span class="p-mean">(làm thế nào để sử dụng / cách sử dụng)</span> hoàn toàn khớp với tân ngữ phía sau "solar energy".</li>
+                            <li><b>what to use</b> <span class="hl-red">❌ Sai.</span> Nghĩa là <span class="p-mean">dùng cái gì</span>. Nếu chọn từ này, câu sẽ thành "hướng dẫn dùng cái gì năng lượng mặt trời" -> Bị lặp 2 tân ngữ liên tiếp, sai hoàn toàn về mặt Logic.</li>
+                            <li><b>to use</b> <span class="hl-red">❌ Sai.</span> Sau giới từ (Preposition) "on" không bao giờ đi trực tiếp với To V. Chỉ có thể cộng V-ing hoặc cụm Danh từ/Mệnh đề danh ngữ. Cấu trúc Wh-word + to V được tính là cụm danh từ nên hợp lệ.</li>
+                            <li><b>to use how</b> <span class="hl-red">❌ Sai.</span> Lỗi sai trật tự từ cơ bản. Từ để hỏi (Wh-word) phải đứng đầu cụm.</li>
+                        </ul>
+                        <p><b>🔍 Dẫn chứng:</b> "...guide everyone on <span class="hl-green">how to use</span> solar energy..."<br>
+                        👉 <b>Dịch:</b> "...hướng dẫn mọi người về <b>cách sử dụng</b> năng lượng mặt trời..."</p>`
+                },
+                {
+                    qNum: 58, options: ["to", "from", "with", "on"], correct: "from",
+                    explanation: `
+                        <p><b>Dịch câu hỏi:</b> Xác định Giới từ chỉ Nguồn gốc (Preposition of Source).</p>
+                        <p><b>Phân tích sâu 4 đáp án (Semantic Collocation):</b></p>
+                        <ul>
+                            <li><b>to</b> <span class="hl-red">❌ Sai.</span> "To" là giới từ chỉ Hướng đến (Direction). Năng lượng không thể hướng đến ánh sáng được.</li>
+                            <li><b>from</b> <span class="hl-green">✅ Đúng.</span> "From" là giới từ cốt lõi chỉ <span class="p-grammar">Nguồn gốc/Xuất xứ (Origin/Source)</span>. Năng lượng mặt trời được chiết xuất/tạo ra TỪ gốc là ánh sáng mặt trời. Cấu trúc: <span class="p-word">produce something FROM something</span> <span class="p-mean">(sản xuất cái gì từ nguyên liệu gì)</span>.</li>
+                            <li><b>with</b> <span class="hl-red">❌ Sai.</span> "With" dùng để chỉ Công cụ (Instrument) do con người chủ động cầm nắm (VD: write with a pen). Ánh sáng không phải là công cụ cầm nắm được, nó là NGUỒN (Source).</li>
+                            <li><b>on</b> <span class="hl-red">❌ Sai.</span> Không có cấu trúc "produce on something" trong ngữ cảnh vật lý/hóa học này.</li>
+                        </ul>
+                        <p><b>🔍 Dẫn chứng:</b> "...produce energy <span class="hl-green">from</span> sunlight."<br>
+                        👉 <b>Dịch:</b> "...sản xuất năng lượng <b>từ</b> ánh sáng mặt trời."</p>`
+                },
+                {
+                    qNum: 59, options: ["your day life", "your life daily", "your life day", "your daily life"], correct: "your daily life",
+                    explanation: `
+                        <p><b>Dịch câu hỏi:</b> Sắp xếp trật tự từ chuẩn xác để tạo thành Cụm danh từ (Noun Phrase).</p>
+                        <p><b>Phân tích sâu 4 đáp án (Word Order & Collocation):</b></p>
+                        <ul>
+                            <li><b>your daily life</b> <span class="hl-green">✅ Đúng.</span> Cấu trúc Noun Phrase chuẩn trong tiếng Anh: <span class="p-grammar">Possessive Adjective (Tính từ sở hữu) + Adjective (Tính từ) + Noun (Danh từ gốc)</span>. Tương ứng: \`your\` + \`daily\` + \`life\`. Cụm Collocation <span class="p-word">daily life</span> <span class="p-mean">(cuộc sống sinh hoạt hàng ngày)</span> là một cụm từ cố định không thể tách rời.</li>
+                            <li><b>your day life</b> <span class="hl-red">❌ Sai.</span> "Day" là danh từ, "Life" là danh từ. Khi ghép 2 danh từ với nhau, nó tạo ra nghĩa "cuộc sống ban ngày" (đối lập với night life - cuộc sống về đêm). Hội thảo này hướng dẫn tiết kiệm năng lượng nói chung chứ không chỉ vào ban ngày.</li>
+                            <li><b>your life daily</b> <span class="hl-red">❌ Sai.</span> Tính từ (daily) KHÔNG ĐƯỢC đứng sau Danh từ (life) bổ nghĩa cho nó trong trường hợp thông thường.</li>
+                            <li><b>your life day</b> <span class="hl-red">❌ Sai.</span> Vô nghĩa hoàn toàn về mặt hình thái từ.</li>
+                        </ul>
+                        <p><b>🔍 Dẫn chứng:</b> "...reduce energy waste in <span class="hl-green">your daily life</span>."<br>
+                        👉 <b>Dịch:</b> "...giảm lãng phí năng lượng trong <b>cuộc sống sinh hoạt hàng ngày của bạn</b>."</p>`
+                },
+                {
+                    qNum: 60, options: ["in advance", "on advance", "to advance", "by advance"], correct: "in advance",
+                    explanation: `
+                        <p><b>Dịch câu hỏi:</b> Chọn Giới từ phù hợp để cấu tạo thành một Thành ngữ (Idiom) chỉ thời gian.</p>
+                        <p><b>Phân tích sâu 4 đáp án (Idiomatic Expressions):</b></p>
+                        <ul>
+                            <li><b>in advance</b> <span class="hl-green">✅ Đúng.</span> Trong tiếng Anh, cụm trạng từ <span class="p-word">in advance</span> là một Idiom cố định, không tuân theo quy tắc suy luận thông thường, mang ý nghĩa <span class="p-mean">làm việc gì đó trước thời hạn, chuẩn bị trước</span> (tương đương với <i>beforehand / ahead of time</i>). Cụm <span class="p-word">book in advance</span> <span class="p-mean">(đặt chỗ trước)</span> là Collocation cực kỳ phổ biến trong giao tiếp.</li>
+                            <li><b>on advance / to advance / by advance</b> <span class="hl-red">❌ Sai hoàn toàn.</span> Tiếng Anh không tồn tại các cụm từ này với ý nghĩa "làm trước". Đừng nhầm lẫn với động từ "to advance" (thăng tiến, đưa lên phía trước).</li>
+                        </ul>
+                        <p><b>🔍 Dẫn chứng:</b> "...spots must be booked <span class="hl-green">in advance</span>."<br>
+                        👉 <b>Dịch:</b> "...nhưng chỗ ngồi bắt buộc phải được đặt <b>trước</b>."</p>`
+                }
+            ]
+        },
+        {
+            id: 'ex6',
+            title: "EXERCISE 6: SMART WAYS TO SAVE ENERGY",
+            content: `• Always switch <span class="blank">(61)</span> lights and fans when you leave a room.<br>
+                • Replace old light bulbs with Led ones <span class="blank">(62)</span> electricity.<br>
+                • Turn off <span class="blank">(63)</span> while brushing your teeth to avoid wasting water.<br>
+                • Take <span class="blank">(64)</span> shower instead of a bath to reduce water consumption.`,
+            translation: `• Luôn <b>tắt</b> đèn và quạt khi rời khỏi phòng.<br>
+                • Thay bóng đèn cũ bằng bóng đèn Led <b>để sử dụng ít</b> điện năng hơn.<br>
+                • Tắt <b>nước</b> khi đánh răng để tránh lãng phí.<br>
+                • Tắm <b>vòi hoa sen</b> thay vì tắm bồn để giảm lượng nước tiêu thụ.`,
+            glossary: [
+                { word: "Switch off / Turn off", pos: "phrasal verb", meaning: "Tắt thiết bị điện/nước" },
+                { word: "Replace ... with ...", pos: "v", meaning: "Thay thế cái này BẰNG cái kia" },
+                { word: "Avoid + V-ing", pos: "v", meaning: "Tránh làm việc gì đó" },
+                { word: "Consumption", pos: "n", meaning: "Sự tiêu thụ (Gốc: Consume)" }
+            ],
+            questions: [
+                {
+                    qNum: 61, options: ["with", "on", "of", "off"], correct: "off",
+                    explanation: `
+                        <p><b>Dịch câu hỏi:</b> Chọn Phrasal verb (Cụm động từ) mang nghĩa ngắt nguồn điện khi ra khỏi phòng.</p>
+                        <p><b>Phân tích sâu 4 đáp án (Phrasal Verbs):</b></p>
+                        <ul>
+                            <li><b>off</b> <span class="hl-green">✅ Đúng.</span> Cụm động từ <span class="p-word">switch off</span> đồng nghĩa với <i>turn off</i>, có nghĩa là <span class="p-mean">ngắt công tắc, tắt thiết bị điện</span>. Đây là hành động logic bắt buộc khi <span class="hl-green">leave a room</span> (rời khỏi phòng) để tiết kiệm điện.</li>
+                            <li><b>on</b> <span class="hl-red">❌ Sai.</span> <span class="p-word">Switch on</span> nghĩa là <span class="p-mean">Bật lên</span>. Sẽ vô cùng phi lý và lãng phí (trái ngược chủ đề bài khóa) nếu xui người ta bật đèn khi đi ra ngoài.</li>
+                            <li><b>with / of</b> <span class="hl-red">❌ Sai.</span> Không tạo thành cụm động từ có nghĩa trong ngữ cảnh này. Lưu ý đừng nhầm lẫn "of" (1 chữ f) với "off" (2 chữ f).</li>
+                        </ul>
+                        <p><b>🔍 Dẫn chứng:</b> "Always switch <span class="hl-green">off</span> lights... when you leave..."<br>
+                        👉 <b>Dịch:</b> "Luôn luôn <b>tắt</b> đèn... khi bạn đi ra ngoài."</p>`
+                },
+                {
+                    qNum: 62, options: ["to use less", "to use more", "using less", "using more"], correct: "to use less",
+                    explanation: `
+                        <p><b>Dịch câu hỏi:</b> Chọn cấu trúc ngữ pháp chỉ Mục đích (Infinitive of Purpose) và sắc thái nghĩa Logic.</p>
+                        <p><b>Phân tích sâu 4 đáp án (Syntax & Pragmatics):</b></p>
+                        <ul>
+                            <li><b>to use less</b> <span class="hl-green">✅ Đúng.</span> Về mặt ngữ pháp: Cấu trúc <span class="p-grammar">To + V(infinitive)</span> được dùng đứng đầu hoặc giữa câu để <span class="p-mean">chỉ mục đích của hành động phía trước</span>. (Thay đèn để làm gì? -> Để dùng...). Về mặt Logic: Mục đích của việc thay đèn sang LED là để tiết kiệm, tức là phải dùng <span class="p-word">less</span> <span class="p-mean">(ít hơn)</span>.</li>
+                            <li><b>to use more</b> <span class="hl-red">❌ Sai.</span> Sai về Pragmatics (Ngữ dụng học). Không ai thay đèn LED xịn để cố tình làm tốn <span class="p-word">more</span> (nhiều) điện năng hơn cả.</li>
+                            <li><b>using less / using more</b> <span class="hl-red">❌ Sai.</span> V-ing (Present Participle) không được dùng ở vị trí này để chỉ mục đích. Nếu dùng V-ing, câu sẽ biến thành mệnh đề chỉ kết quả (which results in using...), nhưng cấu trúc này không mượt mà và trực diện bằng To-V.</li>
+                        </ul>
+                        <p><b>🔍 Dẫn chứng:</b> "Replace old light bulbs... <span class="hl-green">to use less</span> electricity."<br>
+                        👉 <b>Dịch:</b> "Thay bóng cũ bằng bóng Led <b>để dùng ít</b> điện hơn."</p>`
+                },
+                {
+                    qNum: 63, options: ["the television", "the radio", "the water", "the fridge"], correct: "the water",
+                    explanation: `
+                        <p><b>Dịch câu hỏi:</b> Bài test khả năng Đọc hiểu suy luận ngữ cảnh (Contextual Deduction).</p>
+                        <p><b>Phân tích sâu 4 đáp án (Context Clues):</b></p>
+                        <ul>
+                            <li><b>the water</b> <span class="hl-green">✅ Đúng.</span> Kỹ năng quét từ khóa (Scanning): Ở vế sau có cụm <span class="hl-green">brushing your teeth</span> (đánh răng) và <span class="hl-green">avoid wasting water</span> (tránh lãng phí nước). Vậy thứ duy nhất có thể "tắt" liên quan đến nước và đánh răng chính là <span class="p-word">the water</span> <span class="p-mean">(vòi nước)</span>. (Turn off the water / Turn off the tap).</li>
+                            <li><b>the television (TV) / the radio (Đài phát thanh) / the fridge (Tủ lạnh)</b> <span class="hl-red">❌ Sai.</span> Những đồ vật này hoàn toàn không có mối liên kết ngữ nghĩa (Semantic link) nào với hành động đánh răng trong nhà vệ sinh.</li>
+                        </ul>
+                        <p><b>🔍 Dẫn chứng:</b> "Turn off <span class="hl-green">the water</span> while brushing your teeth..."<br>
+                        👉 <b>Dịch:</b> "Hãy tắt <b>vòi nước</b> đi trong lúc đang đánh răng..."</p>`
+                },
+                {
+                    qNum: 64, options: ["the", "an", "φ", "a"], correct: "a",
+                    explanation: `
+                        <p><b>Dịch câu hỏi:</b> Chọn Mạo từ (Article) chính xác đi kèm với danh từ đếm được.</p>
+                        <p><b>Phân tích sâu 4 đáp án (Lexical Collocation & Articles):</b></p>
+                        <ul>
+                            <li><b>a</b> <span class="hl-green">✅ Đúng.</span> Trong tiếng Anh, có một số cụm từ (Collocations) cố định đi liền với mạo từ bất định. Cụm <span class="p-word">take a shower</span> <span class="p-mean">(tắm bằng vòi hoa sen đứng)</span> và <span class="p-word">take a bath</span> <span class="p-mean">(tắm ngâm bồn)</span> là những cụm bất di bất dịch. Bắt buộc phải có chữ "a".</li>
+                            <li><b>an</b> <span class="hl-red">❌ Sai.</span> Mạo từ "an" chỉ đứng trước các danh từ bắt đầu bằng nguyên âm (Vowel sounds: u, e, o, a, i). Từ "shower" bắt đầu bằng phụ âm /ʃ/.</li>
+                            <li><b>the</b> <span class="hl-red">❌ Sai.</span> "The" là mạo từ xác định, dùng khi người nói và người nghe đều biết rõ vật đó là vật nào. Câu này đang đưa ra lời khuyên chung chung "hãy đi tắm vòi sen", không ám chỉ một cái vòi sen cụ thể nào trong nhà.</li>
+                            <li><b>φ (rỗng)</b> <span class="hl-red">❌ Sai.</span> Danh từ "shower" là danh từ đếm được số ít (Singular Countable Noun), nguyên tắc ngữ pháp tiếng Anh KHÔNG BAO GIỜ cho phép danh từ đếm được số ít đứng trơ trọi một mình mà không có Từ hạn định (Determiner/Article) phía trước.</li>
+                        </ul>
+                        <p><b>🔍 Dẫn chứng:</b> "Take <span class="hl-green">a</span> shower instead of a bath..."<br>
+                        👉 <b>Dịch:</b> "Hãy tắm bằng <b>vòi hoa sen</b> thay vì tắm ngâm bồn..."</p>`
+                }
+            ]
+        },
+        {
+            id: 'ex7',
+            title: "EXERCISE 7: PUBLIC TRANSPORT",
+            content: `1. Always stay <span class="blank">(65)</span> the platform while waiting for the train.<br>
+                2. Carry <span class="blank">(66)</span> ticket or pass with you at all times.<br>
+                3. <span class="blank">(67)</span> to announcements for changes in service.<br>
+                4. If the train is crowded, <span class="blank">(68)</span> a step back and wait for the next one.`,
+            translation: `1. Luôn đứng <b>trên</b> sân ga trong khi chờ tàu.<br>
+                2. Mang theo <b>một</b> vé hoặc thẻ lên tàu bên mình mọi lúc.<br>
+                3. <b>Lắng nghe</b> các thông báo về những thay đổi trong dịch vụ.<br>
+                4. Nếu tàu quá đông, hãy <b>lùi</b> một bước và đợi chuyến tiếp theo.`,
+            glossary: [
+                { word: "Platform", pos: "n", meaning: "Sân ga (Đường ray tàu)" },
+                { word: "Pass", pos: "n", meaning: "Thẻ đi xe/tàu định kỳ (VD: Bus pass)" },
+                { word: "Announcement", pos: "n", meaning: "Sự thông báo (qua loa)" },
+                { word: "Crowded", pos: "adj", meaning: "Đông đúc, chật cứng người" }
+            ],
+            questions: [
+                {
+                    qNum: 65, options: ["behind", "on", "about", "off"], correct: "on",
+                    explanation: `
+                        <p><b>Dịch câu hỏi:</b> Chọn Giới từ chỉ Vị trí Không gian (Preposition of Place).</p>
+                        <p><b>Phân tích sâu 4 đáp án (Spatial Prepositions):</b></p>
+                        <ul>
+                            <li><b>on</b> <span class="hl-green">✅ Đúng.</span> Quy tắc giới từ cơ bản: <span class="p-grammar">On + Bề mặt (Surface)</span>. "The platform" (sân ga, thềm ga) là một mặt phẳng đúc bằng bê tông để hành khách đứng chờ tàu. Do đó, việc con người đứng "tiếp xúc trên bề mặt" đó phải dùng giới từ <span class="p-word">on</span>.</li>
+                            <li><b>behind</b> <span class="hl-red">❌ Sai.</span> Nghĩa là <span class="p-mean">đằng sau</span>. Đứng nấp đằng sau sân ga là hành động kỳ quặc, sai Logic.</li>
+                            <li><b>off</b> <span class="hl-red">❌ Sai.</span> Nghĩa là <span class="p-mean">rời khỏi, cách xa ra</span>. Nếu đang đợi tàu mà đứng cách xa khỏi sân ga thì sẽ lỡ chuyến.</li>
+                            <li><b>about</b> <span class="hl-red">❌ Sai.</span> Không dùng "about" làm giới từ chỉ vị trí đứng vật lý theo cách này.</li>
+                        </ul>
+                        <p><b>🔍 Dẫn chứng:</b> "Always stay <span class="hl-green">on</span> the platform..."<br>
+                        👉 <b>Dịch:</b> "Luôn luôn đứng cẩn thận <b>trên</b> sân ga..."</p>`
+                },
+                {
+                    qNum: 66, options: ["an", "x (no article)", "the", "a"], correct: "a",
+                    explanation: `
+                        <p><b>Dịch câu hỏi:</b> Chọn Mạo từ (Article) quyết định trạng thái danh từ số ít.</p>
+                        <p><b>Phân tích sâu 4 đáp án (Determiners):</b></p>
+                        <ul>
+                            <li><b>a</b> <span class="hl-green">✅ Đúng.</span> "Ticket" (chiếc vé) là Danh từ đếm được số ít (Singular Countable Noun) và bắt đầu bằng phụ âm /t/. Câu văn mang tính nhắc nhở chung chung: Hãy luôn mang theo <span class="p-mean">một chiếc vé bất kỳ</span> (thuộc về bạn). Ta dùng Mạo từ bất định (Indefinite Article) <span class="p-word">a</span>.</li>
+                            <li><b>an</b> <span class="hl-red">❌ Sai.</span> Chỉ đi với nguyên âm (a, e, i, o, u).</li>
+                            <li><b>the</b> <span class="hl-red">❌ Sai.</span> Mạo từ xác định "the" dùng khi chiếc vé đã được nhắc đến từ trước, hoặc cả người nói/người nghe đều biết rõ là vé nào. Ở đây là quy định chung dán trên tàu nên không dùng "the".</li>
+                            <li><b>x (no article)</b> <span class="hl-red">❌ Sai.</span> Tuyệt đối cấm danh từ đếm được số ít (ticket) đứng trần trụi mà không có a/an/the/my/your... phía trước.</li>
+                        </ul>
+                        <p><b>🔍 Dẫn chứng:</b> "Carry <span class="hl-green">a</span> ticket or pass..."<br>
+                        👉 <b>Dịch:</b> "Hãy cầm theo <b>một</b> chiếc vé..."</p>`
+                },
+                {
+                    qNum: 67, options: ["Listen", "Watch", "Refer", "Look"], correct: "Listen",
+                    explanation: `
+                        <p><b>Dịch câu hỏi:</b> Chọn Động từ nhận thức (Verb of Perception) phù hợp với Tân ngữ phía sau.</p>
+                        <p><b>Phân tích sâu 4 đáp án (Lexical Semantics & Verbs of Perception):</b></p>
+                        <ul>
+                            <li><b>Listen</b> <span class="hl-green">✅ Đúng.</span> Phía sau chỗ trống có tân ngữ <span class="hl-green">announcements</span> <span class="p-mean">(tiếng loa thông báo)</span>. Thông báo phát ra Âm thanh, do đó cơ quan cảm giác duy nhất có thể tiếp nhận là Tai (Thính giác). Ta bắt buộc dùng động từ <span class="p-word">Listen to</span> <span class="p-mean">(Chủ động lắng nghe)</span>. Chú ý: "Listen" luôn đi với giới từ "to".</li>
+                            <li><b>Watch / Look</b> <span class="hl-red">❌ Sai.</span> Hai động từ này thuộc về Thị giác (Mắt - Nhìn). Không ai "nhìn" âm thanh thông báo cả. Hơn nữa "Look" phải đi với giới từ "at" (Look at).</li>
+                            <li><b>Refer</b> <span class="hl-red">❌ Sai.</span> Cụm "Refer to" mang nghĩa <span class="p-mean">tham khảo tài liệu / ám chỉ đến</span>. Không phù hợp với việc tiếp nhận âm thanh báo động/chỉ dẫn tại nhà ga.</li>
+                        </ul>
+                        <p><b>🔍 Dẫn chứng:</b> "<span class="hl-green">Listen</span> to announcements for changes..."<br>
+                        👉 <b>Dịch:</b> "Hãy <b>lắng nghe</b> các thông báo qua loa..."</p>`
+                },
+                {
+                    qNum: 68, options: ["taking", "take", "taken", "takes"], correct: "take",
+                    explanation: `
+                        <p><b>Dịch câu hỏi:</b> Xác định Hình thức động từ (Verb Form) trong Câu Mệnh lệnh (Imperative Sentence).</p>
+                        <p><b>Phân tích sâu 4 đáp án (Imperative Mood Syntax):</b></p>
+                        <ul>
+                            <li><b>take</b> <span class="hl-green">✅ Đúng.</span> Câu văn này có cấu trúc: "If [Mệnh đề điều kiện], [Mệnh đề chính]". Phân tích Mệnh đề chính: Nó bị khuyết Chủ ngữ. Trong tiếng Anh, cấu trúc khuyết chủ ngữ đứng đầu câu dùng để đưa ra lời chỉ dẫn, ra lệnh, hoặc khuyên bảo được gọi là <span class="p-grammar">Câu mệnh lệnh (Imperative)</span>. Đặc điểm cốt lõi của câu mệnh lệnh là Động từ luôn phải ở dạng <span class="p-word">Nguyên thể không To (Bare-infinitive)</span>. Do đó ta chọn "take".</li>
+                            <li><b>taking / taken / takes</b> <span class="hl-red">❌ Sai hoàn toàn.</span> Không có câu mệnh lệnh nào trong tiếng Anh bắt đầu bằng V-ing, V(ed/p2) hay V(s/es).</li>
+                        </ul>
+                        <p><b>🔍 Dẫn chứng:</b> "If the train is crowded, <span class="hl-green">take</span> a step back..."<br>
+                        👉 <b>Dịch:</b> "Nếu tàu đông quá, (Bạn hãy) <b>lùi</b> lại một bước..." Cụm Collocation: <span class="p-word">take a step back</span> <span class="p-mean">(lùi bước lại)</span>.</p>`
+                }
+            ]
+        }
+    ];
+
+    /* SYSTEM LOGIC (KHÔNG SỬA CẤU TRÚC CHÍNH) */
+    let userScore = 0;
+    const totalQuestions = 16;
+    let audioCtx = null;
+
+    function shuffleArray(array) {
+        let currentIndex = array.length, randomIndex;
+        while (currentIndex != 0) {
+            randomIndex = Math.floor(Math.random() * currentIndex);
+            currentIndex--;
+            [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
+        }
+        return array;
+    }
+
+    function initAudio() { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+
+    function playSound(isCorrect) {
+        initAudio(); const oscillator = audioCtx.createOscillator(); const gainNode = audioCtx.createGain();
+        oscillator.connect(gainNode); gainNode.connect(audioCtx.destination);
+        if (isCorrect) {
+            oscillator.type = 'sine'; oscillator.frequency.setValueAtTime(800, audioCtx.currentTime);
+            gainNode.gain.setValueAtTime(0.5, audioCtx.currentTime); gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+            oscillator.start(); oscillator.stop(audioCtx.currentTime + 0.5);
+        } else {
+            oscillator.type = 'sawtooth'; oscillator.frequency.setValueAtTime(200, audioCtx.currentTime);
+            gainNode.gain.setValueAtTime(0.5, audioCtx.currentTime); gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+            oscillator.start(); oscillator.stop(audioCtx.currentTime + 0.3);
+        }
+    }
+
+    function shootConfetti() {
+        for(let i=0; i<60; i++) {
+            let conf = document.createElement('div'); conf.classList.add('confetti');
+            conf.style.left = Math.random() * 100 + 'vw'; conf.style.top = '-10px';
+            conf.style.backgroundColor = ['#ff9a9e', '#55efc4', '#fdcb6e', '#a1c4fd', '#6c5ce7'][Math.floor(Math.random()*5)];
+            document.body.appendChild(conf);
+            let fallTime = Math.random() * 2 + 2;
+            conf.animate([ { transform: `translate3d(0,0,0) rotate(0deg)` }, { transform: `translate3d(${Math.random()*150 - 75}px, 100vh, 0) rotate(${Math.random()*720}deg)` } ], { duration: fallTime * 1000, easing: 'linear' });
+            setTimeout(() => conf.remove(), fallTime * 1000);
+        }
+    }
+
+    function toggleTranslation(id) {
+        let transDiv = document.getElementById('trans-' + id);
+        transDiv.style.display = (transDiv.style.display === 'block') ? 'none' : 'block';
+    }
+
+    function checkAnswer(btn, correctText, questionId) {
+        if(btn.parentNode.hasAttribute('data-answered')) return;
+        btn.parentNode.setAttribute('data-answered', 'true');
+        
+        // Cập nhật hàm này để nhận diện đáp án chuẩn xác hơn (loại bỏ khoảng trắng thừa)
+        let selectedText = btn.textContent.trim(); 
+        let isCorrect = (selectedText === correctText.trim());
+        
+        playSound(isCorrect);
+        
+        if(isCorrect) { btn.classList.add('correct'); userScore++; shootConfetti(); } 
+        else {
+            btn.classList.add('wrong'); btn.classList.add('shake-err');
+            let siblings = btn.parentNode.children;
+            for(let sib of siblings) { 
+                if(sib.textContent.trim() === correctText.trim()) { 
+                    sib.classList.add('correct'); 
+                    sib.style.boxShadow = '0 0 15px rgba(0, 184, 148, 0.8)'; 
+                } 
+            }
+        }
+        document.getElementById('expl-' + questionId).style.display = 'block';
+    }
+
+    function renderApp() {
+        const leftPanel = document.getElementById('reading-panel'); const rightPanel = document.getElementById('quiz-panel');
+        let leftHTML = ''; let rightHTML = '';
+
+        exercisesData.forEach(ex => {
+            leftHTML += `
+            <div class="passage-box">
+                <div class="passage-title">${ex.title}</div>
+                <div class="passage-content">${ex.content}</div>
+                <button class="btn-translate" onclick="toggleTranslation('${ex.id}')">🌟 Mở/Tắt dịch tiếng Việt</button>
+                <div class="translation-text" id="trans-${ex.id}">${ex.translation}</div>
+                <table class="glossary"><thead><tr><th>Từ vựng (Academic)</th><th>Loại từ</th><th>Nghĩa phân tích</th></tr></thead>
+                <tbody>${ex.glossary.map(g => `<tr><td><b style="color:#0984e3;">${g.word}</b></td><td><i style="color:#6c5ce7;">${g.pos}</i></td><td>${g.meaning}</td></tr>`).join('')}</tbody></table>
+            </div>`;
+
+            ex.questions.forEach(q => {
+                let shuffledOptions = shuffleArray([...q.options]);
+                let optionsHTML = shuffledOptions.map(opt => `<button class="btn-option" onclick="checkAnswer(this, '${q.correct}', '${ex.id}-q${q.qNum}')">${opt}</button>`).join('');
+                rightHTML += `
+                <div class="question-box"><div class="q-title">Question ${q.qNum}:</div>
+                <div class="options-grid">${optionsHTML}</div>
+                <div class="explanation-box" id="expl-${ex.id}-q${q.qNum}">${q.explanation}</div></div>`;
+            });
+        });
+
+        leftPanel.innerHTML = leftHTML; rightPanel.innerHTML = rightHTML + rightPanel.innerHTML;
+    }
+
+    function openNameModal() { document.getElementById('name-modal').style.display = 'flex'; }
+    
+    function submitTest() {
+        let name = document.getElementById('student-name').value.trim();
+        if(!name) { alert("Con nhớ nhập tên của mình nhé! 🌸"); return; }
+        
+        document.getElementById('name-modal').style.display = 'none';
+        let percent = userScore / totalQuestions; let cmt = ''; let gif = '';
+        
+        if (percent === 1) { cmt = 'Mức độ Thạc sĩ! Khả năng suy luận ngữ pháp của con quá đỉnh! 🏆💯'; gif = 'https://media.giphy.com/media/11sBLVxNs7v6WA/giphy.gif'; } 
+        else if (percent >= 0.7) { cmt = 'Xuất sắc! Cô Mai An thấy con đã nắm rất vững cấu trúc và từ vựng. Cố gắng thêm chút nữa nhé! 🌟'; gif = 'https://media.giphy.com/media/l41lZxzroU33typuU/giphy.gif'; } 
+        else { cmt = 'Chưa đạt kỳ vọng rồi! Con hãy đọc lại thật kỹ phần "Phân tích sâu" của cô bên dưới mỗi câu sai nhé! Cố lên! 💪'; gif = 'https://media.giphy.com/media/OPU6wzx8JrHna/giphy.gif'; }
+
+        document.getElementById('r-score').innerText = `${userScore} / ${totalQuestions}`;
+        document.getElementById('r-name').innerText = `Học sinh ưu tú: ${name}`;
+        document.getElementById('r-comment').innerText = cmt; document.getElementById('r-gif').src = gif;
+        document.getElementById('result-modal').style.display = 'flex';
+    }
+
+    function createFloatingEmojis() {
+        const emojis = ['🌸', '🐱', '📚', '🌻', '📝', '🐈'];
+        const container = document.getElementById('emoji-bg'); container.innerHTML = ''; 
+        for(let i=0; i<25; i++) {
+            let el = document.createElement('div'); el.classList.add('emoji');
+            el.innerText = emojis[Math.floor(Math.random() * emojis.length)];
+            el.style.left = Math.random() * 100 + 'vw'; el.style.animationDuration = (Math.random() * 20 + 15) + 's';
+            el.style.animationDelay = (Math.random() * 5) + 's'; el.style.fontSize = (Math.random() * 2 + 1.5) + 'rem';
+            container.appendChild(el);
+        }
+    }
+
+    window.onload = () => { renderApp(); document.body.addEventListener('click', initAudio, { once: true }); };
+</script>
+
+</body>
+</html>

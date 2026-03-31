@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Ms Mai An ULIS - Quiz: Driverless & Hydro Energy</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; }
+
+        body {
+            font-family: 'Nunito', 'Quicksand', sans-serif;
+            min-height: 100vh;
+            background: radial-gradient(circle at 20% 30%, rgba(47,128,237,0.2), rgba(0,201,167,0.15));
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Animated Background - Flowers & Cats */
+        body::before {
+            content: "";
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 800'%3E%3Ctext x='120' y='200' font-size='70' fill='white' opacity='0.4'%3E🌸%3C/text%3E%3Ctext x='600' y='400' font-size='90' fill='white' opacity='0.4'%3E🐱%3C/text%3E%3Ctext x='400' y='700' font-size='100' fill='white' opacity='0.4'%3E🌺%3C/text%3E%3Ctext x='50' y='500' font-size='80' fill='white' opacity='0.4'%3E😸%3C/text%3E%3Ctext x='650' y='120' font-size='80' fill='white' opacity='0.4'%3E🌼%3C/text%3E%3C/svg%3E");
+            background-repeat: repeat; background-size: 280px;
+            pointer-events: none; z-index: 0; opacity: 0.35; mix-blend-mode: overlay;
+        }
+
+        /* Glassmorphism Core */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.3); backdrop-filter: blur(14px); border-radius: 32px;
+            border: 1px solid rgba(255,255,255,0.5); box-shadow: 0 12px 30px rgba(0,0,0,0.1); transition: all 0.2s ease;
+        }
+
+        /* MODAL PASSWORD */
+        .modal-pw { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); backdrop-filter: blur(10px); display: flex; align-items: center; justify-content: center; z-index: 2000; }
+        .pw-box { background: #fff5e6; border-radius: 48px; padding: 2rem; width: 90%; max-width: 420px; text-align: center; box-shadow: 0 25px 40px rgba(0,0,0,0.3); font-family: 'Nunito'; }
+        .pw-box input { width: 100%; padding: 16px; border-radius: 60px; border: 2px solid #f7b05e; font-size: 1.2rem; margin: 20px 0; outline: none; text-align: center; font-weight: bold; }
+        .shake-animation { animation: shake 0.3s ease-in-out 0s 2; }
+        @keyframes shake { 0%,100%{ transform: translateX(0);} 25%{ transform: translateX(-8px);} 75%{ transform: translateX(8px);} }
+        .btn-submit-pw { background: #00C9A7; border: none; padding: 12px 28px; border-radius: 40px; font-weight: bold; color: white; font-size: 1.2rem; cursor: pointer; transition: 0.2s; }
+
+        /* MAIN QUIZ CONTAINER */
+        .quiz-container { display: none; height: 100vh; width: 100%; flex-direction: column; position: relative; z-index: 2; }
+        .top-bar { padding: 12px 24px; display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.25); backdrop-filter: blur(8px); border-bottom: 2px solid rgba(255,255,255,0.4); }
+        .timer-controls { display: flex; gap: 12px; align-items: center; }
+        .timer-btn { background: #FFE55C; border: none; padding: 8px 18px; border-radius: 60px; font-weight: bold; font-family: inherit; cursor: pointer; box-shadow: 0 4px 0 #b27d40; transition: 0.1s linear; }
+        .timer-btn:active { transform: translateY(2px); box-shadow: 0 1px 0 #b27d40;}
+        .timer-display { background: #2c3e66; padding: 6px 20px; border-radius: 60px; color: white; font-weight: 800; font-size: 1.7rem; letter-spacing: 2px; font-family: monospace; }
+        .submit-big { background: #FF6B6B; color: white; border: none; padding: 8px 28px; border-radius: 40px; font-weight: bold; font-size: 1.2rem; cursor: pointer; box-shadow: 0 5px 0 #a13e3e; }
+
+        .split-layout { display: flex; flex: 1; overflow: hidden; gap: 20px; padding: 20px 24px 24px 24px; }
+        .reading-panel { width: 48%; overflow-y: auto; padding-right: 10px; }
+        .exercise-panel { width: 52%; overflow-y: auto; padding-left: 6px; }
+        .reading-panel::-webkit-scrollbar, .exercise-panel::-webkit-scrollbar { width: 6px; }
+        
+        .passage-card, .question-card { background: rgba(255, 248, 235, 0.95); backdrop-filter: blur(8px); border-radius: 24px; padding: 20px; margin-bottom: 25px; box-shadow: 0 8px 20px rgba(0,0,0,0.1); border: 1px solid rgba(255,255,200,0.6); }
+        .para-translate { margin-top: 12px; background: #fef7e0; padding: 12px; border-radius: 20px; display: none; font-size: 0.95rem; border-left: 5px solid #00C9A7; }
+        .btn-translate { background: #FFB347; border: none; padding: 6px 16px; border-radius: 30px; font-weight: bold; cursor: pointer; margin: 8px 0 4px; font-size: 0.8rem; }
+        .glossary-table { width: 100%; border-collapse: collapse; background: rgba(245,245,220,0.7); border-radius: 20px; overflow: hidden; }
+        .glossary-table th, .glossary-table td { padding: 8px 10px; text-align: left; border-bottom: 1px solid #ffe0a3; }
+
+        .answer-option { background: #fff2e0; border: 2px solid #ffcf9a; border-radius: 40px; padding: 12px 20px; margin: 10px 0; cursor: pointer; font-weight: 600; transition: transform 0.1s, background 0.1s; box-shadow: 0 3px 6px rgba(0,0,0,0.1); font-size: 1.05rem; }
+        .answer-option:hover { transform: scale(1.01); background: #ffe3bb; }
+        .correct-answer-bg { background: #00D26A !important; border-color: #008f45 !important; color: white !important; }
+        .wrong-answer-bg { background: #FF4757 !important; border-color: #b12a36 !important; color: white !important; }
+        .tf-buttons { display: flex; gap: 15px; margin-top: 12px; }
+        .tf-btn { flex: 1; background: #ccc2b0; border: none; padding: 10px; border-radius: 50px; font-weight: bold; font-size: 1.1rem; cursor: pointer; color: #333;}
+        
+        .explanation-detail { background: #ffffff; border-radius: 16px; padding: 20px; margin-top: 16px; font-size: 1.05rem; border: 2px dashed #00C9A7; color: #333; line-height: 1.7; display: none; }
+        
+        /* ---------------- HỆ THỐNG MÀU SẮC CHUẨN MASTER ---------------- */
+        .p-word { color: #1E88E5; font-weight: 800; background: #e3f2fd; padding: 0 4px; border-radius: 4px; } /* Xanh dương */
+        .p-mean { color: #CC4E00; font-weight: 800; } /* Đất nung */
+        .p-grammar { text-decoration: underline red; text-decoration-thickness: 2px; font-weight: 800; color: #2D3436; } /* Gạch chân đỏ */
+        .hl-green { color: #008f45; font-weight: 800; background: #e6f9ed; padding: 2px 6px; border-radius: 6px; } /* Xanh lá */
+        .hl-red { color: #8B0000; font-weight: 800; text-decoration: line-through; text-decoration-thickness: 2px; background: #ffe6e6; padding: 2px 6px; border-radius: 6px; } /* Đỏ sậm gạch ngang */
+        
+        /* MÀU SẮC MỚI DÀNH CHO DỊCH & LƯU Ý HỌC SINH */
+        .note-box { background: #fff8e1; border-left: 6px solid #ffb300; padding: 12px 16px; margin: 12px 0; border-radius: 0 8px 8px 0; font-weight: 600; color: #5d4037; font-size: 1rem; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .hl-vocab { background: #e0f7fa; color: #006064; padding: 2px 6px; border-radius: 6px; font-weight: 800; border-bottom: 2px solid #00acc1; }
+        .hl-trans { background: #fce4ec; color: #880e4f; padding: 2px 6px; border-radius: 6px; font-weight: 800; border-bottom: 2px solid #d81b60; }
+        /* --------------------------------------------------------------- */
+
+        h3 { font-size: 1.5rem; margin-bottom: 12px; color: #3b2a1f;}
+
+        .result-modal { position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.8); backdrop-filter: blur(12px); display: flex; align-items: center; justify-content: center; z-index: 3000; }
+        .result-card { background: white; border-radius: 48px; max-width: 500px; width: 90%; padding: 30px; text-align: center; }
+    </style>
+</head>
+<body>
+
+<div id="passwordModal" class="modal-pw">
+    <div class="pw-box glass-card" style="background: #fff0e0;">
+        <h2>🔐 KHÓA BÀI THI</h2>
+        <p>Nhập mật khẩu từ giáo viên</p>
+        <input type="password" id="pwInput" placeholder="Mật khẩu" autocomplete="off">
+        <div id="pwError" style="color:#d9534f; margin:8px 0; font-weight:bold;"></div>
+        <button class="btn-submit-pw" id="submitPwBtn">MỞ KHÓA 🚀</button>
+    </div>
+</div>
+
+<div id="quizMain" class="quiz-container">
+    <div class="top-bar">
+        <div style="font-weight:800; background: rgba(0,0,0,0.4); padding: 6px 18px; border-radius: 40px; color: white;">✏️ Ms Mai An ULIS</div>
+        <div class="timer-controls">
+            <button id="startTimerBtn" class="timer-btn">▶ BẮT ĐẦU TÍNH GIỜ</button>
+            <button id="pauseTimerBtn" class="timer-btn">⏸ Tạm dừng</button>
+            <button id="resumeTimerBtn" class="timer-btn">▶ Tiếp tục</button>
+            <div id="timerDisplay" class="timer-display">10:00</div>
+        </div>
+        <button id="submitFinalBtn" class="submit-big">🎯 NỘP BÀI & XEM KẾT QUẢ</button>
+    </div>
+    <div class="split-layout">
+        
+        <div class="reading-panel">
+            <div class="passage-card">
+                <h3>🚗 Self-Driving Cars (Driverless Technology)</h3>
+                <div id="driverlessParagraphs"></div>
+                <div style="margin-top: 20px;"><strong>📘 GLOSSARY (Driverless Cars)</strong>
+                    <table class="glossary-table">
+                        <thead><tr><th>Từ vựng</th><th>Loại từ</th><th>Nghĩa</th></tr></thead>
+                        <tbody id="glossaryDriver"></tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div class="passage-card">
+                <h3>💧 Hydro Energy (Năng lượng nước)</h3>
+                <div id="hydroParagraphs"></div>
+                <div style="margin-top: 20px;"><strong>📘 GLOSSARY (Hydro Energy)</strong>
+                    <table class="glossary-table">
+                        <thead><tr><th>Từ vựng</th><th>Loại từ</th><th>Nghĩa</th></tr></thead>
+                        <tbody id="glossaryHydro"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="exercise-panel" id="exercisePanel">
+            </div>
+    </div>
+</div>
+
+<script>
+    // Password Logic
+    const passwordAscii = [99,111,109,97,105,97,110,117,108,105,115]; // "comaianulis"
+    const correctPassword = String.fromCharCode(...passwordAscii);
+    
+    let quizUnlocked = false;
+    const modal = document.getElementById('passwordModal');
+    const quizContainer = document.getElementById('quizMain');
+    const pwInput = document.getElementById('pwInput');
+    const submitPw = document.getElementById('submitPwBtn');
+    const errorSpan = document.getElementById('pwError');
+    
+    function verifyPassword() {
+        if(pwInput.value === correctPassword) {
+            modal.style.display = 'none'; quizContainer.style.display = 'flex'; initQuiz();
+        } else {
+            errorSpan.innerText = '❌ Sai mật khẩu! Thử lại đi nàooo';
+            pwInput.classList.add('shake-animation');
+            setTimeout(() => pwInput.classList.remove('shake-animation'), 500);
+        }
+    }
+    submitPw.addEventListener('click', verifyPassword);
+    pwInput.addEventListener('keypress', (e) => { if(e.key === 'Enter') verifyPassword(); });
+    
+    // Passages Data
+    const driverlessText = [
+        "The idea of a driverless car is not new. Now there are already cars on the road that can park themselves. But a truly self-driving car, one that can drive itself, is being tested by scientists and engineers.",
+        "Self-driving cars have already been tested on public roads. These cars not only record images of the road, but their computerized maps view road signs, find alternative routes and see traffic lights even before they are seen by a person.",
+        "By using radars and cameras, the cars can analyse information about their surroundings faster than a human can. In some of the tests, the car learns the details of a road by driving on it several times, and when it is time to drive itself, it can identify when there are pedestrians crossing and then stops to let them pass by.",
+        "Self-driving cars could make transport safer for all of us by eliminating the cause of most of today’s accidents. Although self-driving cars may seem far off, some people believe that there will be driver less cars in showrooms in about 10 years."
+    ];
+    const transDriver = [
+        "Ý tưởng về ô tô không người lái không còn mới. Hiện đã có những chiếc xe trên đường có thể tự đỗ xe. Nhưng một chiếc xe thực sự tự lái, loại có thể tự vận hành, đang được các nhà khoa học và kỹ sư thử nghiệm.",
+        "Xe tự lái đã được thử nghiệm trên đường công cộng. Những chiếc xe này không chỉ ghi lại hình ảnh đường đi mà bản đồ máy tính của chúng còn nhận diện biển báo, tìm lộ trình thay thế và nhìn thấy đèn giao thông ngay cả trước khi con người nhìn thấy.",
+        "Bằng cách sử dụng radar và camera, xe có thể phân tích thông tin về môi trường xung quanh nhanh hơn con người. Trong một số bài kiểm tra, xe học chi tiết về con đường bằng cách lái thử nhiều lần, và khi tự lái, nó nhận diện người qua đường và dừng lại để họ đi.",
+        "Xe tự lái có thể làm giao thông an toàn hơn bằng cách loại bỏ nguyên nhân của hầu hết tai nạn hiện nay. Dù có vẻ xa vời, một số người tin rằng xe không người lái sẽ xuất hiện trong showroom trong khoảng 10 năm tới."
+    ];
+    
+    const hydroText = [
+        "Energy that we get from water is called hydro energy, or hydro power. It is a renewable source of energy. It generates power by using a dam or diversion structure to alter the natural flow of a river or other body of water. Hydro power relies on the endless, constantly recharging system of the water cycle to produce electricity, using a fuel-water-that is not reduced or eliminated in the process. There are many types of hydro power facilities, though they are all powered by the kinetic energy of flowing water as it moves downstream. Hydro power utilizes turbines and generators to convert that kinetic energy into electricity, which is then fed into the electrical grid to power homes, businesses, and industries.",
+        "Because hydro power uses water to generate electricity, plants are usually located on or near a water source. The energy available from the moving water depends on both the volume of the water flow and the change in elevation-also known as the head - from one point to another. The greater the flow and the higher the head, the more the electricity can be generated."
+    ];
+    const transHydro = [
+        "Năng lượng lấy từ nước được gọi là thủy năng. Đây là nguồn năng lượng tái tạo. Nó tạo ra điện bằng cách sử dụng đập hoặc cấu trúc chuyển hướng để làm thay đổi dòng chảy tự nhiên của sông hoặc vùng nước. Thủy điện dựa vào hệ thống vòng tuần hoàn nước vô tận để sản xuất điện, sử dụng nước - thứ không bị cạn kiệt. Có nhiều loại nhà máy thủy điện nhưng đều vận hành nhờ động năng của dòng nước chảy. Thủy điện dùng tuabin và máy phát điện để chuyển động năng thành điện năng, cấp vào lưới điện.",
+        "Vì thủy điện sử dụng nước, các nhà máy thường đặt trên hoặc gần nguồn nước. Năng lượng khai thác phụ thuộc vào lưu lượng và độ chênh lệch độ cao (cột nước). Dòng chảy càng lớn và cột nước càng cao, điện tạo ra càng nhiều."
+    ];
+    
+    const glossaryDriver = [
+        ["autonomous", "adj", "tự động, tự trị"], ["pedestrian", "n", "người đi bộ"], ["radar", "n", "radar"], ["alternative", "adj", "thay thế"], ["eliminate", "v", "loại bỏ"], ["surroundings", "n", "môi trường xung quanh"], ["traffic light", "n", "đèn giao thông"], ["scientist", "n", "nhà khoa học"], ["computerized", "adj", "được máy tính hóa"], ["showroom", "n", "phòng trưng bày"]
+    ];
+    const glossaryHydro = [
+        ["renewable", "adj", "tái tạo"], ["turbine", "n", "tuabin"], ["kinetic energy", "n", "động năng"], ["diversion", "n", "sự chuyển hướng"], ["elevation", "n", "độ cao"], ["head", "n", "cột nước"], ["grid", "n", "lưới điện"], ["flow", "n", "dòng chảy"], ["facility", "n", "cơ sở"], ["generate", "v", "tạo ra điện"]
+    ];
+    
+    function buildParagraphs(containerId, paragraphs, translations) {
+        const container = document.getElementById(containerId);
+        container.innerHTML = '';
+        paragraphs.forEach((para, idx) => {
+            const div = document.createElement('div');
+            div.style.marginBottom = '20px';
+            div.innerHTML = `<p style="font-size:1.05rem; line-height: 1.5; color: #333;">${para}</p>
+            <button class="btn-translate" data-idx="${idx}">🌟 Mở dịch đoạn này</button>
+            <div id="trans-${containerId}-${idx}" class="para-translate">${translations[idx]}</div>`;
+            container.appendChild(div);
+        });
+        document.querySelectorAll(`#${containerId} .btn-translate`).forEach(btn => {
+            btn.addEventListener('click', () => {
+                const idx = btn.getAttribute('data-idx');
+                const transDiv = document.getElementById(`trans-${containerId}-${idx}`);
+                transDiv.style.display = transDiv.style.display === 'none' || transDiv.style.display === '' ? 'block' : 'none';
+            });
+        });
+    }
+    
+    // ---------------- CƠ SỞ DỮ LIỆU CÂU HỎI VÀ GIẢI THÍCH CHUẨN MASTER ----------------
+    const tfQuestions = [
+        { 
+            text: "33. There are already cars that can park themselves on the road.", 
+            correct: true, 
+            explanation: `
+                <p style="margin-bottom:8px;"><strong>1. Dịch câu hỏi:</strong> Hiện nay đã có sẵn những chiếc xe trên đường có thể tự đỗ, đúng hay sai?</p>
+                <div class="note-box">💡 LƯU Ý: Chú ý cụm từ <span class="hl-vocab">park themselves</span> mang nghĩa là <span class="hl-trans">có khả năng tự đỗ xe</span>.</div>
+                <p style="margin-bottom:8px;"><strong>2. Phân tích:</strong> Nhận định này <span class='hl-green'>✅ ĐÚNG (TRUE)</span> vì nó miêu tả chính xác thực trạng công nghệ hiện tại được nhắc đến trong bài.</p>
+                <p style="margin-bottom:8px;"><strong>3. 🔍 Dẫn chứng trong bài (Đoạn 1):</strong><br>
+                "Now there are already cars on the road that can <span class='p-grammar'>park themselves</span>."</p>
+                <p><strong>4. 👉 Dịch dẫn chứng:</strong> "Bây giờ đã có sẵn những chiếc xe trên đường có thể <span class='hl-trans'>tự đỗ</span> (<span class='hl-vocab'>park themselves</span>)."</p>
+            ` 
+        },
+        { 
+            text: "34. These cars can only record images of the road.", 
+            correct: false, 
+            explanation: `
+                <p style="margin-bottom:8px;"><strong>1. Dịch câu hỏi:</strong> Những chiếc xe này CHỈ có thể ghi lại hình ảnh của con đường, đúng hay sai?</p>
+                <div class="note-box">⚠️ LƯU Ý: Khi đi thi thấy các từ giới hạn tuyệt đối như <span class="hl-vocab">only</span> (chỉ), <span class="hl-vocab">always</span> (luôn luôn) -> Khả năng cao là đáp án SAI (FALSE).</div>
+                <p style="margin-bottom:8px;"><strong>2. Phân tích:</strong> Nhận định này <span class='hl-red'>❌ SAI (FALSE)</span> vì chứa trạng từ giới hạn <span class='p-word'>only</span>. Bài đọc cho thấy chúng làm được nhiều việc phức tạp hơn thế.</p>
+                <p style="margin-bottom:8px;"><strong>3. 🔍 Dẫn chứng trong bài (Đoạn 2):</strong><br>
+                "These cars <span class='p-grammar'>not only</span> record images of the road, <span class='p-grammar'>but</span> their computerized maps view road signs, find alternative routes and see traffic lights..."</p>
+                <p><strong>4. 👉 Dịch dẫn chứng:</strong> "Những chiếc xe này <span class='hl-trans'>không chỉ</span> ghi lại hình ảnh của con đường, <span class='hl-trans'>mà</span> bản đồ máy tính của chúng còn xem biển báo, tìm lộ trình thay thế..."</p>
+            ` 
+        },
+        { 
+            text: "35. The cars use radars and cameras to analyse information about their surroundings very fast.", 
+            correct: true, 
+            explanation: `
+                <p style="margin-bottom:8px;"><strong>1. Dịch câu hỏi:</strong> Các xe sử dụng radar và camera để phân tích thông tin về môi trường xung quanh rất nhanh.</p>
+                <p style="margin-bottom:8px;"><strong>2. Phân tích:</strong> Nhận định này <span class='hl-green'>✅ ĐÚNG (TRUE)</span>.</p>
+                <div class="note-box">💡 LƯU Ý TỪ VỰNG: <span class="hl-vocab">Surroundings</span> (n) = <span class="hl-trans">Môi trường xung quanh</span>.</div>
+                <p style="margin-bottom:8px;"><strong>3. 🔍 Dẫn chứng trong bài (Đoạn 3):</strong><br>
+                "By using radars and cameras, the cars can analyse information about their <span class='p-word'>surroundings</span> faster than a human can."</p>
+                <p><strong>4. 👉 Dịch dẫn chứng:</strong> "Bằng cách sử dụng radar và camera, những chiếc xe có thể phân tích thông tin về <span class='hl-trans'>môi trường xung quanh</span> (<span class='hl-vocab'>surroundings</span>) nhanh hơn cả con người."</p>
+            ` 
+        },
+        { 
+            text: "36. Self-driving cars can’t make transport safer.", 
+            correct: false, 
+            explanation: `
+                <p style="margin-bottom:8px;"><strong>1. Dịch câu hỏi:</strong> Xe tự lái KHÔNG THỂ làm cho giao thông an toàn hơn.</p>
+                <p style="margin-bottom:8px;"><strong>2. Phân tích:</strong> Nhận định này <span class='hl-red'>❌ SAI (FALSE)</span> vì trái ngược hoàn toàn với thông điệp tích cực của bài đọc (từ <span class='p-word'>can't</span> làm sai lệch nghĩa).</p>
+                <div class="note-box">💡 LƯU Ý TỪ VỰNG: <span class="hl-vocab">Eliminate</span> (v) = <span class="hl-trans">Loại bỏ, trừ tiêu</span>.</div>
+                <p style="margin-bottom:8px;"><strong>3. 🔍 Dẫn chứng trong bài (Đoạn 4):</strong><br>
+                "Self-driving cars could make transport <span class='p-grammar'>safer</span> for all of us by <span class='p-word'>eliminating</span> the cause of most of today’s accidents."</p>
+                <p><strong>4. 👉 Dịch dẫn chứng:</strong> "Xe tự lái có thể làm cho giao thông <span class='hl-trans'>an toàn hơn</span> cho tất cả chúng ta bằng cách <span class='hl-trans'>loại bỏ</span> (<span class='hl-vocab'>eliminating</span>) nguyên nhân tai nạn."</p>
+            ` 
+        },
+        { 
+            text: "37. There will be driver less cars in showrooms in the next decade.", 
+            correct: true, 
+            explanation: `
+                <p style="margin-bottom:8px;"><strong>1. Dịch câu hỏi:</strong> Sẽ có ô tô không người lái tại các phòng trưng bày trong thập kỷ tới (10 năm tới).</p>
+                <div class="note-box">🎯 PARAPHRASE (Viết lại câu): <span class="hl-vocab">the next decade</span> = <span class="hl-trans">10 năm tiếp theo</span>. Rất hay gặp trong bài thi!</div>
+                <p style="margin-bottom:8px;"><strong>2. Phân tích:</strong> Nhận định này <span class='hl-green'>✅ ĐÚNG (TRUE)</span> vì cụm từ vựng <span class='p-word'>the next decade</span> đồng nghĩa hoàn toàn với <span class='p-word'>in about 10 years</span>.</p>
+                <p style="margin-bottom:8px;"><strong>3. 🔍 Dẫn chứng trong bài (Đoạn 4):</strong><br>
+                "...some people believe that there will be driver less cars in showrooms <span class='p-grammar'>in about 10 years</span>."</p>
+                <p><strong>4. 👉 Dịch dẫn chứng:</strong> "...một số người tin rằng sẽ có ô tô không người lái trong các phòng trưng bày trong khoảng <span class='hl-trans'>10 năm tới</span>."</p>
+            ` 
+        }
+    ];
+    
+    const mcqData = [
+        { 
+            q: "38. What is hydro energy?", 
+            options: ["It is the energy that we get from wind.", "It is the energy that we get from water.", "It is the energy that we get from the sun."], 
+            correct: 1, 
+            explanation: `
+                <p style="margin-bottom:8px;"><strong>1. Dịch câu hỏi:</strong> Năng lượng thủy điện là gì?</p>
+                <div class="note-box">💡 MẸO GHI NHỚ: Tiền tố <span class="hl-vocab">Hydro-</span> luôn liên quan tới <span class="hl-trans">NƯỚC (Water)</span>. Ví dụ: Hydrate (cấp nước).</div>
+                <p style="margin-bottom:8px;"><strong>2. Phân tích 3 đáp án:</strong><br>
+                A. It is the energy that we get from wind. (Lấy từ gió.) <span class='hl-red'>❌ Sai</span> vì <span class='hl-vocab'>wind</span> = <span class='hl-trans'>gió</span>.<br>
+                B. It is the energy that we get from water. (Lấy từ nước.) <span class='hl-green'>✅ Đúng</span> vì <span class='hl-vocab'>water</span> = <span class='hl-trans'>nước</span>.<br>
+                C. It is the energy that we get from the sun. (Lấy từ mặt trời.) <span class='hl-red'>❌ Sai</span> vì <span class='hl-vocab'>sun</span> = <span class='hl-trans'>mặt trời</span>.</p>
+                <p style="margin-bottom:8px;"><strong>3. 🔍 Dẫn chứng trong bài (Đoạn 1):</strong><br>
+                "Energy that we get from <span class='p-word'>water</span> is called hydro energy..."</p>
+                <p><strong>4. 👉 Dịch dẫn chứng:</strong> "Năng lượng mà chúng ta lấy từ <span class='hl-trans'>nước</span> được gọi là năng lượng thủy điện..."</p>
+            ` 
+        },
+        { 
+            q: "39. Is hydro energy a non-renewable source of energy?", 
+            options: ["Yes, it is.", "No, it is from water.", "No, it is a renewable source of energy."], 
+            correct: 2, 
+            explanation: `
+                <p style="margin-bottom:8px;"><strong>1. Dịch câu hỏi:</strong> Năng lượng thủy điện có phải là nguồn năng lượng KHÔNG THỂ TÁI TẠO (<span class='p-word'>non-renewable</span>) không?</p>
+                <div class="note-box">⚠️ CHÚ Ý ĐỌC KỸ ĐỀ: Đề hỏi <span class="hl-vocab">NON-renewable</span> (KHÔNG tái tạo). Thủy điện LÀ nguồn tái tạo được (<span class="hl-vocab">renewable</span>). Nên phải trả lời là KHÔNG.</div>
+                <p style="margin-bottom:8px;"><strong>2. Phân tích 3 đáp án:</strong><br>
+                A. Yes, it is. (Đúng vậy.) <span class='hl-red'>❌ Sai kiến thức bài đọc</span>.<br>
+                B. No, it is from water. (Không, nó từ nước.) <span class='hl-red'>❌ Sai logic</span>. Việc nó từ nước không trả lời trực tiếp cho việc nó có tái tạo được hay không.<br>
+                C. No, it is a renewable source of energy. (Không, nó là nguồn có thể tái tạo.) <span class='hl-green'>✅ Đúng hoàn toàn.</span></p>
+                <p style="margin-bottom:8px;"><strong>3. 🔍 Dẫn chứng trong bài (Đoạn 1):</strong><br>
+                "It is a <span class='p-grammar'>renewable</span> source of energy."</p>
+                <p><strong>4. 👉 Dịch dẫn chứng:</strong> "Nó là một nguồn năng lượng <span class='hl-trans'>có thể tái tạo</span>."</p>
+            ` 
+        },
+        { 
+            q: "40. How does hydro energy generate power?", 
+            options: ["By recharging system of the water cycle.", "By changing the natural flow of a river or other body of water.", "By feeding into the electrical grid to power homes, businesses, and industries."], 
+            correct: 1, 
+            explanation: `
+                <p style="margin-bottom:8px;"><strong>1. Dịch câu hỏi:</strong> Thủy điện tạo ra điện bằng CÁCH NÀO (<span class='p-word'>How</span>)?</p>
+                <div class="note-box">🎯 PARAPHRASE: <span class="hl-vocab">alter</span> (v) = <span class="hl-vocab">change</span> (v) = <span class="hl-trans">Thay đổi</span>. Rất hay bị lừa ở điểm này!</div>
+                <p style="margin-bottom:8px;"><strong>2. Phân tích 3 đáp án:</strong><br>
+                A. Bằng cách nạp lại vòng tuần hoàn nước. <span class='hl-red'>❌ Sai</span> (Đây là cơ sở tự nhiên, không phải hành động tạo điện).<br>
+                B. Bằng cách thay đổi dòng chảy tự nhiên của một con sông. <span class='hl-green'>✅ Đúng.</span><br>
+                C. Bằng cách đưa điện vào lưới điện... <span class='hl-red'>❌ Sai</span> (Đây là bước SAU KHI điện đã được tạo ra).</p>
+                <p style="margin-bottom:8px;"><strong>3. 🔍 Dẫn chứng trong bài (Đoạn 1):</strong><br>
+                "It generates power by using a dam or diversion structure to <span class='p-word'>alter</span> the natural flow of a river..."</p>
+                <p><strong>4. 👉 Dịch dẫn chứng:</strong> "Nó tạo ra điện bằng cách sử dụng đập hoặc cấu trúc chuyển hướng để làm <span class='hl-trans'>thay đổi</span> (<span class='hl-vocab'>alter = changing</span>) dòng chảy tự nhiên của một con sông..."</p>
+            ` 
+        },
+        { 
+            q: "41. What does hydro power use to convert kinetic energy into electricity?", 
+            options: ["Turbines and generators.", "Hydro power facilities.", "A dam or diversion structure."], 
+            correct: 0, 
+            explanation: `
+                <p style="margin-bottom:8px;"><strong>1. Dịch câu hỏi:</strong> Thủy điện sử dụng CÁI GÌ để chuyển đổi động năng thành điện năng?</p>
+                <div class="note-box">💡 LƯU Ý TỪ VỰNG KỸ THUẬT: <span class="hl-vocab">Turbine</span> = <span class="hl-trans">Tuabin</span> | <span class="hl-vocab">Generator</span> = <span class="hl-trans">Máy phát điện</span> | <span class="hl-vocab">Kinetic energy</span> = <span class="hl-trans">Động năng</span>.</div>
+                <p style="margin-bottom:8px;"><strong>2. Phân tích 3 đáp án:</strong><br>
+                A. Turbines and generators. (Tuabin và máy phát điện.) <span class='hl-green'>✅ Đúng.</span><br>
+                B. Hydro power facilities. (Các cơ sở thủy điện.) <span class='hl-red'>❌ Sai</span> (Đây là từ chỉ chung toàn bộ nhà máy).<br>
+                C. A dam or diversion structure. (Một con đập hoặc cấu trúc chuyển hướng.) <span class='hl-red'>❌ Sai</span> (Đập dùng để cản nước, không trực tiếp chuyển hóa động năng).</p>
+                <p style="margin-bottom:8px;"><strong>3. 🔍 Dẫn chứng trong bài (Đoạn 1):</strong><br>
+                "Hydro power utilizes <span class='p-grammar'>turbines and generators</span> to convert that kinetic energy into electricity..."</p>
+                <p><strong>4. 👉 Dịch dẫn chứng:</strong> "Thủy điện sử dụng <span class='hl-trans'>tuabin và máy phát điện</span> để chuyển đổi động năng đó thành điện năng..."</p>
+            ` 
+        },
+        { 
+            q: "42. Where are hydro power plants usually located?", 
+            options: ["On or near a water source.", "Far from a water source.", "On the head of a mountain."], 
+            correct: 0, 
+            explanation: `
+                <p style="margin-bottom:8px;"><strong>1. Dịch câu hỏi:</strong> Các nhà máy thủy điện thường được đặt ở ĐÂU (<span class='p-word'>Where</span>)?</p>
+                <div class="note-box">💡 TỪ VỰNG DỄ NHẦM LẪN: <span class="hl-vocab">Plant</span> ở đây không phải "cái cây" mà mang nghĩa là <span class="hl-trans">Nhà máy / Cơ sở sản xuất</span>.</div>
+                <p style="margin-bottom:8px;"><strong>2. Phân tích 3 đáp án:</strong><br>
+                A. On or near a water source. (Trên hoặc gần một nguồn nước.) <span class='hl-green'>✅ Đúng.</span><br>
+                B. Far from a water source. (Xa nguồn nước.) <span class='hl-red'>❌ Sai</span> (Nhà máy thủy điện mà xa nước thì lấy gì chạy?).<br>
+                C. On the head of a mountain. (Trên đỉnh núi.) <span class='hl-red'>❌ Sai</span> (Không hề được đề cập trong bài).</p>
+                <p style="margin-bottom:8px;"><strong>3. 🔍 Dẫn chứng trong bài (Đoạn 2):</strong><br>
+                "...plants are usually located <span class='p-grammar'>on or near a water source</span>."</p>
+                <p><strong>4. 👉 Dịch dẫn chứng:</strong> "...các nhà máy thường được đặt <span class='hl-trans'>trên hoặc gần một nguồn nước</span>."</p>
+            ` 
+        }
+    ];
+    
+    let userAnswersTF = Array(5).fill(null);
+    let userAnswersMC = Array(5).fill(null);
+    let shuffledOptions = [];
+    
+    // TẠO CHUNG 1 KÊNH ÂM THANH ĐỂ TRÁNH LỖI TRÌNH DUYỆT (FIX BUGS)
+    let audioCtx = null;
+    function playBeep(isCorrect) {
+        try {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            const osc = audioCtx.createOscillator(); 
+            const gain = audioCtx.createGain();
+            osc.connect(gain); 
+            gain.connect(audioCtx.destination);
+            osc.type = 'sine'; 
+            osc.frequency.value = isCorrect ? 880 : 440;
+            gain.gain.value = 0.2; 
+            osc.start(); 
+            gain.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 0.3); 
+            osc.stop(audioCtx.currentTime + 0.3);
+        } catch(e) {
+            console.log("Audio bị trình duyệt chặn, bỏ qua...");
+        }
+    }
+    
+    function shuffleArray(arr) { for (let i = arr.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [arr[i], arr[j]] = [arr[j], arr[i]]; } return arr; }
+    
+    function renderExercises() {
+        const panel = document.getElementById('exercisePanel'); panel.innerHTML = '';
+        
+        // TF SECTION
+        const tfSection = document.createElement('div');
+        tfSection.innerHTML = '<h2 style="font-size:1.7rem; color: #1E88E5;">📝 True / False (33-37)</h2>';
+        panel.appendChild(tfSection);
+        
+        tfQuestions.forEach((item, idx) => {
+            const card = document.createElement('div'); card.classList.add('question-card'); card.id = `tf-card-${idx}`;
+            card.innerHTML = `<div style="font-weight:800; font-size:1.1rem;">${item.text}</div>
+            <div class="tf-buttons">
+                <button class="tf-btn" data-idx="${idx}" data-val="true">✅ TRUE</button>
+                <button class="tf-btn" data-idx="${idx}" data-val="false">❌ FALSE</button>
+            </div>
+            <div id="tf-exp-${idx}" class="explanation-detail"></div>`;
+            panel.appendChild(card);
+        });
+
+        // MCQ SECTION
+        const mcSection = document.createElement('div');
+        mcSection.innerHTML = '<h2 style="font-size:1.7rem; margin-top:20px; color: #1E88E5;">🔋 Multiple Choice (38-42)</h2>';
+        panel.appendChild(mcSection);
+        
+        shuffledOptions = mcqData.map(q => shuffleArray([...q.options]));
+        mcqData.forEach((q, idx) => {
+            const card = document.createElement('div'); card.classList.add('question-card'); card.id = `mc-card-${idx}`;
+            let optsHtml = '';
+            shuffledOptions[idx].forEach((opt, optIdx) => {
+                optsHtml += `<div class="answer-option" data-mc-idx="${idx}" data-opt-index="${optIdx}" data-opt-text="${opt.replace(/"/g, '&quot;')}">${opt}</div>`;
+            });
+            card.innerHTML = `<div style="font-weight:800; font-size:1.1rem;">${q.q}</div>
+            <div class="mc-options">${optsHtml}</div>
+            <div id="mc-exp-${idx}" class="explanation-detail"></div>`;
+            panel.appendChild(card);
+        });
+        
+        // ATTACH LISTENERS
+        document.querySelectorAll('.tf-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const idx = parseInt(btn.dataset.idx); const selectedVal = btn.dataset.val === 'true';
+                userAnswersTF[idx] = selectedVal; const isCorrect = (selectedVal === tfQuestions[idx].correct);
+                
+                const btnsDiv = document.querySelector(`#tf-card-${idx} .tf-buttons`);
+                const btns = btnsDiv.querySelectorAll('.tf-btn');
+                btns.forEach(b => { b.style.backgroundColor = '#ccc2b0'; b.style.color = '#333'; b.disabled = true; }); 
+                
+                if(isCorrect) { btn.style.backgroundColor = '#00D26A'; btn.style.color = '#fff'; triggerCorrectFeedback(); } 
+                else { btn.style.backgroundColor = '#FF4757'; btn.style.color = '#fff'; triggerWrongFeedback(); }
+                
+                showTFExplanation(idx, selectedVal, isCorrect);
+            });
+        });
+
+        document.querySelectorAll('.answer-option').forEach(opt => {
+            opt.addEventListener('click', (e) => {
+                const mcIdx = parseInt(opt.dataset.mcIdx); const selectedIdx = parseInt(opt.dataset.optIndex);
+                const originalCorrectIdx = mcqData[mcIdx].correct; const isCorrect = (shuffledOptions[mcIdx][selectedIdx] === mcqData[mcIdx].options[originalCorrectIdx]);
+                userAnswersMC[mcIdx] = isCorrect ? originalCorrectIdx : selectedIdx;
+                
+                const parentDiv = document.querySelector(`#mc-card-${mcIdx} .mc-options`);
+                const allOpts = parentDiv.querySelectorAll('.answer-option');
+                allOpts.forEach(o => { o.classList.remove('correct-answer-bg', 'wrong-answer-bg'); o.style.pointerEvents = 'none'; }); 
+                
+                if(isCorrect) { opt.classList.add('correct-answer-bg'); triggerCorrectFeedback(); } 
+                else { 
+                    opt.classList.add('wrong-answer-bg'); triggerWrongFeedback(); 
+                    allOpts.forEach(o => {
+                        if(o.dataset.optText === mcqData[mcIdx].options[originalCorrectIdx]) o.classList.add('correct-answer-bg');
+                    });
+                }
+                showMCExplanation(mcIdx, selectedIdx, isCorrect);
+            });
+        });
+    }
+    
+    // HIỂN THỊ GIẢI THÍCH CHUẨN MASTER
+    function showTFExplanation(idx, selected, isCorrect) {
+        const expDiv = document.getElementById(`tf-exp-${idx}`);
+        expDiv.style.display = 'block';
+        
+        let feedbackBanner = isCorrect 
+            ? `<div style="margin-bottom:15px; background:#e6f9ed; padding:10px; border-radius:8px; border-left: 5px solid #00D26A;">
+                <span style="color:#008f45; font-weight:800; font-size:1.1rem;">🎉 QUÁ ĐỈNH! Bạn chọn chính xác! Xem phân tích chi tiết:</span>
+               </div>` 
+            : `<div style="margin-bottom:15px; background:#ffe6e6; padding:10px; border-radius:8px; border-left: 5px solid #FF4757;">
+                <span style="color:#8B0000; font-weight:800; font-size:1.1rem;">⚠️ Bạn chọn ${selected ? "TRUE" : "FALSE"} - Chưa chính xác! Cùng xem lại phân tích:</span>
+               </div>`;
+               
+        expDiv.innerHTML = feedbackBanner + tfQuestions[idx].explanation;
+    }
+    
+    function showMCExplanation(idx, selectedIdx, isCorrect) {
+        const expDiv = document.getElementById(`mc-exp-${idx}`);
+        expDiv.style.display = 'block';
+        const userChoice = shuffledOptions[idx][selectedIdx];
+        
+        let feedbackBanner = isCorrect 
+            ? `<div style="margin-bottom:15px; background:#e6f9ed; padding:10px; border-radius:8px; border-left: 5px solid #00D26A;">
+                <span style="color:#008f45; font-weight:800; font-size:1.1rem;">🎉 QUÁ ĐỈNH! Bạn chọn chính xác! Xem phân tích chi tiết bên dưới:</span>
+               </div>` 
+            : `<div style="margin-bottom:15px; background:#ffe6e6; padding:10px; border-radius:8px; border-left: 5px solid #FF4757;">
+                <span style="color:#8B0000; font-weight:800; font-size:1.1rem;">⚠️ Bạn chọn: "${userChoice}" - Rất tiếc là chưa chính xác! Cùng xem lại phân tích:</span>
+               </div>`;
+               
+        expDiv.innerHTML = feedbackBanner + mcqData[idx].explanation;
+    }
+    
+    // ĐÃ FIX BUGS: THÊM TRY-CATCH CHO HIỆU ỨNG PHÁO GIẤY
+    function triggerCorrectFeedback() { 
+        try {
+            if (typeof canvasConfetti === 'function') {
+                canvasConfetti({ particleCount: 100, spread: 70, origin: { y: 0.6 }, colors: ['#00D26A', '#FFD966'] }); 
+            }
+        } catch(e) { console.log("Lỗi tải pháo giấy, bỏ qua hiệu ứng..."); }
+        playBeep(true); 
+    }
+    function triggerWrongFeedback() { playBeep(false); }
+    
+    // Timer
+    let timerSeconds = 600; let timerInterval = null; let timerActive = false;
+    function updateTimerDisplay() { let mins = Math.floor(timerSeconds/60); let secs = timerSeconds%60; document.getElementById('timerDisplay').innerText = `${mins.toString().padStart(2,'0')}:${secs.toString().padStart(2,'0')}`; if(timerSeconds===0) { alert("⏰ Đã hết giờ làm bài. Cố gắng kiểm soát thời gian tốt hơn nha!"); pauseTimer(); } }
+    function startTimer() { if(timerInterval) clearInterval(timerInterval); timerActive=true; timerInterval = setInterval(()=>{ if(timerActive && timerSeconds>0){ timerSeconds--; updateTimerDisplay(); } },1000); }
+    function pauseTimer() { timerActive=false; }
+    function resumeTimer() { timerActive=true; }
+    document.getElementById('startTimerBtn').onclick = ()=>{ if(timerSeconds===600) startTimer(); else { timerActive=true; } };
+    document.getElementById('pauseTimerBtn').onclick = pauseTimer; document.getElementById('resumeTimerBtn').onclick = resumeTimer;
+    
+    // Submit
+    document.getElementById('submitFinalBtn').addEventListener('click', () => {
+        let name = prompt("🎓 Nhập tên của bạn:", "Học sinh");
+        if(!name || name.trim() === "") { alert("⚠️ Vui lòng nhập tên trước khi xem điểm nhé!"); return; }
+        let tfScore = 0; for(let i=0;i<5;i++) { if(userAnswersTF[i] !== null && userAnswersTF[i] === tfQuestions[i].correct) tfScore++; }
+        let mcScore = 0; for(let i=0;i<5;i++) { if(userAnswersMC[i] !== null) { const origCorrect = mcqData[i].correct; if(shuffledOptions[i][userAnswersMC[i]] === mcqData[i].options[origCorrect]) mcScore++; } }
+        let total = tfScore + mcScore; let percent = (total/10)*100;
+        let gifUrl = percent === 100 ? "https://media.giphy.com/media/3o7abB06u9bNzA8LC8/giphy.gif" : (percent>=60 ? "https://media.giphy.com/media/xUPGcguWZHRC2HyBRS/giphy.gif" : "https://media.giphy.com/media/3o6ZtaO9BZHcOjmErm/giphy.gif");
+        let praise = percent===100 ? "🌟 THIÊN TÀI!" : (percent>=60 ? "🎉 LÀM TỐT LẮM!" : "💪 CỐ LÊN NHÉ!");
+        let modalDiv = document.createElement('div'); modalDiv.className = 'result-modal';
+        modalDiv.innerHTML = `<div class="result-card"><h2 style="color:#1E88E5;">📊 KẾT QUẢ</h2><p style="font-size:1.2rem; font-weight:bold;">👤 ${name.trim()}</p><p style="font-size:2.5rem; color:#CC4E00; font-weight:900;">${total} / 10</p><p style="font-size:1.2rem; font-weight:bold;">${praise}</p><img src="${gifUrl}" style="width:100%; border-radius:30px; margin: 15px 0;" alt="meme"><button id="closeResultBtn" style="background:#00D26A; border:none; padding:12px 28px; border-radius:40px; color:white; font-size:1.2rem; font-weight:bold; cursor:pointer;">Đóng 🎮</button></div>`;
+        document.body.appendChild(modalDiv);
+        document.getElementById('closeResultBtn').onclick = () => modalDiv.remove();
+    });
+    
+    function initQuiz() {
+        buildParagraphs('driverlessParagraphs', driverlessText, transDriver); buildParagraphs('hydroParagraphs', hydroText, transHydro);
+        const glosDriver = document.getElementById('glossaryDriver'); glossaryDriver.forEach(g => { glosDriver.innerHTML += `<tr><td><strong>${g[0]}</strong></td><td style="color:#1E88E5;">${g[1]}</td><td>${g[2]}</td></tr>`; });
+        const glosHydro = document.getElementById('glossaryHydro'); glossaryHydro.forEach(g => { glosHydro.innerHTML += `<tr><td><strong>${g[0]}</strong></td><td style="color:#1E88E5;">${g[1]}</td><td>${g[2]}</td></tr>`; });
+        renderExercises();
+    }
+</script>
+</body>
+</html>

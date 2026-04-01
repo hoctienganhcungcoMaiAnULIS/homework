@@ -1,0 +1,1116 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bài tập Tiếng Anh Gamification</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        /* MÃ CSS TRƯỚC ĐÓ CỦA GIAO DIỆN CHÍNH */
+        :root {
+            --glass-bg: rgba(255, 255, 255, 0.4);
+            --glass-border: rgba(255, 255, 255, 0.6);
+            --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            font-family: 'Nunito', sans-serif;
+            height: 100vh;
+            overflow: hidden;
+            background: linear-gradient(-45deg, #ffb3ba, #ffdfba, #ffffba, #baffc9, #bae1ff);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            color: #333;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* SVG Background Pattern */
+        .bg-pattern {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -1;
+            opacity: 0.3;
+            pointer-events: none;
+        }
+
+        header {
+            text-align: center;
+            padding: 10px;
+            font-size: 14px;
+            font-weight: bold;
+            color: rgba(0,0,0,0.6);
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(5px);
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .split-screen {
+            display: flex;
+            height: calc(100vh - 40px);
+            gap: 20px;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .left-pane, .right-pane {
+            flex: 1;
+            overflow-y: auto;
+            padding-right: 10px;
+            scroll-behavior: smooth;
+        }
+
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.2); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb { background: rgba(0, 0, 0, 0.2); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(0, 0, 0, 0.4); }
+
+        .glass-panel {
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: var(--glass-shadow);
+        }
+
+        h2 { margin-top: 0; color: #2c3e50; }
+        
+        .passage-text {
+            font-size: 16px;
+            line-height: 1.8;
+            margin-bottom: 10px;
+            background: rgba(255,255,255,0.5);
+            padding: 15px;
+            border-radius: 10px;
+        }
+
+        .btn-translate {
+            background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
+            border: none;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            color: white;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(253, 160, 133, 0.4);
+            transition: transform 0.2s;
+            margin-bottom: 15px;
+        }
+        .btn-translate:hover { transform: scale(1.05); }
+
+        .translation-text {
+            display: none;
+            background: rgba(255, 255, 255, 0.7);
+            padding: 15px;
+            border-left: 4px solid #fda085;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            font-style: italic;
+            color: #555;
+        }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; background: rgba(255,255,255,0.6); border-radius: 10px; overflow: hidden; }
+        th, td { padding: 10px; text-align: left; border-bottom: 1px solid rgba(0,0,0,0.1); }
+        th { background: rgba(255,255,255,0.8); color: #333; }
+
+        .question-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: var(--glass-shadow);
+            transition: all 0.3s;
+        }
+
+        .question-text { font-size: 18px; font-weight: bold; margin-bottom: 15px; }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .option-btn {
+            background: rgba(255, 255, 255, 0.8);
+            border: 2px solid transparent;
+            padding: 15px;
+            border-radius: 15px;
+            font-size: 16px;
+            font-weight: bold;
+            color: #333;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            font-family: inherit;
+        }
+
+        .option-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            background: white;
+            border-color: #a1c4fd;
+        }
+
+        .option-btn:disabled { cursor: not-allowed; }
+        .option-btn.correct { background: #c3e6cb; border-color: #28a745; color: #155724; }
+        .option-btn.incorrect { background: #f5c6cb; border-color: #dc3545; color: #721c24; }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            50% { transform: translateX(5px); }
+            75% { transform: translateX(-5px); }
+        }
+        .shake { animation: shake 0.4s; }
+
+        .explanation {
+            display: none;
+            margin-top: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 20px;
+            border-radius: 15px;
+            border-left: 5px solid #a1c4fd;
+            font-size: 15px;
+            line-height: 1.6;
+        }
+
+        .p-word { color: #007bff; font-weight: bold; }
+        .p-mean { color: #d35400; font-style: italic; }
+        .p-grammar { text-decoration: underline; text-decoration-color: red; font-weight: bold; }
+        .hl-green { color: #28a745; font-weight: bold; }
+        .hl-red { color: #dc3545; text-decoration: line-through; font-weight: bold; }
+        .ev-red-bold { color: red; font-weight: bold; }
+
+        .submit-section { text-align: center; margin-top: 40px; margin-bottom: 60px; }
+        .btn-submit {
+            background: linear-gradient(45deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            font-size: 20px;
+            font-weight: bold;
+            padding: 15px 40px;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            box-shadow: 0 10px 20px rgba(0, 242, 254, 0.3);
+            transition: transform 0.3s;
+        }
+        .btn-submit:hover { transform: scale(1.05); }
+
+        .modal {
+            display: none; position: fixed; z-index: 1000; left: 0; top: 0;
+            width: 100%; height: 100%; background-color: rgba(0,0,0,0.5);
+            backdrop-filter: blur(5px); justify-content: center; align-items: center;
+        }
+        .modal-content {
+            background: white; padding: 40px; border-radius: 20px;
+            text-align: center; max-width: 400px; width: 90%;
+            box-shadow: 0 15px 50px rgba(0,0,0,0.2);
+        }
+        .modal input {
+            width: 100%; padding: 12px; margin: 20px 0;
+            border: 2px solid #ddd; border-radius: 10px; font-size: 16px; font-family: inherit;
+            box-sizing: border-box;
+        }
+        .modal-gif { width: 100%; border-radius: 10px; margin-top: 15px; }
+
+        canvas#confetti {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; z-index: 998;
+        }
+
+        /* GIAO DIỆN MÀN HÌNH KHÓA - ĐÃ ĐIỀU CHỈNH TO VÀ TRÒN TRỊA HƠN */
+        #passwordModal {
+            position:fixed; inset:0; z-index:9999;
+            display:flex; align-items:center; justify-content:center;
+            background:rgba(5,2,15,0.92); backdrop-filter:blur(20px);
+        }
+        .pw-card {
+            background:linear-gradient(160deg, rgba(40,10,70,0.95) 0%, rgba(15,5,30,0.98) 100%);
+            border:1.5px solid rgba(240,192,64,0.4); border-radius:28px; padding:48px 40px 40px; 
+            max-width:440px; width:93%; text-align:center; position:relative; overflow:hidden;
+            box-shadow:0 0 60px rgba(106,5,114,0.6), 0 0 120px rgba(240,192,64,0.1), inset 0 1px 0 rgba(240,192,64,0.15);
+        }
+        .pw-card::before {
+            content:''; position:absolute; top:0; left:0; right:0; height:4px;
+            background:linear-gradient(90deg, #6A0572, #F0C040, #6A0572);
+        }
+        .pw-crest { font-size:4.5rem; margin-bottom:12px; display:block; }
+        .pw-title { font-family:'Nunito', sans-serif; font-size:2rem; font-weight:900; color:#F0C040; margin-bottom:8px; letter-spacing:1px; }
+        .pw-sub   { font-family:'Nunito', sans-serif; font-size:1.1rem; font-weight:700; color:rgba(200,200,212,0.8); margin-bottom:28px; }
+        .pw-input {
+            width:100%; padding:15px 20px; border-radius:16px;
+            border:2px solid rgba(240,192,64,0.3); background:rgba(255,255,255,0.05);
+            color:#FFE082; font-size:1.3rem; font-family:'Nunito', sans-serif; font-weight:700;
+            outline:none; letter-spacing:3px; text-align:center; transition:all .3s;
+        }
+        .pw-input:focus { border-color:#F0C040; box-shadow:0 0 0 4px rgba(240,192,64,0.15); }
+        .pw-input.error { border-color:#FF4757; box-shadow:0 0 0 4px rgba(255,71,87,0.25); animation:shake .4s ease; }
+        .pw-input::placeholder { color:rgba(200,200,212,0.4); letter-spacing:1px; font-weight:600; }
+        .pw-btn {
+            width:100%; padding:16px; margin-top:20px; border-radius:16px; border:none;
+            background:linear-gradient(135deg, #6A0572 0%, #9B1FA8 40%, #F0C040 100%);
+            color:#fff; font-size:1.3rem; font-weight:900; font-family:'Nunito', sans-serif;
+            cursor:pointer; letter-spacing:.5px; transition:transform .2s;
+        }
+        .pw-btn:hover { transform:translateY(-3px); box-shadow:0 8px 32px rgba(106,5,114,0.7); }
+        .pw-err { font-family:'Nunito', sans-serif; color:#ff8a9a; font-size:1rem; margin-top:12px; display:none; font-weight:800; }
+    </style>
+</head>
+<body>
+
+    <div id="passwordModal">
+        <div class="pw-card">
+            <span class="pw-crest">🔒</span>
+            <div class="pw-title">BẢO MẬT</div>
+            <div class="pw-sub">Vui lòng nhập mật khẩu để làm bài</div>
+            <input type="password" class="pw-input" id="pwInput" placeholder="Nhập mật khẩu..." autocomplete="off" />
+            <button class="pw-btn" onclick="checkPassword()">XÁC NHẬN</button>
+            <div class="pw-err" id="pwErr">Mật khẩu không đúng! Vui lòng thử lại.</div>
+        </div>
+    </div>
+
+    <div id="mainContent" style="display: none;">
+        <svg class="bg-pattern" width="100%" height="100%">
+            <defs>
+                <pattern id="emoji-pattern" x="0" y="0" width="150" height="150" patternUnits="userSpaceOnUse">
+                    <text x="20" y="40" font-size="25">🌊</text>
+                    <text x="80" y="90" font-size="25">🤖</text>
+                    <text x="120" y="30" font-size="25">🌍</text>
+                    <text x="40" y="130" font-size="25">🎬</text>
+                </pattern>
+                <radialGradient id="grad" cx="50%" cy="50%" r="50%">
+                    <stop offset="0%" stop-color="rgba(255,255,255,0.4)" />
+                    <stop offset="100%" stop-color="rgba(255,255,255,0)" />
+                </radialGradient>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#emoji-pattern)" />
+            <rect width="100%" height="100%" fill="url(#grad)" />
+        </svg>
+
+        <canvas id="confetti"></canvas>
+
+        <header>Giáo viên tạo: Ms Mai An ULIS</header>
+
+        <div class="split-screen">
+            <div class="left-pane" id="leftPane">
+                
+                <div class="glass-panel">
+                    <h2>🌊 Passage 1: Great Barrier Reef</h2>
+                    <div class="passage-text">
+                        GREAT BARRIER REEF TOUR AUSTRALIA<br>
+                        Dive with us to (13) _____ the most beautiful coral reef in the world.<br>
+                        Swim in blue sea (14) ____ colorful fish.<br>
+                        Watch 3D documentaries (15) _____ about sea animals and the coral reef, and what you can do to (16) _____ it.<br>
+                        Price: Only 50$/ person
+                    </div>
+                    <button class="btn-translate" onclick="toggleTranslation(this)">Mở dịch đoạn này 🌟</button>
+                    <div class="translation-text">
+                        TOUR KHÁM PHÁ RẠN SAN HÔ GREAT BARRIER ÚC<br>
+                        Lặn cùng chúng tôi để (13) khám phá rạn san hô đẹp nhất thế giới.<br>
+                        Bơi trong làn nước biển xanh (14) cùng với những chú cá đầy màu sắc.<br>
+                        Xem phim tài liệu 3D (15) để tìm hiểu về các loài động vật biển và rạn san hô, cùng những gì bạn có thể làm để (16) bảo vệ nó.<br>
+                        Giá vé: Chỉ 50$/người.
+                    </div>
+                    
+                    <h3>📚 Glossary</h3>
+                    <table>
+                        <tr><th>Word</th><th>POS</th><th>Meaning</th></tr>
+                        <tr><td><span class="p-word">Coral reef</span></td><td>n</td><td><span class="p-mean">Rạn san hô</span></td></tr>
+                        <tr><td><span class="p-word">Documentary</span></td><td>n</td><td><span class="p-mean">Phim tài liệu</span></td></tr>
+                        <tr><td><span class="p-word">Protect</span></td><td>v</td><td><span class="p-mean">Bảo vệ</span></td></tr>
+                        <tr><td><span class="p-word">Discover</span></td><td>v</td><td><span class="p-mean">Khám phá</span></td></tr>
+                    </table>
+                </div>
+
+                <div class="glass-panel">
+                    <h2>🤖 Passage 2: Smart Homes</h2>
+                    <div class="passage-text">
+                        Smart Homes – The Future of Living<br>
+                        Technology is changing the way we live, and smart homes are becoming more popular. A smart home is a house that uses modern technology to (19) ______ daily tasks easier. These homes have devices that can control lighting, temperature, and security systems automatically.
+                    </div>
+                    <button class="btn-translate" onclick="toggleTranslation(this)">Mở dịch đoạn này 🌟</button>
+                    <div class="translation-text">
+                        Nhà thông minh - Tương lai của cuộc sống<br>
+                        Công nghệ đang thay đổi cách chúng ta sống, và những ngôi nhà thông minh đang trở nên phổ biến hơn. Một ngôi nhà thông minh là một ngôi nhà sử dụng công nghệ hiện đại để (19) làm cho các công việc hàng ngày dễ dàng hơn. Những ngôi nhà này có các thiết bị có thể tự động kiểm soát ánh sáng, nhiệt độ và hệ thống an ninh.
+                    </div>
+
+                    <div class="passage-text">
+                        Smart homes are useful (20) ______ they help people save time and energy. For example, smart lights can turn on and off by themselves, and smart thermostats can adjust the temperature (21) ______ keep the house comfortable. Some smart homes even have robots that help with cleaning and cooking.
+                    </div>
+                    <button class="btn-translate" onclick="toggleTranslation(this)">Mở dịch đoạn này 🌟</button>
+                    <div class="translation-text">
+                        Những ngôi nhà thông minh rất hữu ích (20) bởi vì chúng giúp con người tiết kiệm thời gian và năng lượng. Ví dụ, đèn thông minh có thể tự bật và tắt, và máy điều nhiệt thông minh có thể điều chỉnh nhiệt độ (21) để giữ cho ngôi nhà luôn thoải mái. Một số ngôi nhà thông minh thậm chí còn có robot giúp dọn dẹp và nấu ăn.
+                    </div>
+
+                    <div class="passage-text">
+                        Many people (22) ______ to buy smart devices for their homes because they make life more convenient. With a smartphone, homeowners can control their houses from anywhere (23) ______ an internet connection. However, smart homes can be expensive, and some people worry about privacy and security.
+                    </div>
+                    <button class="btn-translate" onclick="toggleTranslation(this)">Mở dịch đoạn này 🌟</button>
+                    <div class="translation-text">
+                        Nhiều người (22) muốn mua các thiết bị thông minh cho ngôi nhà của họ vì chúng giúp cuộc sống thuận tiện hơn. Với một chiếc điện thoại thông minh, chủ nhà có thể kiểm soát ngôi nhà của mình từ bất kỳ đâu (23) với một kết nối internet. Tuy nhiên, những ngôi nhà thông minh có thể đắt đỏ, và một số người lo lắng về quyền riêng tư và an ninh.
+                    </div>
+
+                    <div class="passage-text">
+                        In the future, smart homes (24) ______ more common, and they will continue to improve our daily lives.
+                    </div>
+                    <button class="btn-translate" onclick="toggleTranslation(this)">Mở dịch đoạn này 🌟</button>
+                    <div class="translation-text">
+                        Trong tương lai, những ngôi nhà thông minh (24) sẽ trở nên phổ biến hơn, và chúng sẽ tiếp tục cải thiện cuộc sống hàng ngày của chúng ta.
+                    </div>
+
+                    <h3>📚 Glossary</h3>
+                    <table>
+                        <tr><th>Word</th><th>POS</th><th>Meaning</th></tr>
+                        <tr><td><span class="p-word">Automatically</span></td><td>adv</td><td><span class="p-mean">Một cách tự động</span></td></tr>
+                        <tr><td><span class="p-word">Thermostat</span></td><td>n</td><td><span class="p-mean">Máy điều nhiệt</span></td></tr>
+                        <tr><td><span class="p-word">Convenient</span></td><td>adj</td><td><span class="p-mean">Thuận tiện</span></td></tr>
+                        <tr><td><span class="p-word">Privacy</span></td><td>n</td><td><span class="p-mean">Quyền riêng tư</span></td></tr>
+                        <tr><td><span class="p-word">Security</span></td><td>n</td><td><span class="p-mean">An ninh</span></td></tr>
+                    </table>
+                </div>
+
+                <div class="glass-panel">
+                    <h2>🌍 Passage 3: Cultural Exchange</h2>
+                    <div class="passage-text">
+                        Last week, Mai attended a cultural exchange event for both foreign and Vietnamese students in Tao Dan Park. It was so fun and useful because she had a great opportunity to communicate with many friends from other countries. That helped Mai develop her confidence as well as improve her English. Besides, it was a good occasion for making friends and finding out about various cultures from all over the world. She got acquainted with many boys and girls from Canada, New Zealand, and the UK. Among them, she likes two Australian twin sisters, Amelia and Amanda, most. Both are quite beautiful and friendly. After the event, surprisingly they invited Mai to their home in Melbourne. They promised to take her to see kangaroos and koalas in real life. She was very glad and accepted that invitation.
+                    </div>
+                    <button class="btn-translate" onclick="toggleTranslation(this)">Mở dịch đoạn này 🌟</button>
+                    <div class="translation-text">
+                        Tuần trước, Mai đã tham dự một sự kiện giao lưu văn hóa dành cho cả sinh viên nước ngoài và sinh viên Việt Nam tại công viên Tao Đàn. Sự kiện rất vui và hữu ích vì cô ấy có một cơ hội tuyệt vời để giao tiếp với nhiều bạn bè từ các quốc gia khác. Điều đó đã giúp Mai phát triển sự tự tin cũng như cải thiện tiếng Anh của mình. Bên cạnh đó, đây là một dịp tốt để kết bạn và tìm hiểu về các nền văn hóa đa dạng từ khắp nơi trên thế giới. Cô đã làm quen với nhiều nam nữ thanh niên đến từ Canada, New Zealand và Vương quốc Anh. Trong số họ, cô thích nhất hai chị em sinh đôi người Úc, Amelia và Amanda. Cả hai đều khá xinh đẹp và thân thiện. Sau sự kiện, thật bất ngờ khi họ đã mời Mai đến nhà của họ ở Melbourne. Họ hứa sẽ đưa cô đi xem kangaroo và koala ngoài đời thực. Cô ấy rất vui mừng và đã chấp nhận lời mời đó.
+                    </div>
+
+                    <h3>📚 Glossary</h3>
+                    <table>
+                        <tr><th>Word</th><th>POS</th><th>Meaning</th></tr>
+                        <tr><td><span class="p-word">Cultural exchange</span></td><td>n phrase</td><td><span class="p-mean">Giao lưu văn hóa</span></td></tr>
+                        <tr><td><span class="p-word">Opportunity</span></td><td>n</td><td><span class="p-mean">Cơ hội</span></td></tr>
+                        <tr><td><span class="p-word">Communicate</span></td><td>v</td><td><span class="p-mean">Giao tiếp</span></td></tr>
+                        <tr><td><span class="p-word">Confidence</span></td><td>n</td><td><span class="p-mean">Sự tự tin</span></td></tr>
+                        <tr><td><span class="p-word">Occasion</span></td><td>n</td><td><span class="p-mean">Dịp, cơ hội</span></td></tr>
+                        <tr><td><span class="p-word">Get acquainted with</span></td><td>v phrase</td><td><span class="p-mean">Làm quen với</span></td></tr>
+                    </table>
+                </div>
+
+                <div class="glass-panel">
+                    <h2>🎬 Passage 4: The Theory of Everything</h2>
+                    <div class="passage-text">
+                        The Theory of Everything is a biographical film, (37) ____ . It stars Eddie Redmayne and Felicity Jones. (38) _____ . It was adapted by Anthony McCarten from the book Travelling to infinity: My life with Stephen by the scientist’s wife, Jane Hawking. (39) _____ . It tells the story of Hawking’s relationship with his wife, the diagnosis of his motor neuron disease and his success in the field of physics. The film received positive reviews. People say it is a must-see. I agree, because the story is moving and the acting is excellent. (40) _____. Although The Theory of Everything is a little sad at times, its story is very interesting and there is a lot of action. Go and see it if you can.
+                    </div>
+                    <button class="btn-translate" onclick="toggleTranslation(this)">Mở dịch đoạn này 🌟</button>
+                    <div class="translation-text">
+                        The Theory of Everything là một bộ phim tiểu sử, (37) được đạo diễn bởi James Marsh vào năm 2014. Phim có sự tham gia của Eddie Redmayne và Felicity Jones. (38) Phim lấy bối cảnh ở Anh vào đầu những năm 1960. Nó được chuyển thể bởi Anthony McCarten từ cuốn sách "Hành trình tới vô cực: Cuộc sống của tôi với Stephen" bởi vợ của nhà khoa học, Jane Hawking. (39) Bộ phim kể về cuộc đời của nhà khoa học Stephen Hawking. Nó kể câu chuyện về mối quan hệ của Hawking với vợ, việc chẩn đoán căn bệnh teo cơ tủy sống của ông và thành công của ông trong lĩnh vực vật lý. Bộ phim đã nhận được những đánh giá tích cực. Mọi người nói rằng đây là một bộ phim phải xem. Tôi đồng ý, bởi vì câu chuyện rất cảm động và diễn xuất thì xuất sắc. (40) Âm nhạc cũng thật đáng kinh ngạc. Mặc dù đôi khi The Theory of Everything hơi buồn, câu chuyện của nó rất thú vị và có nhiều hành động. Hãy đi xem nếu bạn có thể.
+                    </div>
+
+                    <h3>📚 Glossary</h3>
+                    <table>
+                        <tr><th>Word</th><th>POS</th><th>Meaning</th></tr>
+                        <tr><td><span class="p-word">Biographical</span></td><td>adj</td><td><span class="p-mean">Thuộc về tiểu sử</span></td></tr>
+                        <tr><td><span class="p-word">Diagnose</span></td><td>v</td><td><span class="p-mean">Chẩn đoán</span></td></tr>
+                        <tr><td><span class="p-word">Incredible</span></td><td>adj</td><td><span class="p-mean">Đáng kinh ngạc, tuyệt vời</span></td></tr>
+                        <tr><td><span class="p-word">Adapt</span></td><td>v</td><td><span class="p-mean">Chuyển thể</span></td></tr>
+                    </table>
+                </div>
+                
+            </div>
+
+            <div class="right-pane" id="exercisesContainer">
+                <div class="submit-section">
+                    <button class="btn-submit" onclick="showSubmitPopup()">🎯 NỘP BÀI TÍNH ĐIỂM & XEM KẾT QUẢ</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="submitModal" class="modal">
+            <div class="modal-content" id="modalContent">
+                <h2>Nhập tên của bạn để nộp bài! 🚀</h2>
+                <input type="text" id="studentName" placeholder="Tên của học sinh...">
+                <button class="btn-submit" onclick="calculateScore()">Xác Nhận Nộp Bài</button>
+            </div>
+        </div>
+    </div> <script>
+    // --- LOGIN SCRIPT ---
+    const _k  = [99,111,109,97,105,97,110,117,108,105,115]; 
+    const _pw = _k.map(c => String.fromCharCode(c)).join('');
+
+    function checkPassword() {
+        const inp = document.getElementById('pwInput');
+        const err = document.getElementById('pwErr');
+        if (inp.value === _pw) {
+            document.getElementById('passwordModal').style.display = 'none';
+            const main = document.getElementById('mainContent');
+            if(main) main.style.display = 'block';
+            
+            // Kích hoạt hiệu ứng nếu có
+            if(typeof buildStarfield === 'function') buildStarfield();
+            if(typeof spawnFloats === 'function') spawnFloats();
+            
+            // Gắn link file nghe nếu có mã hóa _s
+            const audio = document.getElementById('audioPlayer');
+            if(audio && typeof _s !== 'undefined') audio.src = atob(_s);
+        } else {
+            inp.classList.remove('error'); void inp.offsetWidth; inp.classList.add('error');
+            err.style.display = 'block'; setTimeout(() => inp.classList.remove('error'), 500);
+        }
+    }
+    document.addEventListener('DOMContentLoaded', () => {
+        const pwInput = document.getElementById('pwInput');
+        if(pwInput) pwInput.addEventListener('keydown', e => { if (e.key==='Enter') checkPassword(); });
+    });
+
+
+    // --- AUDIO SYSTEM (Web Audio API) ---
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    let audioCtx;
+
+    function initAudio() {
+        if (!audioCtx) {
+            audioCtx = new AudioContext();
+        }
+    }
+
+    function playSound(type) {
+        initAudio();
+        const oscillator = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        oscillator.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+
+        if (type === 'correct') {
+            oscillator.type = 'sine';
+            oscillator.frequency.setValueAtTime(800, audioCtx.currentTime); // high ding
+            gainNode.gain.setValueAtTime(0.5, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+            oscillator.start();
+            oscillator.stop(audioCtx.currentTime + 0.3);
+        } else if (type === 'wrong') {
+            oscillator.type = 'sawtooth';
+            oscillator.frequency.setValueAtTime(200, audioCtx.currentTime); // low buzz
+            gainNode.gain.setValueAtTime(0.5, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+            oscillator.start();
+            oscillator.stop(audioCtx.currentTime + 0.4);
+        }
+    }
+
+    // --- CONFETTI SYSTEM ---
+    const canvas = document.getElementById('confetti');
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    let particles = [];
+
+    function fireConfetti() {
+        for (let i = 0; i < 100; i++) {
+            particles.push({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height - canvas.height,
+                r: Math.random() * 6 + 4,
+                d: Math.random() * 200,
+                color: `hsl(${Math.random() * 360}, 100%, 50%)`,
+                tilt: Math.random() * 10 - 10,
+                tiltAngle: 0,
+                tiltAngleInc: (Math.random() * 0.07) + 0.05
+            });
+        }
+    }
+
+    function renderConfetti() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        particles.forEach((p, index) => {
+            p.tiltAngle += p.tiltAngleInc;
+            p.y += (Math.cos(p.d) + 3 + p.r / 2) / 2;
+            p.x += Math.sin(p.d);
+            p.tilt = Math.sin(p.tiltAngle) * 15;
+            
+            ctx.beginPath();
+            ctx.lineWidth = p.r;
+            ctx.strokeStyle = p.color;
+            ctx.moveTo(p.x + p.tilt + p.r, p.y);
+            ctx.lineTo(p.x + p.tilt, p.y + p.tilt + p.r);
+            ctx.stroke();
+
+            if (p.y > canvas.height) particles.splice(index, 1);
+        });
+        requestAnimationFrame(renderConfetti);
+    }
+    renderConfetti();
+
+    // --- TOGGLE TRANSLATION ---
+    function toggleTranslation(btn) {
+        const transDiv = btn.nextElementSibling;
+        if (transDiv.style.display === "block") {
+            transDiv.style.display = "none";
+            btn.innerHTML = "Mở dịch đoạn này 🌟";
+        } else {
+            transDiv.style.display = "block";
+            btn.innerHTML = "Đóng bản dịch 🙈";
+        }
+    }
+
+    // --- QUESTION DATA ---
+    const quizData = [
+        {
+            qId: "13",
+            question: "Question 13. Dive with us to (13) _____ the most beautiful coral reef in the world.",
+            options: [
+                {text: "discover", isCorrect: true, exp: "khám phá"},
+                {text: "make", isCorrect: false, exp: "làm, chế tạo"},
+                {text: "create", isCorrect: false, exp: "tạo ra"},
+                {text: "have", isCorrect: false, exp: "có"}
+            ],
+            explanation: `
+                <p><strong>Dịch câu hỏi:</strong> Lặn cùng chúng tôi để _____ rạn san hô đẹp nhất thế giới.</p>
+                <p><strong>Phân tích 4 đáp án:</strong></p>
+                <ul>
+                    <li><span class='p-word'>discover</span> (<span class='p-mean'>khám phá</span>) <span class='hl-green'>✅ Đúng</span> vì phù hợp với ngữ cảnh đi tour ngắm rạn san hô.</li>
+                    <li><span class='p-word'>make</span> (<span class='p-mean'>làm ra</span>) <span class='hl-red'>❌ Sai</span>.</li>
+                    <li><span class='p-word'>create</span> (<span class='p-mean'>tạo ra</span>) <span class='hl-red'>❌ Sai</span>.</li>
+                    <li><span class='p-word'>have</span> (<span class='p-mean'>có</span>) <span class='hl-red'>❌ Sai</span>.</li>
+                </ul>
+                <p>🔍 <strong>Dẫn chứng:</strong> "Dive with us to discover the most beautiful coral reef in the world."</p>
+                <p>👉 <strong>Dịch:</strong> "Lặn cùng chúng tôi để <span class='ev-red-bold'>khám phá</span> rạn san hô đẹp nhất thế giới."</p>
+            `
+        },
+        {
+            qId: "14",
+            question: "Question 14. Swim in blue sea (14) ____ colorful fish.",
+            options: [
+                {text: "in", isCorrect: false},
+                {text: "with", isCorrect: true},
+                {text: "by", isCorrect: false},
+                {text: "without", isCorrect: false}
+            ],
+            explanation: `
+                <p><strong>Dịch câu hỏi:</strong> Bơi trong biển xanh _____ những chú cá đầy màu sắc.</p>
+                <p><strong>Phân tích 4 đáp án:</strong></p>
+                <ul>
+                    <li><span class='p-word'>in</span> (<span class='p-mean'>trong</span>) <span class='hl-red'>❌ Sai</span>.</li>
+                    <li><span class='p-word'>with</span> (<span class='p-mean'>cùng với</span>) <span class='hl-green'>✅ Đúng</span>. <span class='p-grammar'>Cấu trúc: swim with sb/sth (bơi cùng ai/cái gì)</span>.</li>
+                    <li><span class='p-word'>by</span> (<span class='p-mean'>bởi / bên cạnh</span>) <span class='hl-red'>❌ Sai</span>.</li>
+                    <li><span class='p-word'>without</span> (<span class='p-mean'>mà không có</span>) <span class='hl-red'>❌ Sai</span> vì ngược nghĩa với việc tận hưởng tour du lịch.</li>
+                </ul>
+                <p>🔍 <strong>Dẫn chứng:</strong> "Swim in blue sea with colorful fish."</p>
+                <p>👉 <strong>Dịch:</strong> "Bơi trong làn nước biển xanh <span class='ev-red-bold'>cùng với</span> những chú cá đầy màu sắc."</p>
+            `
+        },
+        {
+            qId: "15",
+            question: "Question 15. Watch 3D documentaries (15) _____ about sea animals...",
+            options: [
+                {text: "learn", isCorrect: false},
+                {text: "learning", isCorrect: false},
+                {text: "to learn", isCorrect: true},
+                {text: "to learning", isCorrect: false}
+            ],
+            explanation: `
+                <p><strong>Dịch câu hỏi:</strong> Xem phim tài liệu 3D _____ về các loài động vật biển...</p>
+                <p><strong>Phân tích 4 đáp án:</strong></p>
+                <ul>
+                    <li><span class='p-word'>learn</span> (Động từ nguyên thể) <span class='hl-red'>❌ Sai ngữ pháp</span>.</li>
+                    <li><span class='p-word'>learning</span> (V-ing) <span class='hl-red'>❌ Sai ngữ pháp</span>.</li>
+                    <li><span class='p-word'>to learn</span> (to V) <span class='hl-green'>✅ Đúng</span>. <span class='p-grammar'>Sử dụng "To + V" để chỉ mục đích (để làm gì). Xem phim ĐỂ tìm hiểu.</span></li>
+                    <li><span class='p-word'>to learning</span> <span class='hl-red'>❌ Sai cấu trúc</span>.</li>
+                </ul>
+                <p>🔍 <strong>Dẫn chứng:</strong> "Watch 3D documentaries to learn about sea animals..."</p>
+                <p>👉 <strong>Dịch:</strong> "Xem phim tài liệu 3D <span class='ev-red-bold'>để tìm hiểu</span> về các loài động vật biển..."</p>
+            `
+        },
+        {
+            qId: "16",
+            question: "Question 16. ...and what you can do to (16) _____ it.",
+            options: [
+                {text: "protect", isCorrect: true},
+                {text: "destroy", isCorrect: false},
+                {text: "damage", isCorrect: false},
+                {text: "feed", isCorrect: false}
+            ],
+            explanation: `
+                <p><strong>Dịch câu hỏi:</strong> ...và những gì bạn có thể làm để _____ nó (rạn san hô).</p>
+                <p><strong>Phân tích 4 đáp án:</strong></p>
+                <ul>
+                    <li><span class='p-word'>protect</span> (<span class='p-mean'>bảo vệ</span>) <span class='hl-green'>✅ Đúng</span> vì đó là hành động tích cực cần làm cho môi trường.</li>
+                    <li><span class='p-word'>destroy</span> (<span class='p-mean'>phá hủy</span>) <span class='hl-red'>❌ Sai ý nghĩa</span>.</li>
+                    <li><span class='p-word'>damage</span> (<span class='p-mean'>làm hỏng</span>) <span class='hl-red'>❌ Sai ý nghĩa</span>.</li>
+                    <li><span class='p-word'>feed</span> (<span class='p-mean'>cho ăn</span>) <span class='hl-red'>❌ Sai ý nghĩa</span> vì rạn san hô không phải để "cho ăn" theo cách này.</li>
+                </ul>
+                <p>🔍 <strong>Dẫn chứng:</strong> "...and what you can do to protect it."</p>
+                <p>👉 <strong>Dịch:</strong> "...và những gì bạn có thể làm để <span class='ev-red-bold'>bảo vệ</span> nó."</p>
+            `
+        },
+        {
+            qId: "19",
+            question: "Question 19. A smart home is a house that uses modern technology to (19) ______ daily tasks easier.",
+            options: [
+                {text: "do", isCorrect: false},
+                {text: "make", isCorrect: true},
+                {text: "have", isCorrect: false},
+                {text: "take", isCorrect: false}
+            ],
+            explanation: `
+                <p><strong>Dịch câu hỏi:</strong> Ngôi nhà thông minh là ngôi nhà sử dụng công nghệ để _____ các công việc hàng ngày trở nên dễ dàng hơn.</p>
+                <p><strong>Phân tích 4 đáp án:</strong></p>
+                <ul>
+                    <li><span class='p-word'>do</span> (<span class='p-mean'>làm</span>) <span class='hl-red'>❌ Sai cấu trúc</span>.</li>
+                    <li><span class='p-word'>make</span> (<span class='p-mean'>làm cho</span>) <span class='hl-green'>✅ Đúng</span>. <span class='p-grammar'>Cấu trúc: Make + Object + Adjective (Làm cho cái gì mang tính chất gì) -> make tasks easier.</span></li>
+                    <li><span class='p-word'>have</span> (<span class='p-mean'>có</span>) <span class='hl-red'>❌ Sai cấu trúc</span>.</li>
+                    <li><span class='p-word'>take</span> (<span class='p-mean'>lấy</span>) <span class='hl-red'>❌ Sai cấu trúc</span>.</li>
+                </ul>
+                <p>🔍 <strong>Dẫn chứng:</strong> "...uses modern technology to make daily tasks easier."</p>
+                <p>👉 <strong>Dịch:</strong> "...sử dụng công nghệ hiện đại để <span class='ev-red-bold'>làm cho</span> các công việc hàng ngày dễ dàng hơn."</p>
+            `
+        },
+        {
+            qId: "20",
+            question: "Question 20. Smart homes are useful (20) ______ they help people save time and energy.",
+            options: [
+                {text: "so", isCorrect: false},
+                {text: "but", isCorrect: false},
+                {text: "because", isCorrect: true},
+                {text: "or", isCorrect: false}
+            ],
+            explanation: `
+                <p><strong>Dịch câu hỏi:</strong> Nhà thông minh rất hữu ích _____ chúng giúp con người tiết kiệm thời gian.</p>
+                <p><strong>Phân tích 4 đáp án:</strong></p>
+                <ul>
+                    <li><span class='p-word'>so</span> (<span class='p-mean'>vì vậy</span> - chỉ kết quả) <span class='hl-red'>❌ Sai</span>.</li>
+                    <li><span class='p-word'>but</span> (<span class='p-mean'>nhưng</span> - chỉ sự tương phản) <span class='hl-red'>❌ Sai</span>.</li>
+                    <li><span class='p-word'>because</span> (<span class='p-mean'>bởi vì</span> - chỉ nguyên nhân) <span class='hl-green'>✅ Đúng</span> vì vế sau giải thích lý do tại sao nhà thông minh hữu ích.</li>
+                    <li><span class='p-word'>or</span> (<span class='p-mean'>hoặc</span>) <span class='hl-red'>❌ Sai</span>.</li>
+                </ul>
+                <p>🔍 <strong>Dẫn chứng:</strong> "Smart homes are useful because they help people save time..."</p>
+                <p>👉 <strong>Dịch:</strong> "Những ngôi nhà thông minh rất hữu ích <span class='ev-red-bold'>bởi vì</span> chúng giúp con người tiết kiệm thời gian..."</p>
+            `
+        },
+        {
+            qId: "21",
+            question: "Question 21. ...and smart thermostats can adjust the temperature (21) ______ keep the house comfortable.",
+            options: [
+                {text: "for", isCorrect: false},
+                {text: "to", isCorrect: true},
+                {text: "in", isCorrect: false},
+                {text: "with", isCorrect: false}
+            ],
+            explanation: `
+                <p><strong>Dịch câu hỏi:</strong> ...và máy điều nhiệt có thể điều chỉnh nhiệt độ _____ giữ cho ngôi nhà thoải mái.</p>
+                <p><strong>Phân tích 4 đáp án:</strong></p>
+                <ul>
+                    <li><span class='p-word'>for</span> <span class='hl-red'>❌ Sai</span> (Sau 'for' phải là V-ing, vd: for keeping).</li>
+                    <li><span class='p-word'>to</span> (<span class='p-mean'>để</span>) <span class='hl-green'>✅ Đúng</span>. <span class='p-grammar'>Cấu trúc To + V nguyên thể (to keep) dùng để chỉ mục đích.</span></li>
+                    <li><span class='p-word'>in</span> <span class='hl-red'>❌ Sai giới từ</span>.</li>
+                    <li><span class='p-word'>with</span> <span class='hl-red'>❌ Sai giới từ</span>.</li>
+                </ul>
+                <p>🔍 <strong>Dẫn chứng:</strong> "...can adjust the temperature to keep the house comfortable."</p>
+                <p>👉 <strong>Dịch:</strong> "...có thể điều chỉnh nhiệt độ <span class='ev-red-bold'>để</span> giữ cho ngôi nhà luôn thoải mái."</p>
+            `
+        },
+        {
+            qId: "22",
+            question: "Question 22. Many people (22) ______ to buy smart devices for their homes...",
+            options: [
+                {text: "wanting", isCorrect: false},
+                {text: "wanted", isCorrect: false},
+                {text: "want", isCorrect: true},
+                {text: "wants", isCorrect: false}
+            ],
+            explanation: `
+                <p><strong>Dịch câu hỏi:</strong> Nhiều người _____ mua các thiết bị thông minh cho ngôi nhà của họ...</p>
+                <p><strong>Phân tích 4 đáp án:</strong></p>
+                <ul>
+                    <li><span class='p-word'>wanting</span> <span class='hl-red'>❌ Sai</span> vì thiếu to-be để thành thì tiếp diễn.</li>
+                    <li><span class='p-word'>wanted</span> <span class='hl-red'>❌ Sai</span> vì đoạn văn đang kể sự thật ở hiện tại (thì hiện tại đơn).</li>
+                    <li><span class='p-word'>want</span> (Động từ nguyên thể) <span class='hl-green'>✅ Đúng</span>. <span class='p-grammar'>"Many people" là chủ ngữ số nhiều, động từ ở thì hiện tại đơn không thêm s/es.</span></li>
+                    <li><span class='p-word'>wants</span> <span class='hl-red'>❌ Sai</span> vì đây là chia cho chủ ngữ số ít.</li>
+                </ul>
+                <p>🔍 <strong>Dẫn chứng:</strong> "Many people want to buy smart devices..."</p>
+                <p>👉 <strong>Dịch:</strong> "Nhiều người <span class='ev-red-bold'>muốn</span> mua các thiết bị thông minh..."</p>
+            `
+        },
+        {
+            qId: "23a",
+            question: "Question 23. homeowners can control their houses from anywhere (23) ______ an internet connection.",
+            options: [
+                {text: "with", isCorrect: true},
+                {text: "without", isCorrect: false},
+                {text: "on", isCorrect: false},
+                {text: "at", isCorrect: false}
+            ],
+            explanation: `
+                <p><strong>Dịch câu hỏi:</strong> chủ nhà có thể điều khiển nhà từ bất cứ đâu _____ một kết nối internet.</p>
+                <p><strong>Phân tích 4 đáp án:</strong></p>
+                <ul>
+                    <li><span class='p-word'>with</span> (<span class='p-mean'>với / có</span>) <span class='hl-green'>✅ Đúng</span> vì phải có mạng internet mới điều khiển nhà thông minh từ xa được.</li>
+                    <li><span class='p-word'>without</span> (<span class='p-mean'>mà không có</span>) <span class='hl-red'>❌ Sai logic</span>.</li>
+                    <li><span class='p-word'>on</span> <span class='hl-red'>❌ Sai giới từ</span>.</li>
+                    <li><span class='p-word'>at</span> <span class='hl-red'>❌ Sai giới từ</span>.</li>
+                </ul>
+                <p>🔍 <strong>Dẫn chứng:</strong> "...control their houses from anywhere with an internet connection."</p>
+                <p>👉 <strong>Dịch:</strong> "...kiểm soát ngôi nhà của mình từ bất kỳ đâu <span class='ev-red-bold'>với</span> một kết nối internet."</p>
+            `
+        },
+        {
+            qId: "24",
+            question: "Question 24. In the future, smart homes (24) ______ more common...",
+            options: [
+                {text: "is", isCorrect: false},
+                {text: "be", isCorrect: false},
+                {text: "was", isCorrect: false},
+                {text: "will be", isCorrect: true}
+            ],
+            explanation: `
+                <p><strong>Dịch câu hỏi:</strong> Trong tương lai, những ngôi nhà thông minh _____ trở nên phổ biến hơn...</p>
+                <p><strong>Phân tích 4 đáp án:</strong></p>
+                <ul>
+                    <li><span class='p-word'>is</span> <span class='hl-red'>❌ Sai thì và sai số lượng chủ ngữ (smart homes số nhiều).</span></li>
+                    <li><span class='p-word'>be</span> <span class='hl-red'>❌ Sai</span>.</li>
+                    <li><span class='p-word'>was</span> <span class='hl-red'>❌ Sai thì quá khứ</span>.</li>
+                    <li><span class='p-word'>will be</span> (<span class='p-mean'>sẽ là</span>) <span class='hl-green'>✅ Đúng</span>. <span class='p-grammar'>Dấu hiệu nhận biết "In the future" yêu cầu dùng thì Tương lai đơn (Will + V-nguyên thể).</span></li>
+                </ul>
+                <p>🔍 <strong>Dẫn chứng:</strong> "In the future, smart homes will be more common..."</p>
+                <p>👉 <strong>Dịch:</strong> "Trong tương lai, những ngôi nhà thông minh <span class='ev-red-bold'>sẽ trở nên</span> phổ biến hơn..."</p>
+            `
+        },
+        {
+            qId: "31",
+            question: "Question 31. What is the passage mainly about?",
+            options: [
+                {text: "A Vietnamese student’s experiences in a cultural exchange event.", isCorrect: true},
+                {text: "An occasion for a Vietnamese student to show foreigners her cultural knowledge.", isCorrect: false},
+                {text: "An invitation to visit an English speaking country.", isCorrect: false},
+                {text: "A student who love Vietnamese culture", isCorrect: false}
+            ],
+            explanation: `
+                <p><strong>Dịch câu hỏi:</strong> Đoạn văn chủ yếu nói về điều gì?</p>
+                <p><strong>Phân tích 4 đáp án:</strong></p>
+                <ul>
+                    <li><span class='p-word'>A. Trải nghiệm của một sinh viên Việt Nam trong sự kiện giao lưu văn hóa.</span> <span class='hl-green'>✅ Đúng</span> vì cả bài kể về việc Mai tham gia sự kiện, làm quen bạn bè và hệ quả tích cực.</li>
+                    <li><span class='p-word'>B. Dịp để thể hiện kiến thức văn hóa.</span> <span class='hl-red'>❌ Sai</span>, bài không đề cập Mai "khoe" kiến thức.</li>
+                    <li><span class='p-word'>C. Lời mời đến thăm quốc gia nói tiếng Anh.</span> <span class='hl-red'>❌ Sai</span> vì đây chỉ là một chi tiết nhỏ ở cuối bài, không phải ý chính.</li>
+                    <li><span class='p-word'>D. Một sinh viên yêu văn hóa Việt.</span> <span class='hl-red'>❌ Sai</span>, không phải trọng tâm.</li>
+                </ul>
+                <p>🔍 <strong>Dẫn chứng:</strong> Xuyên suốt bài đọc nói về việc Mai đến Tao Dan Park dự sự kiện giao lưu văn hóa và trải nghiệm ở đó.</p>
+                <p>👉 <strong>Dịch:</strong> "<span class='ev-red-bold'>Tuần trước, Mai đã tham dự một sự kiện giao lưu văn hóa...</span>"</p>
+            `
+        },
+        {
+            qId: "32",
+            question: "Question 32. What did that event help Mai?",
+            options: [
+                {text: "Develop her confidence.", isCorrect: false},
+                {text: "Improve her English.", isCorrect: false},
+                {text: "Develop her confidence and improve her English.", isCorrect: true},
+                {text: "Buy some souvenirs.", isCorrect: false}
+            ],
+            explanation: `
+                <p><strong>Dịch câu hỏi:</strong> Sự kiện đó đã giúp Mai điều gì?</p>
+                <p><strong>Phân tích 4 đáp án:</strong></p>
+                <ul>
+                    <li><span class='p-word'>A. Phát triển sự tự tin.</span> <span class='hl-red'>❌ Thiếu ý</span>.</li>
+                    <li><span class='p-word'>B. Cải thiện tiếng Anh.</span> <span class='hl-red'>❌ Thiếu ý</span>.</li>
+                    <li><span class='p-word'>C. Phát triển sự tự tin VÀ cải thiện tiếng Anh.</span> <span class='hl-green'>✅ Đúng</span> vì bài nhắc đến cả hai.</li>
+                    <li><span class='p-word'>D. Mua đồ lưu niệm.</span> <span class='hl-red'>❌ Sai</span> hoàn toàn.</li>
+                </ul>
+                <p>🔍 <strong>Dẫn chứng:</strong> "That helped Mai develop her confidence as well as improve her English."</p>
+                <p>👉 <strong>Dịch:</strong> "Điều đó đã giúp Mai <span class='ev-red-bold'>phát triển sự tự tin cũng như cải thiện tiếng Anh</span> của mình."</p>
+            `
+        },
+        {
+            qId: "33",
+            question: "Question 33. Which of the following statements about Mai is NOT TRUE?",
+            options: [
+                {text: "Amelia and Amanda are her favourite new friends.", isCorrect: false},
+                {text: "She had a chance to find out about different cultures.", isCorrect: false},
+                {text: "Only a few students talked to her at the event.", isCorrect: true},
+                {text: "They promised to take her to see kangaroos and koalas.", isCorrect: false}
+            ],
+            explanation: `
+                <p><strong>Dịch câu hỏi:</strong> Khẳng định nào sau đây về Mai là KHÔNG ĐÚNG?</p>
+                <p><strong>Phân tích 4 đáp án:</strong></p>
+                <ul>
+                    <li><span class='p-word'>A. Amelia và Amanda là bạn mới cô thích nhất.</span> ❌ Đúng với bài đọc, nên loại.</li>
+                    <li><span class='p-word'>B. Cô có cơ hội tìm hiểu văn hóa.</span> ❌ Đúng với bài đọc, nên loại.</li>
+                    <li><span class='p-word'>C. Chỉ có VÀI học sinh nói chuyện với cô.</span> <span class='hl-green'>✅ Đây là câu KHÔNG ĐÚNG</span> (vì trong bài cô làm quen với NHIỀU bạn - many friends/boys and girls).</li>
+                    <li><span class='p-word'>D. Họ hứa đưa cô đi xem kangaroo.</span> ❌ Đúng với bài đọc, nên loại.</li>
+                </ul>
+                <p>🔍 <strong>Dẫn chứng:</strong> "She got acquainted with many boys and girls from Canada, New Zealand, and the UK."</p>
+                <p>👉 <strong>Dịch:</strong> "Cô đã làm quen với <span class='ev-red-bold'>nhiều</span> nam nữ thanh niên..." (Chứ không phải chỉ một vài - a few).</p>
+            `
+        },
+        {
+            qId: "34",
+            question: "Question 34. Which word is CLOSEST in meaning to 'occasion' in the passage?",
+            options: [
+                {text: "Problem", isCorrect: false},
+                {text: "Opportunity", isCorrect: true},
+                {text: "Difficulty", isCorrect: false},
+                {text: "Surprise", isCorrect: false}
+            ],
+            explanation: `
+                <p><strong>Dịch câu hỏi:</strong> Từ nào ĐỒNG NGHĨA với "occasion" trong đoạn văn?</p>
+                <p><strong>Phân tích 4 đáp án:</strong></p>
+                <ul>
+                    <li><span class='p-word'>Problem</span> (<span class='p-mean'>Vấn đề</span>) <span class='hl-red'>❌ Sai</span>.</li>
+                    <li><span class='p-word'>Opportunity</span> (<span class='p-mean'>Cơ hội</span>) <span class='hl-green'>✅ Đúng</span>. <span class='p-grammar'>Occasion (dịp/cơ hội) đồng nghĩa với Opportunity.</span></li>
+                    <li><span class='p-word'>Difficulty</span> (<span class='p-mean'>Khó khăn</span>) <span class='hl-red'>❌ Sai</span>.</li>
+                    <li><span class='p-word'>Surprise</span> (<span class='p-mean'>Bất ngờ</span>) <span class='hl-red'>❌ Sai</span>.</li>
+                </ul>
+                <p>🔍 <strong>Dẫn chứng:</strong> "...it was a good occasion for making friends..."</p>
+                <p>👉 <strong>Dịch:</strong> "...đây là một <span class='ev-red-bold'>dịp/cơ hội</span> tốt để kết bạn..."</p>
+            `
+        },
+        {
+            qId: "35",
+            question: "Question 35. Which word is OPPOSITE in meaning to 'glad' in the passage?",
+            options: [
+                {text: "Happy", isCorrect: false},
+                {text: "Excited", isCorrect: false},
+                {text: "Sad", isCorrect: true},
+                {text: "Cheerful", isCorrect: false}
+            ],
+            explanation: `
+                <p><strong>Dịch câu hỏi:</strong> Từ nào TRÁI NGHĨA với "glad" trong đoạn văn?</p>
+                <p><strong>Phân tích 4 đáp án:</strong></p>
+                <ul>
+                    <li><span class='p-word'>Happy</span> (<span class='p-mean'>Vui vẻ</span>) <span class='hl-red'>❌ Sai vì đây là từ đồng nghĩa</span>.</li>
+                    <li><span class='p-word'>Excited</span> (<span class='p-mean'>Hào hứng</span>) <span class='hl-red'>❌ Sai</span>.</li>
+                    <li><span class='p-word'>Sad</span> (<span class='p-mean'>Buồn bã</span>) <span class='hl-green'>✅ Đúng</span>. <span class='p-grammar'>'Glad' nghĩa là vui mừng, nên trái nghĩa là Sad.</span></li>
+                    <li><span class='p-word'>Cheerful</span> (<span class='p-mean'>Hân hoan</span>) <span class='hl-red'>❌ Sai</span>.</li>
+                </ul>
+                <p>🔍 <strong>Dẫn chứng:</strong> "She was very glad and accepted that invitation."</p>
+                <p>👉 <strong>Dịch:</strong> "Cô ấy rất <span class='ev-red-bold'>vui mừng</span> và đã chấp nhận lời mời đó."</p>
+            `
+        },
+        {
+            qId: "36",
+            question: "Question 36. Where did the cultural exchange event take place?",
+            options: [
+                {text: "In Melbourne", isCorrect: false},
+                {text: "In a school", isCorrect: false},
+                {text: "In Tao Dan Park", isCorrect: true},
+                {text: "In an English center", isCorrect: false}
+            ],
+            explanation: `
+                <p><strong>Dịch câu hỏi:</strong> Sự kiện giao lưu văn hóa diễn ra ở đâu?</p>
+                <p><strong>Phân tích 4 đáp án:</strong></p>
+                <ul>
+                    <li><span class='p-word'>In Melbourne</span> <span class='hl-red'>❌ Sai</span> (Đây là nơi nhà của hai người bạn Úc).</li>
+                    <li><span class='p-word'>In a school</span> <span class='hl-red'>❌ Sai</span>.</li>
+                    <li><span class='p-word'>In Tao Dan Park</span> (<span class='p-mean'>Trong công viên Tao Đàn</span>) <span class='hl-green'>✅ Đúng</span>.</li>
+                    <li><span class='p-word'>In an English center</span> <span class='hl-red'>❌ Sai</span>.</li>
+                </ul>
+                <p>🔍 <strong>Dẫn chứng:</strong> "...attended a cultural exchange event for both foreign and Vietnamese students in Tao Dan Park."</p>
+                <p>👉 <strong>Dịch:</strong> "...tham dự một sự kiện giao lưu văn hóa... <span class='ev-red-bold'>tại công viên Tao Đàn</span>."</p>
+            `
+        },
+        {
+            qId: "37",
+            question: "Question 37. The Theory of Everything is a biographical film, (37) ____ .",
+            options: [
+                {text: "The film is set in England in the early 1960s", isCorrect: false},
+                {text: "directed by James Marsh in 2014", isCorrect: true},
+                {text: "The music is also incredible.", isCorrect: false},
+                {text: "The film is about the life of the scientist Stephen Hawking", isCorrect: false}
+            ],
+            explanation: `
+                <p><strong>Dịch câu hỏi:</strong> "The Theory of Everything là một bộ phim tiểu sử, (37) ____ ."</p>
+                <p><strong>Phân tích 4 đáp án:</strong></p>
+                <ul>
+                    <li><span class='p-word'>A. Phim lấy bối cảnh ở Anh...</span> <span class='hl-red'>❌ Sai ngữ pháp</span> do đứng sau dấu phẩy bổ nghĩa trực tiếp cho danh từ "film".</li>
+                    <li><span class='p-word'>B. directed by James Marsh in 2014</span> (<span class='p-mean'>được đạo diễn bởi James Marsh năm 2014</span>) <span class='hl-green'>✅ Đúng</span>. <span class='p-grammar'>Đây là mệnh đề quan hệ rút gọn dạng bị động (which was directed by...).</span></li>
+                    <li><span class='p-word'>C. Âm nhạc cũng tuyệt vời.</span> <span class='hl-red'>❌ Không hợp logic đoạn mở đầu</span>.</li>
+                    <li><span class='p-word'>D. Phim nói về cuộc đời...</span> <span class='hl-red'>❌ Sai ngữ pháp</span>.</li>
+                </ul>
+                <p>🔍 <strong>Dẫn chứng:</strong> Liền ngay sau cụm "biographical film,..." cần một cụm từ bổ nghĩa cho bộ phim đó.</p>
+                <p>👉 <strong>Dịch:</strong> "The Theory of Everything là một bộ phim tiểu sử, <span class='ev-red-bold'>được đạo diễn bởi James Marsh vào năm 2014</span>."</p>
+            `
+        },
+        {
+            qId: "38",
+            question: "Question 38. It stars Eddie Redmayne and Felicity Jones. (38) _____ .",
+            options: [
+                {text: "The film is set in England in the early 1960s", isCorrect: true},
+                {text: "directed by James Marsh in 2014", isCorrect: false},
+                {text: "The music is also incredible.", isCorrect: false},
+                {text: "The film is about the life of the scientist Stephen Hawking", isCorrect: false}
+            ],
+            explanation: `
+                <p><strong>Dịch câu hỏi:</strong> "Phim có sự tham gia của Eddie và Felicity. (38) _____ ."</p>
+                <p><strong>Phân tích:</strong></p>
+                <ul>
+                    <li><span class='p-word'>A. The film is set in England in the early 1960s</span> (<span class='p-mean'>Phim lấy bối cảnh ở Anh đầu những năm 1960</span>) <span class='hl-green'>✅ Đúng</span>. Đoạn văn đang cung cấp các thông tin nền tảng (diễn viên, bối cảnh) trước khi đi vào nội dung cốt truyện ở câu 39.</li>
+                </ul>
+                <p>🔍 <strong>Dẫn chứng:</strong> Câu trước nói về diễn viên chính, câu này nối tiếp để hoàn thiện bối cảnh phim.</p>
+                <p>👉 <strong>Dịch:</strong> "Phim có sự tham gia của Eddie Redmayne và Felicity Jones. <span class='ev-red-bold'>Phim lấy bối cảnh ở Anh vào đầu những năm 1960.</span>"</p>
+            `
+        },
+        {
+            qId: "39",
+            question: "Question 39. It was adapted by Anthony McCarten from the book... by Jane Hawking. (39) _____ . It tells the story of Hawking’s relationship...",
+            options: [
+                {text: "The film is set in England in the early 1960s", isCorrect: false},
+                {text: "directed by James Marsh in 2014", isCorrect: false},
+                {text: "The music is also incredible.", isCorrect: false},
+                {text: "The film is about the life of the scientist Stephen Hawking", isCorrect: true}
+            ],
+            explanation: `
+                <p><strong>Dịch câu hỏi:</strong> "...từ cuốn sách của Jane Hawking. (39) _____ . Nó kể câu chuyện về mối quan hệ của Hawking..."</p>
+                <p><strong>Phân tích:</strong></p>
+                <ul>
+                    <li><span class='p-word'>D. The film is about the life of the scientist Stephen Hawking</span> (<span class='p-mean'>Bộ phim nói về cuộc đời của nhà khoa học Stephen Hawking</span>) <span class='hl-green'>✅ Đúng</span>. Câu này giới thiệu chủ đề chính của phim, làm câu chủ đề để câu sau ("It tells the story of...") giải thích chi tiết hơn về cuộc đời ông ấy.</li>
+                </ul>
+                <p>🔍 <strong>Dẫn chứng:</strong> Câu liền sau là "It tells the story of Hawking's relationship..." là câu làm rõ nghĩa cho câu 39.</p>
+                <p>👉 <strong>Dịch:</strong> "<span class='ev-red-bold'>Bộ phim kể về cuộc đời của nhà khoa học Stephen Hawking.</span> Nó kể câu chuyện về mối quan hệ của Hawking với vợ..."</p>
+            `
+        },
+        {
+            qId: "40",
+            question: "Question 40. I agree, because the story is moving and the acting is excellent. (40) _____.",
+            options: [
+                {text: "The film is set in England in the early 1960s", isCorrect: false},
+                {text: "directed by James Marsh in 2014", isCorrect: false},
+                {text: "The music is also incredible.", isCorrect: true},
+                {text: "The film is about the life of the scientist Stephen Hawking", isCorrect: false}
+            ],
+            explanation: `
+                <p><strong>Dịch câu hỏi:</strong> "Tôi đồng ý, bởi vì câu chuyện cảm động và diễn xuất xuất sắc. (40) _____."</p>
+                <p><strong>Phân tích:</strong></p>
+                <ul>
+                    <li><span class='p-word'>C. The music is also incredible.</span> (<span class='p-mean'>Âm nhạc cũng thật đáng kinh ngạc.</span>) <span class='hl-green'>✅ Đúng</span>. Người viết đang liệt kê các điểm cộng của phim: cốt truyện (story), diễn xuất (acting), và thêm yếu tố âm nhạc (music). Chữ "also" (cũng) là dấu hiệu liên kết mạnh mẽ.</li>
+                </ul>
+                <p>🔍 <strong>Dẫn chứng:</strong> Các yếu tố khen ngợi được nối tiếp nhau.</p>
+                <p>👉 <strong>Dịch:</strong> "...câu chuyện rất cảm động và diễn xuất thì xuất sắc. <span class='ev-red-bold'>Âm nhạc cũng thật đáng kinh ngạc.</span>"</p>
+            `
+        }
+    ];
+
+    let userScore = 0;
+    let questionsAnswered = 0;
+    const totalQuestions = quizData.length;
+
+    // --- SHUFFLE FUNCTION ---
+    function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+    }
+
+    // --- RENDER QUESTIONS ---
+    const exercisesContainer = document.getElementById('exercisesContainer');
+    const submitSection = document.querySelector('.submit-section');
+
+    quizData.forEach((q, index) => {
+        const card = document.createElement('div');
+        card.className = 'question-card';
+        card.id = `q-card-${index}`;
+
+        const qText = document.createElement('div');
+        qText.className = 'question-text';
+        qText.textContent = q.question;
+        card.appendChild(qText);
+
+        const optionsGrid = document.createElement('div');
+        optionsGrid.className = 'options-grid';
+        
+        const shuffledOptions = shuffleArray([...q.options]);
+
+        shuffledOptions.forEach(opt => {
+            const btn = document.createElement('button');
+            btn.className = 'option-btn';
+            btn.textContent = opt.text;
+            btn.onclick = () => handleAnswer(btn, opt.isCorrect, q.explanation, card, optionsGrid);
+            optionsGrid.appendChild(btn);
+        });
+        
+        card.appendChild(optionsGrid);
+
+        const expDiv = document.createElement('div');
+        expDiv.className = 'explanation';
+        expDiv.innerHTML = q.explanation;
+        card.appendChild(expDiv);
+
+        exercisesContainer.insertBefore(card, submitSection);
+    });
+
+    function handleAnswer(btn, isCorrect, explanationHTML, card, optionsGrid) {
+        const buttons = optionsGrid.querySelectorAll('.option-btn');
+        buttons.forEach(b => b.disabled = true);
+
+        const expDiv = card.querySelector('.explanation');
+
+        if (isCorrect) {
+            btn.classList.add('correct');
+            playSound('correct');
+            fireConfetti();
+            userScore++;
+        } else {
+            btn.classList.add('incorrect');
+            btn.classList.add('shake');
+            playSound('wrong');
+            
+            buttons.forEach(b => {
+                const optData = quizData.find(q => q.question === card.querySelector('.question-text').textContent).options.find(o => o.text === b.textContent);
+                if (optData.isCorrect) b.classList.add('correct');
+            });
+        }
+
+        expDiv.style.display = 'block';
+        questionsAnswered++;
+    }
+
+    // --- SUBMIT SYSTEM ---
+    const modal = document.getElementById('submitModal');
+    
+    function showSubmitPopup() {
+        if (questionsAnswered < totalQuestions) {
+            alert(`Oops! Bạn mới làm ${questionsAnswered}/${totalQuestions} câu. Hãy hoàn thành hết trước khi nộp nhé!`);
+            return;
+        }
+        modal.style.display = 'flex';
+    }
+
+    function calculateScore() {
+        const nameInput = document.getElementById('studentName').value.trim();
+        if (!nameInput) {
+            alert("Vui lòng nhập tên của bạn!");
+            return;
+        }
+
+        const percentage = (userScore / totalQuestions) * 100;
+        let gifUrl, message;
+
+        if (percentage === 100) {
+            gifUrl = "https://media.giphy.com/media/11sBLVxNs7v6WA/giphy.gif";
+            message = "Quá xuất sắc! Em đích thực là một THIÊN TÀI Tiếng Anh! 🏆";
+        } else if (percentage >= 60) {
+            gifUrl = "https://media.giphy.com/media/3oz8xAFtjouKvtCE7u/giphy.gif";
+            message = "Rất tốt! Em đã nắm bài khá chắc, tiếp tục phát huy nhé! 🌟";
+        } else {
+            gifUrl = "https://media.giphy.com/media/OPU6wzx8KUeqA/giphy.gif";
+            message = "Đừng buồn, xem kỹ lại phần giải thích chi tiết của cô và thử lại nhé! Cố lên! 💪";
+        }
+
+        const modalContent = document.getElementById('modalContent');
+        modalContent.innerHTML = `
+            <h2>BẢNG ĐIỂM CỦA ${nameInput.toUpperCase()} 🎯</h2>
+            <h1 style="color: #007bff; font-size: 40px; margin: 10px 0;">${userScore}/${totalQuestions}</h1>
+            <p style="font-size: 18px; font-weight: bold; color: #d35400;">${message}</p>
+            <p style="color: #666; font-style: italic;">Nhận xét từ: Ms Mai An ULIS</p>
+            <img src="${gifUrl}" class="modal-gif" alt="Result GIF">
+            <button class="btn-submit" style="margin-top: 20px; font-size: 16px; padding: 10px 20px;" onclick="location.reload()">Làm Lại Bài</button>
+        `;
+    }
+</script>
+
+</body>
+</html>

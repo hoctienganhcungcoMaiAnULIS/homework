@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Reading Practice - Ms Mai An ULIS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap" rel="stylesheet"/>
+<style>
+/* ================= CSS VARIABLES & RESET ================= */
+:root {
+  --pastel-pink: #FFD1DC;
+  --pastel-blue: #AEC6CF;
+  --pastel-green: #77DD77;
+  --pastel-purple: #CDB4DB;
+  --pastel-yellow: #FDFD96;
+  --glass-bg: rgba(255, 255, 255, 0.25);
+  --glass-border: rgba(255, 255, 255, 0.5);
+  --text-dark: #2C3E50;
+  --correct: #27ae60;
+  --wrong: #e74c3c;
+  --shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Nunito', sans-serif;
+  color: var(--text-dark);
+  overflow: hidden; /* Prevent full page scroll, use split screen scroll */
+  background: linear-gradient(135deg, var(--pastel-pink), var(--pastel-blue), var(--pastel-purple), var(--pastel-yellow));
+  background-size: 400% 400%;
+  animation: gradientBG 15s ease infinite;
+}
+@keyframes gradientBG {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* GIAO DIỆN MÀN HÌNH KHÓA (GIỮ NGUYÊN) */
+#passwordModal {
+  position:fixed; inset:0; z-index:9999;
+  display:flex; align-items:center; justify-content:center;
+  background:rgba(5,2,15,0.92); backdrop-filter:blur(20px);
+}
+.pw-card {
+  background:linear-gradient(160deg, rgba(40,10,70,0.95) 0%, rgba(15,5,30,0.98) 100%);
+  border:1.5px solid rgba(240,192,64,0.4); border-radius:24px; padding:48px 40px 40px; 
+  max-width:440px; width:93%; text-align:center; position:relative; overflow:hidden;
+  box-shadow:0 0 60px rgba(106,5,114,0.6), 0 0 120px rgba(240,192,64,0.1), inset 0 1px 0 rgba(240,192,64,0.15);
+}
+.pw-card::before {
+  content:''; position:absolute; top:0; left:0; right:0; height:3px;
+  background:linear-gradient(90deg, #6A0572, #F0C040, #6A0572);
+}
+.pw-crest { font-size:4rem; margin-bottom:8px; display:block; }
+.pw-title { font-family:'Playfair Display', serif; font-size:1.4rem; font-weight:700; color:#F0C040; margin-bottom:6px; letter-spacing:1px; }
+.pw-sub   { font-size:.87rem; color:rgba(200,200,212,0.6); margin-bottom:24px; }
+.pw-input {
+  width:100%; padding:13px 20px; border-radius:12px;
+  border:1.5px solid rgba(240,192,64,0.3); background:rgba(255,255,255,0.05);
+  color:#FFE082; font-size:1rem; font-family:'Nunito', sans-serif;
+  outline:none; letter-spacing:3px; text-align:center; transition:all .3s;
+}
+.pw-input:focus { border-color:#F0C040; box-shadow:0 0 0 3px rgba(240,192,64,0.15); }
+.pw-input.error { border-color:#FF4757; box-shadow:0 0 0 3px rgba(255,71,87,0.25); animation:pwshake .4s ease; }
+.pw-input::placeholder { color:rgba(200,200,212,0.3); letter-spacing:1px; }
+.pw-btn {
+  width:100%; padding:14px; margin-top:14px; border-radius:12px; border:none;
+  background:linear-gradient(135deg, #6A0572 0%, #9B1FA8 40%, #F0C040 100%);
+  color:#fff; font-size:1rem; font-weight:700; font-family:'Playfair Display', serif;
+  cursor:pointer; letter-spacing:.5px; transition:transform .2s;
+}
+.pw-btn:hover { transform:translateY(-2px); box-shadow:0 8px 32px rgba(106,5,114,0.7); }
+.pw-err { color:#ff8a9a; font-size:.84rem; margin-top:10px; display:none; font-weight:700; }
+@keyframes pwshake { 0%,100%{transform:translateX(0)} 15%,45%,75%{transform:translateX(-6px)} 30%,60%,90%{transform:translateX(6px)} }
+
+/* ================= FLOATING PATTERN SVG ================= */
+#bg-pattern {
+  position: fixed; inset: 0; z-index: -1; opacity: 0.4; pointer-events: none;
+  background: radial-gradient(circle at 50% 50%, rgba(255,255,255,0.2) 0%, transparent 60%);
+}
+
+/* ================= SPLIT SCREEN LAYOUT ================= */
+#mainContent {
+  display: flex; height: 100vh; width: 100vw; position: relative; z-index: 1;
+}
+.split-pane {
+  flex: 1; height: 100%; overflow-y: auto; padding: 20px;
+  scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.6) transparent;
+}
+.split-pane::-webkit-scrollbar { width: 8px; }
+.split-pane::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.6); border-radius: 4px; }
+.left-pane { border-right: 2px solid var(--glass-border); }
+.right-pane { padding-bottom: 80px; }
+
+@media (max-width: 900px) {
+  #mainContent { flex-direction: column; }
+  .left-pane { border-right: none; border-bottom: 2px solid var(--glass-border); height: 40vh; }
+  .right-pane { height: 60vh; }
+}
+
+/* ================= GLASSMORPHISM COMPONENTS ================= */
+.glass-card {
+  background: var(--glass-bg); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--glass-border); border-radius: 20px;
+  padding: 24px; margin-bottom: 24px; box-shadow: var(--shadow);
+}
+header.glass-card {
+  text-align: center; padding: 15px; margin-bottom: 20px; position: relative;
+}
+.header-teacher { font-size: 0.85rem; font-weight: 700; color: #5D4037; text-transform: uppercase; letter-spacing: 1px;}
+.header-title { font-family: 'Playfair Display', serif; font-size: 1.8rem; color: #2C3E50; font-weight: 800; margin-top: 5px;}
+
+/* ================= READING PASSAGE ================= */
+.passage-title {
+  font-family: 'Playfair Display', serif; font-size: 1.4rem; color: #8E44AD;
+  margin-bottom: 12px; border-bottom: 2px dashed rgba(142,68,173,0.3); padding-bottom: 8px;
+}
+.paragraph-box { margin-bottom: 16px; font-size: 1.1rem; line-height: 1.7; color: #34495E; font-weight: 600;}
+.trans-btn {
+  background: rgba(255,255,255,0.4); border: 1px solid rgba(255,255,255,0.6);
+  border-radius: 12px; padding: 6px 12px; font-size: 0.85rem; font-weight: 700;
+  color: #2980B9; cursor: pointer; transition: all 0.2s; margin-top: 8px;
+}
+.trans-btn:hover { background: rgba(255,255,255,0.8); transform: translateY(-2px); }
+.trans-content {
+  display: none; background: rgba(236, 240, 241, 0.6); border-left: 4px solid #3498DB;
+  padding: 10px 14px; margin-top: 10px; border-radius: 0 10px 10px 0;
+  font-size: 1rem; color: #2C3E50; font-weight: 600;
+}
+.trans-content.show { display: block; animation: fadeIn 0.3s ease; }
+
+/* ================= GLOSSARY ================= */
+.glossary-table { width: 100%; border-collapse: collapse; margin-top: 15px; background: rgba(255,255,255,0.3); border-radius: 12px; overflow: hidden; }
+.glossary-table th { background: rgba(142,68,173,0.2); text-align: left; padding: 10px; font-weight: 800; color: #8E44AD; }
+.glossary-table td { padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.4); font-weight: 600; }
+.g-word { color: #2980B9; font-weight: 700; }
+.g-pos { color: #D35400; font-style: italic; font-size: 0.9rem; }
+
+/* ================= QUIZ UI ================= */
+.q-number {
+  display: inline-block; background: #8E44AD; color: #fff; width: 30px; height: 30px;
+  line-height: 30px; text-align: center; border-radius: 50%; font-weight: 800; margin-right: 8px;
+  box-shadow: 0 4px 10px rgba(142,68,173,0.3);
+}
+.q-text { font-size: 1.15rem; font-weight: 700; margin-bottom: 16px; display: flex; align-items: center;}
+.options-grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
+.opt-btn {
+  background: rgba(255,255,255,0.5); border: 2px solid rgba(255,255,255,0.7);
+  border-radius: 16px; padding: 14px 20px; font-size: 1.05rem; font-weight: 700; font-family: 'Nunito', sans-serif;
+  color: #2C3E50; cursor: pointer; transition: all 0.2s; text-align: left;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.05); position: relative; overflow: hidden;
+}
+.opt-btn:hover:not(:disabled) { background: rgba(255,255,255,0.8); transform: translateY(-3px); border-color: #8E44AD; }
+.opt-btn:active:not(:disabled) { transform: translateY(0); }
+.opt-btn:disabled { cursor: default; opacity: 0.8; }
+.opt-btn.correct {
+  background: #E8F8F5 !important; border-color: var(--correct) !important; color: #1E8449 !important;
+  box-shadow: 0 0 20px rgba(46, 204, 113, 0.4) !important;
+}
+.opt-btn.wrong {
+  background: #FDEDEC !important; border-color: var(--wrong) !important; color: #C0392B !important;
+  box-shadow: 0 0 20px rgba(231, 76, 60, 0.4) !important;
+}
+.opt-btn.reveal { background: #E8F8F5 !important; border-color: var(--correct) !important; border-style: dashed; }
+
+@keyframes shakeBtn {
+  0%,100%{transform:translateX(0);} 25%{transform:translateX(-8px);} 75%{transform:translateX(8px);}
+}
+.shake { animation: shakeBtn 0.3s ease; }
+
+/* ================= EXPLANATIONS ================= */
+.expl-box {
+  background: rgba(255,255,255,0.6); border-radius: 16px; padding: 20px; margin-top: 20px;
+  border-left: 5px solid #F39C12; display: none; font-size: 1.05rem; line-height: 1.6;
+}
+.expl-box.show { display: block; animation: fadeIn 0.4s ease; }
+@keyframes fadeIn { from{opacity:0; transform:translateY(-10px);} to{opacity:1; transform:translateY(0);} }
+.expl-title { font-family: 'Playfair Display', serif; color: #D35400; font-weight: 800; font-size: 1.1rem; margin-bottom: 12px;}
+.expl-step { margin-bottom: 12px; }
+
+/* THE MASTER COLOR SYSTEM */
+.p-word { color: #2980B9; font-weight: 800; }
+.p-mean { color: #D35400; font-weight: 700; }
+.p-grammar { color: #C0392B; font-weight: 800; text-decoration: underline; text-decoration-color: #E74C3C; text-decoration-style: solid; text-underline-offset: 3px;}
+.hl-green { color: #27AE60; font-weight: 800; }
+.hl-red { color: #C0392B; font-weight: 800; text-decoration: line-through; }
+
+/* ================= SUBMIT & MODALS ================= */
+.submit-btn {
+  display: block; width: 100%; padding: 18px; margin-top: 30px; border-radius: 50px;
+  background: linear-gradient(135deg, #FF9A9E 0%, #FECFEF 99%, #FECFEF 100%);
+  color: #fff; font-size: 1.2rem; font-weight: 800; font-family: 'Nunito', sans-serif;
+  border: none; cursor: pointer; box-shadow: 0 10px 20px rgba(255,154,158,0.4);
+  transition: all 0.3s; text-transform: uppercase; letter-spacing: 1px;
+}
+.submit-btn:hover { transform: translateY(-3px) scale(1.02); box-shadow: 0 15px 25px rgba(255,154,158,0.6); }
+
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px);
+  display: none; place-items: center; z-index: 1000;
+}
+.modal-overlay.active { display: grid; animation: fadeIn 0.3s ease; }
+.modal-content {
+  background: rgba(255,255,255,0.95); border-radius: 24px; padding: 40px 30px;
+  width: 90%; max-width: 400px; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+}
+.m-title { font-size: 1.5rem; color: #8E44AD; font-weight: 800; margin-bottom: 20px; }
+.m-input {
+  width: 100%; padding: 15px; border: 2px solid #D7BDE2; border-radius: 12px;
+  font-size: 1.1rem; font-family: 'Nunito', sans-serif; margin-bottom: 10px; outline: none;
+}
+.m-input:focus { border-color: #8E44AD; }
+.m-btn {
+  width: 100%; padding: 14px; background: #8E44AD; color: #fff; border: none;
+  border-radius: 12px; font-size: 1.1rem; font-weight: 800; cursor: pointer; margin-top: 10px;
+}
+.score-text { font-size: 3.5rem; font-weight: 800; color: #27AE60; margin: 15px 0; font-family: 'Playfair Display', serif;}
+.m-gif { width: 100%; border-radius: 16px; margin: 15px 0; box-shadow: 0 5px 15px rgba(0,0,0,0.1);}
+
+/* CONFETTI */
+#confetti { position: fixed; inset: 0; pointer-events: none; z-index: 999; }
+</style>
+</head>
+<body>
+
+<div id="passwordModal">
+  <div class="pw-card">
+    <span class="pw-crest">🔒</span>
+    <div class="pw-title">BẢO MẬT</div>
+    <div class="pw-sub">Vui lòng nhập mật khẩu để làm bài</div>
+    <input type="password" class="pw-input" id="pwInput" placeholder="Nhập mật khẩu..." autocomplete="off" />
+    <button class="pw-btn" onclick="checkPassword()">XÁC NHẬN</button>
+    <div class="pw-err" id="pwErr">Mật khẩu không đúng! Vui lòng thử lại.</div>
+  </div>
+</div>
+
+<script>
+// Mật khẩu: "cogangdatdiemcao"
+const _k  = [99, 111, 103, 97, 110, 103, 100, 97, 116, 100, 105, 101, 109, 99, 97, 111]; 
+const _pw = _k.map(c => String.fromCharCode(c)).join('');
+
+function checkPassword() {
+  const inp = document.getElementById('pwInput');
+  const err = document.getElementById('pwErr');
+  if (inp.value === _pw) {
+    document.getElementById('passwordModal').style.display = 'none';
+    document.getElementById('mainContent').style.display = 'flex';
+  } else {
+    inp.classList.remove('error'); void inp.offsetWidth; inp.classList.add('error');
+    err.style.display = 'block'; setTimeout(() => inp.classList.remove('error'), 500);
+  }
+}
+document.addEventListener('DOMContentLoaded', () => {
+  const pwInput = document.getElementById('pwInput');
+  if(pwInput) pwInput.addEventListener('keydown', e => { if (e.key==='Enter') checkPassword(); });
+});
+</script>
+
+<div id="mainContent" style="display:none;">
+  
+  <div id="bg-pattern">
+    <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <pattern id="emojiPat" x="0" y="0" width="200" height="200" patternUnits="userSpaceOnUse">
+          <text x="30" y="40" font-size="24" opacity="0.6">🌍</text>
+          <text x="120" y="80" font-size="28" opacity="0.5">✈️</text>
+          <text x="50" y="150" font-size="26" opacity="0.6">📚</text>
+          <text x="160" y="180" font-size="24" opacity="0.5">🏔️</text>
+          <text x="10" y="190" font-size="22" opacity="0.7">🐱</text>
+        </pattern>
+      </defs>
+      <rect width="100%" height="100%" fill="url(#emojiPat)" />
+    </svg>
+  </div>
+  <canvas id="confetti"></canvas>
+
+  <div class="split-pane left-pane" id="leftPane">
+    <header class="glass-card">
+      <div class="header-teacher">✨ Giáo viên tạo: Ms Mai An ULIS ✨</div>
+      <div class="header-title">Master Reading Skills</div>
+    </header>
+    <div id="readings-container"></div>
+  </div>
+
+  <div class="split-pane right-pane" id="rightPane">
+    <div id="quiz-container"></div>
+    <button class="submit-btn" onclick="openNameModal()">🎯 NỘP BÀI TÍNH ĐIỂM & XEM KẾT QUẢ</button>
+  </div>
+
+</div>
+
+<div class="modal-overlay" id="nameModal">
+  <div class="modal-content">
+    <div class="m-title">📝 Ghi Danh Bảng Vàng</div>
+    <input type="text" class="m-input" id="studentName" placeholder="Nhập tên của bạn..." maxlength="40" onkeydown="if(event.key==='Enter')submitQuiz()"/>
+    <div id="nameErr" style="color:red; font-size:0.9rem; margin-bottom:10px; display:none;">Vui lòng nhập tên!</div>
+    <button class="m-btn" onclick="submitQuiz()">Xác Nhận Nộp Bài</button>
+  </div>
+</div>
+
+<div class="modal-overlay" id="resultModal">
+  <div class="modal-content">
+    <div class="m-title" id="rGreeting"></div>
+    <div class="score-text" id="rScore"></div>
+    <img id="rGif" class="m-gif" src="" alt="Result GIF"/>
+    <div style="font-size:1.1rem; font-weight:700; color:#34495E; margin-bottom:15px;" id="rComment"></div>
+    <button class="m-btn" onclick="location.reload()">Làm Lại Lần Nữa 🔄</button>
+  </div>
+</div>
+
+<script>
+// ==================== DỮ LIỆU BÀI ĐỌC ====================
+const READINGS = [
+  {
+    id: "p1",
+    title: "SAPA TREKKING TOUR VIET NAM",
+    paragraphs: [
+      {
+        en: "A three-day walk of 20 kilometres a day through the mountains (13) ____ the north of VN. Enjoy some of (14) ____ scenery.",
+        vi: "Chuyến đi bộ ba ngày, 20 kilomet mỗi ngày qua những ngọn núi ở phía bắc Việt Nam. Thưởng thức một vài phong cảnh tuyệt đẹp."
+      },
+      {
+        en: "Stay with local people (15) ____ about their culture and (16) ____ local food. Price: $80/ person",
+        vi: "Ở lại với người dân địa phương để tìm hiểu về văn hóa của họ và thưởng thức ẩm thực địa phương. Giá: $80/ người."
+      }
+    ],
+    glossary: [
+      {w: "Trekking", p: "n", v: "Đi bộ đường dài dã ngoại"},
+      {w: "Mountain", p: "n", v: "Ngọn núi"},
+      {w: "Scenery", p: "n", v: "Phong cảnh, cảnh vật"},
+      {w: "Local", p: "adj", v: "Thuộc về địa phương"},
+      {w: "Culture", p: "n", v: "Văn hóa"},
+      {w: "Enjoy", p: "v", v: "Thưởng thức, tận hưởng"},
+      {w: "Stay", p: "v", v: "Ở lại, lưu trú"},
+      {w: "Food", p: "n", v: "Thức ăn, ẩm thực"},
+      {w: "Price", p: "n", v: "Giá cả"},
+      {w: "Walk", p: "n", v: "Chuyến đi bộ"}
+    ]
+  },
+  {
+    id: "p2",
+    title: "The Importance of Learning English",
+    paragraphs: [
+      {
+        en: "English is one of the most widely spoken languages in the world. Many people learn English because it is useful for travel, work, and communication. Learning English (19) ______ students more opportunities in the future.",
+        vi: "Tiếng Anh là một trong những ngôn ngữ được nói rộng rãi nhất trên thế giới. Nhiều người học tiếng Anh vì nó hữu ích cho việc đi lại, công việc và giao tiếp. Việc học tiếng Anh mang lại cho học sinh nhiều cơ hội hơn trong tương lai."
+      },
+      {
+        en: "There are many ways to improve English skills. Some people take classes, while others practice by watching English movies (20) ______ listening to English songs. Reading books and speaking with native speakers (21) ______ also good ways to learn.",
+        vi: "Có nhiều cách để cải thiện kỹ năng tiếng Anh. Một số người tham gia lớp học, trong khi những người khác luyện tập bằng cách xem phim tiếng Anh và nghe các bài hát tiếng Anh. Đọc sách và nói chuyện với người bản xứ cũng là những cách học tốt."
+      },
+      {
+        en: "Nowadays, technology makes learning English easier. There are many apps and websites that help learners practice grammar, vocabulary, and pronunciation. People can also join online courses (22) ______ they can study from anywhere in the world.",
+        vi: "Ngày nay, công nghệ giúp việc học tiếng Anh trở nên dễ dàng hơn. Có rất nhiều ứng dụng và trang web giúp người học thực hành ngữ pháp, từ vựng và phát âm. Mọi người cũng có thể tham gia các khóa học trực tuyến nơi mà họ có thể học từ bất cứ đâu trên thế giới."
+      },
+      {
+        en: "Learning a new language takes time and effort, but it (23) ______ be very rewarding. With English, people can connect with others and explore new cultures. If you work hard, you (24) ______ improve your English skills quickly.",
+        vi: "Học một ngôn ngữ mới đòi hỏi thời gian và sự nỗ lực, nhưng nó có thể rất bổ ích. Với tiếng Anh, mọi người có thể kết nối với người khác và khám phá những nền văn hóa mới. Nếu bạn chăm chỉ, bạn sẽ cải thiện kỹ năng tiếng Anh của mình một cách nhanh chóng."
+      }
+    ],
+    glossary: [
+      {w: "Widely", p: "adv", v: "Một cách rộng rãi"},
+      {w: "Communication", p: "n", v: "Sự giao tiếp"},
+      {w: "Opportunity", p: "n", v: "Cơ hội"},
+      {w: "Improve", p: "v", v: "Cải thiện, nâng cao"},
+      {w: "Native speaker", p: "n", v: "Người bản xứ"},
+      {w: "Pronunciation", p: "n", v: "Sự phát âm"},
+      {w: "Vocabulary", p: "n", v: "Từ vựng"},
+      {w: "Effort", p: "n", v: "Sự nỗ lực, cố gắng"},
+      {w: "Rewarding", p: "adj", v: "Đáng giá, bổ ích"},
+      {w: "Explore", p: "v", v: "Khám phá"}
+    ]
+  },
+  {
+    id: "p3",
+    title: "A Trip to Da Nang",
+    paragraphs: [
+      {
+        en: "Last weekend, Minh and his family visited Da Nang, one of the most beautiful and environmentally friendly cities in Vietnam. They were very impressed by the clean streets, modern buildings, and fresh air.",
+        vi: "Cuối tuần trước, Minh và gia đình đã đến thăm Đà Nẵng, một trong những thành phố đẹp và thân thiện với môi trường nhất ở Việt Nam. Họ rất ấn tượng bởi những con đường sạch sẽ, các tòa nhà hiện đại và không khí trong lành."
+      },
+      {
+        en: "On the first day, they visited My Khe Beach, where they swam and enjoyed delicious seafood. Minh was excited to see many people collecting trash to keep the beach clean. On the second day, they explored Ba Na Hills, a famous tourist attraction. Minh loved the Golden Bridge, which looks like two giant hands holding a golden path.",
+        vi: "Vào ngày đầu tiên, họ đã đến thăm Bãi biển Mỹ Khê, nơi họ bơi lội và thưởng thức hải sản thơm ngon. Minh rất hào hứng khi thấy nhiều người thu gom rác để giữ cho bãi biển sạch sẽ. Vào ngày thứ hai, họ khám phá Bà Nà Hills, một điểm thu hút khách du lịch nổi tiếng. Minh yêu thích Cầu Vàng, trông giống như hai bàn tay khổng lồ đang nâng một con đường vàng."
+      },
+      {
+        en: "The trip was not only fun but also educational. Minh learned about the importance of protecting the environment. He promised to save water, plant more trees, and encourage his friends to recycle.",
+        vi: "Chuyến đi không chỉ thú vị mà còn mang tính giáo dục. Minh đã học được về tầm quan trọng của việc bảo vệ môi trường. Cậu ấy hứa sẽ tiết kiệm nước, trồng thêm cây xanh và khuyến khích bạn bè tái chế."
+      }
+    ],
+    glossary: [
+      {w: "Environmentally friendly", p: "adj", v: "Thân thiện với môi trường"},
+      {w: "Impressed", p: "adj", v: "Bị ấn tượng"},
+      {w: "Delicious", p: "adj", v: "Thơm ngon"},
+      {w: "Collect", p: "v", v: "Thu thập, nhặt"},
+      {w: "Tourist attraction", p: "n", v: "Điểm thu hút khách du lịch"},
+      {w: "Giant", p: "adj", v: "Khổng lồ"},
+      {w: "Educational", p: "adj", v: "Mang tính giáo dục"},
+      {w: "Protect", p: "v", v: "Bảo vệ"},
+      {w: "Encourage", p: "v", v: "Khuyến khích, động viên"},
+      {w: "Recycle", p: "v", v: "Tái chế"}
+    ]
+  },
+  {
+    id: "p4",
+    title: "Geography of Canada",
+    paragraphs: [
+      {
+        en: "Canada lies north of the United States in North America. (37) _____. The Pacific, Atlantic, and Arctic oceans form the rest of its borders. Canada's largest natural region is a rocky, mostly flat area that covers the eastern, central, (38) _____. In the west, plains stretch from the Arctic Ocean to the U.S border, The Mackenzie, Canada's longest river, drains the northwest. West of the plains are the Canadian Rocky Mountains. (39) _____. In the south and southeast, the lowlands border the Great Lakes and Saint Lawrence River. The Appalachian Mountains run through the far east. Because of its size, (40) _____. Most regions have very cold and long winters. Temperatures are moderate along the Pacific coast.",
+        vi: "Canada nằm ở phía bắc Hoa Kỳ tại Bắc Mỹ. (37) _____. Thái Bình Dương, Đại Tây Dương và Bắc Băng Dương tạo thành phần còn lại của đường biên giới. Vùng tự nhiên lớn nhất của Canada là một khu vực nhiều đá, chủ yếu bằng phẳng bao phủ phần phía đông, trung tâm, (38) _____. Ở phía tây, các đồng bằng trải dài từ Bắc Băng Dương đến biên giới Hoa Kỳ, Sông Mackenzie, con sông dài nhất của Canada, chảy qua khu vực tây bắc. Phía tây của các đồng bằng là Dãy núi Rocky của Canada. (39) _____. Ở phía nam và đông nam, các vùng đất thấp giáp ranh với Ngũ Đại Hồ và Sông Saint Lawrence. Dãy núi Appalachian chạy qua vùng viễn đông. Do diện tích rộng lớn, (40) _____. Hầu hết các khu vực đều có mùa đông rất lạnh và kéo dài. Nhiệt độ ôn hòa dọc theo bờ biển Thái Bình Dương."
+      }
+    ],
+    glossary: [
+      {w: "Border", p: "n", v: "Đường biên giới"},
+      {w: "Natural", p: "adj", v: "Thuộc về tự nhiên"},
+      {w: "Region", p: "n", v: "Khu vực, vùng"},
+      {w: "Rocky", p: "adj", v: "Nhiều đá, lởm chởm"},
+      {w: "Flat", p: "adj", v: "Bằng phẳng"},
+      {w: "Stretch", p: "v", v: "Trải dài, kéo dài"},
+      {w: "Drain", p: "v", v: "Thoát nước, chảy qua"},
+      {w: "Plain", p: "n", v: "Đồng bằng"},
+      {w: "Variety", p: "n", v: "Sự đa dạng"},
+      {w: "Moderate", p: "adj", v: "Ôn hòa, vừa phải"}
+    ]
+  }
+];
+
+// ==================== DỮ LIỆU CÂU HỎI & GIẢI THÍCH ====================
+const QUESTIONS = [
+  // PASSAGE 1
+  { pid: "p1", id: 13, text: "A three-day walk of 20 kilometres a day through the mountains (13) ____ the north of VN.", 
+    options: ["on", "at", "during", "in"], ans: "in",
+    expl: `<div class='expl-step'>① Dịch câu hỏi: Đi qua những ngọn núi (13) ___ phía bắc của Việt Nam.</div>
+    <div class='expl-step'>② Phân tích 4 đáp án:<br>
+    <span class='hl-red'>A. on</span> ❌ Sai vì "on" dùng cho trên bề mặt.<br>
+    <span class='hl-red'>B. at</span> ❌ Sai vì "at" dùng cho địa điểm cụ thể nhỏ.<br>
+    <span class='hl-red'>C. during</span> ❌ Sai vì "during" là trong khoảng thời gian.<br>
+    <span class='hl-green'>D. in</span> ✅ Đúng. Ta có cấu trúc <span class='p-grammar'>in the north/south/east/west of + địa danh</span> (ở khu vực phía nào đó).</div>
+    <div class='expl-step'>③ Dẫn chứng: "...through the mountains <span class='hl-green'>in</span> the north of VN." 👉 Dịch: "...qua những ngọn núi <span class='hl-green'>ở</span> phía bắc Việt Nam."</div>`
+  },
+  { pid: "p1", id: 14, text: "Enjoy some of (14) ____ scenery.", 
+    options: ["beautiful", "scaring", "terrifying", "boring"], ans: "beautiful",
+    expl: `<div class='expl-step'>① Dịch câu hỏi: Thưởng thức một vài phong cảnh (14) ___.</div>
+    <div class='expl-step'>② Phân tích 4 đáp án:<br>
+    <span class='hl-green'>A. beautiful</span> (<span class='p-mean'>xinh đẹp</span>) ✅ Đúng vì tour du lịch thì phong cảnh phải đẹp để tận hưởng (enjoy).<br>
+    <span class='hl-red'>B. scaring</span> (<span class='p-mean'>đáng sợ</span>) ❌ Sai nghĩa.<br>
+    <span class='hl-red'>C. terrifying</span> (<span class='p-mean'>kinh hãi</span>) ❌ Sai nghĩa.<br>
+    <span class='hl-red'>D. boring</span> (<span class='p-mean'>nhàm chán</span>) ❌ Sai nghĩa.</div>`
+  },
+  { pid: "p1", id: 15, text: "Stay with local people (15) ____ about their culture...", 
+    options: ["learning", "learn", "to learn", "learnt"], ans: "to learn",
+    expl: `<div class='expl-step'>① Dịch câu hỏi: Ở cùng người dân địa phương (15) ___ về văn hóa của họ.</div>
+    <div class='expl-step'>② Phân tích:<br>
+    <span class='hl-green'>C. to learn</span> ✅ Đúng. Cấu trúc <span class='p-grammar'>to + V (nguyên thể)</span> được dùng để chỉ <span class='p-mean'>Mục đích (để làm gì)</span>.<br>
+    Các phương án <span class='hl-red'>learning, learn, learnt</span> ❌ Sai ngữ pháp trong ngữ cảnh chỉ mục đích.</div>
+    <div class='expl-step'>③ Dẫn chứng: "Stay with local people <span class='hl-green'>to learn</span> about their culture..." 👉 Dịch: "Ở cùng dân địa phương <span class='hl-green'>để học hỏi</span> về văn hóa của họ..."</div>`
+  },
+  { pid: "p1", id: 16, text: "...and (16) ____ local food.", 
+    options: ["enjoy", "go", "have", "exchange"], ans: "enjoy",
+    expl: `<div class='expl-step'>① Dịch câu hỏi: ...và (16) ___ thức ăn địa phương.</div>
+    <div class='expl-step'>② Phân tích:<br>
+    <span class='hl-green'>A. enjoy</span> (<span class='p-mean'>thưởng thức</span>) ✅ Đúng. Cụm từ quen thuộc <span class='p-word'>enjoy local food</span> (thưởng thức đặc sản/ẩm thực địa phương).<br>
+    <span class='hl-red'>B. go</span> (<span class='p-mean'>đi</span>) ❌ Sai nghĩa.<br>
+    <span class='hl-red'>C. have</span> (<span class='p-mean'>có/ăn</span>) ❌ Hợp lý nhưng "enjoy" mang sắc thái cảm xúc tốt hơn trong du lịch.<br>
+    <span class='hl-red'>D. exchange</span> (<span class='p-mean'>trao đổi</span>) ❌ Sai nghĩa.</div>`
+  },
+
+  // PASSAGE 2
+  { pid: "p2", id: 19, text: "Learning English (19) ______ students more opportunities in the future.", 
+    options: ["gives", "take", "makes", "helps"], ans: "gives",
+    expl: `<div class='expl-step'>① Dịch câu hỏi: Học tiếng Anh (19) ___ cho học sinh nhiều cơ hội hơn.</div>
+    <div class='expl-step'>② Phân tích 4 đáp án:<br>
+    <span class='hl-green'>A. gives</span> (<span class='p-mean'>mang lại, cho</span>) ✅ Đúng. Cấu trúc <span class='p-grammar'>give someone opportunities</span> (mang lại cho ai cơ hội). "Learning English" là chủ ngữ số ít nên thêm "s".<br>
+    <span class='hl-red'>B. take</span> (<span class='p-mean'>lấy đi</span>) ❌ Sai nghĩa và sai cả chia động từ (thiếu s).<br>
+    <span class='hl-red'>C. makes</span> (<span class='p-mean'>tạo ra</span>) ❌ Không dùng "make someone opportunities".<br>
+    <span class='hl-red'>D. helps</span> (<span class='p-mean'>giúp đỡ</span>) ❌ Sai cấu trúc (phải là help sb do sth).</div>`
+  },
+  { pid: "p2", id: 20, text: "...practice by watching English movies (20) ______ listening to English songs.", 
+    options: ["so", "but", "and", "or"], ans: "and",
+    expl: `<div class='expl-step'>① Dịch câu hỏi: ...luyện tập bằng cách xem phim tiếng Anh (20) ___ nghe bài hát tiếng Anh.</div>
+    <div class='expl-step'>② Phân tích:<br>
+    <span class='hl-red'>A. so</span> (<span class='p-mean'>vì vậy</span>) ❌ Chỉ nguyên nhân kết quả.<br>
+    <span class='hl-red'>B. but</span> (<span class='p-mean'>nhưng</span>) ❌ Chỉ sự đối lập.<br>
+    <span class='hl-green'>C. and</span> (<span class='p-mean'>và</span>) ✅ Đúng. Liên từ "and" nối hai hành động bổ sung cho nhau (xem phim VÀ nghe nhạc). (Lưu ý: "or" cũng có thể đúng ngữ pháp, nhưng "and" phổ biến và tự nhiên nhất để liệt kê các hoạt động).<br>
+    <span class='hl-red'>D. or</span> (<span class='p-mean'>hoặc</span>) ❌ Ít phù hợp nhất trong ngữ cảnh này.</div>`
+  },
+  { pid: "p2", id: 21, text: "Reading books and speaking with native speakers (21) ______ also good ways to learn.", 
+    options: ["are", "be", "is", "being"], ans: "are",
+    expl: `<div class='expl-step'>① Dịch câu hỏi: Đọc sách và nói chuyện với người bản xứ (21) ___ cũng là những cách tốt để học.</div>
+    <div class='expl-step'>② Phân tích ngữ pháp:<br>
+    Chủ ngữ là 2 danh động từ (V-ing) nối bằng "and": <span class='p-grammar'>Reading books AND speaking...</span> 👉 Đây là chủ ngữ số nhiều.<br>
+    Do đó, ta phải chia to-be ở số nhiều là <span class='hl-green'>are</span> (Đáp án A). Các đáp án <span class='hl-red'>is, be, being</span> đều sai ngữ pháp.</div>`
+  },
+  { pid: "p2", id: 22, text: "People can also join online courses (22) ______ they can study from anywhere in the world.", 
+    options: ["because", "where", "who", "when"], ans: "where",
+    expl: `<div class='expl-step'>① Dịch câu hỏi: Mọi người cũng có thể tham gia các khóa học trực tuyến (22) ___ họ có thể học từ bất cứ đâu.</div>
+    <div class='expl-step'>② Phân tích mệnh đề quan hệ:<br>
+    <span class='hl-red'>A. because</span> (<span class='p-mean'>bởi vì</span>) ❌ Sai logic.<br>
+    <span class='hl-green'>B. where</span> (<span class='p-mean'>nơi mà</span>) ✅ Đúng. Từ "where" thay thế cho danh từ chỉ nơi chốn/môi trường "online courses".<br>
+    <span class='hl-red'>C. who</span> (<span class='p-mean'>người mà</span>) ❌ Chỉ thay cho người.<br>
+    <span class='hl-red'>D. when</span> (<span class='p-mean'>khi mà</span>) ❌ Chỉ thay cho thời gian.</div>`
+  },
+  { pid: "p2", id: 23, text: "Learning a new language takes time and effort, but it (23) ______ be very rewarding.", 
+    options: ["can", "must", "should", "have to"], ans: "can",
+    expl: `<div class='expl-step'>① Dịch câu hỏi: Học ngôn ngữ mới tốn thời gian và nỗ lực, nhưng nó (23) ___ rất đáng giá.</div>
+    <div class='expl-step'>② Phân tích Modal Verbs:<br>
+    <span class='hl-green'>A. can</span> (<span class='p-mean'>có thể</span>) ✅ Đúng. Diễn tả một khả năng có thể xảy ra trong thực tế.<br>
+    <span class='hl-red'>B. must</span> (<span class='p-mean'>phải</span>) ❌ Sai (chỉ sự bắt buộc).<br>
+    <span class='hl-red'>C. should</span> (<span class='p-mean'>nên</span>) ❌ Sai (chỉ lời khuyên).<br>
+    <span class='hl-red'>D. have to</span> (<span class='p-mean'>phải</span>) ❌ Sai.</div>`
+  },
+  { pid: "p2", id: 24, text: "If you work hard, you (24) ______ improve your English skills quickly.", 
+    options: ["will", "is", "do", "did"], ans: "will",
+    expl: `<div class='expl-step'>① Dịch câu hỏi: Nếu bạn làm việc chăm chỉ, bạn (24) ___ cải thiện kỹ năng tiếng Anh nhanh chóng.</div>
+    <div class='expl-step'>② Phân tích Cấu trúc câu điều kiện:<br>
+    Đây là <span class='p-grammar'>Câu điều kiện loại 1 (Type 1)</span> diễn tả sự việc có thể xảy ra ở hiện tại hoặc tương lai.<br>
+    Cấu trúc: <span class='p-grammar'>If + S + V(hiện tại đơn), S + will + V(nguyên thể)</span>.<br>
+    Do đó, chọn <span class='hl-green'>A. will</span> ✅.</div>`
+  },
+
+  // PASSAGE 3
+  { pid: "p3", id: 31, text: "Question 31. What is the main idea of the passage?", 
+    options: [
+      "A trip to a green city", 
+      "Minh moved to Da Nang to study.", 
+      "Minh learned how to cook seafood in Da Nang.", 
+      "Minh and his family built a new bridge in Da Nang."
+    ], ans: "A trip to a green city",
+    expl: `<div class='expl-step'>① Dịch câu hỏi: Ý chính của đoạn văn là gì?</div>
+    <div class='expl-step'>② Phân tích:<br>
+    <span class='hl-green'>A. Một chuyến đi đến thành phố xanh</span> ✅ Đúng. Toàn bộ đoạn văn kể về chuyến du lịch của gia đình Minh đến Đà Nẵng, khen ngợi sự sạch sẽ và bài học bảo vệ môi trường.<br>
+    Các phương án <span class='hl-red'>B (Minh chuyển đến học), C (học nấu hải sản), D (xây cầu mới)</span> đều ❌ Sai sự thật (Not Given / False).</div>`
+  },
+  { pid: "p3", id: 32, text: "Question 32. Which word is CLOSEST in meaning to 'attraction' in the passage?", 
+    options: ["Problem", "Danger", "Tourist place", "Weather"], ans: "Tourist place",
+    expl: `<div class='expl-step'>① Dịch câu hỏi: Từ nào GẦN NGHĨA nhất với từ "attraction" (điểm thu hút)?</div>
+    <div class='expl-step'>② Phân tích:<br>
+    <span class='p-word'>Tourist attraction</span> có nghĩa là điểm tham quan, điểm thu hút khách du lịch.<br>
+    Do đó, đồng nghĩa với nó là <span class='hl-green'>C. Tourist place</span> (địa điểm du lịch) ✅.<br>
+    <span class='hl-red'>Problem (vấn đề), Danger (nguy hiểm), Weather (thời tiết)</span> ❌ đều sai.</div>`
+  },
+  { pid: "p3", id: 33, text: "Question 33. Which word is OPPOSITE in meaning to 'clean' in the passage?", 
+    options: ["Fresh", "Dirty", "Bright", "Green"], ans: "Dirty",
+    expl: `<div class='expl-step'>① Dịch câu hỏi: Từ nào TRÁI NGHĨA với "clean" (sạch sẽ)?</div>
+    <div class='expl-step'>② Phân tích:<br>
+    <span class='hl-green'>B. Dirty</span> (<span class='p-mean'>Bẩn thỉu</span>) ✅ Chính xác là từ trái nghĩa của Clean.<br>
+    <span class='hl-red'>Fresh (trong lành), Bright (sáng sủa), Green (xanh)</span> ❌ không phải từ trái nghĩa.</div>`
+  },
+  { pid: "p3", id: 34, text: "Question 34. Which of the following is NOT true according to the passage?", 
+    options: [
+      "Minh and his family visited Da Nang.", 
+      "Minh saw people cleaning the beach.", 
+      "Minh did not like the Golden Bridge.", 
+      "Minh learned to protect the environment."
+    ], ans: "Minh did not like the Golden Bridge.",
+    expl: `<div class='expl-step'>① Dịch câu hỏi: Điều nào sau đây KHÔNG ĐÚNG theo đoạn văn?</div>
+    <div class='expl-step'>② Phân tích & Dẫn chứng:<br>
+    <span class='hl-green'>C. Minh không thích Cầu Vàng.</span> ✅ Đây là nhận định SAI (đáp án cần tìm).<br>
+    🔍 Dẫn chứng trong bài: "Minh <span class='hl-red'>loved</span> the Golden Bridge..." 👉 Dịch: Minh <span class='hl-red'>rất yêu thích</span> Cầu Vàng. Điều này chứng tỏ câu C nói sai sự thật.</div>`
+  },
+  { pid: "p3", id: 35, text: "Question 35. What did Minh enjoy at My Khe Beach?", 
+    options: [
+      "Swimming and eating seafood.", 
+      "Playing football.", 
+      "Visiting Ba Na Hills.", 
+      "Studying marine animals."
+    ], ans: "Swimming and eating seafood.",
+    expl: `<div class='expl-step'>① Dịch câu hỏi: Minh đã tận hưởng điều gì ở Bãi biển Mỹ Khê?</div>
+    <div class='expl-step'>② Phân tích & Dẫn chứng:<br>
+    <span class='hl-green'>A. Bơi lội và ăn hải sản.</span> ✅ Đúng.<br>
+    🔍 Dẫn chứng: "...visited My Khe Beach, where they <span class='hl-green'>swam and enjoyed delicious seafood</span>." 👉 Dịch: "...đến bãi biển Mỹ Khê, nơi họ <span class='hl-green'>bơi và thưởng thức hải sản ngon</span>."</div>`
+  },
+  { pid: "p3", id: 36, text: "Question 36. What did Minh promise to do after the trip?", 
+    options: [
+      "Travel more often.", 
+      "Save water and encourage recycling.", 
+      "Move to Da Nang.", 
+      "Build a new bridge."
+    ], ans: "Save water and encourage recycling.",
+    expl: `<div class='expl-step'>① Dịch câu hỏi: Minh đã hứa làm gì sau chuyến đi?</div>
+    <div class='expl-step'>② Phân tích & Dẫn chứng:<br>
+    <span class='hl-green'>B. Tiết kiệm nước và khuyến khích tái chế.</span> ✅ Đúng.<br>
+    🔍 Dẫn chứng: "He <span class='hl-green'>promised to save water</span>, plant more trees, and <span class='hl-green'>encourage his friends to recycle</span>." 👉 Dịch: "Cậu ấy <span class='hl-green'>hứa sẽ tiết kiệm nước</span>... và <span class='hl-green'>khuyến khích bạn bè tái chế</span>."</div>`
+  },
+
+  // PASSAGE 4
+  { pid: "p4", id: 37, text: "Question 37. Canada lies north of the United States in North America. (37) _____.", 
+    options: [
+      "and northwestern parts of the country", 
+      "Canada has great variety in its climate", 
+      "Along the Pacific are the Coast Mountains.", 
+      "The US state of Alaska sits on its northwestern border"
+    ], ans: "The US state of Alaska sits on its northwestern border",
+    expl: `<div class='expl-step'>① Dịch ngữ cảnh: Canada nằm ở phía bắc nước Mỹ... Các đại dương tạo thành phần còn lại của đường biên giới.</div>
+    <div class='expl-step'>② Phân tích:<br>
+    Đoạn này đang nói về vị trí địa lý và các đường <span class='p-word'>biên giới (borders)</span> của Canada. <br>
+    <span class='hl-green'>D. Bang Alaska của Mỹ nằm trên đường biên giới Tây Bắc.</span> ✅ Đúng vì nó kết nối trực tiếp logic về biên giới trước khi nhắc đến các đại dương.</div>`
+  },
+  { pid: "p4", id: 38, text: "Question 38. Canada's largest natural region is a rocky, mostly flat area that covers the eastern, central, (38) _____.", 
+    options: [
+      "and northwestern parts of the country", 
+      "Canada has great variety in its climate", 
+      "Along the Pacific are the Coast Mountains.", 
+      "The US state of Alaska sits on its northwestern border"
+    ], ans: "and northwestern parts of the country",
+    expl: `<div class='expl-step'>① Dịch ngữ cảnh: Vùng tự nhiên lớn nhất của Canada bao phủ phần phía đông, trung tâm, (38) ___.</div>
+    <div class='expl-step'>② Phân tích:<br>
+    Ta thấy chuỗi liệt kê các phương hướng: <span class='p-grammar'>eastern, central, + [and + hướng khác]</span>.<br>
+    Chỉ có đáp án <span class='hl-green'>A. "and northwestern parts of the country" (và các khu vực phía tây bắc của đất nước)</span> là phù hợp ngữ pháp và logic liệt kê vùng miền. ✅</div>`
+  },
+  { pid: "p4", id: 39, text: "Question 39. West of the plains are the Canadian Rocky Mountains. (39) _____.", 
+    options: [
+      "and northwestern parts of the country", 
+      "Canada has great variety in its climate", 
+      "Along the Pacific are the Coast Mountains.", 
+      "The US state of Alaska sits on its northwestern border"
+    ], ans: "Along the Pacific are the Coast Mountains.",
+    expl: `<div class='expl-step'>① Dịch ngữ cảnh: Phía tây của đồng bằng là dãy Rocky. (39) ___. Ở phía nam là vùng đất thấp...</div>
+    <div class='expl-step'>② Phân tích:<br>
+    Tác giả đang miêu tả địa hình theo từng khu vực, cụ thể là các Dãy núi (Mountains).<br>
+    <span class='hl-green'>C. Dọc theo Thái Bình Dương là dãy núi Coast Mountains.</span> ✅ Đúng, khớp nối hoàn hảo bức tranh địa lý về các dãy núi ở phía Tây.</div>`
+  },
+  { pid: "p4", id: 40, text: "Question 40. Because of its size, (40) _____. Most regions have very cold and long winters.", 
+    options: [
+      "and northwestern parts of the country", 
+      "Canada has great variety in its climate", 
+      "Along the Pacific are the Coast Mountains.", 
+      "The US state of Alaska sits on its northwestern border"
+    ], ans: "Canada has great variety in its climate",
+    expl: `<div class='expl-step'>① Dịch ngữ cảnh: Bởi vì diện tích rộng lớn, (40) ___. Hầu hết các khu vực có mùa đông rất lạnh. Nhiệt độ ôn hòa ở bờ biển...</div>
+    <div class='expl-step'>② Phân tích:<br>
+    Câu ngay phía sau mô tả <span class='p-word'>mùa đông (winters)</span> và <span class='p-word'>nhiệt độ (temperatures)</span>, chứng tỏ đoạn này chuyển sang chủ đề <span class='p-mean'>Khí hậu</span>.<br>
+    <span class='hl-green'>B. Canada có sự đa dạng tuyệt vời về khí hậu của nó.</span> ✅ Đúng. Mệnh đề này làm câu chủ đề hoàn hảo cho sự mô tả khí hậu phía sau.</div>`
+  }
+];
+
+// ==================== HỆ THỐNG XỬ LÝ (JS) ====================
+let answeredCount = 0;
+let correctCount = 0;
+
+function shuffle(array) {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+  return array;
+}
+
+// 1. Render Left Pane (Readings & Glossary)
+const leftPane = document.getElementById("readings-container");
+READINGS.forEach((read, index) => {
+  let pHTML = '';
+  read.paragraphs.forEach((p, i) => {
+    pHTML += `
+      <div class="paragraph-box">
+        ${p.en}
+        <button class="trans-btn" onclick="toggleTrans('${read.id}_p${i}')">Mở dịch đoạn này 🌟</button>
+        <div class="trans-content" id="${read.id}_p${i}">${p.vi}</div>
+      </div>
+    `;
+  });
+
+  let gHTML = `<table class="glossary-table">
+    <tr><th>Vocabulary (Từ vựng)</th><th>Type</th><th>Meaning (Nghĩa)</th></tr>`;
+  read.glossary.forEach(g => {
+    gHTML += `<tr><td class="g-word">${g.w}</td><td class="g-pos">${g.p}</td><td>${g.v}</td></tr>`;
+  });
+  gHTML += `</table>`;
+
+  leftPane.innerHTML += `
+    <div class="glass-card" id="card-${read.id}">
+      <div class="passage-title">Passage ${index + 1}: ${read.title}</div>
+      ${pHTML}
+      <div class="passage-title" style="margin-top:20px; font-size:1.2rem;">📚 Smart Glossary</div>
+      ${gHTML}
+    </div>
+  `;
+});
+
+function toggleTrans(id) {
+  const el = document.getElementById(id);
+  el.classList.toggle("show");
+}
+
+// 2. Render Right Pane (Quiz)
+const rightPane = document.getElementById("quiz-container");
+QUESTIONS.forEach((q, i) => {
+  let shuffledOpts = shuffle([...q.options]);
+  let optsHTML = '';
+  shuffledOpts.forEach(opt => {
+    optsHTML += `<button class="opt-btn" onclick="checkAns(this, '${q.id}', \`${opt}\`, \`${q.ans}\`)">${opt}</button>`;
+  });
+
+  rightPane.innerHTML += `
+    <div class="glass-card">
+      <div class="q-text"><span class="q-number">${q.id}</span> ${q.text}</div>
+      <div class="options-grid" id="qgrid-${q.id}">${optsHTML}</div>
+      <div class="expl-box" id="expl-${q.id}">
+        <div class="expl-title">✨ GIẢI THÍCH CHI TIẾT TỪ MS MAI AN ✨</div>
+        ${q.expl}
+      </div>
+    </div>
+  `;
+});
+
+// 3. Xử lý Trả lời & Âm thanh
+const AudioContext = window.AudioContext || window.webkitAudioContext;
+const audioCtx = new AudioContext();
+
+function playTone(frequency, type, duration) {
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+  const oscillator = audioCtx.createOscillator();
+  const gainNode = audioCtx.createGain();
+  oscillator.type = type;
+  oscillator.frequency.setValueAtTime(frequency, audioCtx.currentTime);
+  gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+  gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+  oscillator.connect(gainNode);
+  gainNode.connect(audioCtx.destination);
+  oscillator.start();
+  oscillator.stop(audioCtx.currentTime + duration);
+}
+
+function checkAns(btn, qid, selected, correct) {
+  const grid = document.getElementById(`qgrid-${qid}`);
+  const buttons = grid.querySelectorAll('button');
+  
+  // Disable all buttons in this grid
+  buttons.forEach(b => b.disabled = true);
+  answeredCount++;
+
+  if (selected === correct) {
+    btn.classList.add("correct");
+    correctCount++;
+    playTone(800, 'sine', 0.1); setTimeout(()=>playTone(1200, 'sine', 0.2), 100); // Ding
+    shootConfetti();
+  } else {
+    btn.classList.add("wrong", "shake");
+    playTone(300, 'sawtooth', 0.15); setTimeout(()=>playTone(200, 'sawtooth', 0.2), 150); // Ting ting
+    // Highlight correct answer
+    buttons.forEach(b => {
+      if(b.textContent === correct) b.classList.add("reveal");
+    });
+  }
+
+  // Show explanation
+  document.getElementById(`expl-${qid}`).classList.add("show");
+}
+
+// 4. Confetti (Pháo hoa)
+const canvas = document.getElementById("confetti");
+const ctx = canvas.getContext("2d");
+let particles = [];
+
+function resize() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+window.addEventListener('resize', resize);
+resize();
+
+function shootConfetti() {
+  const colors = ['#fce18a', '#ff726d', '#b48def', '#f4306d'];
+  for(let i=0; i<30; i++){
+    particles.push({
+      x: window.innerWidth/2, y: window.innerHeight/2,
+      vx: (Math.random()-0.5)*20, vy: (Math.random()-0.5)*20 - 5,
+      size: Math.random()*10 + 5,
+      color: colors[Math.floor(Math.random()*colors.length)],
+      life: 1
+    });
+  }
+  if(particles.length <= 30) loopConfetti();
+}
+
+function loopConfetti() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  particles.forEach((p, i) => {
+    p.x += p.vx; p.y += p.vy; p.vy += 0.5; p.life -= 0.02;
+    ctx.fillStyle = p.color;
+    ctx.globalAlpha = p.life;
+    ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI*2); ctx.fill();
+    if(p.life <= 0) particles.splice(i, 1);
+  });
+  if(particles.length > 0) requestAnimationFrame(loopConfetti);
+  else ctx.clearRect(0,0, canvas.width, canvas.height);
+}
+
+// 5. Nộp bài
+function openNameModal() {
+  document.getElementById("nameModal").classList.add("active");
+  document.getElementById("studentName").focus();
+}
+
+function submitQuiz() {
+  const name = document.getElementById("studentName").value.trim();
+  if(!name) {
+    document.getElementById("nameErr").style.display = "block";
+    return;
+  }
+  document.getElementById("nameModal").classList.remove("active");
+  showResult(name);
+}
+
+function showResult(name) {
+  const modal = document.getElementById("resultModal");
+  const greeting = document.getElementById("rGreeting");
+  const scoreBox = document.getElementById("rScore");
+  const gif = document.getElementById("rGif");
+  const comment = document.getElementById("rComment");
+
+  const total = QUESTIONS.length;
+  const pct = (correctCount / total) * 100;
+
+  greeting.innerHTML = `🎉 BẢNG VÀNG THÀNH TÍCH 🎉<br><span style="color:#2C3E50; font-size:1.2rem;">Học sinh: ${name}</span>`;
+  scoreBox.innerText = `${correctCount} / ${total}`;
+
+  if (pct === 100) {
+    comment.innerText = "Tuyệt đỉnh! Trí tuệ của con là vô giá! 🌟";
+    gif.src = "https://media.giphy.com/media/xT0xezQGU5xCDJuCPe/giphy.gif"; // Thiên tài
+    shootConfetti(); shootConfetti(); shootConfetti();
+  } else if (pct >= 60) {
+    comment.innerText = "Rất nỗ lực! Ms Mai An rất tự hào về con! 🔥";
+    gif.src = "https://media.giphy.com/media/l41lZxzroU33typuU/giphy.gif"; // High five
+  } else {
+    comment.innerText = "Đừng buồn, xem lại kỹ phần giải thích và phục thù nhé! 💪";
+    gif.src = "https://media.giphy.com/media/2UIcmK4pn7rYNLRboG/giphy.gif"; // Cố lên
+  }
+
+  modal.classList.add("active");
+}
+</script>
+
+</body>
+</html> 

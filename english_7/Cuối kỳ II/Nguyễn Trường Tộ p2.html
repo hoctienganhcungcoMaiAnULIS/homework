@@ -1,0 +1,993 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reading Gamification - Ms Mai An ULIS</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;800&display=swap');
+
+        :root {
+            --glass-bg: rgba(255, 255, 255, 0.6);
+            --glass-border: rgba(255, 255, 255, 0.8);
+            --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+            --primary: #845ec2;
+            --success: #00c9a7;
+            --danger: #ff9671;
+            --text: #2c3e50;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Nunito', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(-45deg, #ff9a9e, #fecfef, #a18cd1, #fbc2eb);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            color: var(--text);
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Floating Pattern SVG */
+        .floating-bg {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: -1;
+            overflow: hidden;
+        }
+        .emoji-float {
+            position: absolute;
+            font-size: 4rem;
+            animation: float 8s ease-in-out infinite alternate;
+            opacity: 0.4;
+            filter: blur(1px);
+        }
+        @keyframes float {
+            0% { transform: translateY(0px) rotate(0deg); }
+            100% { transform: translateY(-50px) rotate(15deg); }
+        }
+
+        /* GIAO DIỆN MÀN HÌNH KHÓA (Đã được làm lại theo phong cách Pastel Glassmorphism) */
+        #passwordModal {
+            position: fixed; inset: 0; z-index: 9999;
+            display: flex; align-items: center; justify-content: center;
+            background: rgba(255, 255, 255, 0.3); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
+        }
+        .pw-card {
+            background: rgba(255, 255, 255, 0.85);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px; padding: 48px 40px 40px; 
+            max-width: 440px; width: 93%; text-align: center; position: relative; overflow: hidden;
+            box-shadow: var(--glass-shadow);
+        }
+        .pw-card::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 5px;
+            background: linear-gradient(90deg, #ff9a9e, #a18cd1, #fbc2eb);
+        }
+        .pw-crest { font-size: 4rem; margin-bottom: 8px; display: block; }
+        .pw-title { font-size: 1.6rem; font-weight: 800; color: var(--primary); margin-bottom: 6px; letter-spacing: 1px; }
+        .pw-sub { font-size: .95rem; color: #4a4e69; margin-bottom: 24px; }
+        .pw-input {
+            width: 100%; padding: 13px 20px; border-radius: 12px;
+            border: 1.5px solid #a18cd1; background: rgba(255, 255, 255, 0.9);
+            color: var(--text); font-size: 1rem;
+            outline: none; letter-spacing: 2px; text-align: center; transition: all .3s;
+        }
+        .pw-input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(132, 94, 194, 0.2); }
+        .pw-input.error { border-color: var(--danger); box-shadow: 0 0 0 3px rgba(255, 150, 113, 0.25); animation: shake .4s ease; }
+        .pw-input::placeholder { color: #a0aab5; letter-spacing: 1px; }
+        .pw-btn {
+            width: 100%; padding: 14px; margin-top: 14px; border-radius: 12px; border: none;
+            background: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%);
+            color: #fff; font-size: 1.1rem; font-weight: 800;
+            cursor: pointer; letter-spacing: .5px; transition: transform .2s;
+            box-shadow: 0 4px 10px rgba(161, 140, 209, 0.4);
+        }
+        .pw-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(161, 140, 209, 0.6); }
+        .pw-err { color: #ff6b6b; font-size: .9rem; margin-top: 10px; display: none; font-weight: 700; }
+
+        @keyframes shake { 
+            0%, 100% { transform: translateX(0) } 
+            15%, 45%, 75% { transform: translateX(-6px) } 
+            30%, 60%, 90% { transform: translateX(6px) } 
+        }
+
+        /* Layout Split Screen */
+        #mainContent {
+            display: none; /* Ẩn giao diện chính lúc đầu */
+            flex-direction: column;
+            width: 100%; height: 100%;
+        }
+
+        /* Header */
+        header {
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.4);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--glass-border);
+            text-align: center;
+            z-index: 10;
+        }
+        header h1 {
+            font-size: 1.2rem;
+            color: #4a4e69;
+            font-weight: 800;
+        }
+
+        .main-container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+            gap: 20px;
+            padding: 20px;
+        }
+
+        .panel {
+            flex: 1;
+            background: var(--glass-bg);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            box-shadow: var(--glass-shadow);
+            padding: 25px;
+            overflow-y: auto;
+            scroll-behavior: smooth;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: rgba(255,255,255,0.2); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.8); border-radius: 10px; }
+
+        /* Typography & Paragraphs */
+        .passage-title {
+            text-align: center;
+            font-size: 1.5rem;
+            color: var(--primary);
+            margin-bottom: 15px;
+            font-weight: 800;
+        }
+        .paragraph-box {
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px dashed rgba(0,0,0,0.1);
+        }
+        .english-text {
+            font-size: 1.15rem;
+            line-height: 1.8;
+            margin-bottom: 10px;
+            text-align: justify;
+        }
+        .translate-btn {
+            background: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%);
+            border: none;
+            padding: 8px 15px;
+            border-radius: 20px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 10px rgba(161, 140, 209, 0.4);
+            font-size: 0.9rem;
+        }
+        .translate-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 15px rgba(161, 140, 209, 0.6);
+        }
+        .vietnamese-text {
+            display: none;
+            background: rgba(255,255,255,0.7);
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 10px;
+            font-size: 1.05rem;
+            color: #444;
+            border-left: 4px solid var(--primary);
+            line-height: 1.6;
+        }
+
+        /* Glossary Table */
+        .glossary-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: rgba(255,255,255,0.5);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .glossary-table th, .glossary-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+        }
+        .glossary-table th {
+            background: var(--primary);
+            color: white;
+        }
+
+        /* Questions */
+        .question-card {
+            background: rgba(255,255,255,0.7);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            border: 1px solid white;
+        }
+        .question-text {
+            font-size: 1.2rem;
+            font-weight: 800;
+            margin-bottom: 15px;
+        }
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+        }
+        .option-btn {
+            background: white;
+            border: 2px solid transparent;
+            padding: 12px 20px;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        .option-btn:hover {
+            border-color: var(--primary);
+            transform: translateX(5px);
+        }
+        .option-btn.correct {
+            background: var(--success);
+            color: white;
+            border-color: var(--success);
+            font-weight: bold;
+        }
+        .option-btn.wrong {
+            background: var(--danger);
+            color: white;
+            border-color: var(--danger);
+        }
+
+        /* Explanations (MASTER REQUIREMENT) */
+        .explanation-box {
+            display: none;
+            margin-top: 15px;
+            padding: 15px;
+            background: #fdfbfb;
+            border: 2px dashed #d1d8e0;
+            border-radius: 12px;
+            font-size: 1.05rem;
+            line-height: 1.7;
+        }
+        .p-word { color: #0056b3; font-weight: bold; }
+        .p-mean { color: #cc5500; font-style: italic; }
+        .p-grammar { color: #d32f2f; text-decoration: underline; font-weight: bold; }
+        .hl-green { color: #2e7d32; font-weight: bold; }
+        .hl-red { color: #c62828; text-decoration: line-through; }
+
+        .evidence-quote {
+            background: #fff3cd;
+            padding: 10px;
+            border-left: 4px solid #ffc107;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+
+        /* Submit Area */
+        .submit-area {
+            text-align: center;
+            margin-top: 30px;
+            padding-bottom: 20px;
+        }
+        .submit-btn {
+            background: linear-gradient(135deg, #00c9a7 0%, #00a88a 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.3rem;
+            font-weight: 800;
+            border-radius: 30px;
+            cursor: pointer;
+            box-shadow: 0 8px 20px rgba(0, 201, 167, 0.4);
+            transition: all 0.3s;
+        }
+        .submit-btn:hover {
+            transform: scale(1.05) translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0, 201, 167, 0.6);
+        }
+
+        /* Modal Score */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6);
+            display: none; justify-content: center; align-items: center;
+            z-index: 100;
+            backdrop-filter: blur(5px);
+        }
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+            animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        @keyframes popIn {
+            0% { transform: scale(0.8); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .modal-content input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            margin: 15px 0;
+            font-size: 1.1rem;
+            outline: none;
+        }
+        .modal-content input:focus { border-color: var(--primary); }
+        .modal-content img {
+            width: 100%;
+            border-radius: 15px;
+            margin-top: 15px;
+        }
+
+        /* Confetti Canvas */
+        #confetti {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; z-index: 99;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="floating-bg">
+        <div class="emoji-float" style="top: 10%; left: 10%; animation-delay: 0s;">💡</div>
+        <div class="emoji-float" style="top: 70%; left: 80%; animation-delay: 1s;">🌍</div>
+        <div class="emoji-float" style="top: 20%; left: 85%; animation-delay: 2s;">🚀</div>
+        <div class="emoji-float" style="top: 80%; left: 15%; animation-delay: 3s;">🚄</div>
+        <div class="emoji-float" style="top: 40%; left: 50%; animation-delay: 4s;">⚡</div>
+    </div>
+
+    <div id="passwordModal">
+      <div class="pw-card">
+        <span class="pw-crest">🔒</span>
+        <div class="pw-title">VÀO PHÒNG THI</div>
+        <div class="pw-sub">Vui lòng nhập mã bảo mật để làm bài</div>
+        <input type="password" class="pw-input" id="pwInput" placeholder="Nhập mã..." autocomplete="off" />
+        <button class="pw-btn" onclick="checkPassword()">XÁC NHẬN</button>
+        <div class="pw-err" id="pwErr">Mã không đúng! Vui lòng thử lại.</div>
+      </div>
+    </div>
+
+    <div id="mainContent">
+        <header>
+            <h1>Giáo viên tạo: Ms Mai An ULIS</h1>
+        </header>
+
+        <div class="main-container">
+            <div class="panel left-panel">
+                <h2 class="passage-title">PASSAGE 1: ENERGY CONSERVATION</h2>
+                
+                <div class="paragraph-box">
+                    <div class="english-text">
+                        In Western countries, electricity, gas, and water are not (21) ________ but necessities. Companies now realize that consumers want (22) ________ that will not only work effectively, (23) ________ save money.
+                    </div>
+                    <button class="translate-btn" onclick="toggleTranslation(this)">Mở dịch đoạn này 🌟</button>
+                    <div class="vietnamese-text">
+                        Ở các nước phương Tây, điện, gas và nước không phải là những thứ xa xỉ mà là những nhu yếu phẩm. Các công ty hiện nay nhận ra rằng người tiêu dùng muốn những sản phẩm không những hoạt động hiệu quả mà còn tiết kiệm tiền.
+                    </div>
+                </div>
+
+                <div class="paragraph-box">
+                    <div class="english-text">
+                        For most North American households, lighting (24) ________ for 10 percent to 15 percent of the electricity bill. However, this amount can be reduced by replacing an ordinary 100-watt light bulb with an energy-saving bulb. These bulbs use a quarter of the electricity of standard bulbs and last eight times longer.
+                    </div>
+                    <button class="translate-btn" onclick="toggleTranslation(this)">Mở dịch đoạn này 🌟</button>
+                    <div class="vietnamese-text">
+                        Đối với hầu hết các hộ gia đình ở Bắc Mỹ, việc thắp sáng chiếm từ 10% đến 15% hóa đơn tiền điện. Tuy nhiên, lượng điện này có thể được giảm bớt bằng cách thay thế một bóng đèn 100 watt thông thường bằng một bóng đèn tiết kiệm năng lượng. Những bóng đèn này sử dụng một phần tư lượng điện so với bóng đèn tiêu chuẩn và có tuổi thọ cao gấp tám lần.
+                    </div>
+                </div>
+
+                <div class="paragraph-box">
+                    <div class="english-text">
+                        Therefore, consumers can save about US$7 to US$21 per bulb. In Europe, there is a labeling scheme for refrigerators, freezers, washing machines and tumble dryers. The label tells the consumers how much energy efficiency each model has, compared (25) ________ other appliances in the same category. Ultimately, these innovations will save money as well as conserve the Earth's resources.
+                    </div>
+                    <button class="translate-btn" onclick="toggleTranslation(this)">Mở dịch đoạn này 🌟</button>
+                    <div class="vietnamese-text">
+                        Vì vậy, người tiêu dùng có thể tiết kiệm khoảng từ 7 đến 21 đô la Mỹ cho mỗi bóng đèn. Ở châu Âu, có một chương trình dán nhãn cho tủ lạnh, tủ đông, máy giặt và máy sấy quần áo. Nhãn này cho người tiêu dùng biết mỗi mẫu máy có hiệu suất năng lượng ra sao, so với các thiết bị khác trong cùng danh mục. Cuối cùng, những đổi mới này sẽ tiết kiệm tiền cũng như bảo tồn các tài nguyên của Trái Đất.
+                    </div>
+                </div>
+
+                <hr style="border: 1px solid rgba(0,0,0,0.1); margin: 30px 0;">
+
+                <h2 class="passage-title">PASSAGE 2: ET3 TECHNOLOGY</h2>
+
+                <div class="paragraph-box">
+                    <div class="english-text">
+                        Right now, a private company is developing something called ET3. ET3 stands for Evacuated Tube Transport Technology.
+                    </div>
+                    <button class="translate-btn" onclick="toggleTranslation(this)">Mở dịch đoạn này 🌟</button>
+                    <div class="vietnamese-text">
+                        Hiện tại, một công ty tư nhân đang phát triển một thứ gọi là ET3. ET3 là viết tắt của Công nghệ Vận tải Ống Chân không.
+                    </div>
+                </div>
+
+                <div class="paragraph-box">
+                    <div class="english-text">
+                        The ET3 system would reportedly be able to take passengers from New York to Beijing in just two hours. Here is how it works. A vacuum tube goes all the way from New York to Beijing. The tube is only a few meters wide. Capsules move through the tube. Six people can sit in one capsule. The capsules use electricity instead of gasoline. For international travel, the capsules can travel at about 6,500 kilometers per hour. That is much faster than an airplane!
+                    </div>
+                    <button class="translate-btn" onclick="toggleTranslation(this)">Mở dịch đoạn này 🌟</button>
+                    <div class="vietnamese-text">
+                        Hệ thống ET3 theo báo cáo sẽ có thể đưa hành khách từ New York đến Bắc Kinh chỉ trong hai giờ. Đây là cách nó hoạt động. Một đường ống chân không kéo dài từ New York đến Bắc Kinh. Đường ống chỉ rộng vài mét. Các khoang hành khách di chuyển qua đường ống. Sáu người có thể ngồi trong một khoang. Các khoang sử dụng điện thay vì xăng. Đối với các chuyến du lịch quốc tế, khoang có thể di chuyển với tốc độ khoảng 6.500 km/h. Tốc độ đó nhanh hơn rất nhiều so với máy bay!
+                    </div>
+                </div>
+
+                <div class="paragraph-box">
+                    <div class="english-text">
+                        So how can these capsules travel so fast? The answer is that there is no air inside the tube. When airplanes fly, they have to move through the air. The air resistance slows the airplanes down. Because there is no air in the ET3 tubes, the capsules are able to move at a very high speed. Besides, the capsules are quite light. They only weigh 183 kilograms.
+                    </div>
+                    <button class="translate-btn" onclick="toggleTranslation(this)">Mở dịch đoạn này 🌟</button>
+                    <div class="vietnamese-text">
+                        Vậy làm thế nào những khoang này có thể đi nhanh như vậy? Câu trả lời là không có không khí bên trong ống. Khi máy bay bay, chúng phải di chuyển qua không khí. Lực cản của không khí làm máy bay chậm lại. Vì không có không khí trong các ống ET3, các khoang có thể di chuyển ở tốc độ rất cao. Bên cạnh đó, các khoang cũng khá nhẹ. Chúng chỉ nặng 183 kg.
+                    </div>
+                </div>
+
+                <div class="paragraph-box">
+                    <div class="english-text">
+                        Of course, ET3 doesn't exist yet. Developers still have to solve a lot of problems. The biggest problem is that right now, ET3 would be far too expensive. In order to make ET3 cheaper, we will need much better technology. Maybe someday, you will be able to have lunch in New York and dinner in Beijing.
+                    </div>
+                    <button class="translate-btn" onclick="toggleTranslation(this)">Mở dịch đoạn này 🌟</button>
+                    <div class="vietnamese-text">
+                        Tất nhiên, ET3 vẫn chưa tồn tại. Các nhà phát triển vẫn phải giải quyết rất nhiều vấn đề. Vấn đề lớn nhất là hiện tại, ET3 sẽ quá đắt đỏ. Để làm cho ET3 rẻ hơn, chúng ta sẽ cần công nghệ tốt hơn rất nhiều. Có lẽ một ngày nào đó, bạn sẽ có thể ăn trưa ở New York và ăn tối ở Bắc Kinh.
+                    </div>
+                </div>
+
+                <h3 style="color: var(--primary); margin-top: 20px;">📚 Bảng Từ Vựng (Glossary)</h3>
+                <table class="glossary-table">
+                    <thead>
+                        <tr><th>Từ vựng</th><th>Loại từ</th><th>Nghĩa tiếng Việt</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td><span class="p-word">Necessity</span></td><td>(n)</td><td><span class="p-mean">Nhu yếu phẩm, thứ thiết yếu</span></td></tr>
+                        <tr><td><span class="p-word">Effectively</span></td><td>(adv)</td><td><span class="p-mean">Một cách hiệu quả</span></td></tr>
+                        <tr><td><span class="p-word">Ordinary</span></td><td>(adj)</td><td><span class="p-mean">Bình thường, thông thường</span></td></tr>
+                        <tr><td><span class="p-word">Efficiency</span></td><td>(n)</td><td><span class="p-mean">Hiệu suất, năng suất</span></td></tr>
+                        <tr><td><span class="p-word">Conserve</span></td><td>(v)</td><td><span class="p-mean">Bảo tồn, giữ gìn</span></td></tr>
+                        <tr><td><span class="p-word">Innovation</span></td><td>(n)</td><td><span class="p-mean">Sự đổi mới, sáng kiến</span></td></tr>
+                        <tr><td><span class="p-word">Evacuated</span></td><td>(adj)</td><td><span class="p-mean">Được hút chân không</span></td></tr>
+                        <tr><td><span class="p-word">Capsule</span></td><td>(n)</td><td><span class="p-mean">Khoang chứa, buồng nhỏ</span></td></tr>
+                        <tr><td><span class="p-word">Resistance</span></td><td>(n)</td><td><span class="p-mean">Lực cản, sức trở</span></td></tr>
+                        <tr><td><span class="p-word">Developer</span></td><td>(n)</td><td><span class="p-mean">Nhà phát triển</span></td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="panel right-panel" id="quiz-container">
+                <div class="submit-area">
+                    <button class="submit-btn" onclick="openSubmitModal()">🎯 NỘP BÀI TÍNH ĐIỂM & XEM KẾT QUẢ</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="submitModal">
+        <div class="modal-content">
+            <h2 style="color: var(--primary);">Nộp Bài Của Bạn</h2>
+            <p style="margin-top: 10px;">Nhập tên của con để Ms Mai An chấm điểm nhé!</p>
+            <input type="text" id="studentName" placeholder="Tên học sinh...">
+            <button class="submit-btn" style="padding: 10px 20px; font-size: 1rem;" onclick="showResult()">Xem Kết Quả</button>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="resultModal">
+        <div class="modal-content" id="resultContent">
+            </div>
+    </div>
+
+    <canvas id="confetti"></canvas>
+
+    <script>
+        // ----- LOGIC XỬ LÝ MÀN HÌNH KHÓA -----
+        const _k  = [99, 111, 103, 97, 110, 103, 100, 97, 116, 100, 105, 101, 109, 99, 97, 111]; 
+        const _pw = _k.map(c => String.fromCharCode(c)).join('');
+
+        function checkPassword() {
+            const inp = document.getElementById('pwInput');
+            const err = document.getElementById('pwErr');
+            if (inp.value === _pw) {
+                document.getElementById('passwordModal').style.display = 'none';
+                const main = document.getElementById('mainContent');
+                if(main) main.style.display = 'flex'; // Hiển thị giao diện bài thi
+            } else {
+                inp.classList.remove('error'); void inp.offsetWidth; inp.classList.add('error');
+                err.style.display = 'block'; setTimeout(() => inp.classList.remove('error'), 500);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const pwInput = document.getElementById('pwInput');
+            if(pwInput) pwInput.addEventListener('keydown', e => { if (e.key==='Enter') checkPassword(); });
+            renderQuestions(); // Render câu hỏi ngay từ đầu để sẵn sàng
+        });
+
+
+        // ----- DỮ LIỆU CÂU HỎI & GIẢI THÍCH CHI TIẾT -----
+        const questions = [
+            {
+                id: 21,
+                text: "Question 21: electricity, gas, and water are not (21) ________ but necessities.",
+                options: [
+                    { text: "coming", isCorrect: false },
+                    { text: "launching", isCorrect: false },
+                    { text: "peaking", isCorrect: false },
+                    { text: "luxuries", isCorrect: true }
+                ],
+                explanation: `
+                    <b>Dịch câu hỏi:</b> Chọn từ điền vào chỗ trống: Điện, gas và nước không phải là... mà là nhu yếu phẩm.<br><br>
+                    <b>Phân tích 4 đáp án:</b><br>
+                    • coming (đang đến) <span class='hl-red'>❌ Sai nghĩa.</span><br>
+                    • launching (ra mắt) <span class='hl-red'>❌ Sai nghĩa.</span><br>
+                    • peaking (đạt đỉnh) <span class='hl-red'>❌ Sai nghĩa.</span><br>
+                    • luxuries (những thứ xa xỉ) <span class='hl-green'>✅ Đúng.</span><br><br>
+                    <b>Giải thích chi tiết:</b> Cấu trúc <span class='p-grammar'>not... but... (không phải... mà là...)</span>. "<span class='p-word'>necessities</span>" có nghĩa là <span class='p-mean'>nhu yếu phẩm</span>. Trái nghĩa với nó là những thứ xa xỉ. Điện, nước, gas không phải là thứ xa xỉ mà là nhu cầu thiết yếu hàng ngày.<br><br>
+                    <div class='evidence-quote'>
+                        🔍 <b>Dẫn chứng trong bài:</b> "electricity, gas, and water are not luxuries but necessities."<br>
+                        👉 <b>Dịch:</b> "Điện, gas và nước không phải là <span class='hl-green'>những thứ xa xỉ</span> mà là những nhu cầu thiết yếu."
+                    </div>
+                `
+            },
+            {
+                id: 22,
+                text: "Question 22: Companies now realize that consumers want (22) ________ that will not only work effectively...",
+                options: [
+                    { text: "spaceships", isCorrect: false },
+                    { text: "products", isCorrect: true },
+                    { text: "tickets", isCorrect: false },
+                    { text: "weapons", isCorrect: false }
+                ],
+                explanation: `
+                    <b>Dịch câu hỏi:</b> Các công ty nhận ra người tiêu dùng muốn... thứ mà không những hoạt động hiệu quả...<br><br>
+                    <b>Phân tích 4 đáp án:</b><br>
+                    • spaceships (tàu vũ trụ) <span class='hl-red'>❌ Sai ngữ cảnh.</span><br>
+                    • products (sản phẩm) <span class='hl-green'>✅ Đúng.</span><br>
+                    • tickets (vé) <span class='hl-red'>❌ Sai ngữ cảnh.</span><br>
+                    • weapons (vũ khí) <span class='hl-red'>❌ Sai ngữ cảnh.</span><br><br>
+                    <b>Giải thích chi tiết:</b> Trong ngữ cảnh mua bán đồ điện, tiết kiệm năng lượng, các công ty sản xuất ra <span class='hl-green'>sản phẩm (products)</span> để phục vụ người tiêu dùng.<br><br>
+                    <div class='evidence-quote'>
+                        🔍 <b>Dẫn chứng trong bài:</b> "Companies now realize that consumers want products that will not only work effectively..."<br>
+                        👉 <b>Dịch:</b> "Các công ty hiện nay nhận ra rằng người tiêu dùng muốn các <span class='hl-green'>sản phẩm</span> không những hoạt động hiệu quả..."
+                    </div>
+                `
+            },
+            {
+                id: 23,
+                text: "Question 23: ...will not only work effectively, (23) ________ save money.",
+                options: [
+                    { text: "into", isCorrect: false },
+                    { text: "towards", isCorrect: false },
+                    { text: "with", isCorrect: false },
+                    { text: "but also", isCorrect: true }
+                ],
+                explanation: `
+                    <b>Dịch câu hỏi:</b> Chọn từ nối để hoàn thành cấu trúc câu.<br><br>
+                    <b>Phân tích 4 đáp án:</b><br>
+                    • into (vào trong) <span class='hl-red'>❌ Sai cấu trúc.</span><br>
+                    • towards (hướng tới) <span class='hl-red'>❌ Sai cấu trúc.</span><br>
+                    • with (với) <span class='hl-red'>❌ Sai cấu trúc.</span><br>
+                    • but also (mà còn) <span class='hl-green'>✅ Đúng.</span><br><br>
+                    <b>Giải thích chi tiết:</b> Nhìn vế trước có từ "not only", ta phải áp dụng ngay cấu trúc tương quan <span class='p-grammar'>not only... but also... (không những... mà còn...)</span>.<br><br>
+                    <div class='evidence-quote'>
+                        🔍 <b>Dẫn chứng trong bài:</b> "...will not only work effectively, but also save money."<br>
+                        👉 <b>Dịch:</b> "...không những hoạt động hiệu quả <span class='hl-green'>mà còn</span> tiết kiệm tiền."
+                    </div>
+                `
+            },
+            {
+                id: 24,
+                text: "Question 24: ...lighting (24) ________ for 10 percent to 15 percent of the electricity bill.",
+                options: [
+                    { text: "like as", isCorrect: false },
+                    { text: "accounts", isCorrect: true },
+                    { text: "such as", isCorrect: false },
+                    { text: "as good as", isCorrect: false }
+                ],
+                explanation: `
+                    <b>Dịch câu hỏi:</b> Việc thắp sáng ... khoảng 10% đến 15% hóa đơn tiền điện.<br><br>
+                    <b>Phân tích 4 đáp án:</b><br>
+                    • like as <span class='hl-red'>❌ Không tồn tại cụm từ này trong tiếng Anh.</span><br>
+                    • accounts <span class='hl-green'>✅ Đúng. Nó đi kèm với giới từ 'for' phía sau.</span><br>
+                    • such as (như là) <span class='hl-red'>❌ Không làm động từ chính trong câu được.</span><br>
+                    • as good as (tốt như) <span class='hl-red'>❌ Sai ngữ pháp và nghĩa.</span><br><br>
+                    <b>Giải thích chi tiết:</b> Ta có Phrasal verb <span class='p-word'>account for</span> có nghĩa là <span class='p-mean'>chiếm (tỉ lệ bao nhiêu phần trăm) / giải thích cho</span>.<br><br>
+                    <div class='evidence-quote'>
+                        🔍 <b>Dẫn chứng trong bài:</b> "...lighting accounts for 10 percent to 15 percent of the electricity bill."<br>
+                        👉 <b>Dịch:</b> "...việc thắp sáng <span class='hl-green'>chiếm</span> 10% đến 15% hóa đơn tiền điện."
+                    </div>
+                `
+            },
+            {
+                id: 25,
+                text: "Question 25: ...how much energy efficiency each model has, compared (25) ________ other appliances...",
+                options: [
+                    { text: "with", isCorrect: true },
+                    { text: "in", isCorrect: false },
+                    { text: "at", isCorrect: false },
+                    { text: "on", isCorrect: false }
+                ],
+                explanation: `
+                    <b>Dịch câu hỏi:</b> Chọn giới từ đi kèm với động từ "compared".<br><br>
+                    <b>Phân tích 4 đáp án:</b><br>
+                    • with <span class='hl-green'>✅ Đúng.</span><br>
+                    • in / at / on <span class='hl-red'>❌ Sai giới từ.</span><br><br>
+                    <b>Giải thích chi tiết:</b> Ta có cấu trúc cố định <span class='p-grammar'>compared with / compared to + Noun</span> có nghĩa là <span class='p-mean'>được so sánh với cái gì đó</span>.<br><br>
+                    <div class='evidence-quote'>
+                        🔍 <b>Dẫn chứng trong bài:</b> "...compared with other appliances in the same category."<br>
+                        👉 <b>Dịch:</b> "...<span class='hl-green'>so sánh với</span> các thiết bị khác trong cùng danh mục."
+                    </div>
+                `
+            },
+            {
+                id: 26,
+                text: "Question 26: Why is ET3 clean?",
+                options: [
+                    { text: "It uses electricity.", isCorrect: true },
+                    { text: "It doesn't use gasoline or electricity.", isCorrect: false },
+                    { text: "It uses a cleaner kind of gasoline.", isCorrect: false },
+                    { text: "It is made of a clean kind of material.", isCorrect: false }
+                ],
+                explanation: `
+                    <b>Dịch câu hỏi:</b> Tại sao hệ thống ET3 lại sạch (thân thiện với môi trường)?<br><br>
+                    <b>Phân tích 4 đáp án:</b><br>
+                    • It uses electricity. (Nó sử dụng điện.) <span class='hl-green'>✅ Đúng. Điện là năng lượng sạch so với xăng.</span><br>
+                    • It doesn't use gasoline or electricity. <span class='hl-red'>❌ Sai vì nó CÓ dùng điện.</span><br>
+                    • It uses a cleaner kind of gasoline. <span class='hl-red'>❌ Sai vì nó hoàn toàn KHÔNG dùng xăng.</span><br>
+                    • It is made of a clean kind of material. <span class='hl-red'>❌ Thông tin này không được nhắc đến trong bài.</span><br><br>
+                    <div class='evidence-quote'>
+                        🔍 <b>Dẫn chứng trong bài (Đoạn 2):</b> "The capsules use electricity instead of gasoline."<br>
+                        👉 <b>Dịch:</b> "Các khoang hành khách sử dụng <span class='hl-green'>điện thay vì xăng</span>."
+                    </div>
+                `
+            },
+            {
+                id: 27,
+                text: "Question 27: The word \"works\" in paragraph 2 is closest in meaning to ________.",
+                options: [
+                    { text: "earns money", isCorrect: false },
+                    { text: "operates (vận hành)", isCorrect: true },
+                    { text: "succeeds", isCorrect: false },
+                    { text: "travelling", isCorrect: false }
+                ],
+                explanation: `
+                    <b>Dịch câu hỏi:</b> Từ "works" trong đoạn 2 gần nghĩa nhất với từ nào?<br><br>
+                    <b>Phân tích 4 đáp án:</b><br>
+                    • earns money (kiếm tiền) <span class='hl-red'>❌ Sai nghĩa trong ngữ cảnh máy móc.</span><br>
+                    • operates (vận hành) <span class='hl-green'>✅ Đúng.</span><br>
+                    • succeeds (thành công) <span class='hl-red'>❌ Sai nghĩa.</span><br>
+                    • travelling (việc di chuyển) <span class='hl-red'>❌ Sai từ loại và ngữ cảnh.</span><br><br>
+                    <b>Giải thích chi tiết:</b> Cụm câu "Here is how it works" dùng để giải thích cơ chế của máy móc. Do đó, từ <span class='p-word'>work</span> đồng nghĩa với <span class='p-word'>operate</span> <span class='p-mean'>(hoạt động, vận hành)</span>.<br><br>
+                    <div class='evidence-quote'>
+                        🔍 <b>Dẫn chứng trong bài:</b> "Here is how it works. A vacuum tube goes..."<br>
+                        👉 <b>Dịch:</b> "Đây là cách nó <span class='hl-green'>vận hành/hoạt động</span>. Một đường ống chân không..."
+                    </div>
+                `
+            },
+            {
+                id: 28,
+                text: "Question 28: All of the following are factors that ET3 travel fast EXCEPT ________.",
+                options: [
+                    { text: "the capsule is quite light", isCorrect: false },
+                    { text: "there is no air inside the tube", isCorrect: false },
+                    { text: "there is no air resistance during the trip", isCorrect: false },
+                    { text: "travelling takes place in the air", isCorrect: true }
+                ],
+                explanation: `
+                    <b>Dịch câu hỏi:</b> Tất cả những điều sau đây là yếu tố khiến ET3 di chuyển nhanh NGOẠI TRỪ điều gì?<br><br>
+                    <b>Phân tích 4 đáp án:</b><br>
+                    • the capsule is quite light (khoang chứa khá nhẹ) <span class='hl-red'>❌ Sai vì đây LÀ nguyên nhân (có trong bài).</span><br>
+                    • there is no air inside the tube (không có không khí trong ống) <span class='hl-red'>❌ Sai vì đây LÀ nguyên nhân.</span><br>
+                    • there is no air resistance (không có lực cản không khí) <span class='hl-red'>❌ Sai vì đây LÀ nguyên nhân.</span><br>
+                    • travelling takes place in the air (di chuyển trên không trung) <span class='hl-green'>✅ Đúng (Cần chọn vì nó là thông tin SAI sự thật. ET3 chạy trong ống, máy bay mới bay trên trời).</span><br><br>
+                    <div class='evidence-quote'>
+                        🔍 <b>Dẫn chứng trong bài:</b> Bài đọc nói "When airplanes fly, they have to move through the air... Because there is no air in the ET3 tubes, the capsules are able to move at a very high speed."<br>
+                        👉 <b>Dịch:</b> Máy bay mới bay <span class='hl-green'>trên không trung (in the air)</span>, còn ET3 chạy trong ống chân không dưới mặt đất.
+                    </div>
+                `
+            },
+            {
+                id: 29,
+                text: "Question 29: What is a problem with ET3?",
+                options: [
+                    { text: "We don't know how to build its capsules.", isCorrect: false },
+                    { text: "Most people don't want to use it.", isCorrect: false },
+                    { text: "It is far too loud.", isCorrect: false },
+                    { text: "It is far too expensive.", isCorrect: true }
+                ],
+                explanation: `
+                    <b>Dịch câu hỏi:</b> Vấn đề (khó khăn) của hệ thống ET3 là gì?<br><br>
+                    <b>Phân tích 4 đáp án:</b><br>
+                    • We don't know how to build it. <span class='hl-red'>❌ Bài không nói là không biết chế tạo.</span><br>
+                    • Most people don't want to use it. <span class='hl-red'>❌ Không nhắc đến sự phản đối của người dân.</span><br>
+                    • It is far too loud. <span class='hl-red'>❌ Không nhắc đến tiếng ồn.</span><br>
+                    • It is far too expensive. (Nó quá đắt đỏ.) <span class='hl-green'>✅ Đúng.</span><br><br>
+                    <div class='evidence-quote'>
+                        🔍 <b>Dẫn chứng trong bài (Đoạn cuối):</b> "The biggest problem is that right now, ET3 would be far too expensive."<br>
+                        👉 <b>Dịch:</b> "Vấn đề lớn nhất là hiện tại, ET3 sẽ <span class='hl-green'>quá đắt đỏ</span>."
+                    </div>
+                `
+            },
+            {
+                id: 30,
+                text: "Question 30: According to the passage, which statement is NOT true?",
+                options: [
+                    { text: "There is no air in the ET3 tubes.", isCorrect: false },
+                    { text: "Speed in ET3 system is 6,500 km/h for international travel.", isCorrect: false },
+                    { text: "Each ET3 capsule can carry up to six people.", isCorrect: false },
+                    { text: "ET3 can travel a little faster than an airplane.", isCorrect: true }
+                ],
+                explanation: `
+                    <b>Dịch câu hỏi:</b> Theo bài đọc, câu nào KHÔNG ĐÚNG sự thật?<br><br>
+                    <b>Phân tích 4 đáp án:</b><br>
+                    • There is no air... <span class='hl-red'>❌ Đúng sự thật (có trong bài).</span><br>
+                    • Speed is 6,500 km/h... <span class='hl-red'>❌ Đúng sự thật.</span><br>
+                    • Each capsule... six people. <span class='hl-red'>❌ Đúng sự thật ("Six people can sit in one capsule").</span><br>
+                    • ET3 can travel a little faster than an airplane. (ET3 di chuyển nhanh hơn máy bay MỘT CHÚT). <span class='hl-green'>✅ Đúng (Đáp án cần chọn vì nó SAI thông tin trong bài).</span><br><br>
+                    <div class='evidence-quote'>
+                        🔍 <b>Dẫn chứng trong bài:</b> "...travel at about 6,500 kilometers per hour. That is much faster than an airplane!"<br>
+                        👉 <b>Dịch:</b> "...tốc độ khoảng 6,500 km/h. Vận tốc đó nhanh hơn máy bay <span class='hl-green'>rất nhiều (much faster)</span>!" chứ không phải "một chút (a little faster)".
+                    </div>
+                `
+            },
+            {
+                id: 31,
+                text: "Question 31: What can be inferred from the passage?",
+                options: [
+                    { text: "There is still a lot to do before putting ET3 into operation.", isCorrect: true },
+                    { text: "In the future, people will mainly use ET3 to travel abroad.", isCorrect: false },
+                    { text: "ET3 will soon be cheaper.", isCorrect: false },
+                    { text: "ET3 won't be used domestically due to its high cost.", isCorrect: false }
+                ],
+                explanation: `
+                    <b>Dịch câu hỏi:</b> Có thể suy luận (infer) điều gì từ bài đọc?<br><br>
+                    <b>Phân tích 4 đáp án:</b><br>
+                    • There is still a lot to do... (Vẫn còn nhiều việc phải làm trước khi đưa ET3 vào hoạt động.) <span class='hl-green'>✅ Đúng.</span><br>
+                    • In the future, people will mainly use ET3... <span class='hl-red'>❌ Quá đà, bài không khẳng định mọi người sẽ "chủ yếu" dùng nó.</span><br>
+                    • ET3 will soon be cheaper. <span class='hl-red'>❌ Bài nói cần công nghệ tốt hơn để giảm giá, chứ không chắc chắn là "sớm" (soon).</span><br>
+                    • ET3 won't be used domestically... <span class='hl-red'>❌ Bài lấy ví dụ NY đi Bắc Kinh (quốc tế) nhưng không khẳng định là sẽ không dùng nội địa.</span><br><br>
+                    <div class='evidence-quote'>
+                        🔍 <b>Dẫn chứng trong bài:</b> "Developers still have to solve a lot of problems... we will need much better technology."<br>
+                        👉 <b>Dịch:</b> "Các nhà phát triển vẫn phải <span class='hl-green'>giải quyết rất nhiều vấn đề</span>... chúng ta sẽ cần công nghệ tốt hơn nhiều." => Suy ra còn rất nhiều việc phải làm (Đáp án A).
+                    </div>
+                `
+            }
+        ];
+
+        let answeredCount = 0;
+        let score = 0;
+        const totalQuestions = questions.length;
+
+        function shuffle(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        const audioCtx = new AudioContext();
+
+        function playSound(type) {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+
+            if (type === 'correct') {
+                oscillator.type = 'sine';
+                oscillator.frequency.setValueAtTime(800, audioCtx.currentTime);
+                oscillator.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.1);
+                gainNode.gain.setValueAtTime(0.5, audioCtx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+                oscillator.start(audioCtx.currentTime);
+                oscillator.stop(audioCtx.currentTime + 0.5);
+                fireConfetti();
+            } else {
+                oscillator.type = 'sawtooth';
+                oscillator.frequency.setValueAtTime(150, audioCtx.currentTime);
+                oscillator.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.3);
+                gainNode.gain.setValueAtTime(0.5, audioCtx.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+                oscillator.start(audioCtx.currentTime);
+                oscillator.stop(audioCtx.currentTime + 0.3);
+            }
+        }
+
+        function toggleTranslation(btn) {
+            const transDiv = btn.nextElementSibling;
+            if (transDiv.style.display === "block") {
+                transDiv.style.display = "none";
+                btn.innerHTML = "Mở dịch đoạn này 🌟";
+            } else {
+                transDiv.style.display = "block";
+                btn.innerHTML = "Đóng dịch 🙈";
+            }
+        }
+
+        function renderQuestions() {
+            const container = document.getElementById('quiz-container');
+            const submitArea = document.querySelector('.submit-area');
+
+            questions.forEach((q, index) => {
+                const qCard = document.createElement('div');
+                qCard.className = 'question-card';
+                qCard.id = `q-${q.id}`;
+                
+                const qTitle = document.createElement('div');
+                qTitle.className = 'question-text';
+                qTitle.innerText = q.text;
+                
+                const optGrid = document.createElement('div');
+                optGrid.className = 'options-grid';
+                
+                const shuffledOptions = shuffle([...q.options]);
+
+                shuffledOptions.forEach(opt => {
+                    const btn = document.createElement('button');
+                    btn.className = 'option-btn';
+                    btn.innerText = opt.text;
+                    btn.onclick = () => checkAnswer(btn, opt.isCorrect, qCard, q.explanation, optGrid);
+                    optGrid.appendChild(btn);
+                });
+
+                const expBox = document.createElement('div');
+                expBox.className = 'explanation-box';
+
+                qCard.appendChild(qTitle);
+                qCard.appendChild(optGrid);
+                qCard.appendChild(expBox);
+                container.insertBefore(qCard, submitArea);
+            });
+        }
+
+        function checkAnswer(btn, isCorrect, qCard, explanationText, optGrid) {
+            const buttons = optGrid.querySelectorAll('button');
+            buttons.forEach(b => { b.disabled = true; b.style.cursor = 'not-allowed'; });
+
+            const expBox = qCard.querySelector('.explanation-box');
+            expBox.innerHTML = explanationText;
+            expBox.style.display = 'block';
+
+            if (isCorrect) {
+                btn.classList.add('correct');
+                playSound('correct');
+                score++;
+            } else {
+                btn.classList.add('wrong');
+                btn.classList.add('shake');
+                playSound('wrong');
+                Array.from(buttons).find(b => {
+                    const originalOpt = questions.find(q => q.id == qCard.id.split('-')[1]).options.find(o => o.text === b.innerText);
+                    return originalOpt.isCorrect;
+                }).classList.add('correct');
+            }
+            answeredCount++;
+        }
+
+        function openSubmitModal() {
+            if (answeredCount < totalQuestions) {
+                alert(`Con mới làm ${answeredCount}/${totalQuestions} câu. Hãy làm hết trước khi nộp nhé!`);
+                return;
+            }
+            document.getElementById('submitModal').style.display = 'flex';
+        }
+
+        function showResult() {
+            const name = document.getElementById('studentName').value.trim();
+            if (!name) {
+                alert("Con quên nhập tên rồi!");
+                return;
+            }
+            
+            document.getElementById('submitModal').style.display = 'none';
+            const resModal = document.getElementById('resultModal');
+            const resContent = document.getElementById('resultContent');
+            
+            let percentage = (score / totalQuestions) * 100;
+            let feedback = "";
+            let gifSrc = "";
+
+            if (percentage === 100) {
+                feedback = "Thiên tài xuất chúng! Con làm quá xuất sắc! 🏆";
+                gifSrc = "https://media.tenor.com/bK1qpWkHk6sAAAAi/yay-minions.gif";
+                fireConfetti();
+                setTimeout(fireConfetti, 1000);
+            } else if (percentage >= 60) {
+                feedback = "Rất tốt! Con đã cố gắng hết sức! High-five! ✋";
+                gifSrc = "https://media.tenor.com/2b_eBq2K0gEAAAAi/good-job-cat.gif";
+                fireConfetti();
+            } else {
+                feedback = "Hơi tiếc một chút! Lần sau cố gắng đọc kỹ bài hơn nhé! Cố lên! 💪";
+                gifSrc = "https://media.tenor.com/h5E-K5Uv-K0AAAAi/crying-sad.gif";
+            }
+
+            resContent.innerHTML = `
+                <h2 style="color: var(--primary);">Bảng Điểm</h2>
+                <h3 style="margin: 15px 0;">Học sinh: <span style="color: #ff6b6b;">${name}</span></h3>
+                <div style="font-size: 3rem; font-weight: 900; color: var(--success); margin: 10px 0;">
+                    ${score} / ${totalQuestions}
+                </div>
+                <p style="font-size: 1.1rem; font-style: italic; color: #555;">"${feedback}" - Ms Mai An ULIS</p>
+                <img src="${gifSrc}" alt="Meme feedback">
+                <br>
+                <button class="submit-btn" style="margin-top:20px; font-size:1rem; padding: 10px 20px;" onclick="location.reload()">Làm Lại Bài</button>
+            `;
+            resModal.style.display = 'flex';
+        }
+
+        function fireConfetti() {
+            const canvas = document.getElementById('confetti');
+            const ctx = canvas.getContext('2d');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+
+            const particles = [];
+            const colors = ['#ff9a9e', '#fecfef', '#a18cd1', '#fbc2eb', '#00c9a7', '#ff9671'];
+
+            for (let i = 0; i < 100; i++) {
+                particles.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height - canvas.height,
+                    w: Math.random() * 10 + 5,
+                    h: Math.random() * 10 + 5,
+                    color: colors[Math.floor(Math.random() * colors.length)],
+                    speed: Math.random() * 5 + 2,
+                    angle: Math.random() * 360,
+                    spin: Math.random() * 10 - 5
+                });
+            }
+
+            function render() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                let active = false;
+                for (let p of particles) {
+                    p.y += p.speed;
+                    p.angle += p.spin;
+                    if (p.y < canvas.height) active = true;
+                    
+                    ctx.save();
+                    ctx.translate(p.x, p.y);
+                    ctx.rotate(p.angle * Math.PI / 180);
+                    ctx.fillStyle = p.color;
+                    ctx.fillRect(-p.w/2, -p.h/2, p.w, p.h);
+                    ctx.restore();
+                }
+                if (active) requestAnimationFrame(render);
+                else ctx.clearRect(0,0, canvas.width, canvas.height);
+            }
+            render();
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,963 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TEST 2 - ĐỌC ĐIỀN TỜ RƠI</title>
+    <style>
+        /* CSS VARIABLES & FONTS */
+        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;800;900&family=Cinzel:wght@700&display=swap');
+        
+        :root {
+            --glass-bg: rgba(255, 255, 255, 0.2);
+            --glass-border: rgba(255, 255, 255, 0.4);
+            --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.2);
+            --primary: #ec38bc;
+            --secondary: #7303c0;
+            --correct: #27ae60;
+            --incorrect: #e74c3c;
+            --text-dark: #2d3436;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Nunito', sans-serif;
+        }
+
+        /* DYNAMIC GRADIENT BACKGROUND */
+        body {
+            background: linear-gradient(-45deg, #03001e, #7303c0, #ec38bc, #fdeff9);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            color: var(--text-dark);
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* FLOATING EMOJIS (SVG PATTERN) */
+        .floating-bg {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+        .emoji {
+            position: absolute;
+            font-size: 3rem;
+            opacity: 0.4;
+            animation: floatup linear infinite;
+        }
+        @keyframes floatup {
+            0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+            10% { opacity: 0.4; }
+            90% { opacity: 0.4; }
+            100% { transform: translateY(-10vh) rotate(360deg); opacity: 0; }
+        }
+
+        /* GIAO DIỆN MÀN HÌNH KHÓA */
+        #passwordModal {
+            position:fixed; inset:0; z-index:9999;
+            display:flex; align-items:center; justify-content:center;
+            background:rgba(5,2,15,0.92); backdrop-filter:blur(20px);
+        }
+        .pw-card {
+            background:linear-gradient(160deg, rgba(40,10,70,0.95) 0%, rgba(15,5,30,0.98) 100%);
+            border:1.5px solid rgba(240,192,64,0.4); border-radius:24px; padding:48px 40px 40px; 
+            max-width:440px; width:93%; text-align:center; position:relative; overflow:hidden;
+            box-shadow:0 0 60px rgba(106,5,114,0.6), 0 0 120px rgba(240,192,64,0.1), inset 0 1px 0 rgba(240,192,64,0.15);
+        }
+        .pw-card::before {
+            content:''; position:absolute; top:0; left:0; right:0; height:3px;
+            background:linear-gradient(90deg, #6A0572, #F0C040, #6A0572);
+        }
+        .pw-crest { font-size:4rem; margin-bottom:8px; display:block; }
+        .pw-title { font-family:'Cinzel', serif; font-size:1.4rem; font-weight:700; color:#F0C040; margin-bottom:6px; letter-spacing:1px; }
+        .pw-sub   { font-size:.87rem; color:rgba(200,200,212,0.6); margin-bottom:24px; }
+        .pw-input {
+            width:100%; padding:13px 20px; border-radius:12px;
+            border:1.5px solid rgba(240,192,64,0.3); background:rgba(255,255,255,0.05);
+            color:#FFE082; font-size:1rem; font-family:'Nunito', sans-serif;
+            outline:none; letter-spacing:3px; text-align:center; transition:all .3s;
+        }
+        .pw-input:focus { border-color:#F0C040; box-shadow:0 0 0 3px rgba(240,192,64,0.15); }
+        .pw-input.error { border-color:#FF4757; box-shadow:0 0 0 3px rgba(255,71,87,0.25); animation:shake .4s ease; }
+        .pw-input::placeholder { color:rgba(200,200,212,0.3); letter-spacing:1px; }
+        .pw-btn {
+            width:100%; padding:14px; margin-top:14px; border-radius:12px; border:none;
+            background:linear-gradient(135deg, #6A0572 0%, #9B1FA8 40%, #F0C040 100%);
+            color:#fff; font-size:1rem; font-weight:700; font-family:'Cinzel', serif;
+            cursor:pointer; letter-spacing:.5px; transition:transform .2s;
+        }
+        .pw-btn:hover { transform:translateY(-2px); box-shadow:0 8px 32px rgba(106,5,114,0.7); }
+        .pw-err { color:#ff8a9a; font-size:.84rem; margin-top:10px; display:none; font-weight:700; }
+        @keyframes shake { 0%,100%{transform:translateX(0)} 15%,45%,75%{transform:translateX(-6px)} 30%,60%,90%{transform:translateX(6px)} }
+
+        /* HEADER & LAYOUT */
+        #mainContent {
+            display: none; /* Ẩn đi chờ nhập pass */
+            flex-direction: column;
+            width: 100%;
+            height: 100%;
+        }
+
+        header {
+            position: relative;
+            z-index: 10;
+            padding: 10px 20px;
+            text-align: center;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--glass-border);
+            color: #fff;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+        }
+        header h1 { font-size: 1.5rem; font-weight: 900; }
+        header p { font-size: 0.9rem; font-style: italic; opacity: 0.9; }
+
+        .container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+            position: relative;
+            z-index: 10;
+            gap: 20px;
+            padding: 20px;
+        }
+
+        .pane {
+            flex: 1;
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            box-shadow: var(--glass-shadow);
+            padding: 20px;
+            overflow-y: auto;
+            position: relative;
+        }
+        .pane::-webkit-scrollbar { width: 8px; }
+        .pane::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.5); border-radius: 10px; }
+
+        /* READING PASSAGE STYLES */
+        .passage-title {
+            font-size: 1.4rem;
+            color: #fff;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.4);
+            margin-bottom: 15px;
+            background: linear-gradient(90deg, var(--secondary), var(--primary));
+            padding: 10px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        .paragraph {
+            background: rgba(255,255,255,0.6);
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+            line-height: 1.6;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+        .btn-translate {
+            background: #ffeaa7;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.9rem;
+            margin-top: 10px;
+            transition: all 0.2s;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            color: #d35400;
+        }
+        .btn-translate:hover { transform: scale(1.05); background: #fdcb6e; }
+        .translation {
+            display: none;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px dashed #ccc;
+            color: #2d3436;
+            font-style: italic;
+        }
+
+        /* GLOSSARY TABLE */
+        .glossary-box {
+            background: rgba(255,255,255,0.85);
+            border-radius: 12px;
+            padding: 15px;
+            margin-top: 20px;
+            margin-bottom: 30px;
+        }
+        .glossary-box h3 { color: var(--secondary); margin-bottom: 10px; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 8px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background: rgba(115, 3, 192, 0.1); color: var(--secondary); }
+        .g-word { font-weight: bold; color: #0984e3; }
+        .g-type { color: #888; font-size: 0.9em; font-style: italic; }
+        .g-mean { color: #d35400; }
+
+        /* QUESTION STYLES */
+        .question-card {
+            background: rgba(255,255,255,0.7);
+            padding: 20px;
+            border-radius: 16px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+        .q-text { font-size: 1.15rem; font-weight: bold; margin-bottom: 15px; }
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        .option-btn {
+            background: #fff;
+            border: 2px solid transparent;
+            padding: 12px;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        .option-btn:hover { background: #f0f0f0; transform: translateY(-2px); border-color: var(--primary); }
+        
+        .option-btn.correct { background: var(--correct); color: white; border-color: var(--correct); box-shadow: 0 0 15px var(--correct); }
+        .option-btn.wrong { background: var(--incorrect); color: white; border-color: var(--incorrect); animation: shake 0.4s; }
+
+        /* MASTER EXPLANATION (STRICT CLASSES) */
+        .explanation-box {
+            display: none;
+            background: #fff;
+            border-left: 5px solid var(--primary);
+            padding: 15px;
+            border-radius: 0 12px 12px 0;
+            margin-top: 15px;
+            font-size: 1rem;
+            line-height: 1.8;
+            animation: fadeIn 0.5s ease;
+        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .p-word { color: #0984e3; font-weight: bold; }
+        .p-mean { color: #d35400; font-style: italic; }
+        .p-grammar { text-decoration: underline; text-decoration-color: red; font-weight: bold; }
+        
+        /* HIGHLIGHT NỔI BẬT CHO ĐÁP ÁN */
+        .hl-green {
+            background-color: rgba(39, 174, 96, 0.15);
+            color: #1a7536;
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-weight: 900;
+            border: 2px solid #27ae60;
+            box-shadow: 0 2px 8px rgba(39, 174, 96, 0.3);
+            display: inline-block;
+            margin: 2px 0;
+        }
+        .hl-red {
+            background-color: rgba(231, 76, 60, 0.1);
+            color: #c0392b;
+            padding: 2px 6px;
+            border-radius: 6px;
+            text-decoration: line-through;
+            font-weight: 800;
+            border: 1px dashed #e74c3c;
+        }
+        
+        .exp-quote { background: #f8f9fa; padding: 10px; border-radius: 8px; font-style: italic; margin-top: 10px; border: 1px solid #ddd; }
+
+        /* SUBMIT BUTTON & POPUP */
+        .submit-btn {
+            display: block; width: 100%;
+            background: linear-gradient(45deg, #00b09b, #96c93d);
+            color: white; border: none; padding: 15px;
+            font-size: 1.2rem; font-weight: 900; border-radius: 12px;
+            cursor: pointer; box-shadow: 0 5px 15px rgba(0,176,155,0.4);
+            margin-top: 20px; transition: transform 0.2s;
+        }
+        .submit-btn:hover { transform: scale(1.02); }
+
+        .overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6); z-index: 100; backdrop-filter: blur(5px);
+            justify-content: center; align-items: center;
+        }
+        .popup {
+            background: white; padding: 30px; border-radius: 20px; text-align: center;
+            max-width: 400px; width: 90%; box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+            animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        @keyframes popIn { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        .popup input {
+            width: 100%; padding: 12px; margin: 15px 0; border: 2px solid #ddd;
+            border-radius: 8px; font-size: 1.1rem; text-align: center; outline: none;
+        }
+        .popup input:focus { border-color: var(--primary); }
+        .popup img { width: 100%; max-height: 200px; object-fit: cover; border-radius: 12px; margin: 15px 0; }
+
+        canvas#confetti { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 999; }
+
+        @media (max-width: 768px) {
+            .container { flex-direction: column; overflow-y: auto; }
+            .pane { flex: none; height: auto; overflow: visible; }
+            body { overflow: auto; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="passwordModal">
+      <div class="pw-card">
+        <span class="pw-crest">🔒</span>
+        <div class="pw-title">BẢO MẬT</div>
+        <div class="pw-sub">Vui lòng nhập mật khẩu để làm bài</div>
+        <input type="password" class="pw-input" id="pwInput" placeholder="Nhập mật khẩu..." autocomplete="off" />
+        <button class="pw-btn" onclick="checkPassword()">XÁC NHẬN</button>
+        <div class="pw-err" id="pwErr">Mật khẩu không đúng! Vui lòng thử lại.</div>
+      </div>
+    </div>
+
+    <div id="mainContent">
+        <canvas id="confetti"></canvas>
+
+        <div class="floating-bg" id="floatingBg"></div>
+
+        <header>
+            <h1>TEST 2 - ĐỌC ĐIỀN TỜ RƠI</h1>
+            <p>Giáo viên tạo: Ms Mai An ULIS</p>
+        </header>
+
+        <div class="container">
+            <div class="pane" id="readingPane"></div>
+
+            <div class="pane" id="quizPane">
+                <div id="questionsContainer"></div>
+                <button class="submit-btn" onclick="openSubmitPopup()">🎯 NỘP BÀI TÍNH ĐIỂM & XEM KẾT QUẢ</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="overlay" id="overlay">
+        <div class="popup" id="popupContent">
+            </div>
+    </div>
+
+<script>
+// ==========================================
+// 1. LOGIC MÀN HÌNH KHÓA & ÂM THANH
+// ==========================================
+const _k  = [99,111,109,97,105,97,110,117,108,105,115]; // "comaianulis"
+const _pw = _k.map(c => String.fromCharCode(c)).join('');
+
+const reminderAudio = new Audio("https://hoctienganhcungcomaianulis.github.io/homework/%E1%BA%A2nh_File%20nghe/Sound/export_7wcKV5pKUrQYWyi7XgktJM.mp3");
+const wrongAudio = new Audio("https://hoctienganhcungcomaianulis.github.io/homework/%E1%BA%A2nh_File%20nghe/Sound/oi-ban-oi.mp3");
+
+function checkPassword() {
+  const inp = document.getElementById('pwInput');
+  const err = document.getElementById('pwErr');
+  if (inp.value === _pw) {
+    // Ẩn modal, hiện content
+    document.getElementById('passwordModal').style.display = 'none';
+    const main = document.getElementById('mainContent');
+    if(main) main.style.display = 'flex';
+    
+    // Phát âm thanh nhắc nhở
+    reminderAudio.currentTime = 0;
+    reminderAudio.play().catch(e => console.log("Trình duyệt chặn autoplay audio"));
+    
+  } else {
+    inp.classList.remove('error'); void inp.offsetWidth; inp.classList.add('error');
+    err.style.display = 'block'; setTimeout(() => inp.classList.remove('error'), 500);
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  const pwInput = document.getElementById('pwInput');
+  if(pwInput) pwInput.addEventListener('keydown', e => { if (e.key==='Enter') checkPassword(); });
+});
+
+// ==========================================
+// 2. DỮ LIỆU ĐỀ BÀI VÀ LỜI GIẢI MASTER
+// ==========================================
+const data = [
+    {
+        theme: ['🌲', '🦜', '🌍', '🔥'],
+        title: "Protecting Our Planet: Record-breaking Amazon Deforestation",
+        paragraphs: [
+            {
+                en: "Facts and Figures<br><br>The Amazon rainforest has faced deforestation to a significant (1) _____, with over 8,000 square kilometers destroyed in 2024 alone. (2) _____ slowing down, deforestation rates are accelerating due to (3) _____ factors, such as illegal logging, agriculture, and mining.",
+                vi: "Dữ kiện và Con số<br><br>Rừng nhiệt đới Amazon đang phải đối mặt với nạn phá rừng ở một mức độ đáng kể, với hơn 8.000 km2 bị phá hủy chỉ riêng trong năm 2024. Mặc dù có những nỗ lực làm chậm lại, tỷ lệ phá rừng vẫn đang tăng nhanh do nhiều yếu tố, chẳng hạn như khai thác gỗ trái phép, nông nghiệp và khai thác mỏ."
+            },
+            {
+                en: "Positive Action!<br><br><b>Advocate:</b><br>Support (4) _____ projects, including replanting native trees and preserving biodiversity, to (5) _____ deforestation.",
+                vi: "Hành động Tích cực!<br><br><b>Ủng hộ:</b><br>Hỗ trợ các dự án phục hồi, bao gồm việc trồng lại cây bản địa và bảo tồn đa dạng sinh học, để ứng phó với nạn phá rừng."
+            },
+            {
+                en: "<b>Conserve:</b><br>Advocate stricter laws and penalties to (6) _____ illegal logging while pushing for sustainable practices.<br><br><b>Protect:</b><br>Raise awareness about the importance of protecting endangered wildlife and their habitats.",
+                vi: "<b>Bảo tồn:</b><br>Ủng hộ các luật lệ và hình phạt nghiêm khắc hơn để chống lại việc khai thác gỗ trái phép trong khi thúc đẩy các hoạt động bền vững.<br><br><b>Bảo vệ:</b><br>Nâng cao nhận thức về tầm quan trọng của việc bảo vệ động vật hoang dã có nguy cơ tuyệt chủng và môi trường sống của chúng."
+            }
+        ],
+        glossary: [
+            {w: "Deforestation", t: "n", m: "Nạn phá rừng"},
+            {w: "Significant", t: "adj", m: "Đáng kể, quan trọng"},
+            {w: "Accelerate", t: "v", m: "Tăng tốc, thúc đẩy"},
+            {w: "Illegal logging", t: "n.p", m: "Khai thác gỗ trái phép"},
+            {w: "Advocate", t: "v/n", m: "Biện hộ, ủng hộ"},
+            {w: "Replant", t: "v", m: "Trồng lại"},
+            {w: "Biodiversity", t: "n", m: "Đa dạng sinh học"},
+            {w: "Conserve", t: "v", m: "Bảo tồn"},
+            {w: "Penalty", t: "n", m: "Hình phạt, tiền phạt"},
+            {w: "Endangered", t: "adj", m: "Có nguy cơ tuyệt chủng"},
+            {w: "Habitat", t: "n", m: "Môi trường sống"}
+        ],
+        questions: [
+            {
+                id: 1, text: "The Amazon rainforest has faced deforestation to a significant (1) _____, with over 8,000 square kilometers...",
+                options: [
+                    { t: "extent", c: true, 
+                      exp: `Dịch câu: "Rừng Amazon đối mặt nạn phá rừng ở một mức độ đáng kể..."<br>
+                      ❌ basis: <span class='hl-red'>cơ sở</span> -> Sai nghĩa.<br>
+                      ❌ scale: <span class='hl-red'>quy mô</span> -> Dùng "on a large scale", không dùng với "to a significant...".<br>
+                      ❌ number: <span class='hl-red'>số lượng</span> -> Không hợp ngữ cảnh.<br>
+                      <span class='hl-green'>✅ extent</span>: Đúng. <span class='p-grammar'>to a significant extent</span> mang nghĩa <span class='p-mean'>ở mức độ đáng kể</span>.<br>
+                      <div class='exp-quote'><b>Dẫn chứng:</b> "...faced deforestation <span class='hl-green'>to a significant extent</span>..."</div>` },
+                    { t: "basis", c: false }, { t: "scale", c: false }, { t: "number", c: false }
+                ]
+            },
+            {
+                id: 2, text: "(2) _____ slowing down, deforestation rates are accelerating...",
+                options: [
+                    { t: "In spite of", c: true, 
+                      exp: `Dịch câu: "(2) _____ việc làm chậm lại, tỷ lệ phá rừng đang tăng nhanh..."<br>
+                      ❌ Aside from: <span class='hl-red'>Ngoại trừ</span> -> Sai logic.<br>
+                      ❌ Instead of: <span class='hl-red'>Thay vì</span> -> Không khớp với key giải thích gốc.<br>
+                      ❌ On top of: <span class='hl-red'>Thêm vào đó</span> -> Sai logic.<br>
+                      <span class='hl-green'>✅ In spite of</span>: Đúng. <span class='p-grammar'>In spite of + V-ing/N</span> mang nghĩa <span class='p-mean'>Mặc dù</span>, phù hợp ngữ cảnh nhấn mạnh tốc độ phá rừng vẫn tăng dù nỗ lực cản lại.<br>
+                      <div class='exp-quote'><b>Dẫn chứng:</b> "<span class='hl-green'>In spite of</span> slowing down, deforestation rates are accelerating..." (<span class='p-mean'>Mặc dù làm chậm lại, tốc độ phá rừng vẫn tăng...</span>)</div>` },
+                    { t: "Aside from", c: false }, { t: "Instead of", c: false }, { t: "On top of", c: false }
+                ]
+            },
+            {
+                id: 3, text: "...deforestation rates are accelerating due to (3) _____ factors, such as illegal logging...",
+                options: [
+                    { t: "many", c: true, 
+                      exp: `Dịch câu: "...do (3) _____ yếu tố, chẳng hạn như..."<br>
+                      ❌ every: <span class='hl-red'>Mọi (đi với danh từ số ít)</span>.<br>
+                      ❌ each: <span class='hl-red'>Mỗi (đi với danh từ số ít)</span>.<br>
+                      ❌ little: <span class='hl-red'>Ít (đi với danh từ không đếm được)</span>.<br>
+                      <span class='hl-green'>✅ many</span>: Đúng. <span class='p-grammar'>many + danh từ đếm được số nhiều</span>. Ở đây "factors" (yếu tố) có "s".<br>
+                      <div class='exp-quote'><b>Dẫn chứng:</b> "...due to <span class='hl-green'>many</span> factors..." (<span class='p-mean'>do nhiều yếu tố</span>)</div>` },
+                    { t: "every", c: false }, { t: "each", c: false }, { t: "little", c: false }
+                ]
+            },
+            {
+                id: 4, text: "Support (4) _____ projects, including replanting native trees...",
+                options: [
+                    { t: "restoration", c: true, 
+                      exp: `Dịch câu: "Hỗ trợ các dự án (4) _____, bao gồm trồng lại cây..."<br>
+                      ❌ construction: <span class='hl-red'>sự xây dựng</span> -> Không liên quan.<br>
+                      ❌ restriction: <span class='hl-red'>sự hạn chế</span> -> Sai nghĩa.<br>
+                      ❌ preparation: <span class='hl-red'>sự chuẩn bị</span> -> Không hợp.<br>
+                      <span class='hl-green'>✅ restoration</span>: Đúng. <span class='p-word'>Restoration projects</span> nghĩa là <span class='p-mean'>các dự án phục hồi</span>, phù hợp với việc trồng cây.<br>
+                      <div class='exp-quote'><b>Dẫn chứng:</b> "Support <span class='hl-green'>restoration</span> projects..."</div>` },
+                    { t: "construction", c: false }, { t: "restriction", c: false }, { t: "preparation", c: false }
+                ]
+            },
+            {
+                id: 5, text: "...including replanting native trees and preserving biodiversity, to (5) _____ deforestation.",
+                options: [
+                    { t: "cope with", c: true, 
+                      exp: `Dịch câu: "...để (5) _____ nạn phá rừng."<br>
+                      ❌ blame for: <span class='hl-red'>đổ lỗi cho</span> -> Sai logic.<br>
+                      ❌ cut down: <span class='hl-red'>chặt cây/giảm</span> -> Không dùng "cut down deforestation".<br>
+                      ❌ account for: <span class='hl-red'>chiếm/giải thích cho</span> -> Sai nghĩa.<br>
+                      <span class='hl-green'>✅ cope with</span>: Đúng. Cụm <span class='p-word'>cope with deforestation</span> nghĩa là <span class='p-mean'>ứng phó với nạn phá rừng</span>.<br>
+                      <div class='exp-quote'><b>Dẫn chứng:</b> "...to <span class='hl-green'>cope with</span> deforestation."</div>` },
+                    { t: "blame for", c: false }, { t: "cut down", c: false }, { t: "account for", c: false }
+                ]
+            },
+            {
+                id: 6, text: "Advocate stricter laws and penalties to (6) _____ illegal logging...",
+                options: [
+                    { t: "combat", c: true, 
+                      exp: `Dịch câu: "Ủng hộ luật và hình phạt nghiêm ngặt để (6) _____ khai thác gỗ trái phép..."<br>
+                      ❌ comply: <span class='hl-red'>tuân thủ</span> -> Không tuân thủ điều trái phép.<br>
+                      ❌ compile: <span class='hl-red'>biên soạn</span> -> Không liên quan.<br>
+                      ❌ combine: <span class='hl-red'>kết hợp</span> -> Không hợp lý.<br>
+                      <span class='hl-green'>✅ combat</span>: Đúng. Cụm <span class='p-word'>combat illegal logging</span> nghĩa là <span class='p-mean'>chống lại việc khai thác gỗ trái phép</span>.<br>
+                      <div class='exp-quote'><b>Dẫn chứng:</b> "...to <span class='hl-green'>combat</span> illegal logging..."</div>` },
+                    { t: "comply", c: false }, { t: "compile", c: false }, { t: "combine", c: false }
+                ]
+            }
+        ]
+    },
+    {
+        theme: ['🏫', '📚', '🎒', '✏️'],
+        title: "Education in Crisis: The Global Teacher Shortage",
+        paragraphs: [
+            {
+                en: "Facts and Figures<br><br>Over 69 million teachers are needed worldwide to meet global education goals, leaving (7) _____ students without access to quality learning. Schools in underserved areas (8) _____ a lack of infrastructure and learning (9) _____ for students.",
+                vi: "Dữ kiện và Con số<br><br>Cần hơn 69 triệu giáo viên trên toàn thế giới để đạt được các mục tiêu giáo dục toàn cầu, khiến nhiều học sinh không được tiếp cận với nền giáo dục chất lượng. Các trường học ở những khu vực khó khăn đang phải vật lộn với tình trạng thiếu cơ sở hạ tầng và tài liệu học tập cho học sinh."
+            },
+            {
+                en: "Positive Action!<br><br><b>Understand:</b><br>The shortage impacts learning outcomes, as schools are unable to provide proper (10) _____ and individualized support.",
+                vi: "Hành động Tích cực!<br><br><b>Thấu hiểu:</b><br>Sự thiếu hụt ảnh hưởng đến kết quả học tập, vì các trường học không thể cung cấp sự can thiệp phù hợp và hỗ trợ cá nhân hóa."
+            },
+            {
+                en: "<b>Support:</b><br>Provide competitive salaries and professional development on a regular (11) _____ to attract and retain educators.<br><br><b>Get Involved:</b><br>Encourage parents, students, (12) _____ communities to support schools and address issues like overcrowding and lack of resources.",
+                vi: "<b>Hỗ trợ:</b><br>Cung cấp mức lương cạnh tranh và phát triển chuyên môn một cách thường xuyên để thu hút và giữ chân các nhà giáo dục.<br><br><b>Tham gia:</b><br>Khuyến khích phụ huynh, học sinh, cũng như cộng đồng hỗ trợ trường học và giải quyết các vấn đề như quá tải và thiếu nguồn lực."
+            }
+        ],
+        glossary: [
+            {w: "Underserved", t: "adj", m: "Chưa được phục vụ đầy đủ, khó khăn"},
+            {w: "Infrastructure", t: "n", m: "Cơ sở hạ tầng"},
+            {w: "Grapple with", t: "phr.v", m: "Vật lộn với, cố gắng giải quyết"},
+            {w: "Intervention", t: "n", m: "Sự can thiệp"},
+            {w: "Individualize", t: "v", m: "Cá nhân hóa"},
+            {w: "Competitive", t: "adj", m: "Có tính cạnh tranh"},
+            {w: "Professional development", t: "n.p", m: "Phát triển chuyên môn"},
+            {w: "Attract", t: "v", m: "Thu hút"},
+            {w: "Retain", t: "v", m: "Giữ chân"},
+            {w: "Overcrowding", t: "n", m: "Tình trạng quá tải"}
+        ],
+        questions: [
+            {
+                id: 7, text: "...leaving (7) _____ students without access to quality learning.",
+                options: [
+                    { t: "many", c: true, 
+                      exp: `Dịch câu: "...khiến (7) _____ học sinh không được tiếp cận học tập chất lượng."<br>
+                      ❌ few: <span class='hl-red'>rất ít</span> -> Sai logic bài toán thiếu giáo viên nghiêm trọng.<br>
+                      ❌ every: <span class='hl-red'>mọi</span> -> Cộng danh từ số ít.<br>
+                      ❌ another: <span class='hl-red'>một cái khác</span> -> Cộng danh từ số ít.<br>
+                      <span class='hl-green'>✅ many</span>: Đúng. <span class='p-grammar'>many + danh từ số nhiều đếm được</span> ("students").<br>
+                      <div class='exp-quote'><b>Dẫn chứng:</b> "...leaving <span class='hl-green'>many</span> students without access..." (<span class='p-mean'>nhiều học sinh</span>)</div>` },
+                    { t: "few", c: false }, { t: "every", c: false }, { t: "another", c: false }
+                ]
+            },
+            {
+                id: 8, text: "Schools in underserved areas (8) _____ a lack of infrastructure...",
+                options: [
+                    { t: "grapple with", c: true, 
+                      exp: `Dịch câu: "Trường học vùng khó khăn (8) _____ sự thiếu hụt hạ tầng..."<br>
+                      ❌ break down: <span class='hl-red'>hỏng hóc/suy sụp</span>.<br>
+                      ❌ figure out: <span class='hl-red'>tìm ra</span>.<br>
+                      ❌ come across: <span class='hl-red'>tình cờ gặp</span>.<br>
+                      <span class='hl-green'>✅ grapple with</span>: Đúng. <span class='p-word'>grapple with</span> mang nghĩa <span class='p-mean'>vật lộn với/cố gắng giải quyết</span>, rất hợp ngữ cảnh khó khăn.<br>
+                      <div class='exp-quote'><b>Dẫn chứng:</b> "Schools... <span class='hl-green'>grapple with</span> a lack of infrastructure..."</div>` },
+                    { t: "break down", c: false }, { t: "figure out", c: false }, { t: "come across", c: false }
+                ]
+            },
+            {
+                id: 9, text: "...and learning (9) _____ for students.",
+                options: [
+                    { t: "materials", c: true, 
+                      exp: `Dịch câu: "...và (9) _____ học tập cho học sinh."<br>
+                      ❌ substances: <span class='hl-red'>chất hóa học/vật chất</span>.<br>
+                      ❌ documents: <span class='hl-red'>tài liệu (giấy tờ hành chính)</span>.<br>
+                      ❌ components: <span class='hl-red'>thành phần</span>.<br>
+                      <span class='hl-green'>✅ materials</span>: Đúng. Cụm <span class='p-word'>learning materials</span> nghĩa là <span class='p-mean'>tài liệu học tập</span>, đúng ngữ cảnh giáo dục.<br>
+                      <div class='exp-quote'><b>Dẫn chứng:</b> "...and learning <span class='hl-green'>materials</span> for students."</div>` },
+                    { t: "substances", c: false }, { t: "documents", c: false }, { t: "components", c: false }
+                ]
+            },
+            {
+                id: 10, text: "...as schools are unable to provide proper (10) _____ and individualized support.",
+                options: [
+                    { t: "intervention", c: true, 
+                      exp: `Dịch câu: "...vì các trường không thể cung cấp (10) _____ thích hợp và hỗ trợ cá nhân."<br>
+                      ❌ motivation: <span class='hl-red'>động lực</span>.<br>
+                      ❌ evaluation: <span class='hl-red'>sự đánh giá</span>.<br>
+                      ❌ collaboration: <span class='hl-red'>sự hợp tác</span>.<br>
+                      <span class='hl-green'>✅ intervention</span>: Đúng. <span class='p-word'>proper intervention</span> nghĩa là <span class='p-mean'>sự can thiệp phù hợp</span> (sự kèm cặp, giúp đỡ sát sao của giáo viên khi học sinh gặp khó).<br>
+                      <div class='exp-quote'><b>Dẫn chứng:</b> "...provide proper <span class='hl-green'>intervention</span> and individualized support."</div>` },
+                    { t: "motivation", c: false }, { t: "evaluation", c: false }, { t: "collaboration", c: false }
+                ]
+            },
+            {
+                id: 11, text: "Provide competitive salaries and professional development on a regular (11) _____...",
+                options: [
+                    { t: "basis", c: true, 
+                      exp: `Dịch câu: "Cung cấp mức lương và phát triển chuyên môn trên một (11) _____ thường xuyên..."<br>
+                      ❌ amount: <span class='hl-red'>số lượng</span>.<br>
+                      ❌ variety: <span class='hl-red'>sự đa dạng</span>.<br>
+                      ❌ level: <span class='hl-red'>cấp độ</span>.<br>
+                      <span class='hl-green'>✅ basis</span>: Đúng. <span class='p-grammar'>on a regular basis</span> là cụm từ cố định mang nghĩa <span class='p-mean'>một cách thường xuyên/định kỳ</span>.<br>
+                      <div class='exp-quote'><b>Dẫn chứng:</b> "...on a regular <span class='hl-green'>basis</span> to attract..."</div>` },
+                    { t: "amount", c: false }, { t: "variety", c: false }, { t: "level", c: false }
+                ]
+            },
+            {
+                id: 12, text: "Encourage parents, students, (12) _____ communities to support schools...",
+                options: [
+                    { t: "as well as", c: true, 
+                      exp: `Dịch câu: "Khuyến khích phụ huynh, học sinh, (12) _____ cộng đồng hỗ trợ trường..."<br>
+                      ❌ except for: <span class='hl-red'>ngoại trừ</span> -> Sai logic.<br>
+                      ❌ aside from: <span class='hl-red'>bên cạnh</span> (thường đứng đầu câu).<br>
+                      ❌ in terms of: <span class='hl-red'>xét về mặt</span>.<br>
+                      <span class='hl-green'>✅ as well as</span>: Đúng. <span class='p-word'>as well as</span> mang nghĩa <span class='p-mean'>cũng như</span>, dùng để nối các đối tượng bổ sung.<br>
+                      <div class='exp-quote'><b>Dẫn chứng:</b> "Parents, students, <span class='hl-green'>as well as</span> communities..."</div>` },
+                    { t: "except for", c: false }, { t: "aside from", c: false }, { t: "in terms of", c: false }
+                ]
+            }
+        ]
+    },
+    {
+        theme: ['📱', '💻', '❤️', '💬'],
+        title: "Modern Love: The Rise of Virtual Relationships",
+        paragraphs: [
+            {
+                en: "Facts and Figures<br><br>A large (13) _____ of people, especially Gen Z and Millennials, have formed virtual relationships through dating apps and social media. Virtual relationships often focus on (14) _____ through shared interests.",
+                vi: "Dữ kiện và Con số<br><br>Một số lượng lớn người, đặc biệt là Gen Z và Millennials, đã hình thành các mối quan hệ ảo thông qua các ứng dụng hẹn hò và mạng xã hội. Các mối quan hệ ảo thường tập trung vào sự tương thích thông qua các sở thích chung."
+            },
+            {
+                en: "(15) _____ face-to-face interactions, virtual relationships rely on digital communication, raising questions about emotional depth and connection.<br><br>Positive Action!<br><br><b>Build:</b><br>Focus on fostering emotional intimacy and understanding in (16) _____ relationship, whether virtual or real-life.",
+                vi: "Trái ngược với tương tác trực tiếp, các mối quan hệ ảo phụ thuộc vào giao tiếp kỹ thuật số, đặt ra câu hỏi về chiều sâu cảm xúc và sự kết nối.<br><br>Hành động Tích cực!<br><br><b>Xây dựng:</b><br>Tập trung vào việc nuôi dưỡng sự thân mật về cảm xúc và sự thấu hiểu trong mọi mối quan hệ, dù là ảo hay ngoài đời thực."
+            },
+            {
+                en: "<b>Stay:</b><br>Encourage partners to remain (17) _____, maintaining independence while nurturing the bond.<br><br><b>Promote:</b><br>Promote open, honest dialogue to (18) _____ misunderstandings and strengthen trust.",
+                vi: "<b>Duy trì:</b><br>Khuyến khích các đối tác duy trì sự tự chủ, giữ gìn sự độc lập trong khi vẫn nuôi dưỡng mối liên kết.<br><br><b>Thúc đẩy:</b><br>Thúc đẩy đối thoại cởi mở, trung thực để giải quyết hiểu lầm và củng cố niềm tin."
+            }
+        ],
+        glossary: [
+            {w: "Virtual", t: "adj", m: "Ảo (trên mạng)"},
+            {w: "Coexistence", t: "n", m: "Sự cùng tồn tại"},
+            {w: "Compatibility", t: "n", m: "Sự tương thích, hợp nhau"},
+            {w: "Consolidation", t: "n", m: "Sự củng cố"},
+            {w: "Intimacy", t: "n", m: "Sự thân mật, gần gũi"},
+            {w: "Nurture", t: "v", m: "Nuôi dưỡng"},
+            {w: "Dialogue", t: "n", m: "Cuộc đối thoại"},
+            {w: "Self-reliant", t: "adj", m: "Tự chủ, tự lực"},
+            {w: "Patch up", t: "phr.v", m: "Giải quyết, hàn gắn (hiểu lầm/cãi vã)"},
+            {w: "Misunderstanding", t: "n", m: "Sự hiểu lầm"}
+        ],
+        questions: [
+            {
+                id: 13, text: "A large (13) _____ of people, especially Gen Z and Millennials, have formed virtual relationships...",
+                options: [
+                    { t: "number", c: true, 
+                      exp: `Dịch câu: "Một (13) _____ lớn người... đã hình thành quan hệ ảo..."<br>
+                      ❌ degree: <span class='hl-red'>mức độ</span>.<br>
+                      ❌ quantity: <span class='hl-red'>đại lượng (thường dùng vật vô tri)</span>.<br>
+                      ❌ amount: <span class='hl-red'>lượng (dùng danh từ KHÔNG đếm được)</span>.<br>
+                      <span class='hl-green'>✅ number</span>: Đúng. Cụm <span class='p-grammar'>A large number of + danh từ đếm được số nhiều</span> (people). Nghĩa là <span class='p-mean'>Một số lượng lớn</span>.<br>
+                      <div class='exp-quote'><b>Dẫn chứng:</b> "A large <span class='hl-green'>number</span> of people..."</div>` },
+                    { t: "degree", c: false }, { t: "quantity", c: false }, { t: "amount", c: false }
+                ]
+            },
+            {
+                id: 14, text: "Virtual relationships often focus on (14) _____ through shared interests.",
+                options: [
+                    { t: "compatibility", c: true, 
+                      exp: `Dịch câu: "Mối quan hệ ảo thường tập trung vào (14) _____ qua sở thích chung."<br>
+                      ❌ coexistence: <span class='hl-red'>sự cùng tồn tại</span>.<br>
+                      ❌ consolidation: <span class='hl-red'>sự củng cố</span>.<br>
+                      ❌ cooperation: <span class='hl-red'>sự hợp tác</span> (dùng trong công việc).<br>
+                      <span class='hl-green'>✅ compatibility</span>: Đúng. <span class='p-word'>compatibility</span> mang nghĩa <span class='p-mean'>sự tương thích/sự hợp nhau</span> (trong tình cảm).<br>
+                      <div class='exp-quote'><b>Dẫn chứng:</b> "...focus on <span class='hl-green'>compatibility</span> through shared interests."</div>` },
+                    { t: "coexistence", c: false }, { t: "consolidation", c: false }, { t: "cooperation", c: false }
+                ]
+            },
+            {
+                id: 15, text: "(15) _____ face-to-face interactions, virtual relationships rely on digital communication...",
+                options: [
+                    { t: "In contrast to", c: true, 
+                      exp: `Dịch câu: "(15) _____ giao tiếp trực tiếp, mối quan hệ ảo dựa trên kỹ thuật số..."<br>
+                      ❌ In terms of: <span class='hl-red'>Về mặt...</span><br>
+                      ❌ For fear of: <span class='hl-red'>Vì sợ...</span><br>
+                      ❌ Thanks to: <span class='hl-red'>Nhờ vào...</span><br>
+                      <span class='hl-green'>✅ In contrast to</span>: Đúng. Cụm <span class='p-grammar'>In contrast to</span> nghĩa là <span class='p-mean'>Trái ngược với</span>, thể hiện sự đối lập giữa tương tác trực tiếp và ảo.<br>
+                      <div class='exp-quote'><b>Dẫn chứng:</b> "<span class='hl-green'>In contrast to</span> face-to-face interactions..."</div>` },
+                    { t: "In terms of", c: false }, { t: "For fear of", c: false }, { t: "Thanks to", c: false }
+                ]
+            },
+            {
+                id: 16, text: "Focus on fostering emotional intimacy and understanding in (16) _____ relationship...",
+                options: [
+                    { t: "every", c: true, 
+                      exp: `Dịch câu: "Tập trung nuôi dưỡng sự thân mật... trong (16) _____ mối quan hệ..."<br>
+                      ❌ several: <span class='hl-red'>một vài (+ N số nhiều)</span>.<br>
+                      ❌ much: <span class='hl-red'>nhiều (+ N không đếm được)</span>.<br>
+                      ❌ another: <span class='hl-red'>một cái khác</span>.<br>
+                      <span class='hl-green'>✅ every</span>: Đúng. <span class='p-grammar'>every + danh từ đếm được số ít</span> ("relationship" không có s). Nghĩa là <span class='p-mean'>mọi mối quan hệ</span>.<br>
+                      <div class='exp-quote'><b>Dẫn chứng:</b> "...in <span class='hl-green'>every</span> relationship..."</div>` },
+                    { t: "several", c: false }, { t: "much", c: false }, { t: "another", c: false }
+                ]
+            },
+            {
+                id: 17, text: "Encourage partners to remain (17) _____, maintaining independence...",
+                options: [
+                    { t: "self-reliant", c: true, 
+                      exp: `Dịch câu: "Khuyến khích các cặp đôi giữ sự (17) _____, duy trì tính độc lập..."<br>
+                      ❌ self-centered: <span class='hl-red'>ích kỷ, coi mình là trung tâm</span>.<br>
+                      ❌ self-conscious: <span class='hl-red'>tự ti, bẽn lẽn</span>.<br>
+                      ❌ self-sufficient: <span class='hl-red'>tự túc (thường về tài chính/lương thực)</span>.<br>
+                      <span class='hl-green'>✅ self-reliant</span>: Đúng. <span class='p-word'>self-reliant</span> nghĩa là <span class='p-mean'>tự chủ, dựa vào bản thân</span>, khớp với cụm "maintaining independence".<br>
+                      <div class='exp-quote'><b>Dẫn chứng:</b> "...to remain <span class='hl-green'>self-reliant</span>..."</div>` },
+                    { t: "self-centered", c: false }, { t: "self-conscious", c: false }, { t: "self-sufficient", c: false }
+                ]
+            },
+            {
+                id: 18, text: "Promote open, honest dialogue to (18) _____ misunderstandings and strengthen trust.",
+                options: [
+                    { t: "patch up", c: true, 
+                      exp: `Dịch câu: "Thúc đẩy đối thoại cởi mở, trung thực để (18) _____ hiểu lầm..."<br>
+                      ❌ set aside: <span class='hl-red'>gác lại</span>.<br>
+                      ❌ bring in: <span class='hl-red'>đưa vào/mang lại lợi nhuận</span>.<br>
+                      ❌ take over: <span class='hl-red'>tiếp quản</span>.<br>
+                      <span class='hl-green'>✅ patch up</span>: Đúng. Cụm <span class='p-word'>patch up misunderstandings/differences</span> nghĩa là <span class='p-mean'>giải quyết, hàn gắn những hiểu lầm</span>.<br>
+                      <div class='exp-quote'><b>Dẫn chứng:</b> "...to <span class='hl-green'>patch up</span> misunderstandings..."</div>` },
+                    { t: "set aside", c: false }, { t: "bring in", c: false }, { t: "take over", c: false }
+                ]
+            }
+        ]
+    }
+];
+
+// ==========================================
+// 3. LOGIC RENDER & TƯƠNG TÁC
+// ==========================================
+let userAnswers = {};
+let totalQuestions = 0;
+
+function shuffle(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+}
+
+function init() {
+    const readingPane = document.getElementById('readingPane');
+    const questionsContainer = document.getElementById('questionsContainer');
+    let readingHTML = "";
+    let quizHTML = "";
+    let allEmojis = [];
+
+    data.forEach((passage, pIndex) => {
+        allEmojis.push(...passage.theme);
+        
+        // --- RENDER READING ---
+        readingHTML += `<div class="passage-title">${passage.title}</div>`;
+        passage.paragraphs.forEach((p, idx) => {
+            const tId = `trans_${pIndex}_${idx}`;
+            readingHTML += `
+                <div class="paragraph">
+                    <p>${p.en}</p>
+                    <button class="btn-translate" onclick="toggleTrans('${tId}')">Mở dịch đoạn này 🌟</button>
+                    <div id="${tId}" class="translation">${p.vi}</div>
+                </div>`;
+        });
+
+        // Glossary
+        readingHTML += `
+            <div class="glossary-box">
+                <h3>📚 Bảng từ vựng (Glossary)</h3>
+                <table>
+                    <tr><th>Từ vựng</th><th>Loại từ</th><th>Nghĩa tiếng Việt</th></tr>`;
+        passage.glossary.forEach(g => {
+            readingHTML += `<tr><td class="g-word">${g.w}</td><td class="g-type">${g.t}</td><td class="g-mean">${g.m}</td></tr>`;
+        });
+        readingHTML += `</table></div><hr style="border:1px dashed #fff; margin:30px 0;"><br>`;
+
+        // --- RENDER QUESTIONS ---
+        passage.questions.forEach(q => {
+            totalQuestions++;
+            let shuffledOptions = shuffle([...q.options]);
+            let optionsHTML = shuffledOptions.map(opt => 
+                `<button class="option-btn" onclick="handleSelect(${q.id}, this, ${opt.c})">${opt.t}</button>`
+            ).join('');
+
+            let correctExp = q.options.find(o => o.c).exp;
+
+            quizHTML += `
+                <div class="question-card" id="qcard_${q.id}">
+                    <div class="q-text">Câu ${q.id}: ${q.text}</div>
+                    <div class="options-grid" id="opts_${q.id}">${optionsHTML}</div>
+                    <div class="explanation-box" id="exp_${q.id}">${correctExp}</div>
+                </div>`;
+        });
+    });
+
+    readingPane.innerHTML = readingHTML;
+    questionsContainer.innerHTML = quizHTML;
+    createFloatingEmojis(allEmojis);
+}
+
+function toggleTrans(id) {
+    const el = document.getElementById(id);
+    el.style.display = el.style.display === 'block' ? 'none' : 'block';
+}
+
+function createFloatingEmojis(emojis) {
+    const bg = document.getElementById('floatingBg');
+    for(let i=0; i<30; i++) {
+        let el = document.createElement('div');
+        el.className = 'emoji';
+        el.innerText = emojis[Math.floor(Math.random() * emojis.length)];
+        el.style.left = Math.random() * 100 + 'vw';
+        el.style.animationDuration = (10 + Math.random() * 20) + 's';
+        el.style.animationDelay = (Math.random() * 5) + 's';
+        bg.appendChild(el);
+    }
+}
+
+// ==========================================
+// 4. KIỂM TRA ĐÁP ÁN & ÂM THANH TRẮC NGHIỆM
+// ==========================================
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+function playCorrectSound() {
+    if(audioCtx.state === 'suspended') audioCtx.resume();
+    const osc = audioCtx.createOscillator();
+    const gainNode = audioCtx.createGain();
+    osc.connect(gainNode);
+    gainNode.connect(audioCtx.destination);
+    
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(880, audioCtx.currentTime); // A5
+    osc.frequency.exponentialRampToValueAtTime(1760, audioCtx.currentTime + 0.1); // A6
+    gainNode.gain.setValueAtTime(0.5, audioCtx.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+    osc.start(); osc.stop(audioCtx.currentTime + 0.5);
+    shootConfetti();
+}
+
+function handleSelect(qId, btnEl, isCorrect) {
+    if(userAnswers[qId] !== undefined) return; 
+    
+    userAnswers[qId] = isCorrect;
+    const parent = document.getElementById(`opts_${qId}`);
+    const allBtns = parent.querySelectorAll('.option-btn');
+    
+    allBtns.forEach(b => {
+        b.style.pointerEvents = 'none';
+        b.style.opacity = '0.7';
+        let optText = b.innerText;
+        let isBtnCorrect = data.flatMap(p => p.questions).find(q => q.id === qId).options.find(o => o.t === optText).c;
+        if(isBtnCorrect) {
+            b.classList.add('correct');
+            b.style.opacity = '1';
+        }
+    });
+
+    if(isCorrect) {
+        playCorrectSound();
+        btnEl.classList.add('correct');
+        btnEl.style.opacity = '1';
+    } else {
+        // ÂM THANH ÔI BẠN ƠI
+        wrongAudio.currentTime = 0;
+        wrongAudio.play().catch(e => console.log(e));
+        
+        btnEl.classList.add('wrong');
+        btnEl.style.opacity = '1';
+    }
+
+    const expBox = document.getElementById(`exp_${qId}`);
+    expBox.style.display = 'block';
+}
+
+// ==========================================
+// 5. HIỆU ỨNG CONFETTI (PHÁO HOA)
+// ==========================================
+let canvas = document.getElementById('confetti');
+let ctx = canvas.getContext('2d');
+canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+let particles = [];
+function shootConfetti() {
+    for(let i=0; i<50; i++) {
+        particles.push({
+            x: canvas.width/2, y: canvas.height/2,
+            r: Math.random()*6+2,
+            dx: Math.random()*10-5, dy: Math.random()*-10-5,
+            c: `hsl(${Math.random()*360}, 100%, 50%)`
+        });
+    }
+}
+function animateConfetti() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    particles.forEach((p, index) => {
+        p.x += p.dx; p.y += p.dy; p.dy += 0.3; // gravity
+        ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
+        ctx.fillStyle = p.c; ctx.fill();
+        if(p.y > canvas.height) particles.splice(index, 1);
+    });
+    requestAnimationFrame(animateConfetti);
+}
+animateConfetti();
+
+// ==========================================
+// 6. NỘP BÀI & POPUP KẾT QUẢ
+// ==========================================
+function openSubmitPopup() {
+    const answeredCount = Object.keys(userAnswers).length;
+    if(answeredCount < totalQuestions) {
+        alert(`Bạn mới làm ${answeredCount}/${totalQuestions} câu. Vui lòng làm hết trước khi nộp!`);
+        return;
+    }
+    
+    document.getElementById('overlay').style.display = 'flex';
+    document.getElementById('popupContent').innerHTML = `
+        <h2 style="color:var(--primary);">Hành trình hoàn tất!</h2>
+        <p>Nhập tên của bạn để xem kết quả nhé:</p>
+        <input type="text" id="studentName" placeholder="Tên học sinh...">
+        <button class="submit-btn" onclick="showScore()">XEM ĐIỂM NGAY 🚀</button>
+    `;
+}
+
+function showScore() {
+    const name = document.getElementById('studentName').value.trim();
+    if(!name) { alert("Nhập tên vô để còn khen chứ!"); return; }
+
+    const correctCount = Object.values(userAnswers).filter(v => v).length;
+    const percent = (correctCount / totalQuestions) * 100;
+    
+    let gifUrl = "";
+    let comment = "";
+    if(percent === 100) {
+        gifUrl = "https://media.giphy.com/media/11sBLVxNs7v6WA/giphy.gif"; 
+        comment = "Trời ơi, THIÊN TÀI LÀ ĐÂY! Em làm đúng tuyệt đối! Ms Mai An quá tự hào luôn! 🏆✨";
+        for(let i=0; i<5; i++) setTimeout(shootConfetti, i*300);
+    } else if(percent >= 60) {
+        gifUrl = "https://media.giphy.com/media/l4q8cJzGdR9J8w3hS/giphy.gif"; 
+        comment = "Rất tốt! Em đã nắm bài khá vững! Cố lên chút nữa là đạt điểm tối đa nha! High-five! 👏🔥";
+        shootConfetti();
+    } else {
+        gifUrl = "https://media.giphy.com/media/3o6wrvdHFbwBrUFenu/giphy.gif"; 
+        comment = "Úi chà, sai hơi nhiều rồi. Nhớ đọc thật kỹ giải thích Master của cô ở từng câu để không mắc lại lỗi nhé! Cố lên em! 💪🥺";
+    }
+
+    document.getElementById('popupContent').innerHTML = `
+        <h1 style="color:var(--secondary); font-size:2rem;">BẢNG ĐIỂM</h1>
+        <h2 style="margin: 10px 0; color:#333;">Học sinh: <span style="color:var(--primary);">${name}</span></h2>
+        <div style="font-size: 3rem; font-weight: 900; color:var(--correct); margin: 10px 0;">${correctCount}/${totalQuestions}</div>
+        <img src="${gifUrl}" alt="Reaction GIF">
+        <p style="font-size: 1.1rem; line-height:1.5; color:#555; padding: 10px; background:#f4f4f4; border-radius:10px;">${comment}</p>
+        <button class="btn-translate" style="width:100%; margin-top:15px; font-size:1.1rem; padding:10px;" onclick="closePopup()">ĐÓNG LẠI & XEM GIẢI THÍCH</button>
+    `;
+}
+
+function closePopup() {
+    document.getElementById('overlay').style.display = 'none';
+}
+
+// Khởi chạy
+window.onload = init;
+</script>
+</body>
+</html>

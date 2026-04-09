@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bài Tập Đọc Hiểu - Ms Mai An ULIS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* CSS VARIABLES & ANIMATIONS */
+        :root {
+            --color-1: #c0c0aa;
+            --color-2: #1cefff;
+            --glass-bg: rgba(255, 255, 255, 0.45);
+            --glass-border: rgba(255, 255, 255, 0.6);
+            --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+            --correct: #28a745;
+            --incorrect: #dc3545;
+        }
+
+        body {
+            font-family: 'Quicksand', sans-serif;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            overflow: hidden;
+            background: linear-gradient(135deg, var(--color-1), var(--color-2));
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            color: #2c3e50;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* FLOATING PATTERNS */
+        .floating-emojis {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+        .emoji {
+            position: absolute;
+            font-size: 2rem;
+            opacity: 0.5;
+            animation: floatUp 20s linear infinite;
+        }
+        @keyframes floatUp {
+            0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+            20% { opacity: 0.6; }
+            80% { opacity: 0.6; }
+            100% { transform: translateY(-10vh) rotate(360deg); opacity: 0; }
+        }
+
+        /* LOGIN SCREEN */
+        #login-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: inherit;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .login-box {
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            padding: 40px;
+            border-radius: 24px;
+            box-shadow: var(--glass-shadow);
+            text-align: center;
+            width: 400px;
+            max-width: 90%;
+        }
+        .login-box h1 { font-size: 24px; margin-bottom: 10px; color: #fff; text-shadow: 1px 1px 4px rgba(0,0,0,0.2); }
+        .login-box input {
+            width: 100%; padding: 12px; margin: 15px 0;
+            border: 2px solid transparent;
+            border-radius: 12px;
+            background: rgba(255,255,255,0.8);
+            font-size: 16px; font-family: inherit;
+            outline: none; box-sizing: border-box;
+            transition: 0.3s;
+        }
+        .login-box input:focus { border-color: #1cefff; box-shadow: 0 0 10px rgba(28,239,255,0.5); }
+        .btn-primary {
+            background: linear-gradient(90deg, #1cefff, #c0c0aa);
+            border: none; color: #fff;
+            padding: 12px 24px; font-size: 18px; font-weight: bold;
+            border-radius: 12px; cursor: pointer;
+            width: 100%; transition: transform 0.2s, box-shadow 0.2s;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+        }
+        .btn-primary:hover { transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
+
+        /* MAIN LAYOUT */
+        #main-app {
+            display: none; /* Hidden until unlock */
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            z-index: 1;
+            position: relative;
+        }
+        header {
+            text-align: center;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(5px);
+            font-size: 14px; font-weight: bold; color: #fff;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+            border-bottom: 1px solid var(--glass-border);
+        }
+        .split-container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+            gap: 20px;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        /* PANELS */
+        .panel {
+            flex: 1;
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 20px;
+            overflow-y: auto;
+            box-shadow: var(--glass-shadow);
+        }
+        .panel::-webkit-scrollbar { width: 8px; }
+        .panel::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.2); border-radius: 4px; }
+
+        /* READING STYLES */
+        .reading-section h2 { color: #fff; text-shadow: 1px 1px 3px rgba(0,0,0,0.3); text-align: center; }
+        .passage-block { margin-bottom: 25px; padding: 15px; background: rgba(255,255,255,0.5); border-radius: 12px; }
+        .passage-block p { line-height: 1.6; font-size: 17px; margin-top: 0;}
+        .blank-span {
+            display: inline-block; min-width: 60px; text-align: center;
+            border-bottom: 2px dashed #333; font-weight: bold; color: #ff4757;
+            padding: 0 5px; transition: 0.3s;
+        }
+        .blank-span.filled { color: #28a745; border-bottom: 2px solid #28a745; }
+        
+        .translate-btn {
+            background: rgba(255, 255, 255, 0.8);
+            border: 1px solid #ddd; padding: 6px 12px;
+            border-radius: 20px; cursor: pointer;
+            font-size: 13px; font-weight: 600; color: #333;
+            transition: 0.2s; margin-top: 5px;
+        }
+        .translate-btn:hover { background: #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .translation-text {
+            display: none; margin-top: 10px; padding: 10px;
+            background: rgba(255, 243, 205, 0.8); border-left: 4px solid #ffc107;
+            font-size: 15px; border-radius: 0 8px 8px 0; font-style: italic;
+        }
+
+        /* GLOSSARY TABLE */
+        .glossary-table { width: 100%; border-collapse: collapse; margin-top: 15px; background: rgba(255,255,255,0.7); border-radius: 10px; overflow: hidden; }
+        .glossary-table th, .glossary-table td { padding: 10px; text-align: left; border-bottom: 1px solid rgba(0,0,0,0.1); }
+        .glossary-table th { background: rgba(28,239,255,0.3); font-weight: bold; }
+
+        /* QUESTIONS STYLES */
+        .question-card {
+            background: rgba(255,255,255,0.6);
+            border-radius: 16px; padding: 20px; margin-bottom: 20px;
+            border: 1px solid rgba(255,255,255,0.8);
+            transition: transform 0.3s;
+        }
+        .question-card:hover { transform: translateY(-2px); }
+        .question-card h3 { margin-top: 0; color: #2c3e50; }
+        .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
+        .opt-btn {
+            background: #fff; border: 2px solid #eee;
+            padding: 12px; border-radius: 12px;
+            font-size: 16px; font-family: inherit; font-weight: 600;
+            cursor: pointer; transition: 0.2s;
+            text-align: center;
+        }
+        .opt-btn:hover { background: #f8f9fa; border-color: #1cefff; }
+        .opt-btn.correct { background: var(--correct); color: #fff; border-color: var(--correct); box-shadow: 0 0 15px rgba(40, 167, 69, 0.5); }
+        .opt-btn.wrong { background: var(--incorrect); color: #fff; border-color: var(--incorrect); }
+        .shake { animation: shake 0.4s; }
+
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            50% { transform: translateX(5px); }
+            75% { transform: translateX(-5px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* MASTER EXPLANATION STYLES */
+        .explanation-box {
+            display: none; margin-top: 15px; padding: 15px;
+            background: #fff; border-radius: 12px;
+            border-left: 5px solid #1cefff; font-size: 15px; line-height: 1.6;
+        }
+        .p-word { color: #007bff; font-weight: bold; }
+        .p-mean { color: #d2691e; font-style: italic; font-weight: bold; }
+        .p-grammar { color: #d90429; text-decoration: underline; font-weight: bold; }
+        .hl-green { color: #28a745; font-weight: bold; }
+        .hl-red { color: #dc3545; text-decoration: line-through; }
+        
+        .quote-box {
+            margin-top: 10px; padding: 10px;
+            background: rgba(28, 239, 255, 0.1);
+            border-radius: 8px; border: 1px dashed #1cefff;
+        }
+
+        /* SUBMIT MODAL */
+        #result-modal {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6); z-index: 2000;
+            justify-content: center; align-items: center;
+        }
+        .modal-content {
+            background: #fff; padding: 30px; border-radius: 20px;
+            text-align: center; width: 450px; max-width: 90%;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        @keyframes popIn {
+            0% { transform: scale(0.5); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .modal-content img { width: 100%; border-radius: 12px; margin: 15px 0; max-height: 250px; object-fit: cover; }
+        .score-text { font-size: 40px; font-weight: bold; color: #1cefff; margin: 10px 0; }
+
+    </style>
+</head>
+<body>
+
+    <audio id="audio-intro" src="https://hoctienganhcungcomaianulis.github.io/homework/%E1%BA%A2nh_File%20nghe/Sound/export_7wcKV5pKUrQYWyi7XgktJM.mp3"></audio>
+    <audio id="audio-wrong" src="https://hoctienganhcungcomaianulis.github.io/homework/%E1%BA%A2nh_File%20nghe/File%20nghe%20Ket%20A2/huh_sound_effect-www_tiengdong_com.mp3"></audio>
+
+    <div class="floating-emojis" id="emoji-container"></div>
+
+    <div id="login-overlay">
+        <div class="login-box">
+            <h1>✨ Chào mừng đến lớp học của Ms Mai An ULIS ✨</h1>
+            <p style="color: #444; font-weight: bold;">Nhập mật khẩu để mở khóa bài tập</p>
+            <input type="password" id="pass-input" placeholder="Nhập mật khẩu tại đây...">
+            <button class="btn-primary" onclick="unlockApp()">MỞ KHÓA BÀI HỌC 🚀</button>
+            <p id="login-error" style="color: red; display: none; font-weight: bold; margin-top: 10px;">❌ Mật khẩu chưa đúng nha!</p>
+        </div>
+    </div>
+
+    <div id="main-app" style="display: none;">
+        <header>
+            Giáo viên tạo: Ms Mai An ULIS | Gamification English Reading
+        </header>
+        
+        <div id="intro-message" style="background: rgba(255, 235, 59, 0.9); padding: 15px; text-align: center; font-weight: bold; color: #d35400; border-bottom: 2px solid #f1c40f;">
+            🎙️ Hãy bật âm thanh! Các em nhớ đọc kĩ giải thích sau khi chọn đáp án thì mới có hiệu quả, chứ không chỉ tốn thời gian làm bài mà không có tác dụng nhé! Chúc các em làm bài thật tốt! 🌟
+        </div>
+
+        <div class="split-container">
+            <div class="panel left-panel">
+                
+                <div class="reading-section">
+                    <h2>📚 Peregrine's Peculiar World: A New Chapter Unfolds</h2>
+                    
+                    <div class="passage-block">
+                        <p><strong>Facts and Figures</strong></p>
+                        <ul>
+                            <li><span class="blank-span" id="blank-19">(19) _______</span> the original book's success, the film <i>Miss Peregrine's Home for Peculiar Children</i> has <span class="blank-span" id="blank-20">(20) _______</span> renewed interest in Ransom Riggs' series.</li>
+                            <li>To a significant <span class="blank-span" id="blank-21">(21) _______</span>, the story's themes of bravery, belonging, and identity resonate with readers and viewers alike.</li>
+                        </ul>
+                        <button class="translate-btn" onclick="toggleTranslate('trans-1')">Mở dịch đoạn này 🌟</button>
+                        <div class="translation-text" id="trans-1">
+                            <strong>Sự thật và Số liệu</strong><br>
+                            - Dựa trên thành công của cuốn sách gốc, bộ phim <i>Mái ấm lạ kỳ của cô Peregrine</i> đã đem lại sự quan tâm mới cho loạt phim của Ransom Riggs.<br>
+                            - Ở một mức độ đáng kể, các chủ đề của câu chuyện về lòng dũng cảm, sự thuộc về và bản sắc tạo ra sự đồng cảm với cả độc giả và người xem.
+                        </div>
+                    </div>
+
+                    <div class="passage-block">
+                        <p><strong>Positive Action!</strong></p>
+                        <p><strong>Explore the Series:</strong></p>
+                        <ul>
+                            <li>Dive into <span class="blank-span" id="blank-22">(22) _______</span> books in the <i>Peculiar Children</i> series to fully appreciate the expanded storyline and characters.</li>
+                        </ul>
+                        <p><strong>Don't Dwell on Just the Movie:</strong></p>
+                        <ul>
+                            <li>While the <span class="blank-span" id="blank-23">(23) _______</span> version is stunning, reading the books provides deeper insights into the peculiar world and its mysteries.</li>
+                        </ul>
+                        <p><strong>Join the Community:</strong></p>
+                        <ul>
+                            <li>Engage with fan discussions and theories about the series' mysterious elements on social media <span class="blank-span" id="blank-24">(24) _______</span> and forums.</li>
+                        </ul>
+                        <button class="translate-btn" onclick="toggleTranslate('trans-2')">Mở dịch đoạn này 🌟</button>
+                        <div class="translation-text" id="trans-2">
+                            <strong>Hành động Tích cực!</strong><br>
+                            <strong>Khám phá Series:</strong> Hãy khám phá các cuốn sách khác trong series <i>Những đứa trẻ kỳ lạ</i> để đánh giá cao trọn vẹn cốt truyện và các nhân vật được mở rộng.<br>
+                            <strong>Đừng chỉ chú tâm vào Phim:</strong> Mặc dù phiên bản chuyển thể rất tuyệt đẹp, nhưng việc đọc sách cung cấp cái nhìn sâu sắc hơn vào thế giới kỳ lạ và những bí ẩn của nó.<br>
+                            <strong>Tham gia Cộng đồng:</strong> Tham gia vào các cuộc thảo luận và giả thuyết của người hâm mộ về các yếu tố bí ẩn của series trên các nền tảng mạng xã hội và diễn đàn.
+                        </div>
+                    </div>
+                    
+                    <table class="glossary-table">
+                        <tr><th>Từ vựng (B1-C2)</th><th>Loại từ</th><th>Nghĩa Tiếng Việt</th></tr>
+                        <tr><td>Peculiar /pɪˈkjuː.li.ər/</td><td>adj</td><td>Kì lạ, khác thường</td></tr>
+                        <tr><td>Renewed /rɪˈnjuːd/</td><td>adj</td><td>Được phục hồi, mới mẻ lại</td></tr>
+                        <tr><td>Significant /sɪɡˈnɪf.ɪ.kənt/</td><td>adj</td><td>Đáng kể, quan trọng</td></tr>
+                        <tr><td>Resonate /ˈrez.ən.eɪt/</td><td>v</td><td>Vang dội, tạo sự đồng cảm</td></tr>
+                        <tr><td>Appreciate /əˈpriː.ʃi.eɪt/</td><td>v</td><td>Đánh giá cao, hiểu rõ giá trị</td></tr>
+                        <tr><td>Expanded /ɪkˈspændɪd/</td><td>adj</td><td>Được mở rộng</td></tr>
+                        <tr><td>Dwell on /dwel/</td><td>phr.v</td><td>Chú tâm quá mức vào</td></tr>
+                        <tr><td>Stunning /ˈstʌn.ɪŋ/</td><td>adj</td><td>Tuyệt đẹp, lộng lẫy</td></tr>
+                        <tr><td>Insight /ˈɪn.saɪt/</td><td>n</td><td>Sự thấu hiểu, cái nhìn sâu sắc</td></tr>
+                        <tr><td>Adaptation /ˌæd.əpˈteɪ.ʃən/</td><td>n</td><td>Sự thích nghi, bản chuyển thể</td></tr>
+                    </table>
+                </div>
+
+                <hr style="border: 1px dashed rgba(255,255,255,0.5); margin: 40px 0;">
+
+                <div class="reading-section">
+                    <h2>🌍 Bridging Cultures: The Global Rise of Exchange Programs</h2>
+                    
+                    <div class="passage-block">
+                        <p><strong>Facts and Figures</strong></p>
+                        <ul>
+                            <li><span class="blank-span" id="blank-25">(25) _______</span> students and professionals are participating in cultural exchange programs on a massive <span class="blank-span" id="blank-26">(26) _______</span>, with numbers rising significantly post-pandemic.</li>
+                            <li><span class="blank-span" id="blank-27">(27) _______</span> language and cultural differences, participants often <span class="blank-span" id="blank-28">(28) _______</span> as open-minded and adaptable.</li>
+                        </ul>
+                        <button class="translate-btn" onclick="toggleTranslate('trans-3')">Mở dịch đoạn này 🌟</button>
+                        <div class="translation-text" id="trans-3">
+                            <strong>Sự thật và Số liệu</strong><br>
+                            - Nhiều học sinh và chuyên gia đang tham gia vào các chương trình trao đổi văn hóa trên một quy mô lớn, với số lượng tăng đáng kể sau đại dịch.<br>
+                            - Mặc dù có sự khác biệt về ngôn ngữ và văn hóa, những người tham gia thường được coi là cởi mở và có khả năng thích nghi.
+                        </div>
+                    </div>
+
+                    <div class="passage-block">
+                        <p><strong>Positive Action!</strong></p>
+                        <p><strong>Explore Other Cultures:</strong></p>
+                        <ul>
+                            <li>Exchange programs allow participants to engage with <span class="blank-span" id="blank-29">(29) _______</span> traditions, preserving cultural heritage while promoting global awareness.</li>
+                        </ul>
+                        <p><strong>Learn to Adapt:</strong></p>
+                        <ul>
+                            <li>Overcoming challenges in new environments builds resilience and fosters growth.</li>
+                        </ul>
+                        <p><strong>Overcome Stereotypes:</strong></p>
+                        <ul>
+                            <li>By sharing personal stories and experiences, participants can break down <span class="blank-span" id="blank-30">(30) _______</span> and challenge preconceptions about different cultures.</li>
+                        </ul>
+                        <button class="translate-btn" onclick="toggleTranslate('trans-4')">Mở dịch đoạn này 🌟</button>
+                        <div class="translation-text" id="trans-4">
+                            <strong>Hành động Tích cực!</strong><br>
+                            <strong>Khám phá Văn hóa Khác:</strong> Các chương trình trao đổi cho phép người tham gia tìm hiểu các truyền thống bản địa, bảo tồn di sản văn hóa đồng thời thúc đẩy nhận thức toàn cầu.<br>
+                            <strong>Học cách Thích nghi:</strong> Vượt qua các thử thách trong môi trường mới xây dựng sự kiên cường và thúc đẩy sự phát triển.<br>
+                            <strong>Vượt qua Định kiến:</strong> Bằng cách chia sẻ những câu chuyện và kinh nghiệm cá nhân, người tham gia có thể phá vỡ rào cản và thách thức những quan niệm hình thành trước về các nền văn hóa khác nhau.
+                        </div>
+                    </div>
+
+                    <table class="glossary-table">
+                        <tr><th>Từ vựng (B1-C2)</th><th>Loại từ</th><th>Nghĩa Tiếng Việt</th></tr>
+                        <tr><td>Professional /prəˈfeʃ.ən.əl/</td><td>n</td><td>Chuyên gia</td></tr>
+                        <tr><td>Massive /ˈmæs.ɪv/</td><td>adj</td><td>To lớn, quy mô lớn</td></tr>
+                        <tr><td>Post-pandemic /poʊst/</td><td>adj</td><td>Hậu đại dịch</td></tr>
+                        <tr><td>Open-minded /ˌoʊ.pənˈmaɪn.dɪd/</td><td>adj</td><td>Cởi mở</td></tr>
+                        <tr><td>Adaptable /əˈdæp.tə.bəl/</td><td>adj</td><td>Có thể thích nghi</td></tr>
+                        <tr><td>Heritage /ˈher.ɪ.tɪdʒ/</td><td>n</td><td>Di sản</td></tr>
+                        <tr><td>Resilience /rɪˈzɪl.i.əns/</td><td>n</td><td>Sự kiên cường, phục hồi</td></tr>
+                        <tr><td>Foster /ˈfɒs.tər/</td><td>v</td><td>Thúc đẩy, nuôi dưỡng</td></tr>
+                        <tr><td>Stereotype /ˈster.i.ə.taɪp/</td><td>n</td><td>Định kiến</td></tr>
+                        <tr><td>Preconception /ˌpriː.kənˈsep.ʃən/</td><td>n</td><td>Quan niệm hình thành trước</td></tr>
+                    </table>
+                </div>
+
+            </div>
+
+            <div class="panel right-panel" id="exercise-panel">
+                <button class="btn-primary" style="margin-top: 30px; background: linear-gradient(90deg, #ff9a9e, #fecfef);" onclick="triggerSubmit()">🎯 NỘP BÀI TÍNH ĐIỂM & XEM KẾT QUẢ</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="result-modal">
+        <div class="modal-content">
+            <h2>KẾT QUẢ CỦA <span id="student-name-display" style="color: #e74c3c;"></span></h2>
+            <div class="score-text" id="final-score">0 / 12</div>
+            <p id="teacher-feedback" style="font-weight: bold; font-size: 18px; color: #34495e;"></p>
+            <img id="result-gif" src="" alt="Meme">
+            <button class="btn-primary" onclick="location.reload()">Làm Lại Từ Đầu 🔄</button>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <script>
+        // BACKGROUND EMOJIS GENERATOR
+        const emojis = ['📚', '🎬', '🌍', '🤝', '🚀', '🌟', '💡', '🎓'];
+        const emojiContainer = document.getElementById('emoji-container');
+        for(let i=0; i<15; i++) {
+            let el = document.createElement('div');
+            el.className = 'emoji';
+            el.innerText = emojis[Math.floor(Math.random() * emojis.length)];
+            el.style.left = Math.random() * 100 + 'vw';
+            el.style.animationDelay = (Math.random() * 20) + 's';
+            el.style.fontSize = (Math.random() * 2 + 1) + 'rem';
+            emojiContainer.appendChild(el);
+        }
+
+        // UNLOCK FUNCTION
+        function unlockApp() {
+            const pass = document.getElementById('pass-input').value.trim().toLowerCase();
+            if(pass === 'comaianulis') {
+                document.getElementById('login-overlay').style.display = 'none';
+                document.getElementById('main-app').style.display = 'flex';
+                document.getElementById('audio-intro').play();
+            } else {
+                const err = document.getElementById('login-error');
+                err.style.display = 'block';
+                err.classList.add('shake');
+                setTimeout(() => err.classList.remove('shake'), 400);
+            }
+        }
+
+        function toggleTranslate(id) {
+            const el = document.getElementById(id);
+            el.style.display = (el.style.display === 'block') ? 'none' : 'block';
+        }
+
+        // AUDIO API FOR "DING" (Correct answer)
+        function playDing() {
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(800, ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(1200, ctx.currentTime + 0.1);
+                gain.gain.setValueAtTime(0.5, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5);
+                osc.start(ctx.currentTime);
+                osc.stop(ctx.currentTime + 0.5);
+            } catch(e) { console.log("Audio API blocked"); }
+        }
+
+        function playWrong() {
+            const audio = document.getElementById('audio-wrong');
+            audio.currentTime = 0;
+            audio.play();
+        }
+
+        // DATA: QUESTIONS & MASTER EXPLANATIONS
+        const questionsData = [
+            {
+                id: 19,
+                options: ["In view of", "In light of", "In spite of", "In terms of"],
+                correct: "In light of",
+                explanation: `
+                    <p><b>Dịch đoạn chứa khoảng trống:</b> "(19) ________ thành công của cuốn sách gốc, bộ phim..."</p>
+                    <p><span class='hl-red'>A. In view of:</span> ❌ Sai vì "xét thấy", không thật sự phù hợp ngữ cảnh sát bằng cụm cố định.</p>
+                    <p><span class='hl-green'>B. In light of:</span> ✅ Đúng.</p>
+                    <p><span class='hl-red'>C. In spite of:</span> ❌ Sai vì mang nghĩa <span class='p-mean'>mặc dù</span>, ngược logic.</p>
+                    <p><span class='hl-red'>D. In terms of:</span> ❌ Sai vì mang nghĩa <span class='p-mean'>xét về mặt</span>.</p>
+                    <div class='quote-box'>
+                        🔍 <b>Giải thích chi tiết:</b> Cụm từ: <span class='p-word'>In light of the original book's success</span> nghĩa là <span class='p-mean'>dựa trên thành công của cuốn sách gốc</span>.
+                    </div>
+                `
+            },
+            {
+                id: 20,
+                options: ["dealt with", "come out", "resulted from", "brought about"],
+                correct: "brought about",
+                explanation: `
+                    <p><b>Dịch đoạn:</b> "... bộ phim đã (20) ________ sự quan tâm mới..."</p>
+                    <p><span class='hl-red'>A. dealt with:</span> ❌ Sai vì nghĩa là <span class='p-mean'>giải quyết</span>.</p>
+                    <p><span class='hl-red'>B. come out:</span> ❌ Sai vì nghĩa là <span class='p-mean'>ra mắt</span> (không có tân ngữ đi kèm kiểu này).</p>
+                    <p><span class='hl-red'>C. resulted from:</span> ❌ Sai vì nghĩa là <span class='p-mean'>bắt nguồn từ</span>.</p>
+                    <p><span class='hl-green'>D. brought about:</span> ✅ Đúng.</p>
+                    <div class='quote-box'>
+                        🔍 <b>Giải thích chi tiết:</b> Cụm từ: <span class='p-word'>brought about renewed interest</span> nghĩa là <span class='p-mean'>đem lại sự quan tâm mới</span>.
+                    </div>
+                `
+            },
+            {
+                id: 21,
+                options: ["scale", "basis", "extent", "amount"],
+                correct: "extent",
+                explanation: `
+                    <p><b>Dịch đoạn:</b> "Ở một (21) ________ đáng kể, các chủ đề của câu chuyện..."</p>
+                    <p><span class='hl-red'>A. scale, B. basis, D. amount:</span> ❌ Sai vì không đi cùng cấu trúc "To a significant..." trong trường hợp này.</p>
+                    <p><span class='hl-green'>C. extent:</span> ✅ Đúng.</p>
+                    <div class='quote-box'>
+                        🔍 <b>Giải thích chi tiết:</b> Cụm từ cố định: <span class='p-word'>to a significant extent</span> nghĩa là <span class='p-mean'>ở mức độ đáng kể</span>.
+                    </div>
+                `
+            },
+            {
+                id: 22,
+                options: ["other", "another", "the others", "others"],
+                correct: "other",
+                explanation: `
+                    <p><b>Dịch đoạn:</b> "Hãy khám phá (22) ________ cuốn sách trong series..."</p>
+                    <p><span class='hl-green'>A. other:</span> ✅ Đúng.</p>
+                    <p><span class='hl-red'>B. another:</span> ❌ Sai vì chỉ dùng với danh từ số ít (books đang ở số nhiều).</p>
+                    <p><span class='hl-red'>C. the others:</span> ❌ Sai vì "the others" là đại từ, không đứng trước danh từ "books".</p>
+                    <p><span class='hl-red'>D. others:</span> ❌ Sai cấu trúc (tương tự C, là đại từ).</p>
+                    <div class='quote-box'>
+                        🔍 <b>Giải thích chi tiết:</b> Quy tắc: <span class='p-grammar'>other + danh từ số nhiều đếm được</span>. Trong câu, <span class='p-word'>dive into other books</span> nghĩa là <span class='p-mean'>khám phá các cuốn sách khác</span>.
+                    </div>
+                `
+            },
+            {
+                id: 23,
+                options: ["adaptation", "alteration", "adjustment", "modification"],
+                correct: "adaptation",
+                explanation: `
+                    <p><b>Dịch đoạn:</b> "Mặc dù phiên bản (23) ________ rất tuyệt đẹp..."</p>
+                    <p><span class='hl-green'>A. adaptation:</span> ✅ Đúng.</p>
+                    <p><span class='hl-red'>B. alteration:</span> ❌ Sai vì nghĩa là <span class='p-mean'>sự thay đổi</span>.</p>
+                    <p><span class='hl-red'>C. adjustment:</span> ❌ Sai vì nghĩa là <span class='p-mean'>sự điều chỉnh</span>.</p>
+                    <p><span class='hl-red'>D. modification:</span> ❌ Sai vì nghĩa là <span class='p-mean'>sự sửa đổi</span>.</p>
+                    <div class='quote-box'>
+                        🔍 <b>Giải thích chi tiết:</b> Cụm từ: <span class='p-word'>the adaptation version</span> nghĩa là <span class='p-mean'>phiên bản chuyển thể</span> (từ sách sang phim).
+                    </div>
+                `
+            },
+            {
+                id: 24,
+                options: ["backgrounds", "legislations", "platforms", "frameworks"],
+                correct: "platforms",
+                explanation: `
+                    <p><b>Dịch đoạn:</b> "...trên các (24) ________ mạng xã hội và diễn đàn."</p>
+                    <p><span class='hl-red'>A. backgrounds:</span> ❌ Sai vì nghĩa là <span class='p-mean'>xuất thân/nền tảng cá nhân</span>.</p>
+                    <p><span class='hl-red'>B. legislations:</span> ❌ Sai vì nghĩa là <span class='p-mean'>luật pháp</span>.</p>
+                    <p><span class='hl-green'>C. platforms:</span> ✅ Đúng.</p>
+                    <p><span class='hl-red'>D. frameworks:</span> ❌ Sai vì nghĩa là <span class='p-mean'>khung sườn</span>.</p>
+                    <div class='quote-box'>
+                        🔍 <b>Giải thích chi tiết:</b> Cụm từ: <span class='p-word'>social media platforms</span> nghĩa là <span class='p-mean'>các nền tảng mạng xã hội</span>.
+                    </div>
+                `
+            },
+            {
+                id: 25,
+                options: ["Few", "Many", "Another", "Every"],
+                correct: "Many",
+                explanation: `
+                    <p><b>Dịch đoạn:</b> "(25) ________ học sinh và chuyên gia đang tham gia..."</p>
+                    <p><span class='hl-red'>A. Few:</span> ❌ Sai vì nghĩa là "rất ít" (không hợp logic đoạn văn nói về sự gia tăng).</p>
+                    <p><span class='hl-green'>B. Many:</span> ✅ Đúng.</p>
+                    <p><span class='hl-red'>C. Another & D. Every:</span> ❌ Sai vì chỉ cộng với danh từ số ít (students đang số nhiều).</p>
+                    <div class='quote-box'>
+                        🔍 <b>Giải thích chi tiết:</b> Quy tắc: <span class='p-grammar'>many + danh từ số nhiều đếm được</span>. Cụm <span class='p-word'>many students and professionals</span> nghĩa là <span class='p-mean'>nhiều học sinh và chuyên gia</span>.
+                    </div>
+                `
+            },
+            {
+                id: 26,
+                options: ["extent", "scale", "level", "degree"],
+                correct: "scale",
+                explanation: `
+                    <p><b>Dịch đoạn:</b> "... tham gia vào các chương trình trao đổi văn hóa trên một (26) ________ lớn..."</p>
+                    <p><span class='hl-green'>B. scale:</span> ✅ Đúng.</p>
+                    <p><span class='hl-red'>A, C, D:</span> ❌ Không tạo thành cụm từ cố định phù hợp mang nghĩa "quy mô lớn" trong ngữ cảnh này.</p>
+                    <div class='quote-box'>
+                        🔍 <b>Giải thích chi tiết:</b> Cụm từ: <span class='p-word'>on a massive scale</span> nghĩa là <span class='p-mean'>trên một quy mô lớn</span>.
+                    </div>
+                `
+            },
+            {
+                id: 27,
+                options: ["Thanks to", "In view of", "Rather than", "In spite of"],
+                correct: "In spite of",
+                explanation: `
+                    <p><b>Dịch đoạn:</b> "(27) ________ có sự khác biệt ngôn ngữ và văn hóa, người tham gia thường..."</p>
+                    <p><span class='hl-red'>A. Thanks to:</span> ❌ Sai vì "Nhờ vào", không hợp logic (sự khác biệt là rào cản, không phải nguyên nhân thuận lợi).</p>
+                    <p><span class='hl-red'>B. In view of:</span> ❌ Sai vì "Xét thấy".</p>
+                    <p><span class='hl-red'>C. Rather than:</span> ❌ Sai vì "Thay vì".</p>
+                    <p><span class='hl-green'>D. In spite of:</span> ✅ Đúng.</p>
+                    <div class='quote-box'>
+                        🔍 <b>Giải thích chi tiết:</b> Cụm từ: <span class='p-word'>In spite of language and cultural differences</span> nghĩa là <span class='p-mean'>mặc dù có sự khác biệt ngôn ngữ và văn hóa</span>.
+                    </div>
+                `
+            },
+            {
+                id: 28,
+                options: ["put forward", "set out", "turn up", "come across"],
+                correct: "come across",
+                explanation: `
+                    <p><b>Dịch đoạn:</b> "...người tham gia thường (28) ________ là cởi mở và dễ thích nghi."</p>
+                    <p><span class='hl-red'>A. put forward:</span> ❌ Sai vì nghĩa là <span class='p-mean'>đề xuất</span>.</p>
+                    <p><span class='hl-red'>B. set out:</span> ❌ Sai vì nghĩa là <span class='p-mean'>khởi hành</span>.</p>
+                    <p><span class='hl-red'>C. turn up:</span> ❌ Sai vì nghĩa là <span class='p-mean'>xuất hiện</span>.</p>
+                    <p><span class='hl-green'>D. come across:</span> ✅ Đúng.</p>
+                    <div class='quote-box'>
+                        🔍 <b>Giải thích chi tiết:</b> Cụm phrasal verb: <span class='p-word'>come across as open-minded</span> nghĩa là <span class='p-mean'>được coi là/tạo ấn tượng là người cởi mở</span>.
+                    </div>
+                `
+            },
+            {
+                id: 29,
+                options: ["ritualistic", "artistic", "indigenous", "linguistic"],
+                correct: "indigenous",
+                explanation: `
+                    <p><b>Dịch đoạn:</b> "...cho phép người tham gia tìm hiểu các truyền thống (29) ________..."</p>
+                    <p><span class='hl-red'>A. ritualistic:</span> ❌ Sai vì nghĩa là <span class='p-mean'>thuộc về nghi thức</span>.</p>
+                    <p><span class='hl-red'>B. artistic:</span> ❌ Sai vì nghĩa là <span class='p-mean'>mang tính nghệ thuật</span>.</p>
+                    <p><span class='hl-green'>C. indigenous:</span> ✅ Đúng.</p>
+                    <p><span class='hl-red'>D. linguistic:</span> ❌ Sai vì nghĩa là <span class='p-mean'>thuộc về ngôn ngữ</span>.</p>
+                    <div class='quote-box'>
+                        🔍 <b>Giải thích chi tiết:</b> Cụm từ: <span class='p-word'>engage with indigenous traditions</span> nghĩa là <span class='p-mean'>tìm hiểu các truyền thống bản địa</span>.
+                    </div>
+                `
+            },
+            {
+                id: 30,
+                options: ["obstacles", "barriers", "hindrances", "impediments"],
+                correct: "barriers",
+                explanation: `
+                    <p><b>Dịch đoạn:</b> "...người tham gia có thể phá vỡ (30) ________ và thách thức những quan niệm..."</p>
+                    <p><span class='hl-green'>B. barriers:</span> ✅ Đúng.</p>
+                    <p><span class='hl-red'>A, C, D:</span> ❌ Đều có nghĩa là "trở ngại" nhưng không đi cùng động từ "break down" để thành collocation phổ biến trong giao tiếp.</p>
+                    <div class='quote-box'>
+                        🔍 <b>Giải thích chi tiết:</b> Cụm từ: <span class='p-word'>break down barriers</span> nghĩa là <span class='p-mean'>phá vỡ rào cản</span> (thường dùng nói về rào cản giao tiếp, văn hóa).
+                    </div>
+                `
+            }
+        ];
+
+        let score = 0;
+        let answeredQuestions = new Set();
+
+        // SHUFFLE ALGORITHM
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        // RENDER EXERCISES
+        const exercisePanel = document.getElementById('exercise-panel');
+        let htmlStr = `<h2 style="color: #2c3e50; text-align: center;">🎯 BÀI TẬP TRẮC NGHIỆM</h2>`;
+        
+        questionsData.forEach(q => {
+            let shuffledOptions = shuffleArray([...q.options]);
+            let optionsHtml = '';
+            shuffledOptions.forEach(opt => {
+                optionsHtml += `<button class="opt-btn" onclick="checkAnswer(${q.id}, '${opt.replace(/'/g, "\\'")}', this)">${opt}</button>`;
+            });
+
+            htmlStr += `
+                <div class="question-card" id="qcard-${q.id}">
+                    <h3>Câu ${q.id}: Choose the correct option.</h3>
+                    <div class="options-grid" id="opts-${q.id}">
+                        ${optionsHtml}
+                    </div>
+                    <div class="explanation-box" id="exp-${q.id}">
+                        ${q.explanation}
+                    </div>
+                </div>
+            `;
+        });
+        exercisePanel.insertAdjacentHTML('afterbegin', htmlStr);
+
+        // CHECK ANSWER LOGIC
+        function checkAnswer(id, selected, btnElement) {
+            if (answeredQuestions.has(id)) return;
+            answeredQuestions.add(id);
+
+            const q = questionsData.find(x => x.id === id);
+            const parent = document.getElementById(`opts-${id}`);
+            const buttons = parent.querySelectorAll('button');
+            const expBox = document.getElementById(`exp-${id}`);
+            const blankSpan = document.getElementById(`blank-${id}`);
+
+            buttons.forEach(btn => btn.disabled = true);
+
+            if (selected === q.correct) {
+                // Correct logic
+                btnElement.classList.add('correct');
+                score++;
+                playDing();
+                confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+                blankSpan.innerText = q.correct;
+                blankSpan.classList.add('filled');
+            } else {
+                // Incorrect logic
+                btnElement.classList.add('wrong');
+                btnElement.classList.add('shake');
+                playWrong();
+                // Highlight correct
+                buttons.forEach(btn => {
+                    if(btn.innerText === q.correct) btn.classList.add('correct');
+                });
+                blankSpan.innerText = q.correct;
+                blankSpan.style.color = '#dc3545';
+                blankSpan.style.borderBottom = '2px solid #dc3545';
+            }
+
+            expBox.style.display = 'block';
+        }
+
+        // SUBMIT LOGIC
+        function triggerSubmit() {
+            if(answeredQuestions.size < 12) {
+                alert("Các em phải làm hết các câu hỏi mới được nộp bài nha! 🌟");
+                return;
+            }
+            const name = prompt("Ms Mai An cần biết tên của trò cưng nộp bài. Nhập tên của em vào đây nhé:");
+            if(!name) return;
+
+            document.getElementById('student-name-display').innerText = name.toUpperCase();
+            document.getElementById('final-score').innerText = `${score} / 12`;
+            
+            const fb = document.getElementById('teacher-feedback');
+            const gif = document.getElementById('result-gif');
+            const percent = score / 12;
+
+            if(percent === 1) {
+                fb.innerText = "Tuyệt đỉnh học thuật! Em làm bài không sai câu nào. Ms Mai An cực kì tự hào về em! 🏆";
+                gif.src = "https://media.giphy.com/media/l41YkxvU8c7J7Bba0/giphy.gif"; // Smart/Genius GIF
+            } else if(percent >= 0.6) {
+                fb.innerText = "Làm tốt lắm trò cưng! Chỉ sai một chút xíu thôi, lần sau chú ý kỹ giải thích là 10 điểm ngay! 👏";
+                gif.src = "https://media.giphy.com/media/3o7abGQa0aRJUurpII/giphy.gif"; // High five / Good job GIF
+            } else {
+                fb.innerText = "Úi chà, có vẻ phần này hơi khó đúng không? Không sao, đọc kỹ phần giải thích chi tiết Ms Mai An để bên cạnh và làm lại nhé. Cố lên! 💪";
+                gif.src = "https://media.giphy.com/media/l3vR4CdLInBRejGuz/giphy.gif"; // Crying/Try again GIF
+            }
+
+            document.getElementById('result-modal').style.display = 'flex';
+        }
+    </script>
+</body>
+</html>

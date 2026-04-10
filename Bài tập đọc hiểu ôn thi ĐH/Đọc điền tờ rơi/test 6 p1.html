@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reading Practice - Ms Mai An ULIS</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Cinzel:wght@600;700&display=swap');
+
+        :root {
+            --primary-bg: linear-gradient(135deg, #4ac29a 0%, #bdfff3 100%);
+            --glass-bg: rgba(255, 255, 255, 0.4);
+            --glass-border: rgba(255, 255, 255, 0.6);
+            --text-dark: #2c3e50;
+            --correct-color: #28a745;
+            --incorrect-color: #dc3545;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Nunito', sans-serif;
+        }
+
+        body {
+            background: var(--primary-bg);
+            background-attachment: fixed;
+            color: var(--text-dark);
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        /* Floating Pattern (Emojis in background) */
+        .floating-bg {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: -1;
+            overflow: hidden;
+        }
+        .float-icon {
+            position: absolute;
+            font-size: 2.5rem;
+            opacity: 0.3;
+            animation: floatUp 15s linear infinite;
+        }
+        @keyframes floatUp {
+            0% { transform: translateY(110vh) rotate(0deg); }
+            100% { transform: translateY(-10vh) rotate(360deg); }
+        }
+
+        /* Password Modal Styling matching requested Theme */
+        #passwordModal {
+            position: fixed; inset: 0; z-index: 9999;
+            display: flex; align-items: center; justify-content: center;
+            background: rgba(10, 30, 25, 0.85); backdrop-filter: blur(15px);
+        }
+        .pw-card {
+            background: linear-gradient(160deg, rgba(74, 194, 154, 0.85) 0%, rgba(189, 255, 243, 0.95) 100%);
+            border: 2px solid rgba(255, 255, 255, 0.6); border-radius: 24px; padding: 48px 40px 40px; 
+            max-width: 440px; width: 93%; text-align: center; position: relative; overflow: hidden;
+            box-shadow: 0 0 40px rgba(74, 194, 154, 0.6);
+        }
+        .pw-crest { font-size: 4rem; margin-bottom: 8px; display: block; }
+        .pw-title { font-family: 'Cinzel', serif; font-size: 1.6rem; font-weight: 700; color: #1a5c48; margin-bottom: 6px; }
+        .pw-sub { font-size: 0.95rem; color: #2a6f58; margin-bottom: 24px; font-weight: 600; }
+        .pw-input {
+            width: 100%; padding: 13px 20px; border-radius: 12px;
+            border: 2px solid rgba(255, 255, 255, 0.8); background: rgba(255, 255, 255, 0.5);
+            color: #1a5c48; font-size: 1.1rem; font-weight: bold;
+            outline: none; letter-spacing: 2px; text-align: center; transition: all .3s;
+        }
+        .pw-input:focus { border-color: #1a5c48; box-shadow: 0 0 0 3px rgba(26, 92, 72, 0.2); }
+        .pw-input.error { border-color: #FF4757; background: rgba(255, 71, 87, 0.1); animation: shake .4s ease; }
+        .pw-btn {
+            width: 100%; padding: 14px; margin-top: 18px; border-radius: 12px; border: none;
+            background: #1a5c48; color: #fff; font-size: 1.1rem; font-weight: 700;
+            cursor: pointer; transition: transform .2s, box-shadow .2s;
+        }
+        .pw-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(26, 92, 72, 0.4); }
+        .pw-err { color: #d32f2f; font-size: 0.9rem; margin-top: 10px; display: none; font-weight: 700; }
+        @keyframes shake { 0%,100%{transform:translateX(0)} 15%,45%,75%{transform:translateX(-6px)} 30%,60%,90%{transform:translateX(6px)} }
+
+        /* Header */
+        header {
+            padding: 10px 20px;
+            text-align: center;
+            background: rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--glass-border);
+            font-weight: 700;
+            color: #1a5c48;
+            font-size: 1rem;
+            z-index: 10;
+        }
+
+        /* Split Screen Layout */
+        .container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+            padding: 15px;
+            gap: 15px;
+            display: none; /* Hidden until password passed */
+        }
+        
+        .panel {
+            flex: 1;
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 20px;
+            overflow-y: auto;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .panel::-webkit-scrollbar { width: 8px; }
+        .panel::-webkit-scrollbar-thumb { background: rgba(74, 194, 154, 0.5); border-radius: 4px; }
+
+        /* Reading Content Styling */
+        .passage-box {
+            background: rgba(255, 255, 255, 0.6);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 25px;
+            box-shadow: inset 0 2px 10px rgba(255,255,255,0.5);
+        }
+        .passage-title {
+            font-size: 1.4rem; color: #1a5c48; margin-bottom: 15px; font-weight: 800;
+            display: flex; align-items: center; gap: 10px;
+        }
+        .paragraph { margin-bottom: 15px; font-size: 1.1rem; line-height: 1.6; }
+        .translation-text {
+            display: none; color: #555; font-size: 1rem; background: #eef9f5;
+            padding: 10px; border-left: 4px solid #4ac29a; border-radius: 5px; margin-top: 10px;
+            font-style: italic;
+        }
+        .btn-translate {
+            background: #fff; border: 1px solid #4ac29a; color: #4ac29a;
+            padding: 5px 12px; border-radius: 20px; cursor: pointer; font-size: 0.85rem;
+            font-weight: bold; transition: all 0.2s; margin-top: 5px;
+        }
+        .btn-translate:hover { background: #4ac29a; color: #fff; }
+
+        /* Glossary Table */
+        .glossary { width: 100%; border-collapse: collapse; margin-top: 15px; background: #fff; border-radius: 10px; overflow: hidden; }
+        .glossary th { background: #4ac29a; color: #fff; padding: 10px; text-align: left; }
+        .glossary td { padding: 10px; border-bottom: 1px solid #eee; }
+        .glossary tr:last-child td { border-bottom: none; }
+
+        /* Alert Panel */
+        .alert-panel {
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 99%, #fecfef 100%);
+            border-left: 5px solid #ff4757;
+            padding: 15px 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(255, 71, 87, 0.2);
+            color: #b71540;
+            font-weight: 700;
+            font-size: 1.05rem;
+            animation: pulseAlert 2s infinite;
+        }
+        @keyframes pulseAlert {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+            100% { transform: scale(1); }
+        }
+
+        /* Question Cards */
+        .question-card {
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            transition: transform 0.2s;
+            border: 2px solid transparent;
+        }
+        .question-card:hover { transform: translateY(-2px); }
+        .q-text { font-size: 1.2rem; font-weight: 700; margin-bottom: 15px; color: #2c3e50; }
+        
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+        }
+        .option-btn {
+            background: #fff; border: 2px solid #bdfff3; border-radius: 12px;
+            padding: 12px 20px; font-size: 1.1rem; text-align: left; cursor: pointer;
+            transition: all 0.2s; font-weight: 600; color: #34495e;
+            display: flex; align-items: center;
+        }
+        .option-btn:hover:not(:disabled) { border-color: #4ac29a; background: #f0fdfa; transform: scale(1.01); }
+        .option-btn.correct { background: var(--correct-color); color: #fff; border-color: var(--correct-color); }
+        .option-btn.incorrect { background: var(--incorrect-color); color: #fff; border-color: var(--incorrect-color); animation: shake .4s; }
+        .option-btn:disabled { cursor: not-allowed; opacity: 0.7; }
+
+        /* Explanation Box */
+        .explanation {
+            display: none; margin-top: 15px; padding: 15px;
+            background: #fff; border-radius: 12px; border-left: 4px solid #4ac29a;
+            font-size: 1rem; line-height: 1.6; box-shadow: inset 0 2px 5px rgba(0,0,0,0.05);
+        }
+        
+        /* Master Colors for Explanations */
+        .p-word { color: #007bff; font-weight: bold; }
+        .p-mean { color: #d35400; font-weight: bold; }
+        .p-grammar { text-decoration: underline; color: #c0392b; font-weight: bold; }
+        .hl-green { color: #28a745; font-weight: bold; }
+        .hl-red { color: #dc3545; text-decoration: line-through; font-weight: bold; }
+
+        /* Submit Area */
+        .submit-area { text-align: center; padding: 20px 0; }
+        .btn-submit {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: #fff; border: none; padding: 15px 30px; border-radius: 30px;
+            font-size: 1.2rem; font-weight: 800; cursor: pointer; box-shadow: 0 5px 20px rgba(17, 153, 142, 0.4);
+            transition: transform 0.2s;
+        }
+        .btn-submit:hover { transform: scale(1.05); }
+
+        /* Score Modal */
+        #scoreModal {
+            position: fixed; inset: 0; z-index: 10000; display: none;
+            align-items: center; justify-content: center;
+            background: rgba(0,0,0,0.8); backdrop-filter: blur(10px);
+        }
+        .score-card {
+            background: #fff; border-radius: 20px; padding: 30px; width: 90%; max-width: 400px;
+            text-align: center; box-shadow: 0 0 50px rgba(255,255,255,0.2);
+        }
+        .score-card img { width: 100%; border-radius: 10px; margin: 15px 0; }
+        .score-text { font-size: 2rem; font-weight: 800; color: #4ac29a; margin-bottom: 10px; }
+        
+        #confetti { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9998; }
+    </style>
+</head>
+<body>
+
+    <audio id="introAudio" src="https://hoctienganhcungcomaianulis.github.io/homework/%E1%BA%A2nh_File%20nghe/Sound/harry-potter-hedwigs-theme-short.mp3"></audio>
+    <audio id="wrongSound" src="https://hoctienganhcungcomaianulis.github.io/homework/%E1%BA%A2nh_File%20nghe/Sound/oi-ban-oi.mp3"></audio>
+
+    <canvas id="confetti"></canvas>
+
+    <div class="floating-bg" id="floatingBg"></div>
+
+    <div id="passwordModal">
+        <div class="pw-card">
+            <span class="pw-crest">🔐</span>
+            <div class="pw-title">BẢO MẬT BÀI THI</div>
+            <div class="pw-sub">Vui lòng nhập mật khẩu để vào làm bài</div>
+            <input type="password" class="pw-input" id="pwInput" placeholder="Nhập mật khẩu..." autocomplete="off" />
+            <button class="pw-btn" onclick="checkPassword()">MỞ KHÓA</button>
+            <div class="pw-err" id="pwErr">Mật khẩu không đúng! Vui lòng thử lại.</div>
+        </div>
+    </div>
+
+    <header>✨ Giáo viên tạo: Ms Mai An ULIS ✨</header>
+
+    <div class="container" id="mainContent">
+        <div class="panel">
+            
+            <div class="passage-box">
+                <h2 class="passage-title">👨‍👩‍👧‍👦 Passage 1: Modern Family Dynamics</h2>
+                
+                <div class="paragraph">
+                    <p><strong>Facts and Figures:</strong> (1) _______ families worldwide are adjusting to the evolving nature of relationships and responsibilities, with new challenges emerging on a global (2) _______. As society faces new hurdles, families often (3) _______ their roles, seeking ways to adapt while maintaining emotional connections and unity.</p>
+                    <button class="btn-translate" onclick="toggleDich(this)">Mở dịch đoạn này 🌟</button>
+                    <div class="translation-text">Thực tế và Số liệu: Nhiều gia đình trên toàn thế giới đang điều chỉnh theo bản chất ngày càng thay đổi của các mối quan hệ và trách nhiệm, với những thách thức mới xuất hiện trên quy mô toàn cầu. Khi xã hội đối mặt với những rào cản mới, các gia đình thường suy ngẫm về vai trò của họ, tìm cách thích nghi trong khi vẫn duy trì sự kết nối cảm xúc và sự đoàn kết.</div>
+                </div>
+
+                <div class="paragraph">
+                    <p><strong>Positive Action! Keep Traditions Alive:</strong> Ensure the (4) _______ of family traditions to pass on values and experiences, creating lasting memories for future generations.</p>
+                    <button class="btn-translate" onclick="toggleDich(this)">Mở dịch đoạn này 🌟</button>
+                    <div class="translation-text">Hành động tích cực! Giữ gìn truyền thống: Đảm bảo việc bảo tồn các truyền thống gia đình để truyền lại các giá trị và kinh nghiệm, tạo ra những kỷ niệm lâu dài cho các thế hệ tương lai.</div>
+                </div>
+
+                <div class="paragraph">
+                    <p><strong>Adapt Together:</strong> (5) _______ the increasing demand for work-life balance, many households continue to value close-knit relationships, sharing memories and traditions that carry deep (6) _______ value.</p>
+                    <button class="btn-translate" onclick="toggleDich(this)">Mở dịch đoạn này 🌟</button>
+                    <div class="translation-text">Cùng nhau thích nghi: Bất chấp nhu cầu ngày càng tăng về sự cân bằng giữa công việc và cuộc sống, nhiều hộ gia đình vẫn tiếp tục coi trọng các mối quan hệ gắn bó, chia sẻ những kỷ niệm và truyền thống mang giá trị tinh thần sâu sắc.</div>
+                </div>
+
+                <table class="glossary">
+                    <tr><th>Từ vựng</th><th>Loại từ</th><th>Nghĩa tiếng Việt</th></tr>
+                    <tr><td>Dynamic</td><td>(n)</td><td>Động lực học, sự vận động</td></tr>
+                    <tr><td>Evolve</td><td>(v)</td><td>Tiến hóa, phát triển</td></tr>
+                    <tr><td>Hurdle</td><td>(n)</td><td>Rào cản, chướng ngại vật</td></tr>
+                    <tr><td>Unity</td><td>(n)</td><td>Sự đoàn kết, sự thống nhất</td></tr>
+                    <tr><td>Preservation</td><td>(n)</td><td>Sự bảo tồn, sự gìn giữ</td></tr>
+                    <tr><td>Close-knit</td><td>(adj)</td><td>Gắn bó khăng khít</td></tr>
+                    <tr><td>Sentimental</td><td>(adj)</td><td>Thuộc về tình cảm, tinh thần</td></tr>
+                    <tr><td>Substantial</td><td>(adj)</td><td>Đáng kể, trọng yếu</td></tr>
+                    <tr><td>Tangible</td><td>(adj)</td><td>Hữu hình, có thể sờ mó được</td></tr>
+                    <tr><td>Monetary</td><td>(adj)</td><td>Thuộc về tiền tệ</td></tr>
+                </table>
+            </div>
+
+            <div class="passage-box">
+                <h2 class="passage-title">🤖 Passage 2: Sophia the Robot</h2>
+                
+                <div class="paragraph">
+                    <p><strong>Facts and Figures:</strong> (7) _______ robots, including Sophia, showcase incredible advances in artificial intelligence. Sophia operates on a robust (8) _______ enabling her to communicate and learn from interactions.</p>
+                    <button class="btn-translate" onclick="toggleDich(this)">Mở dịch đoạn này 🌟</button>
+                    <div class="translation-text">Thực tế và Số liệu: Nhiều robot, bao gồm cả Sophia, thể hiện những tiến bộ đáng kinh ngạc trong trí tuệ nhân tạo. Sophia hoạt động dựa trên một giao thức mạnh mẽ cho phép cô giao tiếp và học hỏi từ các tương tác.</div>
+                </div>
+
+                <div class="paragraph">
+                    <p><strong>Support AI Innovation:</strong> Stay informed about the ethical implications of AI technology and its potential. On a regular (9) _______ basis, Sophia's creators update her programming and (10) _______ systems, ensuring she remains at the forefront of AI innovation.</p>
+                    <button class="btn-translate" onclick="toggleDich(this)">Mở dịch đoạn này 🌟</button>
+                    <div class="translation-text">Hỗ trợ đổi mới AI: Cập nhật thông tin về các tác động đạo đức của công nghệ AI và tiềm năng của nó. Một cách thường xuyên, những người tạo ra Sophia cập nhật lập trình và các thành phần hệ thống của cô ấy, đảm bảo cô ấy luôn đi đầu trong đổi mới AI.</div>
+                </div>
+
+                <div class="paragraph">
+                    <p><strong>Encourage AI Integration:</strong> (11) _______ merely being a static machine, they can (12) _______ and upgrade her.</p>
+                    <button class="btn-translate" onclick="toggleDich(this)">Mở dịch đoạn này 🌟</button>
+                    <div class="translation-text">Khuyến khích tích hợp AI: Thay vì chỉ là một cỗ máy tĩnh, họ có thể tháo rời và nâng cấp cô ấy.</div>
+                </div>
+
+                <table class="glossary">
+                    <tr><th>Từ vựng</th><th>Loại từ</th><th>Nghĩa tiếng Việt</th></tr>
+                    <tr><td>Showcase</td><td>(v)</td><td>Trưng bày, phô diễn</td></tr>
+                    <tr><td>Artificial intelligence</td><td>(n)</td><td>Trí tuệ nhân tạo (AI)</td></tr>
+                    <tr><td>Robust</td><td>(adj)</td><td>Mạnh mẽ, vững chắc</td></tr>
+                    <tr><td>Protocol</td><td>(n)</td><td>Giao thức, quy chuẩn</td></tr>
+                    <tr><td>Ethical</td><td>(adj)</td><td>Thuộc về đạo đức</td></tr>
+                    <tr><td>Implication</td><td>(n)</td><td>Hệ quả, ẩn ý</td></tr>
+                    <tr><td>Component</td><td>(n)</td><td>Thành phần, linh kiện</td></tr>
+                    <tr><td>Forefront</td><td>(n)</td><td>Vị trí đi đầu, hàng đầu</td></tr>
+                    <tr><td>Static</td><td>(adj)</td><td>Tĩnh, không thay đổi</td></tr>
+                    <tr><td>Upgrade</td><td>(v)</td><td>Nâng cấp, cải tiến</td></tr>
+                </table>
+            </div>
+
+            <div class="passage-box">
+                <h2 class="passage-title">🏆 Passage 3: Sports Spotlight</h2>
+                
+                <div class="paragraph">
+                    <p><strong>Facts and Figures:</strong> (13) _______ athletes in major competitions are known for remarkable skill and resilience, as they prepare to face fierce (14) _______ on the world stage. Recent tournaments have highlighted these feats on a global (15) _______.</p>
+                    <button class="btn-translate" onclick="toggleDich(this)">Mở dịch đoạn này 🌟</button>
+                    <div class="translation-text">Thực tế và Số liệu: Hầu hết các vận động viên trong các giải đấu lớn đều được biết đến với kỹ năng và sự kiên cường đáng chú ý, khi họ chuẩn bị đối mặt với các đối thủ đáng gờm trên đấu trường thế giới. Các giải đấu gần đây đã làm nổi bật những kỳ tích này trên quy mô toàn cầu.</div>
+                </div>
+
+                <div class="paragraph">
+                    <p><strong>Support Emerging Talents:</strong> Encourage youth participation in sports to help discover and nurture future champions. Athletes continue to (16) _______ thanks to their precise techniques and mental toughness.</p>
+                    <button class="btn-translate" onclick="toggleDich(this)">Mở dịch đoạn này 🌟</button>
+                    <div class="translation-text">Hỗ trợ các tài năng mới nổi: Khuyến khích thanh thiếu niên tham gia thể thao để giúp khám phá và nuôi dưỡng các nhà vô địch trong tương lai. Các vận động viên tiếp tục trở nên nổi bật nhờ vào kỹ thuật chính xác và sự dẻo dai về tinh thần của họ.</div>
+                </div>
+
+                <div class="paragraph">
+                    <p><strong>Promote Fair Play / Enhance Training Methods:</strong> Ensure that competitions remain fair and fun, fostering sportsmanship in all athletes, (17) _______ skill level. Invest in training programs that focus on developing both physical and mental (18) _______ to improve athletes' performance.</p>
+                    <button class="btn-translate" onclick="toggleDich(this)">Mở dịch đoạn này 🌟</button>
+                    <div class="translation-text">Thúc đẩy chơi đẹp / Tăng cường phương pháp huấn luyện: Đảm bảo rằng các cuộc thi luôn công bằng và vui vẻ, bồi dưỡng tinh thần thể thao ở tất cả các vận động viên, bất kể mức độ kỹ năng. Đầu tư vào các chương trình đào tạo tập trung vào việc phát triển cả năng lực thể chất và tinh thần để cải thiện hiệu suất của vận động viên.</div>
+                </div>
+
+                <table class="glossary">
+                    <tr><th>Từ vựng</th><th>Loại từ</th><th>Nghĩa tiếng Việt</th></tr>
+                    <tr><td>Remarkable</td><td>(adj)</td><td>Đáng chú ý, xuất chúng</td></tr>
+                    <tr><td>Resilience</td><td>(n)</td><td>Sự kiên cường, khả năng phục hồi</td></tr>
+                    <tr><td>Fierce</td><td>(adj)</td><td>Dữ dội, khốc liệt</td></tr>
+                    <tr><td>Opponent</td><td>(n)</td><td>Đối thủ</td></tr>
+                    <tr><td>Feat</td><td>(n)</td><td>Kỳ tích, chiến công</td></tr>
+                    <tr><td>Nurture</td><td>(v)</td><td>Nuôi dưỡng, bồi dưỡng</td></tr>
+                    <tr><td>Precise</td><td>(adj)</td><td>Chính xác, tỉ mỉ</td></tr>
+                    <tr><td>Sportsmanship</td><td>(n)</td><td>Tinh thần thể thao</td></tr>
+                    <tr><td>Regardless of</td><td>(prep)</td><td>Bất kể, không chú ý tới</td></tr>
+                    <tr><td>Capability</td><td>(n)</td><td>Khả năng, năng lực</td></tr>
+                </table>
+            </div>
+
+        </div>
+
+        <div class="panel" id="quizPanel">
+            
+            <div class="alert-panel">
+                🚨 Các em lưu ý: Làm bài xong bắt buộc phải ĐỌC KỸ GIẢI THÍCH ở dưới mỗi câu! Nếu chỉ click chọn cho xong mà không hiểu tại sao đúng/sai thì làm bài không có tác dụng và rất lãng phí thời gian học nhé!
+            </div>
+
+            <div id="questionsContainer"></div>
+
+            <div class="submit-area">
+                <button class="btn-submit" onclick="submitQuiz()">🎯 NỘP BÀI TÍNH ĐIỂM & XEM KẾT QUẢ</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="scoreModal">
+        <div class="score-card">
+            <h2>KẾT QUẢ BÀI LÀM</h2>
+            <div class="score-text" id="scoreDisplay">0/18</div>
+            <div id="feedbackText" style="font-weight: bold; margin-bottom: 10px;"></div>
+            <img id="scoreGif" src="" alt="Reaction">
+            <button class="pw-btn" onclick="location.reload()">LÀM LẠI TỪ ĐẦU</button>
+        </div>
+    </div>
+
+<script>
+    // Config Float Background
+    const emojis = ['👨‍👩‍👧‍👦', '🏡', '❤️', '🤖', '🧠', '💻', '🏆', '🏃', '⚽'];
+    function spawnFloats() {
+        const bg = document.getElementById('floatingBg');
+        for(let i=0; i<15; i++) {
+            let el = document.createElement('div');
+            el.className = 'float-icon';
+            el.innerText = emojis[Math.floor(Math.random() * emojis.length)];
+            el.style.left = Math.random() * 100 + 'vw';
+            el.style.animationDuration = (Math.random() * 10 + 10) + 's';
+            el.style.animationDelay = (Math.random() * 5) + 's';
+            bg.appendChild(el);
+        }
+    }
+
+    // Password logic (converted to char codes to hide from plain text)
+    const _k = [99, 111, 109, 97, 105, 97, 110, 117, 108, 105, 115]; 
+    const _pw = _k.map(c => String.fromCharCode(c)).join('');
+
+    function checkPassword() {
+        const inp = document.getElementById('pwInput');
+        const err = document.getElementById('pwErr');
+        if (inp.value === _pw) {
+            document.getElementById('passwordModal').style.display = 'none';
+            document.getElementById('mainContent').style.display = 'flex';
+            spawnFloats();
+            document.getElementById('introAudio').play().catch(e=>{});
+        } else {
+            inp.classList.remove('error'); void inp.offsetWidth; inp.classList.add('error');
+            err.style.display = 'block'; setTimeout(() => inp.classList.remove('error'), 500);
+        }
+    }
+    document.getElementById('pwInput').addEventListener('keydown', e => { if (e.key==='Enter') checkPassword(); });
+
+    // Web Audio API for Correct Sound (Ding)
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    function playDing() {
+        if(audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(880, audioCtx.currentTime); // A5
+        osc.frequency.exponentialRampToValueAtTime(1760, audioCtx.currentTime + 0.1);
+        gainNode.gain.setValueAtTime(1, audioCtx.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.5);
+        osc.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.5);
+    }
+    
+    function playWrong() {
+        const w = document.getElementById('wrongSound');
+        w.currentTime = 0; w.play().catch(e=>{});
+    }
+
+    function toggleDich(btn) {
+        const txt = btn.nextElementSibling;
+        if(txt.style.display === 'block') {
+            txt.style.display = 'none';
+            btn.innerText = 'Mở dịch đoạn này 🌟';
+        } else {
+            txt.style.display = 'block';
+            btn.innerText = 'Đóng phần dịch 🙈';
+        }
+    }
+
+    // Quiz Data (Passage 1, 2, 3 - 18 questions)
+    const quizData = [
+        // Passage 1
+        {
+            q: "Question 1: Điền từ thích hợp vào khoảng trống (1).",
+            opts: [
+                {t: "Every", correct: false, ex: "Every (Mỗi) <span class='hl-red'>❌ Sai vì đi với danh từ số ít.</span>"},
+                {t: "Other", correct: false, ex: "Other (Khác) <span class='hl-red'>❌ Sai vì không hợp ngữ cảnh.</span>"},
+                {t: "Each", correct: false, ex: "Each (Mỗi) <span class='hl-red'>❌ Sai vì đi với danh từ số ít.</span>"},
+                {t: "Many", correct: true, ex: "Many (Nhiều) <span class='hl-green'>✅ Đúng vì cộng với danh từ đếm được số nhiều (families).</span>"}
+            ],
+            citeEng: "Many families worldwide are adjusting...",
+            citeVie: "<span class='hl-green'>Nhiều gia đình</span> trên toàn thế giới đang điều chỉnh..."
+        },
+        {
+            q: "Question 2: Điền từ thích hợp vào khoảng trống (2).",
+            opts: [
+                {t: "extent", correct: false, ex: "extent (mức độ) <span class='hl-red'>❌ Sai ngữ cảnh cụm từ.</span>"},
+                {t: "basis", correct: false, ex: "basis (cơ sở) <span class='hl-red'>❌ Sai ngữ cảnh cụm từ.</span>"},
+                {t: "scale", correct: true, ex: "scale (quy mô) <span class='hl-green'>✅ Đúng vì ta có cụm từ cố định <span class='p-grammar'>on a global scale</span> (ở quy mô toàn cầu).</span>"},
+                {t: "quantity", correct: false, ex: "quantity (số lượng) <span class='hl-red'>❌ Sai vì không dùng với global.</span>"}
+            ],
+            citeEng: "...with new challenges emerging on a global scale.",
+            citeVie: "...với những thách thức mới xuất hiện trên <span class='hl-green'>quy mô toàn cầu</span>."
+        },
+        {
+            q: "Question 3: Điền từ thích hợp vào khoảng trống (3).",
+            opts: [
+                {t: "mull over", correct: true, ex: "mull over (suy nghĩ kỹ) <span class='hl-green'>✅ Đúng vì phù hợp ngữ cảnh gia đình suy ngẫm về vai trò của họ.</span>"},
+                {t: "catch up", correct: false, ex: "catch up (đuổi kịp) <span class='hl-red'>❌ Sai nghĩa.</span>"},
+                {t: "give away", correct: false, ex: "give away (cho đi) <span class='hl-red'>❌ Sai nghĩa.</span>"},
+                {t: "pass down", correct: false, ex: "pass down (truyền lại) <span class='hl-red'>❌ Sai ngữ cảnh đoạn này.</span>"}
+            ],
+            citeEng: "...families often mull over their roles...",
+            citeVie: "...các gia đình thường <span class='hl-green'>suy nghĩ kỹ</span> về vai trò của họ..."
+        },
+        {
+            q: "Question 4: Điền từ thích hợp vào khoảng trống (4).",
+            opts: [
+                {t: "conservation", correct: false, ex: "conservation (bảo tồn) <span class='hl-red'>❌ Sai vì thường dùng cho tài nguyên thiên nhiên.</span>"},
+                {t: "management", correct: false, ex: "management (quản lý) <span class='hl-red'>❌ Sai ngữ cảnh.</span>"},
+                {t: "preservation", correct: true, ex: "preservation (bảo tồn, gìn giữ) <span class='hl-green'>✅ Đúng khi nói về giữ gìn giá trị và ký ức truyền thống gia đình.</span>"},
+                {t: "maintenance", correct: false, ex: "maintenance (bảo trì) <span class='hl-red'>❌ Thường dùng cho máy móc, công trình.</span>"}
+            ],
+            citeEng: "Ensure the preservation of family traditions...",
+            citeVie: "Đảm bảo việc <span class='hl-green'>gìn giữ (bảo tồn)</span> các truyền thống gia đình..."
+        },
+        {
+            q: "Question 5: Điền từ thích hợp vào khoảng trống (5).",
+            opts: [
+                {t: "In view of", correct: false, ex: "In view of (Xét thấy) <span class='hl-red'>❌ Sai logic đoạn văn.</span>"},
+                {t: "Instead of", correct: false, ex: "Instead of (Thay vì) <span class='hl-red'>❌ Sai logic đoạn văn.</span>"},
+                {t: "In addition to", correct: false, ex: "In addition to (Thêm vào) <span class='hl-red'>❌ Sai logic.</span>"},
+                {t: "In spite of", correct: true, ex: "In spite of (Mặc dù) <span class='hl-green'>✅ Đúng vì tạo sự tương phản: Mặc dù áp lực công việc tăng, họ vẫn coi trọng gia đình.</span>"}
+            ],
+            citeEng: "In spite of the increasing demand for work-life balance, many households continue to value...",
+            citeVie: "<span class='hl-green'>Mặc dù</span> nhu cầu ngày càng tăng..., nhiều hộ gia đình vẫn tiếp tục coi trọng..."
+        },
+        {
+            q: "Question 6: Điền từ thích hợp vào khoảng trống (6).",
+            opts: [
+                {t: "substantial", correct: false, ex: "substantial (đáng kể) <span class='hl-red'>❌ Không hợp với value ở đây.</span>"},
+                {t: "tangible", correct: false, ex: "tangible (hữu hình) <span class='hl-red'>❌ Kỷ niệm không phải đồ vật hữu hình.</span>"},
+                {t: "monetary", correct: false, ex: "monetary (tiền tệ) <span class='hl-red'>❌ Truyền thống không mang giá trị tiền bạc ở đây.</span>"},
+                {t: "sentimental", correct: true, ex: "sentimental (tình cảm, tinh thần) <span class='hl-green'>✅ Đúng vì ta có cụm <span class='p-word'>sentimental value</span> (giá trị tinh thần/tình cảm).</span>"}
+            ],
+            citeEng: "...traditions that carry deep sentimental value.",
+            citeVie: "...những truyền thống mang <span class='hl-green'>giá trị tinh thần</span> sâu sắc."
+        },
+        
+        // Passage 2
+        {
+            q: "Question 7: Điền từ thích hợp vào khoảng trống (7).",
+            opts: [
+                {t: "Almost", correct: false, ex: "Almost (Hầu như) <span class='hl-red'>❌ Cần đi với 'all' (Almost all).</span>"},
+                {t: "Every", correct: false, ex: "Every (Mỗi) <span class='hl-red'>❌ Đi với danh từ số ít, ở đây là 'robots' số nhiều.</span>"},
+                {t: "Many", correct: true, ex: "Many (Nhiều) <span class='hl-green'>✅ Đúng vì <span class='p-grammar'>Many + Danh từ đếm được số nhiều</span>.</span>"},
+                {t: "Another", correct: false, ex: "Another (Một cái khác) <span class='hl-red'>❌ Đi với số ít.</span>"}
+            ],
+            citeEng: "Many robots, including Sophia, showcase incredible advances...",
+            citeVie: "<span class='hl-green'>Nhiều</span> robot, bao gồm cả Sophia, thể hiện những tiến bộ..."
+        },
+        {
+            q: "Question 8: Điền từ thích hợp vào khoảng trống (8).",
+            opts: [
+                {t: "procedure", correct: false, ex: "procedure (quy trình) <span class='hl-red'>❌ Sai ngữ cảnh máy móc.</span>"},
+                {t: "strategy", correct: false, ex: "strategy (chiến lược) <span class='hl-red'>❌ Sai ngữ cảnh.</span>"},
+                {t: "protocol", correct: true, ex: "protocol (giao thức) <span class='hl-green'>✅ Đúng vì <span class='p-word'>operate on a robust protocol</span> (hoạt động trên một giao thức mạnh mẽ) phù hợp mô tả hệ thống robot.</span>"},
+                {t: "standard", correct: false, ex: "standard (tiêu chuẩn) <span class='hl-red'>❌ Không hợp lý.</span>"}
+            ],
+            citeEng: "Sophia operates on a robust protocol enabling her to communicate...",
+            citeVie: "Sophia hoạt động dựa trên một <span class='hl-green'>giao thức</span> mạnh mẽ cho phép cô giao tiếp..."
+        },
+        {
+            q: "Question 9: Điền từ thích hợp vào khoảng trống (9).",
+            opts: [
+                {t: "amount", correct: false, ex: "amount (số lượng) <span class='hl-red'>❌ Không tạo thành cụm có nghĩa.</span>"},
+                {t: "quantity", correct: false, ex: "quantity (số lượng) <span class='hl-red'>❌ Không tạo cụm cố định.</span>"},
+                {t: "basis", correct: true, ex: "basis (cơ sở) <span class='hl-green'>✅ Đúng vì ta có idiom <span class='p-grammar'>on a regular basis</span> = regularly (thường xuyên).</span>"},
+                {t: "level", correct: false, ex: "level (mức độ) <span class='hl-red'>❌ Sai cấu trúc ngữ pháp.</span>"}
+            ],
+            citeEng: "On a regular basis, Sophia's creators update her...",
+            citeVie: "<span class='hl-green'>Thường xuyên</span>, những người tạo ra Sophia cập nhật cho cô..."
+        },
+        {
+            q: "Question 10: Điền từ thích hợp vào khoảng trống (10).",
+            opts: [
+                {t: "substances", correct: false, ex: "substances (chất liệu, vật chất) <span class='hl-red'>❌ Dùng trong hóa học.</span>"},
+                {t: "components", correct: true, ex: "components (thành phần, linh kiện) <span class='hl-green'>✅ Đúng vì phù hợp mô tả các bộ phận của robot/máy móc.</span>"},
+                {t: "ingredients", correct: false, ex: "ingredients (thành phần) <span class='hl-red'>❌ Thường dùng trong nấu ăn.</span>"},
+                {t: "materials", correct: false, ex: "materials (vật liệu) <span class='hl-red'>❌ Thường nói về vật liệu xây dựng/sản xuất.</span>"}
+            ],
+            citeEng: "...update her programming and components systems...",
+            citeVie: "...cập nhật lập trình và các hệ thống <span class='hl-green'>thành phần/linh kiện</span> của cô ấy..."
+        },
+        {
+            q: "Question 11: Điền từ thích hợp vào khoảng trống (11).",
+            opts: [
+                {t: "Except for", correct: false, ex: "Except for (Ngoại trừ) <span class='hl-red'>❌ Sai nghĩa câu.</span>"},
+                {t: "Instead of", correct: true, ex: "Instead of (Thay vì) <span class='hl-green'>✅ Đúng vì tạo nghĩa phù hợp: Thay vì chỉ là cỗ máy tĩnh, họ có thể nâng cấp nó.</span>"},
+                {t: "For fear of", correct: false, ex: "For fear of (Vì sợ rằng) <span class='hl-red'>❌ Sai logic.</span>"},
+                {t: "In terms of", correct: false, ex: "In terms of (Xét về mặt) <span class='hl-red'>❌ Không hợp nghĩa.</span>"}
+            ],
+            citeEng: "Instead of merely being a static machine...",
+            citeVie: "<span class='hl-green'>Thay vì</span> chỉ là một cỗ máy tĩnh..."
+        },
+        {
+            q: "Question 12: Điền từ thích hợp vào khoảng trống (12).",
+            opts: [
+                {t: "catch on", correct: false, ex: "catch on (hiểu ra, trở nên phổ biến) <span class='hl-red'>❌ Sai nghĩa.</span>"},
+                {t: "take apart", correct: true, ex: "take apart (tháo rời) <span class='hl-green'>✅ Đúng vì hợp lý với việc tháo rời máy móc để nâng cấp (upgrade).</span>"},
+                {t: "close down", correct: false, ex: "close down (đóng cửa) <span class='hl-red'>❌ Sai hoàn toàn.</span>"},
+                {t: "take in", correct: false, ex: "take in (hấp thụ, hiểu) <span class='hl-red'>❌ Sai nghĩa.</span>"}
+            ],
+            citeEng: "...they can take apart and upgrade her systems.",
+            citeVie: "...họ có thể <span class='hl-green'>tháo rời</span> và nâng cấp hệ thống của cô ấy."
+        },
+
+        // Passage 3
+        {
+            q: "Question 13: Điền từ thích hợp vào khoảng trống (13).",
+            opts: [
+                {t: "Little", correct: false, ex: "Little (Rất ít) <span class='hl-red'>❌ Đi với danh từ không đếm được. Ở đây athletes đếm được.</span>"},
+                {t: "Every", correct: false, ex: "Every (Mỗi) <span class='hl-red'>❌ Đi với danh từ số ít.</span>"},
+                {t: "Others", correct: false, ex: "Others (Những người/cái khác) <span class='hl-red'>❌ Đóng vai trò đại từ, không đứng trước danh từ athletes.</span>"},
+                {t: "Most", correct: true, ex: "Most (Hầu hết) <span class='hl-green'>✅ Đúng vì đi với danh từ số nhiều, mang nghĩa hợp logic.</span>"}
+            ],
+            citeEng: "Most athletes in major competitions are known for...",
+            citeVie: "<span class='hl-green'>Hầu hết</span> các vận động viên trong các cuộc thi lớn được biết đến với..."
+        },
+        {
+            q: "Question 14: Điền từ thích hợp vào khoảng trống (14).",
+            opts: [
+                {t: "referees", correct: false, ex: "referees (trọng tài) <span class='hl-red'>❌ VĐV không đối mặt cạnh tranh với trọng tài.</span>"},
+                {t: "opponents", correct: true, ex: "opponents (đối thủ) <span class='hl-green'>✅ Đúng vì thi đấu thể thao là phải đối mặt với đối thủ cạnh tranh (fierce opponents).</span>"},
+                {t: "spectators", correct: false, ex: "spectators (khán giả xem thể thao) <span class='hl-red'>❌ Sai logic.</span>"},
+                {t: "attendees", correct: false, ex: "attendees (người tham dự cuộc họp/sự kiện) <span class='hl-red'>❌ Không dùng trong thi đấu.</span>"}
+            ],
+            citeEng: "...prepare to face fierce opponents on the world stage.",
+            citeVie: "...chuẩn bị đối mặt với các <span class='hl-green'>đối thủ</span> đáng gờm trên đấu trường thế giới."
+        },
+        {
+            q: "Question 15: Điền từ thích hợp vào khoảng trống (15).",
+            opts: [
+                {t: "degree", correct: false, ex: "degree (mức độ, bằng cấp) <span class='hl-red'>❌ Không đi với on a global...</span>"},
+                {t: "extent", correct: false, ex: "extent (mức độ) <span class='hl-red'>❌ Thường dùng to some extent.</span>"},
+                {t: "amount", correct: false, ex: "amount (số lượng) <span class='hl-red'>❌ Sai cấu trúc.</span>"},
+                {t: "scale", correct: true, ex: "scale (quy mô) <span class='hl-green'>✅ Đúng. Cụm cố định <span class='p-grammar'>on a global scale</span> (ở quy mô toàn cầu).</span>"}
+            ],
+            citeEng: "...highlighted these feats on a global scale.",
+            citeVie: "...làm nổi bật những kỳ tích này trên <span class='hl-green'>quy mô toàn cầu</span>."
+        },
+        {
+            q: "Question 16: Điền từ thích hợp vào khoảng trống (16).",
+            opts: [
+                {t: "set aside", correct: false, ex: "set aside (để dành, gác lại) <span class='hl-red'>❌ Không hợp ngữ cảnh nói về tài năng.</span>"},
+                {t: "stand out", correct: true, ex: "stand out (nổi bật) <span class='hl-green'>✅ Đúng vì vận động viên nổi bật lên nhờ kỹ thuật tốt.</span>"},
+                {t: "bring forward", correct: false, ex: "bring forward (đẩy lên sớm hơn) <span class='hl-red'>❌ Sai nghĩa.</span>"},
+                {t: "catch up", correct: false, ex: "catch up (đuổi kịp) <span class='hl-red'>❌ Thiếu giới từ with nếu muốn diễn đạt nghĩa này.</span>"}
+            ],
+            citeEng: "Athletes continue to stand out thanks to their precise techniques...",
+            citeVie: "Các vận động viên tiếp tục <span class='hl-green'>trở nên nổi bật</span> nhờ kỹ thuật chính xác của họ..."
+        },
+        {
+            q: "Question 17: Điền từ thích hợp vào khoảng trống (17).",
+            opts: [
+                {t: "instead of", correct: false, ex: "instead of (thay vì) <span class='hl-red'>❌ Sai nghĩa.</span>"},
+                {t: "except for", correct: false, ex: "except for (ngoại trừ) <span class='hl-red'>❌ Sai nghĩa vì tinh thần thể thao áp dụng cho TẤT CẢ.</span>"},
+                {t: "due to", correct: false, ex: "due to (bởi vì) <span class='hl-red'>❌ Sai logic.</span>"},
+                {t: "regardless of", correct: true, ex: "regardless of (bất kể) <span class='hl-green'>✅ Đúng vì câu mang nghĩa: bồi dưỡng tinh thần thể thao cho tất cả, 'bất kể' trình độ.</span>"}
+            ],
+            citeEng: "...fostering sportsmanship in all athletes, regardless of skill level.",
+            citeVie: "...bồi dưỡng tinh thần thể thao ở tất cả các vận động viên, <span class='hl-green'>bất kể</span> mức độ kỹ năng."
+        },
+        {
+            q: "Question 18: Điền từ thích hợp vào khoảng trống (18).",
+            opts: [
+                {t: "prospects", correct: false, ex: "prospects (triển vọng) <span class='hl-red'>❌ Không hợp với tính từ physical/mental ở đây.</span>"},
+                {t: "capacities", correct: false, ex: "capacities (sức chứa, dung lượng) <span class='hl-red'>❌ Dùng cho máy móc, không gian.</span>"},
+                {t: "capabilities", correct: true, ex: "capabilities (năng lực, khả năng) <span class='hl-green'>✅ Đúng vì đi với <span class='p-word'>physical and mental capabilities</span> (năng lực thể chất và tinh thần).</span>"},
+                {t: "probabilities", correct: false, ex: "probabilities (xác suất) <span class='hl-red'>❌ Sai hoàn toàn nghĩa.</span>"}
+            ],
+            citeEng: "...developing both physical and mental capabilities to improve...",
+            citeVie: "...phát triển cả <span class='hl-green'>năng lực</span> thể chất và tinh thần để cải thiện..."
+        }
+    ];
+
+    let currentScore = 0;
+    let answered = 0;
+
+    // Hàm trộn mảng (Fisher-Yates Shuffle)
+    function shuffle(array) {
+        let currentIndex = array.length, randomIndex;
+        while (currentIndex !== 0) {
+            randomIndex = Math.floor(Math.random() * currentIndex);
+            currentIndex--;
+            [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
+        }
+        return array;
+    }
+
+    // Confetti Effect
+    const canvas = document.getElementById('confetti');
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    let particles = [];
+    
+    function fireConfetti() {
+        for(let i=0; i<100; i++) {
+            particles.push({
+                x: canvas.width/2, y: canvas.height/2,
+                r: Math.random()*6+2,
+                dx: Math.random()*10-5, dy: Math.random()*-10-5,
+                color: `hsl(${Math.random()*360}, 100%, 50%)`
+            });
+        }
+    }
+    
+    function renderConfetti() {
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+        particles.forEach((p, index) => {
+            p.dy += 0.2; // gravity
+            p.x += p.dx; p.y += p.dy;
+            ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
+            ctx.fillStyle = p.color; ctx.fill();
+            if(p.y > canvas.height) particles.splice(index, 1);
+        });
+        requestAnimationFrame(renderConfetti);
+    }
+    renderConfetti();
+
+    // Render câu hỏi
+    const qContainer = document.getElementById('questionsContainer');
+    
+    quizData.forEach((qObj, qIndex) => {
+        const card = document.createElement('div');
+        card.className = 'question-card';
+        
+        const qTitle = document.createElement('div');
+        qTitle.className = 'q-text';
+        qTitle.innerText = qObj.q;
+        card.appendChild(qTitle);
+
+        const grid = document.createElement('div');
+        grid.className = 'options-grid';
+
+        // Xáo trộn đáp án
+        let shuffledOpts = shuffle([...qObj.opts]);
+        
+        let explanationDiv = document.createElement('div');
+        explanationDiv.className = 'explanation';
+
+        let exHtml = `<strong>Phân tích 4 đáp án:</strong><br><br>`;
+        qObj.opts.forEach(o => { exHtml += `${o.ex}<br>`; });
+        exHtml += `<br>🔍 <strong>Dẫn chứng trong bài:</strong> <i>"${qObj.citeEng}"</i>`;
+        exHtml += `<br>👉 <strong>Dịch:</strong> "${qObj.citeVie}"`;
+        explanationDiv.innerHTML = exHtml;
+
+        shuffledOpts.forEach(opt => {
+            const btn = document.createElement('button');
+            btn.className = 'option-btn';
+            btn.innerText = opt.t;
+            
+            btn.onclick = () => {
+                // Disable all buttons in this question
+                Array.from(grid.children).forEach(b => b.disabled = true);
+                
+                if(opt.correct) {
+                    btn.classList.add('correct');
+                    playDing();
+                    fireConfetti();
+                    currentScore++;
+                } else {
+                    btn.classList.add('incorrect');
+                    playWrong();
+                    // Highlight correct answer
+                    Array.from(grid.children).forEach(b => {
+                        if(shuffledOpts.find(o => o.t === b.innerText).correct) {
+                            b.classList.add('correct');
+                        }
+                    });
+                }
+                
+                explanationDiv.style.display = 'block';
+                answered++;
+            };
+            grid.appendChild(btn);
+        });
+
+        card.appendChild(grid);
+        card.appendChild(explanationDiv);
+        qContainer.appendChild(card);
+    });
+
+    function submitQuiz() {
+        if(answered < quizData.length) {
+            alert("Em phải làm hết tất cả các câu mới được nộp bài nhé!");
+            return;
+        }
+        
+        let stuName = prompt("Nhập tên của em để cô ghi điểm:");
+        if(!stuName || stuName.trim() === "") return;
+
+        const modal = document.getElementById('scoreModal');
+        const scoreTxt = document.getElementById('scoreDisplay');
+        const feedback = document.getElementById('feedbackText');
+        const gif = document.getElementById('scoreGif');
+        
+        const percent = currentScore / quizData.length;
+        scoreTxt.innerText = `${stuName}: ${currentScore}/${quizData.length}`;
+        
+        if(percent === 1) {
+            feedback.innerText = "Tuyệt đỉnh! Em là thiên tài ngôn ngữ! Đọc giải thích rất kỹ đúng không?";
+            feedback.style.color = "#28a745";
+            gif.src = "https://media.giphy.com/media/xT0xezQGU5xCDJuCPe/giphy.gif"; 
+        } else if(percent >= 0.6) {
+            feedback.innerText = "Rất tốt! Em đã nắm bài khá vững. Cố gắng đọc lại giải thích những câu sai nhé!";
+            feedback.style.color = "#17a2b8";
+            gif.src = "https://media.giphy.com/media/3o72FcJmLzIdYJiyKY/giphy.gif";
+        } else {
+            feedback.innerText = "Cố lên em! Cô thấy em hơi vội vàng rồi, nhớ phải xem thật kỹ phần giải thích chi tiết nha!";
+            feedback.style.color = "#dc3545";
+            gif.src = "https://media.giphy.com/media/OPU6wzx8JrHna/giphy.gif";
+        }
+
+        modal.style.display = 'flex';
+        fireConfetti();
+        fireConfetti();
+        fireConfetti();
+    }
+</script>
+</body>
+</html>

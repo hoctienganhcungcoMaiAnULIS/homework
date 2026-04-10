@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reading Practice P4-P5 - Ms Mai An ULIS</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Cinzel:wght@600;700&display=swap');
+
+        :root {
+            /* Theme mới: Hồng tím pastel -> Vàng kem */
+            --primary-bg: linear-gradient(135deg, #d9a7c7 0%, #fffcdc 100%);
+            --glass-bg: rgba(255, 255, 255, 0.45);
+            --glass-border: rgba(255, 255, 255, 0.7);
+            --text-dark: #4a2c40;
+            --accent-color: #c589b3; /* Tông đậm hơn để làm điểm nhấn */
+            --correct-color: #28a745;
+            --incorrect-color: #dc3545;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Nunito', sans-serif;
+        }
+
+        body {
+            background: var(--primary-bg);
+            background-attachment: fixed;
+            color: var(--text-dark);
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        /* Floating Pattern (Emojis in background) */
+        .floating-bg {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: -1;
+            overflow: hidden;
+        }
+        .float-icon {
+            position: absolute;
+            font-size: 2.5rem;
+            opacity: 0.35;
+            animation: floatUp 15s linear infinite;
+        }
+        @keyframes floatUp {
+            0% { transform: translateY(110vh) rotate(0deg) scale(0.8); }
+            100% { transform: translateY(-10vh) rotate(360deg) scale(1.2); }
+        }
+
+        /* Password Modal Styling matching new Theme */
+        #passwordModal {
+            position: fixed; inset: 0; z-index: 9999;
+            display: flex; align-items: center; justify-content: center;
+            background: rgba(40, 20, 35, 0.85); backdrop-filter: blur(15px);
+        }
+        .pw-card {
+            background: linear-gradient(160deg, rgba(217, 167, 199, 0.9) 0%, rgba(255, 252, 220, 0.95) 100%);
+            border: 2px solid rgba(255, 255, 255, 0.8); border-radius: 24px; padding: 48px 40px 40px; 
+            max-width: 440px; width: 93%; text-align: center; position: relative; overflow: hidden;
+            box-shadow: 0 0 50px rgba(217, 167, 199, 0.5);
+        }
+        .pw-crest { font-size: 4rem; margin-bottom: 8px; display: block; }
+        .pw-title { font-family: 'Cinzel', serif; font-size: 1.6rem; font-weight: 700; color: #8e547b; margin-bottom: 6px; }
+        .pw-sub { font-size: 0.95rem; color: #a16b8e; margin-bottom: 24px; font-weight: 600; }
+        .pw-input {
+            width: 100%; padding: 13px 20px; border-radius: 12px;
+            border: 2px solid rgba(255, 255, 255, 0.9); background: rgba(255, 255, 255, 0.6);
+            color: #8e547b; font-size: 1.1rem; font-weight: bold;
+            outline: none; letter-spacing: 2px; text-align: center; transition: all .3s;
+        }
+        .pw-input:focus { border-color: #8e547b; box-shadow: 0 0 0 3px rgba(142, 84, 123, 0.2); }
+        .pw-input.error { border-color: #FF4757; background: rgba(255, 71, 87, 0.1); animation: shake .4s ease; }
+        .pw-btn {
+            width: 100%; padding: 14px; margin-top: 18px; border-radius: 12px; border: none;
+            background: #c589b3; color: #fff; font-size: 1.1rem; font-weight: 700;
+            cursor: pointer; transition: transform .2s, box-shadow .2s;
+        }
+        .pw-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(197, 137, 179, 0.4); }
+        .pw-err { color: #d32f2f; font-size: 0.9rem; margin-top: 10px; display: none; font-weight: 700; }
+        @keyframes shake { 0%,100%{transform:translateX(0)} 15%,45%,75%{transform:translateX(-6px)} 30%,60%,90%{transform:translateX(6px)} }
+
+        /* Header */
+        header {
+            padding: 10px 20px;
+            text-align: center;
+            background: rgba(255, 255, 255, 0.4);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--glass-border);
+            font-weight: 700;
+            color: #8e547b;
+            font-size: 1rem;
+            z-index: 10;
+        }
+
+        /* Split Screen Layout */
+        .container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+            padding: 15px;
+            gap: 15px;
+            display: none; /* Hidden until password passed */
+        }
+        
+        .panel {
+            flex: 1;
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 20px;
+            overflow-y: auto;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05);
+        }
+
+        .panel::-webkit-scrollbar { width: 8px; }
+        .panel::-webkit-scrollbar-thumb { background: rgba(197, 137, 179, 0.6); border-radius: 4px; }
+
+        /* Reading Content Styling */
+        .passage-box {
+            background: rgba(255, 255, 255, 0.65);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 25px;
+            box-shadow: inset 0 2px 10px rgba(255,255,255,0.8);
+        }
+        .passage-title {
+            font-size: 1.4rem; color: #8e547b; margin-bottom: 15px; font-weight: 800;
+            display: flex; align-items: center; gap: 10px;
+        }
+        .paragraph { margin-bottom: 15px; font-size: 1.1rem; line-height: 1.6; color: #4a2c40; }
+        .translation-text {
+            display: none; color: #555; font-size: 1rem; background: #fff5f9;
+            padding: 10px; border-left: 4px solid #c589b3; border-radius: 5px; margin-top: 10px;
+            font-style: italic;
+        }
+        .btn-translate {
+            background: #fff; border: 1px solid #c589b3; color: #c589b3;
+            padding: 5px 12px; border-radius: 20px; cursor: pointer; font-size: 0.85rem;
+            font-weight: bold; transition: all 0.2s; margin-top: 5px;
+        }
+        .btn-translate:hover { background: #c589b3; color: #fff; }
+
+        /* Glossary Table */
+        .glossary { width: 100%; border-collapse: collapse; margin-top: 15px; background: #fff; border-radius: 10px; overflow: hidden; }
+        .glossary th { background: #c589b3; color: #fff; padding: 10px; text-align: left; }
+        .glossary td { padding: 10px; border-bottom: 1px solid #f0e6eb; color: #4a2c40;}
+        .glossary tr:last-child td { border-bottom: none; }
+
+        /* Alert Panel */
+        .alert-panel {
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+            border-left: 5px solid #ff4757;
+            padding: 15px 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(255, 71, 87, 0.2);
+            color: #b71540;
+            font-weight: 700;
+            font-size: 1.05rem;
+            animation: pulseAlert 2s infinite;
+        }
+        @keyframes pulseAlert {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+            100% { transform: scale(1); }
+        }
+
+        /* Question Cards */
+        .question-card {
+            background: rgba(255, 255, 255, 0.85);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+            transition: transform 0.2s;
+            border: 2px solid transparent;
+        }
+        .question-card:hover { transform: translateY(-2px); }
+        .q-text { font-size: 1.2rem; font-weight: 700; margin-bottom: 15px; color: #4a2c40; }
+        
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+        }
+        .option-btn {
+            background: #fff; border: 2px solid #f0e6eb; border-radius: 12px;
+            padding: 12px 20px; font-size: 1.1rem; text-align: left; cursor: pointer;
+            transition: all 0.2s; font-weight: 600; color: #4a2c40;
+            display: flex; align-items: center;
+        }
+        .option-btn:hover:not(:disabled) { border-color: #c589b3; background: #fff5f9; transform: scale(1.01); }
+        .option-btn.correct { background: var(--correct-color); color: #fff; border-color: var(--correct-color); }
+        .option-btn.incorrect { background: var(--incorrect-color); color: #fff; border-color: var(--incorrect-color); animation: shake .4s; }
+        .option-btn:disabled { cursor: not-allowed; opacity: 0.7; }
+
+        /* Explanation Box */
+        .explanation {
+            display: none; margin-top: 15px; padding: 15px;
+            background: #fff; border-radius: 12px; border-left: 4px solid #c589b3;
+            font-size: 1rem; line-height: 1.6; box-shadow: inset 0 2px 5px rgba(0,0,0,0.02);
+            color: #333;
+        }
+        
+        /* Master Colors for Explanations */
+        .p-word { color: #007bff; font-weight: bold; }
+        .p-mean { color: #d35400; font-weight: bold; }
+        .p-grammar { text-decoration: underline; color: #c0392b; font-weight: bold; }
+        .hl-green { color: #28a745; font-weight: bold; }
+        .hl-red { color: #dc3545; text-decoration: line-through; font-weight: bold; }
+
+        /* Submit Area */
+        .submit-area { text-align: center; padding: 20px 0; }
+        .btn-submit {
+            background: linear-gradient(135deg, #c589b3 0%, #d9a7c7 100%);
+            color: #fff; border: none; padding: 15px 30px; border-radius: 30px;
+            font-size: 1.2rem; font-weight: 800; cursor: pointer; box-shadow: 0 5px 20px rgba(197, 137, 179, 0.4);
+            transition: transform 0.2s;
+        }
+        .btn-submit:hover { transform: scale(1.05); }
+
+        /* Score Modal */
+        #scoreModal {
+            position: fixed; inset: 0; z-index: 10000; display: none;
+            align-items: center; justify-content: center;
+            background: rgba(0,0,0,0.8); backdrop-filter: blur(10px);
+        }
+        .score-card {
+            background: #fff; border-radius: 20px; padding: 30px; width: 90%; max-width: 400px;
+            text-align: center; box-shadow: 0 0 50px rgba(255,255,255,0.2);
+        }
+        .score-card img { width: 100%; border-radius: 10px; margin: 15px 0; }
+        .score-text { font-size: 2rem; font-weight: 800; color: #c589b3; margin-bottom: 10px; }
+        
+        #confetti { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9998; }
+    </style>
+</head>
+<body>
+
+    <audio id="introAudio" src="https://hoctienganhcungcomaianulis.github.io/homework/%E1%BA%A2nh_File%20nghe/Sound/harry_potter.mp3"></audio>
+    <audio id="wrongSound" src="https://hoctienganhcungcomaianulis.github.io/homework/%E1%BA%A2nh_File%20nghe/Sound/oi-ban-oi.mp3"></audio>
+
+    <canvas id="confetti"></canvas>
+
+    <div class="floating-bg" id="floatingBg"></div>
+
+    <div id="passwordModal">
+        <div class="pw-card">
+            <span class="pw-crest">🔐</span>
+            <div class="pw-title">BẢO MẬT BÀI THI</div>
+            <div class="pw-sub">Vui lòng nhập mật khẩu để vào làm Bài 4 & 5</div>
+            <input type="password" class="pw-input" id="pwInput" placeholder="Nhập mật khẩu..." autocomplete="off" />
+            <button class="pw-btn" onclick="checkPassword()">MỞ KHÓA</button>
+            <div class="pw-err" id="pwErr">Mật khẩu không đúng! Vui lòng thử lại.</div>
+        </div>
+    </div>
+
+    <header>✨ Giáo viên tạo: Ms Mai An ULIS ✨</header>
+
+    <div class="container" id="mainContent">
+        <div class="panel">
+            
+            <div class="passage-box">
+                <h2 class="passage-title">🩺 Passage 4: Health Update</h2>
+                
+                <div class="paragraph">
+                    <p><strong>Facts and Figures:</strong> While (19) _______ diseases continue to cause concern, new research shows that a large (20) _______ of individuals are now more resilient, thanks to advancements in vaccine technology. Many people are able to (21) _______ infections with minimal risk.</p>
+                    <button class="btn-translate" onclick="toggleDich(this)">Mở dịch đoạn này 🌟</button>
+                    <div class="translation-text">Thực tế và Số liệu: Trong khi một số căn bệnh tiếp tục gây lo ngại, nghiên cứu mới cho thấy một lượng lớn các cá nhân hiện nay kiên cường hơn, nhờ vào những tiến bộ trong công nghệ vắc-xin. Nhiều người có khả năng vượt qua các bệnh nhiễm trùng với rủi ro tối thiểu.</div>
+                </div>
+
+                <div class="paragraph">
+                    <p><strong>Positive Action! Support Vaccination Efforts:</strong> Millions of lives are saved, (22) _______ vaccines, which account for a significant reduction in preventable diseases.</p>
+                    <button class="btn-translate" onclick="toggleDich(this)">Mở dịch đoạn này 🌟</button>
+                    <div class="translation-text">Hành động tích cực! Hỗ trợ nỗ lực tiêm chủng: Hàng triệu sinh mạng được cứu sống, nhờ vào vắc-xin, thứ giải thích cho sự sụt giảm đáng kể của các căn bệnh có thể phòng ngừa được.</div>
+                </div>
+
+                <div class="paragraph">
+                    <p><strong>Stay Informed / Promote Health Awareness:</strong> Ensure the (23) _______ of your vaccinations and educate others about their importance in protecting public health. Spread information about the benefits of vaccines, reducing (24) _______ and ensuring global health safety.</p>
+                    <button class="btn-translate" onclick="toggleDich(this)">Mở dịch đoạn này 🌟</button>
+                    <div class="translation-text">Cập nhật thông tin / Thúc đẩy nhận thức sức khỏe: Đảm bảo việc quản lý tiêm chủng của bạn và giáo dục những người khác về tầm quan trọng của chúng trong việc bảo vệ sức khỏe cộng đồng. Lan tỏa thông tin về lợi ích của vắc-xin, giảm thiểu những hiểu lầm và đảm bảo an toàn sức khỏe toàn cầu.</div>
+                </div>
+
+                <table class="glossary">
+                    <tr><th>Từ vựng</th><th>Loại từ</th><th>Nghĩa tiếng Việt</th></tr>
+                    <tr><td>Resilient</td><td>(adj)</td><td>Kiên cường, mau phục hồi</td></tr>
+                    <tr><td>Advancement</td><td>(n)</td><td>Sự tiến bộ, bước tiến</td></tr>
+                    <tr><td>Infection</td><td>(n)</td><td>Sự lây nhiễm, bệnh nhiễm trùng</td></tr>
+                    <tr><td>Minimal</td><td>(adj)</td><td>Tối thiểu, rất nhỏ</td></tr>
+                    <tr><td>Preventable</td><td>(adj)</td><td>Có thể phòng ngừa được</td></tr>
+                    <tr><td>Administration</td><td>(n)</td><td>Sự quản lý, việc tiêm chủng/phân phối</td></tr>
+                    <tr><td>Awareness</td><td>(n)</td><td>Nhận thức, ý thức</td></tr>
+                    <tr><td>Misconception</td><td>(n)</td><td>Sự hiểu lầm, quan niệm sai lầm</td></tr>
+                    <tr><td>Account for</td><td>(phr.v)</td><td>Giải thích cho, chiếm (tỉ lệ)</td></tr>
+                    <tr><td>Immunity</td><td>(n)</td><td>Sự miễn dịch</td></tr>
+                </table>
+            </div>
+
+            <div class="passage-box">
+                <h2 class="passage-title">🧸 Passage 5: Baby Three Plush Toys</h2>
+                
+                <div class="paragraph">
+                    <p><strong>Facts and Figures:</strong> (25) _______ youngsters have fallen in love with the Baby Three plush toys, making them a viral sensation. Sales have surged globally, (26) _______ the massive exposure on social media. The potential for the toy to become a collector's item to a large (27) _______ has driven fans to (28) _______ money for future releases and limited editions.</p>
+                    <button class="btn-translate" onclick="toggleDich(this)">Mở dịch đoạn này 🌟</button>
+                    <div class="translation-text">Thực tế và Số liệu: Nhiều thanh thiếu niên đã phải lòng thú nhồi bông Baby Three, khiến chúng trở thành một hiện tượng lan truyền. Doanh số bán hàng đã tăng vọt trên toàn cầu, nhờ vào sự tiếp xúc rộng rãi trên mạng xã hội. Tiềm năng để món đồ chơi này trở thành món đồ sưu tầm tới một mức độ lớn đã thúc đẩy người hâm mộ để dành tiền cho các đợt phát hành trong tương lai và các phiên bản giới hạn.</div>
+                </div>
+
+                <div class="paragraph">
+                    <p><strong>Positive Action! Support Emerging Toy Brands:</strong> (29) _______ on TikTok have significantly contributed to the toy's growing popularity, making Baby Three a must-have item.</p>
+                    <button class="btn-translate" onclick="toggleDich(this)">Mở dịch đoạn này 🌟</button>
+                    <div class="translation-text">Hành động tích cực! Hỗ trợ các thương hiệu đồ chơi mới nổi: Người xem trên TikTok đã đóng góp đáng kể vào sự phổ biến ngày càng tăng của món đồ chơi này, khiến Baby Three trở thành một món đồ phải có.</div>
+                </div>
+
+                <div class="paragraph">
+                    <p><strong>Shop Responsibly:</strong> By promoting fair trade and ethical production in the toy industry, we can increase the (30) _______ of consumers engaging in responsible purchasing.</p>
+                    <button class="btn-translate" onclick="toggleDich(this)">Mở dịch đoạn này 🌟</button>
+                    <div class="translation-text">Mua sắm có trách nhiệm: Bằng cách thúc đẩy thương mại công bằng và sản xuất có đạo đức trong ngành công nghiệp đồ chơi, chúng ta có thể tăng khả năng người tiêu dùng tham gia vào việc mua sắm có trách nhiệm.</div>
+                </div>
+
+                <table class="glossary">
+                    <tr><th>Từ vựng</th><th>Loại từ</th><th>Nghĩa tiếng Việt</th></tr>
+                    <tr><td>Sensation</td><td>(n)</td><td>Hiện tượng, sự giật gân</td></tr>
+                    <tr><td>Surge</td><td>(v)</td><td>Tăng vọt, trào lên</td></tr>
+                    <tr><td>Exposure</td><td>(n)</td><td>Sự tiếp xúc, sự phơi bày</td></tr>
+                    <tr><td>Collector</td><td>(n)</td><td>Người sưu tầm</td></tr>
+                    <tr><td>Limited edition</td><td>(n)</td><td>Phiên bản giới hạn</td></tr>
+                    <tr><td>Contribute</td><td>(v)</td><td>Đóng góp, góp phần</td></tr>
+                    <tr><td>Popularity</td><td>(n)</td><td>Sự nổi tiếng, sự phổ biến</td></tr>
+                    <tr><td>Ethical</td><td>(adj)</td><td>Thuộc về đạo đức</td></tr>
+                    <tr><td>Likelihood</td><td>(n)</td><td>Khả năng xảy ra, xác suất</td></tr>
+                    <tr><td>Responsible</td><td>(adj)</td><td>Có trách nhiệm</td></tr>
+                </table>
+            </div>
+
+        </div>
+
+        <div class="panel" id="quizPanel">
+            
+            <div class="alert-panel">
+                🚨 Các em lưu ý: Làm bài xong bắt buộc phải ĐỌC KỸ GIẢI THÍCH ở dưới mỗi câu! Nếu chỉ click chọn cho xong mà không hiểu tại sao đúng/sai thì làm bài không có tác dụng và rất lãng phí thời gian học nhé!
+            </div>
+
+            <div id="questionsContainer"></div>
+
+            <div class="submit-area">
+                <button class="btn-submit" onclick="submitQuiz()">🎯 NỘP BÀI TÍNH ĐIỂM & XEM KẾT QUẢ</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="scoreModal">
+        <div class="score-card">
+            <h2>KẾT QUẢ BÀI LÀM</h2>
+            <div class="score-text" id="scoreDisplay">0/12</div>
+            <div id="feedbackText" style="font-weight: bold; margin-bottom: 10px;"></div>
+            <img id="scoreGif" src="" alt="Reaction">
+            <button class="pw-btn" onclick="location.reload()">LÀM LẠI TỪ ĐẦU</button>
+        </div>
+    </div>
+
+<script>
+    // Config Float Background (Medical, Toys, Hearts)
+    const emojis = ['🩺', '💉', '🧸', '💖', '📈', '🛒', '💊', '✨'];
+    function spawnFloats() {
+        const bg = document.getElementById('floatingBg');
+        for(let i=0; i<15; i++) {
+            let el = document.createElement('div');
+            el.className = 'float-icon';
+            el.innerText = emojis[Math.floor(Math.random() * emojis.length)];
+            el.style.left = Math.random() * 100 + 'vw';
+            el.style.animationDuration = (Math.random() * 10 + 10) + 's';
+            el.style.animationDelay = (Math.random() * 5) + 's';
+            bg.appendChild(el);
+        }
+    }
+
+    // Password logic ("comaianulis" converted to char codes to hide from plain text)
+    const _k = [99, 111, 109, 97, 105, 97, 110, 117, 108, 105, 115]; 
+    const _pw = _k.map(c => String.fromCharCode(c)).join('');
+
+    function checkPassword() {
+        const inp = document.getElementById('pwInput');
+        const err = document.getElementById('pwErr');
+        if (inp.value === _pw) {
+            document.getElementById('passwordModal').style.display = 'none';
+            document.getElementById('mainContent').style.display = 'flex';
+            spawnFloats();
+            document.getElementById('introAudio').play().catch(e=>{});
+        } else {
+            inp.classList.remove('error'); void inp.offsetWidth; inp.classList.add('error');
+            err.style.display = 'block'; setTimeout(() => inp.classList.remove('error'), 500);
+        }
+    }
+    document.getElementById('pwInput').addEventListener('keydown', e => { if (e.key==='Enter') checkPassword(); });
+
+    // Web Audio API for Correct Sound (Ding)
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    function playDing() {
+        if(audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(880, audioCtx.currentTime); // A5
+        osc.frequency.exponentialRampToValueAtTime(1760, audioCtx.currentTime + 0.1);
+        gainNode.gain.setValueAtTime(1, audioCtx.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.5);
+        osc.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.5);
+    }
+    
+    function playWrong() {
+        const w = document.getElementById('wrongSound');
+        w.currentTime = 0; w.play().catch(e=>{});
+    }
+
+    function toggleDich(btn) {
+        const txt = btn.nextElementSibling;
+        if(txt.style.display === 'block') {
+            txt.style.display = 'none';
+            btn.innerText = 'Mở dịch đoạn này 🌟';
+        } else {
+            txt.style.display = 'block';
+            btn.innerText = 'Đóng phần dịch 🙈';
+        }
+    }
+
+    // Quiz Data (Passage 4, 5 - 12 questions from Q19 to Q30)
+    const quizData = [
+        // Passage 4
+        {
+            q: "Question 19: Điền từ thích hợp vào khoảng trống (19).",
+            opts: [
+                {t: "another", correct: false, ex: "another (một cái khác) <span class='hl-red'>❌ Sai vì đi với danh từ số ít.</span>"},
+                {t: "several", correct: true, ex: "several (vài/một số) <span class='hl-green'>✅ Đúng vì <span class='p-grammar'>several + Danh từ đếm được số nhiều</span> (diseases).</span>"},
+                {t: "every", correct: false, ex: "every (mỗi) <span class='hl-red'>❌ Sai vì đi với danh từ số ít.</span>"},
+                {t: "much", correct: false, ex: "much (nhiều) <span class='hl-red'>❌ Sai vì đi với danh từ không đếm được.</span>"}
+            ],
+            citeEng: "While several diseases continue to cause concern...",
+            citeVie: "Trong khi <span class='hl-green'>một số</span> căn bệnh tiếp tục gây lo ngại..."
+        },
+        {
+            q: "Question 20: Điền từ thích hợp vào khoảng trống (20).",
+            opts: [
+                {t: "number", correct: true, ex: "number (số lượng) <span class='hl-green'>✅ Đúng vì cụm <span class='p-grammar'>a large number of + N đếm được số nhiều</span> (individuals).</span>"},
+                {t: "basis", correct: false, ex: "basis (cơ sở) <span class='hl-red'>❌ Sai cấu trúc cụm từ.</span>"},
+                {t: "quantity", correct: false, ex: "quantity (số lượng) <span class='hl-red'>❌ Thường dùng cho vật vô tri hoặc không đếm được.</span>"},
+                {t: "amount", correct: false, ex: "amount (số lượng) <span class='hl-red'>❌ Chỉ dùng với danh từ không đếm được.</span>"}
+            ],
+            citeEng: "...a large number of individuals are now more resilient...",
+            citeVie: "...một <span class='hl-green'>số lượng lớn</span> các cá nhân hiện nay kiên cường hơn..."
+        },
+        {
+            q: "Question 21: Điền từ thích hợp vào khoảng trống (21).",
+            opts: [
+                {t: "turn to", correct: false, ex: "turn to (chuyển sang/nhờ vả) <span class='hl-red'>❌ Sai nghĩa.</span>"},
+                {t: "deal with", correct: false, ex: "deal with (giải quyết) <span class='hl-red'>❌ Không hợp với ngữ cảnh 'sống sót/qua khỏi' bệnh tật.</span>"},
+                {t: "mull over", correct: false, ex: "mull over (suy nghĩ kỹ) <span class='hl-red'>❌ Sai nghĩa.</span>"},
+                {t: "pull through", correct: true, ex: "pull through (vượt qua/hồi phục) <span class='hl-green'>✅ Đúng vì <span class='p-word'>pull through infections</span> nghĩa là hồi phục sức khỏe sau khi nhiễm bệnh.</span>"}
+            ],
+            citeEng: "Many people are able to pull through infections with minimal risk.",
+            citeVie: "Nhiều người có khả năng <span class='hl-green'>vượt qua (hồi phục)</span> các bệnh nhiễm trùng với rủi ro tối thiểu."
+        },
+        {
+            q: "Question 22: Điền từ thích hợp vào khoảng trống (22).",
+            opts: [
+                {t: "on top of", correct: false, ex: "on top of (thêm vào đó) <span class='hl-red'>❌ Sai logic đoạn văn.</span>"},
+                {t: "instead of", correct: false, ex: "instead of (thay vì) <span class='hl-red'>❌ Sai logic đoạn văn.</span>"},
+                {t: "thanks to", correct: true, ex: "thanks to (nhờ vào) <span class='hl-green'>✅ Đúng vì nó giải thích lý do tích cực cho việc cứu mạng người.</span>"},
+                {t: "regardless of", correct: false, ex: "regardless of (bất kể) <span class='hl-red'>❌ Sai nghĩa.</span>"}
+            ],
+            citeEng: "Millions of lives are saved, thanks to vaccines...",
+            citeVie: "Hàng triệu sinh mạng được cứu sống, <span class='hl-green'>nhờ vào</span> vắc-xin..."
+        },
+        {
+            q: "Question 23: Điền từ thích hợp vào khoảng trống (23).",
+            opts: [
+                {t: "maintenance", correct: false, ex: "maintenance (sự bảo trì) <span class='hl-red'>❌ Dùng cho máy móc.</span>"},
+                {t: "sufficiency", correct: false, ex: "sufficiency (sự đầy đủ) <span class='hl-red'>❌ Không hợp ngữ cảnh.</span>"},
+                {t: "contribution", correct: false, ex: "contribution (sự đóng góp) <span class='hl-red'>❌ Sai nghĩa.</span>"},
+                {t: "administration", correct: true, ex: "administration (sự phân phối/quản lý) <span class='hl-green'>✅ Đúng vì <span class='p-word'>administration of vaccinations</span> là thuật ngữ y tế chỉ việc tiêm/phân phối vắc-xin.</span>"}
+            ],
+            citeEng: "Ensure the administration of your vaccinations...",
+            citeVie: "Đảm bảo <span class='hl-green'>việc quản lý (tiêm chủng)</span> vắc-xin của bạn..."
+        },
+        {
+            q: "Question 24: Điền từ thích hợp vào khoảng trống (24).",
+            opts: [
+                {t: "interventions", correct: false, ex: "interventions (sự can thiệp) <span class='hl-red'>❌ Can thiệp y tế không phải thứ cần giảm đi ở đây.</span>"},
+                {t: "assessments", correct: false, ex: "assessments (sự đánh giá) <span class='hl-red'>❌ Sai nghĩa.</span>"},
+                {t: "consultations", correct: false, ex: "consultations (sự tư vấn) <span class='hl-red'>❌ Sai nghĩa.</span>"},
+                {t: "misconceptions", correct: true, ex: "misconceptions (sự hiểu lầm) <span class='hl-green'>✅ Đúng vì lan tỏa thông tin đúng sẽ giúp giảm bớt <span class='p-word'>misconceptions</span> (hiểu lầm) về vắc-xin.</span>"}
+            ],
+            citeEng: "...reducing misconceptions and ensuring global health safety.",
+            citeVie: "...giảm thiểu những <span class='hl-green'>hiểu lầm</span> và đảm bảo an toàn sức khỏe toàn cầu."
+        },
+
+        // Passage 5
+        {
+            q: "Question 25: Điền từ thích hợp vào khoảng trống (25).",
+            opts: [
+                {t: "Every", correct: false, ex: "Every (Mỗi) <span class='hl-red'>❌ Sai vì đi với danh từ số ít.</span>"},
+                {t: "Many", correct: true, ex: "Many (Nhiều) <span class='hl-green'>✅ Đúng vì <span class='p-grammar'>Many + Danh từ đếm được số nhiều</span> (youngsters).</span>"},
+                {t: "Another", correct: false, ex: "Another (Một người/vật khác) <span class='hl-red'>❌ Đi với danh từ số ít.</span>"},
+                {t: "Little", correct: false, ex: "Little (Ít) <span class='hl-red'>❌ Đi với danh từ không đếm được.</span>"}
+            ],
+            citeEng: "Many youngsters have fallen in love with the Baby Three plush toys...",
+            citeVie: "<span class='hl-green'>Nhiều</span> thanh thiếu niên đã phải lòng thú nhồi bông Baby Three..."
+        },
+        {
+            q: "Question 26: Điền từ thích hợp vào khoảng trống (26).",
+            opts: [
+                {t: "in terms of", correct: false, ex: "in terms of (xét về mặt) <span class='hl-red'>❌ Không hợp logic nguyên nhân - kết quả.</span>"},
+                {t: "thanks to", correct: true, ex: "thanks to (nhờ vào) <span class='hl-green'>✅ Đúng vì diễn tả nguyên nhân tích cực khiến doanh số tăng.</span>"},
+                {t: "for fear of", correct: false, ex: "for fear of (vì sợ rằng) <span class='hl-red'>❌ Sai logic hoàn toàn.</span>"},
+                {t: "on top of", correct: false, ex: "on top of (thêm vào đó) <span class='hl-red'>❌ Sai logic.</span>"}
+            ],
+            citeEng: "Sales have surged globally, thanks to the massive exposure...",
+            citeVie: "Doanh số bán hàng đã tăng vọt trên toàn cầu, <span class='hl-green'>nhờ vào</span> sự tiếp xúc rộng rãi..."
+        },
+        {
+            q: "Question 27: Điền từ thích hợp vào khoảng trống (27).",
+            opts: [
+                {t: "number", correct: false, ex: "number (số lượng) <span class='hl-red'>❌ Không tạo thành cụm từ có nghĩa ở vị trí này.</span>"},
+                {t: "scale", correct: false, ex: "scale (quy mô) <span class='hl-red'>❌ Phải dùng 'on a large scale'.</span>"},
+                {t: "extent", correct: true, ex: "extent (mức độ) <span class='hl-green'>✅ Đúng vì ta có cụm cố định <span class='p-grammar'>to a large extent</span> (tới một mức độ lớn).</span>"},
+                {t: "amount", correct: false, ex: "amount (lượng) <span class='hl-red'>❌ Sai cấu trúc ngữ pháp.</span>"}
+            ],
+            citeEng: "...to become a collector's item to a large extent has driven fans...",
+            citeVie: "...trở thành món đồ sưu tầm tới một <span class='hl-green'>mức độ</span> lớn đã thúc đẩy người hâm mộ..."
+        },
+        {
+            q: "Question 28: Điền từ thích hợp vào khoảng trống (28).",
+            opts: [
+                {t: "run into", correct: false, ex: "run into (tình cờ gặp) <span class='hl-red'>❌ Sai nghĩa.</span>"},
+                {t: "bring out", correct: false, ex: "bring out (sản xuất, làm nổi bật) <span class='hl-red'>❌ Sai nghĩa.</span>"},
+                {t: "set out", correct: false, ex: "set out (bắt đầu hành trình/kế hoạch) <span class='hl-red'>❌ Sai nghĩa.</span>"},
+                {t: "put aside", correct: true, ex: "put aside (để dành, cất đi) <span class='hl-green'>✅ Đúng vì <span class='p-word'>put aside money</span> (để dành tiền) hoàn toàn hợp lý với việc chờ mua đồ giới hạn.</span>"}
+            ],
+            citeEng: "...driven fans to put aside money for future releases...",
+            citeVie: "...thúc đẩy người hâm mộ <span class='hl-green'>để dành</span> tiền cho các đợt phát hành trong tương lai..."
+        },
+        {
+            q: "Question 29: Điền từ thích hợp vào khoảng trống (29).",
+            opts: [
+                {t: "Audiences", correct: false, ex: "Audiences (khán giả xem trực tiếp/trong nhà hát) <span class='hl-red'>❌ Thường dùng cho show diễn thực tế.</span>"},
+                {t: "Visitors", correct: false, ex: "Visitors (khách tham quan) <span class='hl-red'>❌ Không đúng với nền tảng video.</span>"},
+                {t: "Viewers", correct: true, ex: "Viewers (người xem) <span class='hl-green'>✅ Đúng vì <span class='p-word'>viewers on TikTok</span> chỉ những người xem video trên mạng xã hội.</span>"},
+                {t: "Attendees", correct: false, ex: "Attendees (người tham dự sự kiện) <span class='hl-red'>❌ Sai hoàn toàn.</span>"}
+            ],
+            citeEng: "Viewers on TikTok have significantly contributed...",
+            citeVie: "<span class='hl-green'>Người xem</span> trên TikTok đã đóng góp đáng kể..."
+        },
+        {
+            q: "Question 30: Điền từ thích hợp vào khoảng trống (30).",
+            opts: [
+                {t: "prospect", correct: false, ex: "prospect (triển vọng) <span class='hl-red'>❌ Sai sắc thái nghĩa.</span>"},
+                {t: "likelihood", correct: true, ex: "likelihood (khả năng xảy ra, xác suất) <span class='hl-green'>✅ Đúng vì <span class='p-word'>increase the likelihood</span> (làm tăng khả năng/xác suất) người tiêu dùng mua hàng có trách nhiệm.</span>"},
+                {t: "capability", correct: false, ex: "capability (năng lực, khả năng làm được việc gì) <span class='hl-red'>❌ Không nói về năng lực cá nhân ở đây.</span>"},
+                {t: "ability", correct: false, ex: "ability (khả năng thể chất/trí tuệ) <span class='hl-red'>❌ Sai ngữ cảnh.</span>"}
+            ],
+            citeEng: "...we can increase the likelihood of consumers engaging in responsible purchasing.",
+            citeVie: "...chúng ta có thể tăng <span class='hl-green'>khả năng/xác suất</span> người tiêu dùng tham gia vào việc mua sắm có trách nhiệm."
+        }
+    ];
+
+    let currentScore = 0;
+    let answered = 0;
+
+    // Hàm trộn mảng (Fisher-Yates Shuffle)
+    function shuffle(array) {
+        let currentIndex = array.length, randomIndex;
+        while (currentIndex !== 0) {
+            randomIndex = Math.floor(Math.random() * currentIndex);
+            currentIndex--;
+            [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
+        }
+        return array;
+    }
+
+    // Confetti Effect
+    const canvas = document.getElementById('confetti');
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    let particles = [];
+    
+    function fireConfetti() {
+        for(let i=0; i<100; i++) {
+            particles.push({
+                x: canvas.width/2, y: canvas.height/2,
+                r: Math.random()*6+2,
+                dx: Math.random()*10-5, dy: Math.random()*-10-5,
+                color: `hsl(${Math.random()*360}, 100%, 50%)`
+            });
+        }
+    }
+    
+    function renderConfetti() {
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+        particles.forEach((p, index) => {
+            p.dy += 0.2; // gravity
+            p.x += p.dx; p.y += p.dy;
+            ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
+            ctx.fillStyle = p.color; ctx.fill();
+            if(p.y > canvas.height) particles.splice(index, 1);
+        });
+        requestAnimationFrame(renderConfetti);
+    }
+    renderConfetti();
+
+    // Render câu hỏi
+    const qContainer = document.getElementById('questionsContainer');
+    
+    quizData.forEach((qObj, qIndex) => {
+        const card = document.createElement('div');
+        card.className = 'question-card';
+        
+        const qTitle = document.createElement('div');
+        qTitle.className = 'q-text';
+        qTitle.innerText = qObj.q;
+        card.appendChild(qTitle);
+
+        const grid = document.createElement('div');
+        grid.className = 'options-grid';
+
+        // Xáo trộn đáp án
+        let shuffledOpts = shuffle([...qObj.opts]);
+        
+        let explanationDiv = document.createElement('div');
+        explanationDiv.className = 'explanation';
+
+        let exHtml = `<strong>Phân tích 4 đáp án:</strong><br><br>`;
+        qObj.opts.forEach(o => { exHtml += `${o.ex}<br>`; });
+        exHtml += `<br>🔍 <strong>Dẫn chứng trong bài:</strong> <i>"${qObj.citeEng}"</i>`;
+        exHtml += `<br>👉 <strong>Dịch:</strong> "${qObj.citeVie}"`;
+        explanationDiv.innerHTML = exHtml;
+
+        shuffledOpts.forEach(opt => {
+            const btn = document.createElement('button');
+            btn.className = 'option-btn';
+            btn.innerText = opt.t;
+            
+            btn.onclick = () => {
+                // Disable all buttons in this question
+                Array.from(grid.children).forEach(b => b.disabled = true);
+                
+                if(opt.correct) {
+                    btn.classList.add('correct');
+                    playDing();
+                    fireConfetti();
+                    currentScore++;
+                } else {
+                    btn.classList.add('incorrect');
+                    playWrong();
+                    // Highlight correct answer
+                    Array.from(grid.children).forEach(b => {
+                        if(shuffledOpts.find(o => o.t === b.innerText).correct) {
+                            b.classList.add('correct');
+                        }
+                    });
+                }
+                
+                explanationDiv.style.display = 'block';
+                answered++;
+            };
+            grid.appendChild(btn);
+        });
+
+        card.appendChild(grid);
+        card.appendChild(explanationDiv);
+        qContainer.appendChild(card);
+    });
+
+    function submitQuiz() {
+        if(answered < quizData.length) {
+            alert("Em phải làm hết tất cả các câu mới được nộp bài nhé!");
+            return;
+        }
+        
+        let stuName = prompt("Nhập tên của em để cô ghi điểm:");
+        if(!stuName || stuName.trim() === "") return;
+
+        const modal = document.getElementById('scoreModal');
+        const scoreTxt = document.getElementById('scoreDisplay');
+        const feedback = document.getElementById('feedbackText');
+        const gif = document.getElementById('scoreGif');
+        
+        const percent = currentScore / quizData.length;
+        scoreTxt.innerText = `${stuName}: ${currentScore}/${quizData.length}`;
+        
+        if(percent === 1) {
+            feedback.innerText = "Tuyệt đỉnh! Em là thiên tài ngôn ngữ! Đọc giải thích rất kỹ đúng không?";
+            feedback.style.color = "#28a745";
+            gif.src = "https://media.giphy.com/media/xT0xezQGU5xCDJuCPe/giphy.gif"; 
+        } else if(percent >= 0.6) {
+            feedback.innerText = "Rất tốt! Em đã nắm bài khá vững. Cố gắng đọc lại giải thích những câu sai nhé!";
+            feedback.style.color = "#c589b3";
+            gif.src = "https://media.giphy.com/media/3o72FcJmLzIdYJiyKY/giphy.gif";
+        } else {
+            feedback.innerText = "Cố lên em! Cô thấy em hơi vội vàng rồi, nhớ phải xem thật kỹ phần giải thích chi tiết nha!";
+            feedback.style.color = "#dc3545";
+            gif.src = "https://media.giphy.com/media/OPU6wzx8JrHna/giphy.gif";
+        }
+
+        modal.style.display = 'flex';
+        fireConfetti();
+        fireConfetti();
+        fireConfetti();
+    }
+</script>
+</body>
+</html>

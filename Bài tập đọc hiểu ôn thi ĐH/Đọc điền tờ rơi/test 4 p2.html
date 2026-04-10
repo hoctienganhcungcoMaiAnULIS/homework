@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bài Tập Tiếng Anh - Ms Mai An ULIS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;800&family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        :root {
+            --glass-bg: rgba(255, 255, 255, 0.4);
+            --glass-border: rgba(255, 255, 255, 0.6);
+            --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+            --color-primary: #9796f0;
+            --color-secondary: #fbc7d4;
+            --text-main: #2d3436;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: linear-gradient(-45deg, #9796f0, #fbc7d4, #a1c4fd, #c2e9fb);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            color: var(--text-main);
+            overflow: hidden; /* Prevent body scroll for split screen */
+            height: 100vh;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* FLOATING BACKGROUND EMOJIS */
+        .bg-pattern {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            pointer-events: none;
+            z-index: -1;
+            overflow: hidden;
+        }
+        .emoji-float {
+            position: absolute;
+            font-size: 4rem;
+            opacity: 0.3;
+            animation: floatUpDown 6s ease-in-out infinite;
+        }
+        .e1 { top: 10%; left: 10%; animation-delay: 0s; }
+        .e2 { top: 20%; right: 15%; animation-delay: 1s; }
+        .e3 { bottom: 15%; left: 20%; animation-delay: 2s; }
+        .e4 { bottom: 25%; right: 10%; animation-delay: 1.5s; font-size: 5rem;}
+        
+        @keyframes floatUpDown {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-30px) rotate(10deg); }
+        }
+
+        /* PASSWORD MODAL (Redesigned for Pastel Theme) */
+        #passwordModal {
+            position: fixed; inset: 0; z-index: 9999;
+            display: flex; align-items: center; justify-content: center;
+            background: rgba(255, 255, 255, 0.2); backdrop-filter: blur(25px);
+        }
+        .pw-card {
+            background: rgba(255, 255, 255, 0.6);
+            border: 2px solid rgba(255, 255, 255, 0.8);
+            border-radius: 30px; padding: 40px;
+            max-width: 400px; width: 90%; text-align: center;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.1);
+        }
+        .pw-crest { font-size: 4rem; margin-bottom: 10px; display: block; }
+        .pw-title { font-family: 'Quicksand', sans-serif; font-size: 1.8rem; font-weight: 700; color: #6c5ce7; margin-bottom: 10px; }
+        .pw-sub { font-size: 1rem; color: #636e72; margin-bottom: 20px; font-weight: 600;}
+        .pw-input {
+            width: 100%; padding: 15px; border-radius: 15px;
+            border: 2px solid #a29bfe; background: rgba(255,255,255,0.8);
+            color: #2d3436; font-size: 1.1rem; font-family: 'Nunito', sans-serif;
+            outline: none; text-align: center; font-weight: bold;
+            transition: all 0.3s;
+        }
+        .pw-input:focus { border-color: #6c5ce7; box-shadow: 0 0 15px rgba(108, 92, 231, 0.3); }
+        .pw-input.error { border-color: #ff7675; background: #ffeaa7; animation: shake 0.4s ease; }
+        .pw-btn {
+            width: 100%; padding: 15px; margin-top: 20px; border-radius: 15px; border: none;
+            background: linear-gradient(135deg, #a29bfe, #fd79a8);
+            color: white; font-size: 1.2rem; font-weight: bold; font-family: 'Quicksand', sans-serif;
+            cursor: pointer; box-shadow: 0 5px 15px rgba(0,0,0,0.1); transition: transform 0.2s;
+        }
+        .pw-btn:hover { transform: translateY(-3px); filter: brightness(1.1); }
+        .pw-err { color: #d63031; font-size: 0.9rem; margin-top: 10px; display: none; font-weight: bold; }
+
+        @keyframes shake {
+            0%, 100% {transform: translateX(0)}
+            15%, 45%, 75% {transform: translateX(-10px)}
+            30%, 60%, 90% {transform: translateX(10px)}
+        }
+
+        /* MAIN LAYOUT: SPLIT SCREEN */
+        #mainContent {
+            display: none; /* Hidden until unlocked */
+            height: 100vh;
+            padding: 15px;
+        }
+        .header {
+            text-align: center; margin-bottom: 15px;
+            font-family: 'Quicksand', sans-serif;
+            background: var(--glass-bg); backdrop-filter: blur(10px);
+            padding: 10px; border-radius: 15px; border: 1px solid var(--glass-border);
+            color: #6c5ce7; font-weight: bold; font-size: 1.2rem;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        
+        .split-container {
+            display: flex;
+            gap: 20px;
+            height: calc(100vh - 90px);
+        }
+
+        .panel {
+            flex: 1;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--glass-shadow);
+            border-radius: 25px;
+            padding: 25px;
+            overflow-y: auto;
+        }
+        
+        .panel::-webkit-scrollbar { width: 8px; }
+        .panel::-webkit-scrollbar-thumb { background: #fd79a8; border-radius: 10px; }
+
+        /* READING PASSAGE STYLES */
+        .passage-title {
+            font-size: 1.5rem; font-weight: 800; color: #d63031;
+            text-align: center; margin-bottom: 20px; font-family: 'Quicksand', sans-serif;
+        }
+        .paragraph-box {
+            background: rgba(255,255,255,0.6); padding: 15px;
+            border-radius: 15px; margin-bottom: 15px;
+            font-size: 1.15rem; line-height: 1.6;
+        }
+        .blank {
+            display: inline-block; min-width: 60px; border-bottom: 2px dashed #0984e3;
+            text-align: center; font-weight: bold; color: #0984e3; margin: 0 5px;
+        }
+        .btn-translate {
+            background: #ffeaa7; color: #d35400; border: none;
+            padding: 6px 12px; border-radius: 20px; font-weight: bold;
+            cursor: pointer; font-size: 0.9rem; margin-top: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1); transition: 0.2s;
+        }
+        .btn-translate:hover { background: #fdcb6e; }
+        .translation-text {
+            display: none; background: #e0f7fa; color: #006064;
+            padding: 10px; border-radius: 10px; margin-top: 10px;
+            font-style: italic; border-left: 4px solid #00bcd4;
+        }
+
+        /* GLOSSARY TABLE */
+        .glossary-table {
+            width: 100%; border-collapse: collapse; margin-top: 20px;
+            background: white; border-radius: 15px; overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+        .glossary-table th { background: #a29bfe; color: white; padding: 12px; }
+        .glossary-table td { padding: 10px; border-bottom: 1px solid #eee; text-align: center;}
+        .glossary-table tr:last-child td { border-bottom: none; }
+
+        /* QUESTION STYLES */
+        .question-card {
+            background: rgba(255, 255, 255, 0.7);
+            border-radius: 20px; padding: 20px; margin-bottom: 20px;
+            border: 2px solid transparent; transition: all 0.3s;
+        }
+        .question-card:hover { border-color: #74b9ff; }
+        .q-text { font-size: 1.2rem; font-weight: bold; margin-bottom: 15px; color: #2c3e50; }
+        
+        .options-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+        }
+        .option-btn {
+            background: white; border: 2px solid #dfe6e9; border-radius: 15px;
+            padding: 15px; font-size: 1.1rem; font-family: 'Nunito', sans-serif;
+            cursor: pointer; transition: 0.2s; font-weight: 600; color: #2d3436;
+        }
+        .option-btn:hover:not(:disabled) { background: #f1f2f6; border-color: #a29bfe; transform: scale(1.02); }
+        .option-btn.correct { background: #55efc4 !important; border-color: #00b894 !important; color: white; }
+        .option-btn.wrong { background: #ff7675 !important; border-color: #d63031 !important; color: white; animation: shake 0.4s ease; }
+        .option-btn:disabled { cursor: not-allowed; opacity: 0.8; }
+
+        /* MASTER EXPLANATION STYLES */
+        .explanation-box {
+            display: none;
+            background: #fff; border-radius: 15px; padding: 15px; margin-top: 15px;
+            border-left: 5px solid #00b894; box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            font-size: 1.05rem; line-height: 1.6;
+            animation: fadeIn 0.5s ease forwards;
+        }
+        @keyframes fadeIn { from{opacity:0; transform:translateY(-10px)} to{opacity:1; transform:translateY(0)} }
+        
+        /* THE CRITICAL SPAN CLASSES */
+        .p-word { color: #0984e3; font-weight: 800; font-size: 1.1rem;}
+        .p-mean { color: #d35400; font-weight: bold; }
+        .p-grammar { color: #c0392b; font-weight: bold; text-decoration: underline; text-underline-offset: 4px; }
+        .hl-green { color: #27ae60; font-weight: bold; background: rgba(39, 174, 96, 0.15); padding: 2px 6px; border-radius: 6px; }
+        .hl-red { color: #c0392b; text-decoration: line-through; background: rgba(192, 57, 43, 0.15); padding: 2px 6px; border-radius: 6px; }
+
+        .explain-quote {
+            background: #fdf6e3; padding: 10px; border-radius: 8px; margin: 10px 0;
+            border-left: 3px solid #f39c12; font-style: italic;
+        }
+
+        /* SUBMIT BUTTON & MODAL */
+        .submit-btn {
+            display: block; width: 100%; padding: 20px;
+            background: linear-gradient(45deg, #00b894, #55efc4);
+            color: white; font-size: 1.5rem; font-weight: 900;
+            border: none; border-radius: 20px; cursor: pointer;
+            box-shadow: 0 10px 20px rgba(0, 184, 148, 0.3); transition: 0.3s;
+            margin-top: 20px; font-family: 'Quicksand', sans-serif; text-transform: uppercase;
+        }
+        .submit-btn:hover { transform: translateY(-5px); box-shadow: 0 15px 25px rgba(0, 184, 148, 0.4); }
+
+        #resultModal {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(10px);
+            display: none; z-index: 10000; align-items: center; justify-content: center; text-align: center;
+        }
+        .result-content {
+            background: white; padding: 40px; border-radius: 30px; width: 90%; max-width: 500px;
+        }
+        .result-content input {
+            width: 100%; padding: 15px; margin: 20px 0; border-radius: 10px; border: 2px solid #ccc; font-size: 1.1rem; text-align: center;
+        }
+        .result-gif { width: 100%; max-height: 250px; object-fit: contain; border-radius: 15px; margin-top: 15px;}
+        
+        /* Audio Elements hidden */
+        audio { display: none; }
+    </style>
+</head>
+<body>
+
+    <div class="bg-pattern">
+        <div class="emoji-float e1">📱</div>
+        <div class="emoji-float e2">🤖</div>
+        <div class="emoji-float e3">🌐</div>
+        <div class="emoji-float e4">💻</div>
+    </div>
+
+    <audio id="audioIntro" src="https://hoctienganhcungcomaianulis.github.io/homework/%E1%BA%A2nh_File%20nghe/Sound/export_7wcKV5pKUrQYWyi7XgktJM.mp3"></audio>
+    <audio id="audioWrong" src="https://hoctienganhcungcomaianulis.github.io/homework/%E1%BA%A2nh_File%20nghe/File%20nghe%20Ket%20A2/huh_sound_effect-www_tiengdong_com.mp3"></audio>
+    <audio id="audioCorrect" src="https://actions.google.com/sounds/v1/cartoon/cartoon_boing.ogg"></audio> <div id="passwordModal">
+        <div class="pw-card">
+            <span class="pw-crest">✨</span>
+            <div class="pw-title">KHÓA BẢO MẬT</div>
+            <div class="pw-sub">Nhập mật khẩu bí mật của cô giáo nhé!</div>
+            <input type="password" class="pw-input" id="pwInput" placeholder="Mật khẩu là gì nhỉ?..." autocomplete="off" />
+            <button class="pw-btn" onclick="checkPassword()">MỞ KHÓA BÀI TẬP 🚀</button>
+            <div class="pw-err" id="pwErr">Sai mật khẩu rồi! Nhập lại nhé bé ơi.</div>
+        </div>
+    </div>
+
+    <div id="mainContent">
+        <div class="header">
+            <span>📚 Bài Tập Đọc Hiểu - Mức độ Master</span>
+            <span>Giáo viên tạo: Ms Mai An ULIS 🌟</span>
+        </div>
+
+        <div class="split-container">
+            <div class="panel" id="readingPanel">
+                <div class="passage-title">🌟 Passage 1: Social Media and Ethics</div>
+                
+                <div class="paragraph-box">
+                    <strong>Facts and Figures</strong><br><br>
+                    • (19) <span class="blank">_____</span> attention is now being paid to the moral issues of social media, especially with the rise of misinformation and data privacy concerns.<br>
+                    • Platforms have been increasing imposing (20) <span class="blank">_____</span> on harmful content.
+                    <br><button class="btn-translate" onclick="toggleT('t1')">Mở dịch đoạn này 🌟</button>
+                    <div class="translation-text" id="t1">Sự thật và Số liệu<br>• Nhiều sự chú ý hiện đang được dành cho các vấn đề đạo đức của mạng xã hội, đặc biệt là với sự gia tăng của thông tin sai lệch và những lo ngại về quyền riêng tư dữ liệu.<br>• Các nền tảng đã và đang gia tăng việc áp đặt các hạn chế đối với nội dung có hại.</div>
+                </div>
+
+                <div class="paragraph-box">
+                    <strong>Positive Action!</strong><br>
+                    ⚙️ <strong>Promote Ethical Practices:</strong><br>
+                    • Share content responsibly, focusing on accurate and verified information (21) <span class="blank">_____</span> foster trust and integrity.
+                    <br><button class="btn-translate" onclick="toggleT('t2')">Mở dịch đoạn này 🌟</button>
+                    <div class="translation-text" id="t2">Hành động tích cực!<br>Thúc đẩy các thực hành đạo đức:<br>• Chia sẻ nội dung một cách có trách nhiệm, tập trung vào thông tin chính xác và đã được xác minh để nuôi dưỡng niềm tin và sự chính trực.</div>
+                </div>
+
+                <div class="paragraph-box">
+                    ⚠️ <strong>Engage Mindfully:</strong><br>
+                    • Be mindful of the ethical (22) <span class="blank">_____</span> of your posts and comments, ensuring they do not harm or mislead others to a certain (23) <span class="blank">_____</span>.
+                    <br><button class="btn-translate" onclick="toggleT('t3')">Mở dịch đoạn này 🌟</button>
+                    <div class="translation-text" id="t3">Tham gia một cách chánh niệm:<br>• Hãy lưu tâm đến những tác động đạo đức từ các bài đăng và bình luận của bạn, đảm bảo rằng chúng không gây hại hoặc đánh lừa người khác đến một mức độ nhất định.</div>
+                </div>
+
+                <div class="paragraph-box">
+                    🌱 <strong>Support Responsible Platforms:</strong><br>
+                    • Encourage platforms to (24) <span class="blank">_____</span> better content moderation systems and to respect user privacy.
+                    <br><button class="btn-translate" onclick="toggleT('t4')">Mở dịch đoạn này 🌟</button>
+                    <div class="translation-text" id="t4">Ủng hộ các nền tảng có trách nhiệm:<br>• Khuyến khích các nền tảng thiết lập hệ thống kiểm duyệt nội dung tốt hơn và tôn trọng quyền riêng tư của người dùng.</div>
+                </div>
+
+                <table class="glossary-table">
+                    <tr><th>Academic Word</th><th>POS</th><th>Meaning (Tiếng Việt)</th></tr>
+                    <tr><td>Moral</td><td>(adj)</td><td>Thuộc về đạo đức</td></tr>
+                    <tr><td>Misinformation</td><td>(n)</td><td>Thông tin sai lệch</td></tr>
+                    <tr><td>Privacy</td><td>(n)</td><td>Quyền riêng tư</td></tr>
+                    <tr><td>Impose</td><td>(v)</td><td>Áp đặt</td></tr>
+                    <tr><td>Harmful</td><td>(adj)</td><td>Có hại</td></tr>
+                    <tr><td>Accurate</td><td>(adj)</td><td>Chính xác</td></tr>
+                    <tr><td>Verify</td><td>(v)</td><td>Xác minh, kiểm chứng</td></tr>
+                    <tr><td>Foster</td><td>(v)</td><td>Nuôi dưỡng, thúc đẩy</td></tr>
+                    <tr><td>Integrity</td><td>(n)</td><td>Sự chính trực</td></tr>
+                    <tr><td>Mindful</td><td>(adj)</td><td>Lưu tâm, chú ý</td></tr>
+                    <tr><td>Mislead</td><td>(v)</td><td>Làm hiểu lầm, đánh lừa</td></tr>
+                    <tr><td>Moderation</td><td>(n)</td><td>Sự kiểm duyệt, tiết chế</td></tr>
+                </table>
+
+                <hr style="margin: 40px 0; border:1px dashed #fd79a8">
+
+                <div class="passage-title">🚀 Passage 2: Tech Revolution - AI's Impact</div>
+                
+                <div class="paragraph-box">
+                    <strong>Facts and Figures</strong><br><br>
+                    • (25) <span class="blank">_____</span> experts are predicting that AI will continue to revolutionize various industries, from healthcare to finance, with a wide (26) <span class="blank">_____</span> of applications.<br>
+                    • Companies (27) <span class="blank">_____</span> AI-driven projects to enhance productivity. However, (28) <span class="blank">_____</span> ethical concerns, some governments are delaying the launch of certain AI-driven technologies.
+                    <br><button class="btn-translate" onclick="toggleT('t5')">Mở dịch đoạn này 🌟</button>
+                    <div class="translation-text" id="t5">Sự thật và Số liệu<br>• Nhiều chuyên gia dự đoán rằng AI sẽ tiếp tục cách mạng hóa nhiều ngành công nghiệp khác nhau, từ chăm sóc sức khỏe đến tài chính, với nhiều ứng dụng đa dạng.<br>• Các công ty thực hiện các dự án dựa trên AI để nâng cao năng suất. Tuy nhiên, xét đến những lo ngại về đạo đức, một số chính phủ đang trì hoãn việc ra mắt một số công nghệ AI nhất định.</div>
+                </div>
+
+                <div class="paragraph-box">
+                    <strong>Positive Action!</strong><br>
+                    ⚙️ <strong>Embrace Innovation:</strong><br>
+                    • Get involved in the growing AI landscape by learning about its potential (29) <span class="blank">_____</span> in your field.
+                    <br><button class="btn-translate" onclick="toggleT('t6')">Mở dịch đoạn này 🌟</button>
+                    <div class="translation-text" id="t6">Hành động tích cực!<br>Đón nhận sự đổi mới:<br>• Tham gia vào bối cảnh AI đang phát triển bằng cách tìm hiểu về các ứng dụng tiềm năng của nó trong lĩnh vực của bạn.</div>
+                </div>
+
+                <div class="paragraph-box">
+                    ⚠️ <strong>Stay Ethical:</strong><br>
+                    • Advocate for responsible AI development that minimizes bias and ensures fairness across all sectors.
+                    <br><button class="btn-translate" onclick="toggleT('t7')">Mở dịch đoạn này 🌟</button>
+                    <div class="translation-text" id="t7">Giữ đạo đức:<br>• Ủng hộ việc phát triển AI có trách nhiệm nhằm giảm thiểu thành kiến và đảm bảo sự công bằng trên tất cả các lĩnh vực.</div>
+                </div>
+
+                <div class="paragraph-box">
+                    🌱 <strong>Support Transparency:</strong><br>
+                    • Demand more transparency and accountability in AI systems to avoid harmful (30) <span class="blank">_____</span> and increase trust among users.
+                    <br><button class="btn-translate" onclick="toggleT('t8')">Mở dịch đoạn này 🌟</button>
+                    <div class="translation-text" id="t8">Hỗ trợ sự minh bạch:<br>• Yêu cầu sự minh bạch và trách nhiệm giải trình nhiều hơn trong các hệ thống AI để tránh các sai lệch gây hại và tăng niềm tin của người dùng.</div>
+                </div>
+
+                <table class="glossary-table">
+                    <tr><th>Academic Word</th><th>POS</th><th>Meaning (Tiếng Việt)</th></tr>
+                    <tr><td>Revolutionize</td><td>(v)</td><td>Cách mạng hóa</td></tr>
+                    <tr><td>Industry</td><td>(n)</td><td>Ngành công nghiệp</td></tr>
+                    <tr><td>Productivity</td><td>(n)</td><td>Năng suất</td></tr>
+                    <tr><td>Delay</td><td>(v)</td><td>Trì hoãn</td></tr>
+                    <tr><td>Potential</td><td>(adj/n)</td><td>Tiềm năng</td></tr>
+                    <tr><td>Advocate</td><td>(v)</td><td>Ủng hộ, biện hộ</td></tr>
+                    <tr><td>Bias</td><td>(n)</td><td>Sự thiên vị, thành kiến</td></tr>
+                    <tr><td>Transparency</td><td>(n)</td><td>Sự minh bạch</td></tr>
+                    <tr><td>Accountability</td><td>(n)</td><td>Trách nhiệm giải trình</td></tr>
+                    <tr><td>Discrepancy</td><td>(n)</td><td>Sự sai lệch, khác biệt</td></tr>
+                </table>
+
+            </div>
+
+            <div class="panel" id="quizPanel">
+                <div id="questionsContainer"></div>
+                <button class="submit-btn" onclick="openSubmitModal()">🎯 NỘP BÀI TÍNH ĐIỂM</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="resultModal">
+        <div class="result-content" id="modalStep1">
+            <h2 style="color:#6c5ce7; font-family:'Quicksand'">Bạn tên là gì nhỉ? 🤔</h2>
+            <input type="text" id="studentName" placeholder="Nhập họ và tên của bạn...">
+            <button class="submit-btn" style="margin-top:0" onclick="calculateScore()">XEM KẾT QUẢ NGAY 🚀</button>
+            <p id="nameError" style="color:red; display:none; margin-top:10px;">Bạn phải nhập tên mới được nộp bài nha!</p>
+        </div>
+        <div class="result-content" id="modalStep2" style="display:none;">
+            <h2 id="finalName" style="color:#2d3436; font-family:'Quicksand'"></h2>
+            <h1 id="finalScore" style="font-size: 3rem; color: #d63031; margin: 10px 0;"></h1>
+            <p id="finalComment" style="font-size: 1.2rem; font-weight: bold; color: #0984e3;"></p>
+            <img id="resultGif" class="result-gif" src="" alt="Meme">
+            <button class="btn-translate" style="margin-top:20px; font-size:1.2rem; padding:10px 20px;" onclick="location.reload()">Làm Lại Lần Nữa 🔄</button>
+        </div>
+    </div>
+
+    <script>
+        // MẬT KHẨU:(Mã hóa ASCII theo yêu cầu)
+        const _k = [99, 111, 103, 97, 110, 103, 100, 97, 116, 100, 105, 101, 109, 99, 97, 111]; 
+        const _pw = _k.map(c => String.fromCharCode(c)).join('');
+
+        function checkPassword() {
+            const inp = document.getElementById('pwInput');
+            const err = document.getElementById('pwErr');
+            if (inp.value === _pw) {
+                document.getElementById('passwordModal').style.display = 'none';
+                document.getElementById('mainContent').style.display = 'block';
+                // Play introduction audio
+                document.getElementById('audioIntro').play().catch(e => console.log("Trình duyệt chặn autoplay audio"));
+            } else {
+                inp.classList.remove('error'); void inp.offsetWidth; inp.classList.add('error');
+                err.style.display = 'block'; setTimeout(() => inp.classList.remove('error'), 500);
+            }
+        }
+        document.getElementById('pwInput').addEventListener('keydown', e => { if (e.key==='Enter') checkPassword(); });
+
+        function toggleT(id) {
+            const el = document.getElementById(id);
+            el.style.display = (el.style.display === 'block') ? 'none' : 'block';
+        }
+
+        // DỮ LIỆU CÂU HỎI VÀ GIẢI THÍCH CHUẨN MASTER
+        const quizData = [
+            {
+                id: 19,
+                qText: "Question 19. Choose the best option:",
+                options: [
+                    {text: "Every", correct: false, explain: "❌ Sai vì <b>Every</b> đi với danh từ đếm được số ít."},
+                    {text: "Some", correct: false, explain: "❌ Sai vì <span class='hl-red'>some attention</span> (một vài sự chú ý) chưa phù hợp ngữ nghĩa nhấn mạnh ở đây."},
+                    {text: "Much", correct: true, explain: "✅ Đúng vì <span class='p-grammar'>much + danh từ không đếm được</span>. <span class='p-word'>Much attention</span> mang nghĩa <span class='p-mean'>Nhiều sự chú ý</span>, chỉ sự quan tâm ngày càng lớn."},
+                    {text: "Another", correct: false, explain: "❌ Sai vì <b>Another</b> đi với danh từ số ít đếm được."}
+                ],
+                fullExplain: `
+                    <div class="explain-quote">"(19) _____ attention is now being paid to the moral issues..."</div>
+                    👉 Dịch: "<span class='hl-green'>Nhiều sự chú ý</span> hiện đang được dành cho các vấn đề đạo đức..."
+                `
+            },
+            {
+                id: 20,
+                qText: "Question 20. Choose the best option:",
+                options: [
+                    {text: "feedbacks", correct: false, explain: "❌ Sai vì <span class='p-word'>feedbacks</span> <span class='p-mean'>(phản hồi)</span> không hợp nghĩa."},
+                    {text: "algorithms", correct: false, explain: "❌ Sai vì <span class='p-word'>algorithms</span> <span class='p-mean'>(thuật toán)</span> không ghép được với động từ impose."},
+                    {text: "moderation", correct: false, explain: "❌ Sai vì <span class='p-word'>moderation</span> <span class='p-mean'>(sự kiểm duyệt)</span> không đi kèm động từ impose trong văn cảnh này."},
+                    {text: "restrictions", correct: true, explain: "✅ Đúng vì cụm từ cố định <span class='p-grammar'>imposing restrictions on</span> mang nghĩa <span class='p-mean'>áp đặt các hạn chế lên...</span>, hoàn toàn phù hợp để nói về việc kiểm soát nội dung độc hại."}
+                ],
+                fullExplain: `
+                    <div class="explain-quote">"Platforms have been increasing imposing (20) _____ on harmful content."</div>
+                    👉 Dịch: "Các nền tảng đã và đang gia tăng việc <span class='hl-green'>áp đặt các hạn chế</span> đối với nội dung có hại."
+                `
+            },
+            {
+                id: 21,
+                qText: "Question 21. Choose the best option:",
+                options: [
+                    {text: "in order to", correct: true, explain: "✅ Đúng vì cấu trúc <span class='p-grammar'>in order to + V</span> mang nghĩa <span class='p-mean'>để làm gì</span>, chỉ mục đích thúc đẩy niềm tin."},
+                    {text: "on top of", correct: false, explain: "❌ Sai vì <span class='hl-red'>on top of</span> <span class='p-mean'>(ngoài ra)</span> không phù hợp."},
+                    {text: "for fear of", correct: false, explain: "❌ Sai vì <span class='hl-red'>for fear of</span> <span class='p-mean'>(vì sợ rằng)</span> ngược hoàn toàn ngữ nghĩa."},
+                    {text: "in regard to", correct: false, explain: "❌ Sai vì <span class='hl-red'>in regard to</span> <span class='p-mean'>(liên quan đến)</span> không mang ý nghĩa chỉ mục đích."}
+                ],
+                fullExplain: `
+                    <div class="explain-quote">"...focusing on accurate and verified information (21) _____ foster trust and integrity."</div>
+                    👉 Dịch: "...tập trung vào thông tin chính xác và đã được xác minh <span class='hl-green'>để thúc đẩy</span> niềm tin và sự chính trực."
+                `
+            },
+            {
+                id: 22,
+                qText: "Question 22. Choose the best option:",
+                options: [
+                    {text: "implications", correct: true, explain: "✅ Đúng. Cụm từ <span class='p-word'>ethical implications</span> nghĩa là <span class='p-mean'>những tác động/hệ lụy đạo đức</span>. Rất phù hợp khi nói về hậu quả tiềm tàng của bài đăng."},
+                    {text: "notifications", correct: false, explain: "❌ Sai vì <span class='hl-red'>notifications</span> <span class='p-mean'>(thông báo)</span> không liên quan."},
+                    {text: "applications", correct: false, explain: "❌ Sai vì <span class='hl-red'>applications</span> <span class='p-mean'>(ứng dụng)</span> sai ngữ cảnh."},
+                    {text: "interactions", correct: false, explain: "❌ Sai vì <span class='hl-red'>interactions</span> <span class='p-mean'>(tương tác)</span> không hợp lý với từ ethical phía trước."}
+                ],
+                fullExplain: `
+                    <div class="explain-quote">"Be mindful of the ethical (22) _____ of your posts and comments..."</div>
+                    👉 Dịch: "Hãy lưu tâm đến <span class='hl-green'>những tác động đạo đức</span> từ các bài đăng và bình luận của bạn..."
+                `
+            },
+            {
+                id: 23,
+                qText: "Question 23. Choose the best option:",
+                options: [
+                    {text: "scale", correct: false, explain: "❌ Sai vì không dùng 'to a certain scale'."},
+                    {text: "number", correct: false, explain: "❌ Sai vì không dùng 'to a certain number' ở đây."},
+                    {text: "extent", correct: true, explain: "✅ Đúng vì đây là Idiom/Collocation: <span class='p-grammar'>to a certain extent</span> nghĩa là <span class='p-mean'>đến một mức độ nhất định</span>."},
+                    {text: "variety", correct: false, explain: "❌ Sai vì không có cụm 'to a certain variety'."}
+                ],
+                fullExplain: `
+                    <div class="explain-quote">"...ensuring they do not harm or mislead others to a certain (23) _____."</div>
+                    👉 Dịch: "...đảm bảo rằng chúng không gây hại hoặc đánh lừa người khác <span class='hl-green'>đến một mức độ nhất định</span>."
+                `
+            },
+            {
+                id: 24,
+                qText: "Question 24. Choose the best option:",
+                options: [
+                    {text: "take on", correct: false, explain: "❌ Sai vì <span class='p-word'>take on</span> <span class='p-mean'>(đảm nhận)</span> không hợp lý."},
+                    {text: "look into", correct: false, explain: "❌ Sai vì <span class='p-word'>look into</span> <span class='p-mean'>(điều tra)</span> sai ngữ cảnh."},
+                    {text: "put in", correct: false, explain: "❌ Sai vì <span class='p-word'>put in</span> <span class='p-mean'>(đặt vào/đầu tư)</span> không sát nghĩa."},
+                    {text: "set up", correct: true, explain: "✅ Đúng. Phrasal verb <span class='p-grammar'>set up</span> nghĩa là <span class='p-mean'>thiết lập/thành lập</span>. <span class='hl-green'>Set up better content moderation systems</span> = thiết lập hệ thống kiểm duyệt tốt hơn."}
+                ],
+                fullExplain: `
+                    <div class="explain-quote">"Encourage platforms to (24) _____ better content moderation systems..."</div>
+                    👉 Dịch: "Khuyến khích các nền tảng <span class='hl-green'>thiết lập</span> hệ thống kiểm duyệt nội dung tốt hơn..."
+                `
+            },
+            {
+                id: 25,
+                qText: "Question 25. Choose the best option:",
+                options: [
+                    {text: "Little", correct: false, explain: "❌ Sai vì <span class='hl-red'>Little</span> cộng danh từ không đếm được."},
+                    {text: "Many", correct: true, explain: "✅ Đúng vì quy tắc ngữ pháp: <span class='p-grammar'>Many + danh từ số nhiều đếm được</span>. <span class='p-word'>Many experts</span> mang nghĩa <span class='p-mean'>Nhiều chuyên gia</span>."},
+                    {text: "Another", correct: false, explain: "❌ Sai vì <span class='hl-red'>Another</span> cộng danh từ số ít."},
+                    {text: "Each", correct: false, explain: "❌ Sai vì <span class='hl-red'>Each</span> cộng danh từ số ít."}
+                ],
+                fullExplain: `
+                    <div class="explain-quote">"(25) _____ experts are predicting that AI will continue..."</div>
+                    👉 Dịch: "<span class='hl-green'>Nhiều chuyên gia</span> dự đoán rằng AI sẽ tiếp tục..."
+                `
+            },
+            {
+                id: 26,
+                qText: "Question 26. Choose the best option:",
+                options: [
+                    {text: "degree", correct: false, explain: "❌ Sai vì không dùng 'a wide degree of applications'."},
+                    {text: "scale", correct: false, explain: "❌ Sai vì 'scale' (quy mô) không đi với ứng dụng trong ngữ cảnh này."},
+                    {text: "variety", correct: true, explain: "✅ Đúng vì cụm từ cố định <span class='p-grammar'>a wide variety of + N(số nhiều)</span> nghĩa là <span class='p-mean'>nhiều... đa dạng</span>. Hoàn toàn phù hợp ngữ nghĩa."},
+                    {text: "amount", correct: false, explain: "❌ Sai vì 'amount' dùng cho danh từ không đếm được."}
+                ],
+                fullExplain: `
+                    <div class="explain-quote">"...with a wide (26) _____ of applications."</div>
+                    👉 Dịch: "...với <span class='hl-green'>nhiều</span> ứng dụng <span class='hl-green'>đa dạng</span>."
+                `
+            },
+            {
+                id: 27,
+                qText: "Question 27. Choose the best option:",
+                options: [
+                    {text: "take over", correct: false, explain: "❌ Sai vì <span class='p-word'>take over</span> <span class='p-mean'>(tiếp quản)</span> không phù hợp."},
+                    {text: "look for", correct: false, explain: "❌ Sai vì <span class='p-word'>look for</span> <span class='p-mean'>(tìm kiếm)</span> sai ngữ cảnh."},
+                    {text: "put up", correct: false, explain: "❌ Sai vì <span class='p-word'>put up</span> <span class='p-mean'>(dựng lên/cho ở nhờ)</span> không sát nghĩa."},
+                    {text: "carry out", correct: true, explain: "✅ Đúng. Cụm <span class='p-grammar'>carry out a project</span> nghĩa là <span class='p-mean'>tiến hành/thực hiện dự án</span>."}
+                ],
+                fullExplain: `
+                    <div class="explain-quote">"Companies (27) _____ AI-driven projects to enhance productivity."</div>
+                    👉 Dịch: "Các công ty <span class='hl-green'>thực hiện</span> các dự án dựa trên AI để nâng cao năng suất."
+                `
+            },
+            {
+                id: 28,
+                qText: "Question 28. Choose the best option:",
+                options: [
+                    {text: "in spite of", correct: false, explain: "❌ Sai vì <span class='hl-red'>in spite of</span> <span class='p-mean'>(mặc dù)</span> tạo nghĩa nhượng bộ, không logic với vế sau (delaying)."},
+                    {text: "in view of", correct: true, explain: "✅ Đúng vì cụm từ <span class='p-grammar'>in view of</span> mang nghĩa <span class='p-mean'>xét thấy, bởi vì (nguyên nhân)</span>. Xét thấy lo ngại đạo đức nên chính phủ trì hoãn -> Rất logic!"},
+                    {text: "regardless of", correct: false, explain: "❌ Sai vì <span class='hl-red'>regardless of</span> <span class='p-mean'>(bất chấp)</span> sai logic nguyên nhân - kết quả."},
+                    {text: "on top of", correct: false, explain: "❌ Sai vì <span class='hl-red'>on top of</span> <span class='p-mean'>(ngoài ra)</span> không phù hợp."}
+                ],
+                fullExplain: `
+                    <div class="explain-quote">"However, (28) _____ ethical concerns, some governments are delaying..."</div>
+                    👉 Dịch: "Tuy nhiên, <span class='hl-green'>xét đến</span> những lo ngại về đạo đức, một số chính phủ đang trì hoãn..."
+                `
+            },
+            {
+                id: 29,
+                qText: "Question 29. Choose the best option:",
+                options: [
+                    {text: "components", correct: false, explain: "❌ Sai vì <span class='p-word'>components</span> <span class='p-mean'>(thành phần)</span> không đúng."},
+                    {text: "distributions", correct: false, explain: "❌ Sai vì <span class='p-word'>distributions</span> <span class='p-mean'>(sự phân phối)</span> không hợp lý."},
+                    {text: "integrations", correct: false, explain: "❌ Sai vì <span class='p-word'>integrations</span> <span class='p-mean'>(sự tích hợp)</span> không sát nghĩa."},
+                    {text: "applications", correct: true, explain: "✅ Đúng. Cụm từ <span class='p-word'>potential applications</span> nghĩa là <span class='p-mean'>các ứng dụng tiềm năng</span>, rất chuẩn xác khi bàn về lĩnh vực mà AI đóng góp."}
+                ],
+                fullExplain: `
+                    <div class="explain-quote">"...by learning about its potential (29) _____ in your field."</div>
+                    👉 Dịch: "...bằng cách tìm hiểu về các <span class='hl-green'>ứng dụng</span> tiềm năng của nó trong lĩnh vực của bạn."
+                `
+            },
+            {
+                id: 30,
+                qText: "Question 30. Choose the best option:",
+                options: [
+                    {text: "interferences", correct: false, explain: "❌ Sai vì <span class='p-word'>interferences</span> <span class='p-mean'>(sự can thiệp)</span> chưa đủ sắc thái nghĩa."},
+                    {text: "modifications", correct: false, explain: "❌ Sai vì <span class='p-word'>modifications</span> <span class='p-mean'>(sự sửa đổi)</span> không có tính tiêu cực rõ ràng ở đây."},
+                    {text: "discrepancies", correct: true, explain: "✅ Đúng. Cụm <span class='p-word'>harmful discrepancies</span> mang nghĩa <span class='p-mean'>các sai lệch/khác biệt gây hại</span>, cực kỳ phù hợp khi bàn về độ tin cậy và minh bạch của AI."},
+                    {text: "innovations", correct: false, explain: "❌ Sai vì <span class='p-word'>innovations</span> <span class='p-mean'>(sự đổi mới)</span> mang nghĩa tích cực, không đi với 'harmful' (có hại)."}
+                ],
+                fullExplain: `
+                    <div class="explain-quote">"...to avoid harmful (30) _____ and increase trust among users."</div>
+                    👉 Dịch: "...để tránh các <span class='hl-green'>sai lệch</span> gây hại và tăng niềm tin của người dùng."
+                `
+            }
+        ];
+
+        let score = 0;
+        let answeredQuestions = 0;
+        const totalQuestions = quizData.length;
+
+        // Shuffle function for options
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        // Render Quiz
+        const quizContainer = document.getElementById('questionsContainer');
+        quizData.forEach((q, index) => {
+            // Clone and shuffle options to preserve original for explanation
+            let shuffledOptions = [...q.options];
+            shuffleArray(shuffledOptions);
+
+            const card = document.createElement('div');
+            card.className = 'question-card';
+            card.id = `qCard_${q.id}`;
+            
+            let optionsHTML = `<div class="options-grid">`;
+            shuffledOptions.forEach((opt, optIndex) => {
+                optionsHTML += `<button class="option-btn" id="btn_${q.id}_${optIndex}" onclick="checkAnswer(${q.id}, '${opt.text}', ${opt.correct}, this)">${opt.text}</button>`;
+            });
+            optionsHTML += `</div>`;
+
+            // Build Explanation HTML based on original order
+            let explainHTML = `
+                <div class="explanation-box" id="explain_${q.id}">
+                    <p style="color:#6c5ce7; font-weight:bold; margin-bottom:10px">Dịch câu hỏi: Chọn đáp án phù hợp nhất cho ô trống số (${q.id})</p>
+            `;
+            q.options.forEach(opt => {
+                explainHTML += `<p style="margin-bottom:8px"><strong>${opt.text}:</strong> ${opt.explain}</p>`;
+            });
+            explainHTML += `
+                <hr style="border:0; height:1px; background:#ddd; margin: 15px 0;">
+                <p><strong>🔍 Dẫn chứng trong bài:</strong></p>
+                ${q.fullExplain}
+                </div>
+            `;
+
+            card.innerHTML = `
+                <div class="q-text">${q.qText}</div>
+                ${optionsHTML}
+                ${explainHTML}
+            `;
+            quizContainer.appendChild(card);
+        });
+
+        // Handle Answer Click
+        function checkAnswer(qId, selectedText, isCorrect, btnElement) {
+            const card = document.getElementById(`qCard_${qId}`);
+            const buttons = card.querySelectorAll('.option-btn');
+            
+            // Disable all buttons in this question
+            buttons.forEach(btn => btn.disabled = true);
+
+            if (isCorrect) {
+                btnElement.classList.add('correct');
+                score++;
+                // Sound & Confetti
+                let audio = document.getElementById('audioCorrect');
+                audio.currentTime = 0; audio.play();
+                confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+            } else {
+                btnElement.classList.add('wrong');
+                // Sound Huh/Shake
+                let audioW = document.getElementById('audioWrong');
+                audioW.currentTime = 0; audioW.play();
+                
+                // Highlight correct answer
+                buttons.forEach(btn => {
+                    // Find the correct original option object
+                    const correctOpt = quizData.find(q => q.id === qId).options.find(o => o.correct).text;
+                    if(btn.innerText === correctOpt) {
+                        btn.style.background = "#55efc4";
+                        btn.style.borderColor = "#00b894";
+                        btn.style.color = "white";
+                    }
+                });
+            }
+
+            // Show explanation
+            document.getElementById(`explain_${qId}`).style.display = 'block';
+            answeredQuestions++;
+        }
+
+        // Submit Logic
+        function openSubmitModal() {
+            if(answeredQuestions < totalQuestions) {
+                alert(`Bạn mới làm ${answeredQuestions}/${totalQuestions} câu thôi. Làm nốt đi nhé!`);
+                return;
+            }
+            document.getElementById('resultModal').style.display = 'flex';
+        }
+
+        function calculateScore() {
+            const name = document.getElementById('studentName').value.trim();
+            if (!name) {
+                document.getElementById('nameError').style.display = 'block';
+                return;
+            }
+            
+            document.getElementById('modalStep1').style.display = 'none';
+            document.getElementById('modalStep2').style.display = 'block';
+
+            document.getElementById('finalName').innerText = `Học sinh: ${name}`;
+            document.getElementById('finalScore').innerText = `${score} / ${totalQuestions}`;
+
+            let percentage = (score / totalQuestions) * 100;
+            let comment = "";
+            let gifSrc = "";
+
+            if (percentage === 100) {
+                comment = "🏆 Thiên tài cmnr!!! Ms Mai An tự hào về em quá đi mất!";
+                gifSrc = "https://media.giphy.com/media/11sBLVxNs7v6WA/giphy.gif"; // Smart/Genius Meme
+                confetti({ particleCount: 300, spread: 100, origin: { y: 0.5 } });
+            } else if (percentage >= 60) {
+                comment = "👍 Rất tốt! Cố gắng chút nữa là điểm tuyệt đối nha!";
+                gifSrc = "https://media.giphy.com/media/xT0GqfvuVpNqEf3z2w/giphy.gif"; // High five
+            } else {
+                comment = "😅 Hơi xu cà na rồi! Đọc kỹ phần Giải thích Master để rút kinh nghiệm nhé!";
+                gifSrc = "https://media.giphy.com/media/2rtQMJvhzOnRe/giphy.gif"; // Crying cute
+            }
+
+            document.getElementById('finalComment').innerText = comment;
+            document.getElementById('resultGif').src = gifSrc;
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bài Tập Tiếng Anh - Ms Mai An ULIS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Cinzel:wght@700&display=swap" rel="stylesheet">
+    <style>
+        /* ================= BẢN THIẾT KẾ MÀU SẮC & ANIMATION ================= */
+        :root {
+            --pastel-1: #076585; /* Xanh mòng két sâu */
+            --pastel-2: #388ba6;
+            --pastel-3: #89c5d6;
+            --pastel-4: #ffffff; /* Trắng */
+            --glass-bg: rgba(255, 255, 255, 0.6);
+            --glass-border: rgba(255, 255, 255, 0.8);
+            --glass-shadow: 0 8px 32px 0 rgba(7, 101, 133, 0.2);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Nunito', sans-serif; }
+
+        body {
+            background: linear-gradient(-45deg, var(--pastel-1), var(--pastel-2), var(--pastel-3), var(--pastel-4));
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            height: 100vh;
+            overflow: hidden;
+            color: #1e272e;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* FLOATING EMOJIS (SVG PATTERN & EMOJIS) */
+        .floating-bg {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1;
+            background-image: radial-gradient(circle at 50% 50%, rgba(255,255,255,0.2) 0%, transparent 70%);
+            pointer-events: none;
+        }
+        .emoji {
+            position: absolute; font-size: 2.8rem; opacity: 0.35;
+            animation: floatEmoji 12s linear infinite;
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));
+        }
+        @keyframes floatEmoji {
+            0% { transform: translateY(110vh) rotate(0deg) scale(0.8); }
+            50% { transform: translateY(40vh) rotate(180deg) scale(1.1); }
+            100% { transform: translateY(-10vh) rotate(360deg) scale(0.8); }
+        }
+
+        /* ================= GIAO DIỆN MÀN HÌNH KHÓA ================= */
+        #passwordModal {
+            position: fixed; inset: 0; z-index: 9999;
+            display: flex; align-items: center; justify-content: center;
+            background: rgba(7, 101, 133, 0.4); backdrop-filter: blur(20px);
+        }
+        .pw-card {
+            background: rgba(255, 255, 255, 0.85);
+            border: 2px solid var(--glass-border); border-radius: 30px; padding: 48px 40px 40px; 
+            max-width: 440px; width: 93%; text-align: center; position: relative; overflow: hidden;
+            box-shadow: 0 15px 40px rgba(7, 101, 133, 0.3), inset 0 0 15px rgba(255,255,255,0.9);
+        }
+        .pw-card::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 6px;
+            background: linear-gradient(90deg, #076585, #89c5d6, #076585);
+        }
+        .pw-crest { font-size: 4.5rem; margin-bottom: 15px; display: block; animation: floatMenu 3s ease-in-out infinite;}
+        @keyframes floatMenu { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+        .pw-title { font-family: 'Cinzel', serif; font-size: 1.6rem; font-weight: 800; color: #076585; margin-bottom: 6px; letter-spacing: 2px; }
+        .pw-sub   { font-size: 0.95rem; color: #4b6584; margin-bottom: 24px; font-weight: 700;}
+        .pw-input {
+            width: 100%; padding: 15px 20px; border-radius: 15px;
+            border: 2px solid rgba(7, 101, 133, 0.3); background: rgba(255,255,255,0.9);
+            color: #076585; font-size: 1.2rem; font-weight: 800;
+            outline: none; letter-spacing: 3px; text-align: center; transition: all .3s;
+        }
+        .pw-input:focus { border-color: #076585; box-shadow: 0 0 0 4px rgba(7, 101, 133, 0.2); }
+        .pw-input.error { border-color: #e84118; box-shadow: 0 0 0 4px rgba(232, 65, 24, 0.2); animation: shake .4s ease; }
+        .pw-input::placeholder { color: #a4b0be; letter-spacing: 1px; font-weight: 600;}
+        .pw-btn {
+            width: 100%; padding: 15px; margin-top: 18px; border-radius: 15px; border: none;
+            background: linear-gradient(135deg, #076585 0%, #388ba6 100%);
+            color: #fff; font-size: 1.1rem; font-weight: 800; text-transform: uppercase;
+            cursor: pointer; letter-spacing: 1.5px; transition: all .2s; box-shadow: 0 5px 15px rgba(7, 101, 133, 0.3);
+        }
+        .pw-btn:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(7, 101, 133, 0.5); filter: brightness(1.1); }
+        .pw-err { color: #c23616; font-size: 0.95rem; margin-top: 12px; display: none; font-weight: 800; }
+
+        /* LỜI NHẮN NHỦ SÂU SẮC CỦA CÔ MAI AN */
+        .teacher-alert {
+            background: linear-gradient(135deg, #ffeaa7, #fdcb6e);
+            border-left: 6px solid #e17055; padding: 15px 20px; border-radius: 12px;
+            margin: 20px auto 30px; font-weight: 800; color: #d63031;
+            font-size: 1.1rem; box-shadow: 0 5px 15px rgba(225, 112, 85, 0.2);
+            text-align: justify; animation: pulseAlert 2s infinite;
+            display: flex; align-items: center; gap: 15px;
+        }
+        @keyframes pulseAlert { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.01); box-shadow: 0 8px 20px rgba(225, 112, 85, 0.3); } }
+
+        /* ================= GIAO DIỆN CHÍNH ================= */
+        #mainContent { display: none; height: 100vh; padding: 15px; }
+        .header {
+            position: absolute; top: 15px; left: 30px; z-index: 100;
+            background: var(--glass-bg); backdrop-filter: blur(12px); padding: 8px 22px;
+            border-radius: 20px; border: 1px solid var(--glass-border); box-shadow: var(--glass-shadow);
+            font-size: 0.95rem; font-weight: 800; color: #076585; letter-spacing: 1px;
+        }
+
+        .split-container { display: flex; gap: 20px; height: calc(100vh - 30px); margin-top: 40px; }
+        
+        .panel {
+            flex: 1; background: var(--glass-bg); backdrop-filter: blur(16px);
+            border: 2px solid var(--glass-border); border-radius: 25px;
+            box-shadow: var(--glass-shadow); padding: 30px; overflow-y: auto;
+            position: relative;
+        }
+
+        /* Tùy chỉnh thanh cuộn */
+        ::-webkit-scrollbar { width: 10px; }
+        ::-webkit-scrollbar-track { background: rgba(255,255,255,0.3); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb { background: rgba(7, 101, 133, 0.5); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(7, 101, 133, 0.8); }
+
+        /* ================= VÙNG BÀI ĐỌC ================= */
+        .passage-box { margin-bottom: 40px; }
+        .passage-title { font-size: 1.6rem; color: #076585; margin-bottom: 15px; text-align: center; text-transform: uppercase; font-weight: 900; letter-spacing: 1px; text-shadow: 2px 2px 4px rgba(255,255,255,0.8);}
+        .paragraph { margin-bottom: 20px; font-size: 1.15rem; line-height: 1.8; color: #2f3640; font-weight: 600;}
+        .blank-space { display: inline-block; padding: 0 15px; margin: 0 5px; background: rgba(255,255,255,0.8); border: 2px dashed #076585; border-radius: 8px; font-weight: 800; color: #c23616;}
+        
+        .translate-btn {
+            background: #fff; border: 2px solid #388ba6; color: #076585; padding: 6px 18px;
+            border-radius: 20px; font-size: 0.95rem; font-weight: 800; cursor: pointer;
+            transition: all 0.2s; margin-top: 8px; display: inline-flex; align-items: center; gap: 5px;
+            box-shadow: 0 3px 10px rgba(7, 101, 133, 0.1);
+        }
+        .translate-btn:hover { background: #076585; color: #fff; transform: scale(1.05); }
+        .translation-text {
+            display: none; background: rgba(255, 255, 255, 0.85); border-left: 5px solid #076585;
+            padding: 15px; margin-top: 12px; border-radius: 0 12px 12px 0; font-size: 1.05rem; font-style: italic;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05); color: #2f3640;
+        }
+
+        /* GLOSSARY */
+        .glossary-table {
+            width: 100%; border-collapse: collapse; margin-top: 30px; background: rgba(255,255,255,0.7);
+            border-radius: 15px; overflow: hidden; box-shadow: 0 5px 20px rgba(7, 101, 133, 0.1);
+        }
+        .glossary-table th { background: linear-gradient(90deg, #076585, #388ba6); color: white; padding: 15px; font-size: 1.15rem; text-transform: uppercase; letter-spacing: 1px;}
+        .glossary-table td { padding: 12px 15px; border-bottom: 1px solid rgba(7, 101, 133, 0.15); font-weight: 600; color: #2f3640;}
+        .glossary-table tr:last-child td { border-bottom: none; }
+
+        /* ================= VÙNG CÂU HỎI ================= */
+        .question-card {
+            background: rgba(255,255,255,0.85); border: 2px solid #fff; border-radius: 22px;
+            padding: 25px; margin-bottom: 25px; box-shadow: 0 6px 20px rgba(7, 101, 133, 0.1);
+            transition: transform 0.3s;
+        }
+        .question-card:hover { transform: translateY(-5px); }
+        .q-text { font-size: 1.3rem; font-weight: 900; color: #076585; margin-bottom: 18px; }
+        
+        .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .opt-btn {
+            background: white; border: 2px solid #89c5d6; padding: 14px 20px; border-radius: 15px;
+            font-size: 1.15rem; font-weight: 800; color: #076585; cursor: pointer;
+            transition: all 0.2s; display: flex; align-items: center; justify-content: center; text-align: center;
+        }
+        .opt-btn:hover:not(:disabled) { background: #89c5d6; color: white; transform: scale(1.03); }
+        .opt-btn:disabled { cursor: not-allowed; opacity: 0.8; }
+        
+        /* Hiệu ứng ĐÚNG / SAI */
+        .opt-btn.correct { background: #00b894 !important; border-color: #00b894 !important; color: white !important; box-shadow: 0 0 20px rgba(0, 184, 148, 0.5); }
+        .opt-btn.wrong { background: #d63031 !important; border-color: #d63031 !important; color: white !important; animation: shake 0.4s ease; }
+
+        /* GIẢI THÍCH CHUẨN MASTER (DẪN CHỨNG NỔI BẬT) */
+        .explanation {
+            display: none; margin-top: 25px; padding: 22px; background: rgba(255,255,255,0.95);
+            border-radius: 15px; border-left: 6px solid #f39c12; box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            font-size: 1.05rem; line-height: 1.8; animation: slideDown 0.4s ease;
+        }
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .p-word { color: #0984e3; font-weight: 900; background: rgba(9, 132, 227, 0.1); padding: 2px 6px; border-radius: 6px;} /* Xanh dương */
+        .p-mean { color: #d35400; font-weight: 900; } /* Đất nung */
+        .p-grammar { text-decoration: underline wavy #e84118; font-weight: 900; color: #c23616;} /* Gạch chân đỏ */
+        .hl-green { color: #009432; font-weight: 900; background: rgba(0, 148, 50, 0.1); padding: 0 4px; border-radius: 4px;} /* Xanh lá */
+        .hl-red { color: #833471; font-weight: 800; text-decoration: line-through; } /* Đỏ sậm gạch ngang */
+        .exp-title { font-weight: 900; color: #076585; margin-bottom: 10px; text-transform: uppercase; font-size: 0.95rem; letter-spacing: 1px;}
+        
+        /* HIỆU ỨNG HIGHLIGHT DẪN CHỨNG CỰC MẠNH */
+        .exp-quote { 
+            background: linear-gradient(90deg, #fff20033, transparent); 
+            padding: 12px 15px; border-left: 5px solid #ff9f43; font-style: italic; 
+            margin: 15px 0; border-radius: 0 10px 10px 0; color: #2d3436; font-weight: 700;
+            box-shadow: inset 2px 0 0 #feca57;
+        }
+
+        /* NÚT NỘP BÀI */
+        .submit-btn {
+            width: 100%; padding: 20px; margin-top: 30px; border-radius: 20px; border: none;
+            background: linear-gradient(45deg, #076585, #89c5d6); color: white;
+            font-size: 1.5rem; font-weight: 900; cursor: pointer; text-transform: uppercase;
+            box-shadow: 0 10px 25px rgba(7, 101, 133, 0.4); transition: all 0.3s;
+        }
+        .submit-btn:hover { transform: translateY(-5px) scale(1.02); box-shadow: 0 15px 35px rgba(7, 101, 133, 0.6); }
+
+        /* POPUP KẾT QUẢ */
+        #resultModal, #nameModal {
+            position: fixed; inset: 0; z-index: 10000; display: none;
+            align-items: center; justify-content: center; background: rgba(0,0,0,0.85); backdrop-filter: blur(15px);
+        }
+        .result-card {
+            background: white; border-radius: 30px; padding: 40px; width: 90%; max-width: 500px;
+            text-align: center; position: relative; overflow: hidden;
+            background: linear-gradient(135deg, #ffffff, #f1f2f6);
+            border: 4px solid #076585;
+        }
+        .score-circle {
+            width: 160px; height: 160px; border-radius: 50%; background: linear-gradient(45deg, #00b894, #55efc4);
+            color: white; display: flex; align-items: center; justify-content: center; font-size: 3.5rem; font-weight: 900;
+            margin: 0 auto 20px; box-shadow: 0 10px 25px rgba(0, 184, 148, 0.4); border: 8px solid white;
+        }
+        .result-name { font-size: 2rem; font-weight: 900; color: #076585; margin-bottom: 10px; text-transform: uppercase;}
+        .result-msg { font-size: 1.25rem; font-weight: 800; color: #d63031; margin-bottom: 20px; line-height: 1.5;}
+        .gif-container img { width: 100%; border-radius: 15px; box-shadow: 0 5px 20px rgba(0,0,0,0.2); }
+
+        #confettiCanvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9998; }
+        @keyframes shake { 0%,100%{transform:translateX(0)} 15%,45%,75%{transform:translateX(-8px)} 30%,60%,90%{transform:translateX(8px)} }
+    </style>
+</head>
+<body>
+
+    <audio id="audioDing" src="https://assets.mixkit.co/active_storage/sfx/2013/2013-preview.mp3"></audio>
+    <audio id="audioHuh" src="https://hoctienganhcungcomaianulis.github.io/homework/%E1%BA%A2nh_File%20nghe/File%20nghe%20Ket%20A2/huh_sound_effect-www_tiengdong_com.mp3"></audio>
+    <audio id="audioMotivate" src="https://hoctienganhcungcomaianulis.github.io/homework/%E1%BA%A2nh_File%20nghe/Sound/ti%E1%BA%BFng%20%C4%91%E1%BB%8Dc%20kh%C3%ADch%20l%E1%BB%87%20p2.mp3"></audio>
+
+    <div class="floating-bg" id="floatingBg"></div>
+
+    <div id="passwordModal">
+        <div class="pw-card">
+            <span class="pw-crest">🔐</span>
+            <div class="pw-title">LỚP HỌC MS MAI AN</div>
+            <div class="pw-sub">Nhập mật khẩu bí mật để mở bài thi nhé!</div>
+            <input type="password" class="pw-input" id="pwInput" placeholder="Nhập mật khẩu..." autocomplete="off" />
+            <button class="pw-btn" onclick="checkPassword()">✨ MỞ KHÓA ✨</button>
+            <div class="pw-err" id="pwErr">Mật khẩu chưa đúng! Hãy thử lại nhé!</div>
+        </div>
+    </div>
+
+    <div id="mainContent">
+        <div class="header">🌟 Giáo viên tạo: Ms Mai An ULIS</div>
+        
+        <div class="split-container">
+            <div class="panel left-panel" id="readingPanel">
+                </div>
+
+            <div class="panel right-panel">
+                <div class="teacher-alert">
+                    <span style="font-size: 2.5rem;">🚨</span>
+                    <div>
+                        <strong>LỜI NHẮN TỪ CÔ MAI AN:</strong> Các con nhớ đọc thật kỹ phần <strong>giải thích chi tiết</strong> sau khi chọn đáp án nhé! Chăm chỉ đọc giải thích mới giúp mình thực sự giỏi lên, làm cho xong mà bỏ qua thì chỉ tốn thời gian mà không mang lại hiệu quả đâu!
+                    </div>
+                </div>
+                <div id="questionsPanel"></div>
+                <button class="submit-btn" onclick="submitExam()">🎯 NỘP BÀI TÍNH ĐIỂM 🎯</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="nameModal">
+        <div class="pw-card" style="background: white; border-color: #076585;">
+            <div class="pw-title" style="color: #076585;">BẠN TÊN LÀ GÌ NHỈ?</div>
+            <input type="text" class="pw-input" id="studentName" placeholder="Nhập tên của con..." style="border-color:#076585;">
+            <button class="pw-btn" onclick="calculateScore()">XEM KẾT QUẢ 🚀</button>
+        </div>
+    </div>
+
+    <div id="resultModal">
+        <div class="result-card">
+            <div class="score-circle" id="finalScore">0/18</div>
+            <div class="result-name" id="resName">Tên học sinh</div>
+            <div class="result-msg" id="resMsg">Lời phê</div>
+            <div class="gif-container">
+                <img id="resGif" src="" alt="Meme">
+            </div>
+            <button class="pw-btn" style="margin-top:20px;" onclick="location.reload()">Làm lại bài</button>
+        </div>
+    </div>
+
+    <canvas id="confettiCanvas"></canvas>
+
+    <script>
+        // ================= BACKGROUND EMOJIS TÙY CHỈNH THEO CHỦ ĐỀ =================
+        const emojis = ['🌍', '♻️', '🌱', '🦠', '😷', '⚕️', '🎬', '👷‍♂️', '⚖️'];
+        const bg = document.getElementById('floatingBg');
+        for(let i=0; i<18; i++) {
+            let el = document.createElement('div');
+            el.className = 'emoji'; el.innerText = emojis[Math.floor(Math.random() * emojis.length)];
+            el.style.left = Math.random() * 100 + 'vw';
+            el.style.animationDuration = (Math.random() * 15 + 10) + 's';
+            el.style.animationDelay = (Math.random() * 5) + 's';
+            bg.appendChild(el);
+        }
+
+        // ================= BẢO MẬT: MÃ HÓA PASSWORD HOÀN TOÀN =================
+        // Mã hóa mảng ASCII để giấu password khỏi source code (password là: comaianulis)
+        const _k = [99, 111, 109, 97, 105, 97, 110, 117, 108, 105, 115];
+        const _pw = _k.map(c => String.fromCharCode(c)).join('');
+
+        function checkPassword() {
+            const inp = document.getElementById('pwInput');
+            const err = document.getElementById('pwErr');
+            if (inp.value === _pw) {
+                document.getElementById('passwordModal').style.display = 'none';
+                document.getElementById('mainContent').style.display = 'block';
+                document.getElementById('audioMotivate').play().catch(e=>{});
+            } else {
+                inp.classList.remove('error'); void inp.offsetWidth; inp.classList.add('error');
+                err.style.display = 'block'; setTimeout(() => inp.classList.remove('error'), 500);
+            }
+        }
+        document.getElementById('pwInput').addEventListener('keydown', e => { if (e.key==='Enter') checkPassword(); });
+
+        // ================= DATA BÀI ĐỌC =================
+        const readingData = [
+            {
+                title: "Test 5 - Climate Change Alert: New Regulations Spark Global Efforts",
+                content: `
+                    <div class="paragraph">
+                        <strong>Facts and Figures</strong><br>
+                        • <span class="blank-space">1. [___]</span> countries are now implementing new regulations to curb pollution and combat climate change. A large <span class="blank-space">2. [___]</span> of funding is being directed toward clean energy projects.<br>
+                        • However, some industries are reluctant to <span class="blank-space">3. [___]</span> adopting green technologies, <span class="blank-space">4. [___]</span> the long-term benefits.
+                        <br><button class="translate-btn" onclick="toggleTrans(this)">Mở dịch đoạn này 🌟</button>
+                        <div class="translation-text"><strong>Sự thật và Số liệu:</strong><br>• Nhiều quốc gia hiện đang thực hiện các quy định mới để kiềm chế ô nhiễm và chống biến đổi khí hậu. Một lượng lớn nguồn tài trợ đang được hướng tới các dự án năng lượng sạch.<br>• Tuy nhiên, một số ngành công nghiệp vẫn còn miễn cưỡng bắt tay vào việc áp dụng công nghệ xanh, mặc dù có những lợi ích lâu dài.</div>
+                    </div>
+                    <div class="paragraph">
+                        <strong>Positive Action!</strong><br>
+                        🌟 <strong>Support:</strong> Encourage <span class="blank-space">5. [___]</span> in renewable energy and green technologies to build a sustainable future for all.<br>
+                        ⚠️ <strong>Stay:</strong> Follow developments regarding new regulations on emissions and how they impact industries and communities.<br>
+                        🌱 <strong>Promote:</strong> Advocate for stronger global agreements and policies that address climate change and encourage <span class="blank-space">6. [___]</span> across nations.
+                        <br><button class="translate-btn" onclick="toggleTrans(this)">Mở dịch đoạn này 🌟</button>
+                        <div class="translation-text"><strong>Hành động Tích cực!</strong><br>🌟 <strong>Hỗ trợ:</strong> Khuyến khích đầu tư vào năng lượng tái tạo và công nghệ xanh để xây dựng một tương lai bền vững cho tất cả mọi người.<br>⚠️ <strong>Theo dõi:</strong> Theo dõi những diễn biến liên quan đến các quy định mới về khí thải và cách chúng tác động đến các ngành công nghiệp và cộng đồng.<br>🌱 <strong>Thúc đẩy:</strong> Ủng hộ các thỏa thuận và chính sách toàn cầu mạnh mẽ hơn nhằm giải quyết biến đổi khí hậu và khuyến khích hợp tác giữa các quốc gia.</div>
+                    </div>
+                `
+            },
+            {
+                title: "HMPV Outbreak: What You Need to Know",
+                content: `
+                    <div class="paragraph">
+                        <strong>Facts and Figures</strong><br>
+                        • <span class="blank-space">7. [___]</span> case of Human Metapneumovirus (HMPV) is being closely monitored, as the virus continues to spread across several regions (Source: CDC).<br>
+                        • <span class="blank-space">8. [___]</span> age or underlying health conditions, people infected with HMPV can experience a wide <span class="blank-space">9. [___]</span> of symptoms.
+                        <br><button class="translate-btn" onclick="toggleTrans(this)">Mở dịch đoạn này 🌟</button>
+                        <div class="translation-text"><strong>Sự thật và Số liệu:</strong><br>• Mỗi trường hợp nhiễm Human Metapneumovirus (HMPV) đang được theo dõi chặt chẽ, do virus tiếp tục lây lan trên nhiều khu vực.<br>• Bất kể tuổi tác hay tình trạng sức khỏe tiềm ẩn, những người bị nhiễm HMPV có thể trải qua nhiều triệu chứng đa dạng.</div>
+                    </div>
+                    <div class="paragraph">
+                        <strong>Positive Action!</strong><br>
+                        🌟 <strong>Stay Informed:</strong> <span class="blank-space">10. [___]</span> the latest HMPV news and guidelines from health authorities to protect yourself and others.<br>
+                        ⚠️ <strong>Take Preventative Measures:</strong> Take <span class="blank-space">11. [___]</span> such as washing hands regularly and wearing masks in crowded places to reduce the <span class="blank-space">12. [___]</span> of HMPV.<br>
+                        🌱 <strong>Boost Your Immune System:</strong> Ensure that you and your family maintain a healthy lifestyle to get over respiratory infections more easily and strengthen immunity.
+                        <br><button class="translate-btn" onclick="toggleTrans(this)">Mở dịch đoạn này 🌟</button>
+                        <div class="translation-text"><strong>Hành động Tích cực!</strong><br>🌟 <strong>Cập nhật thông tin:</strong> Theo dõi tin tức và hướng dẫn mới nhất về HMPV từ các cơ quan y tế để bảo vệ bản thân và người khác.<br>⚠️ <strong>Thực hiện Biện pháp Phòng ngừa:</strong> Thực hiện các biện pháp phòng ngừa như rửa tay thường xuyên và đeo khẩu trang ở những nơi đông người để giảm sự lây truyền của HMPV.<br>🌱 <strong>Tăng cường Hệ miễn dịch:</strong> Đảm bảo rằng bạn và gia đình duy trì lối sống lành mạnh để vượt qua các bệnh nhiễm trùng đường hô hấp dễ dàng hơn và tăng cường sức đề kháng.</div>
+                    </div>
+                `
+            },
+            {
+                title: "Get Ready for the Film “Bo Tu Bao Thu”",
+                content: `
+                    <div class="paragraph">
+                        <strong>Facts and Figures</strong><br>
+                        • One significant issue facing workers today is the rise of poor working <span class="blank-space">13. [___]</span> across various industries.<br>
+                        • Workers are increasingly <span class="blank-space">14. [___]</span> difficulties such as unfair wages and unsafe work environments. Despite efforts, the problem persists on a large <span class="blank-space">15. [___]</span>.
+                        <br><button class="translate-btn" onclick="toggleTrans(this)">Mở dịch đoạn này 🌟</button>
+                        <div class="translation-text"><strong>Sự thật và Số liệu:</strong><br>• Một vấn đề quan trọng mà người lao động phải đối mặt hiện nay là sự gia tăng của các điều kiện làm việc tồi tệ trên nhiều ngành công nghiệp khác nhau.<br>• Người lao động đang ngày càng gặp phải những khó khăn như tiền lương không công bằng và môi trường làm việc không an toàn. Bất chấp những nỗ lực, vấn đề này vẫn tồn tại trên quy mô lớn.</div>
+                    </div>
+                    <div class="paragraph">
+                        <strong>Positive Action!</strong><br>
+                        🌟 <strong>Raise Awareness:</strong> Share stories of workers' rights violations and support campaigns <span class="blank-space">16. [___]</span> raising awareness and advocating for change.<br>
+                        ⚠️ <strong>Support Labor Laws:</strong> Advocate for labor laws and regulations to ensure the safety and well-being of <span class="blank-space">17. [___]</span> every worker.<br>
+                        🌱 <strong>Encourage Accountability:</strong> Demand better law <span class="blank-space">18. [___]</span> to prevent exploitation and ensure workers' rights are protected globally.
+                        <br><button class="translate-btn" onclick="toggleTrans(this)">Mở dịch đoạn này 🌟</button>
+                        <div class="translation-text"><strong>Hành động Tích cực!</strong><br>🌟 <strong>Nâng cao Nhận thức:</strong> Chia sẻ những câu chuyện về vi phạm quyền của người lao động và ủng hộ các chiến dịch về việc nâng cao nhận thức và đấu tranh cho sự thay đổi.<br>⚠️ <strong>Ủng hộ Luật Lao động:</strong> Ủng hộ luật lao động và các quy định để đảm bảo sự an toàn và hạnh phúc của mọi công nhân.<br>🌱 <strong>Khuyến khích Trách nhiệm Giải trình:</strong> Yêu cầu thực thi pháp luật tốt hơn để ngăn chặn bóc lột và đảm bảo quyền của người lao động được bảo vệ trên toàn cầu.</div>
+                    </div>
+                `
+            }
+        ];
+
+        const glossaryHTML = `
+            <div class="passage-title" style="margin-top: 40px; font-size: 1.3rem;">📚 Bảng Từ Vựng Siêu Cấp B2-C1 📚</div>
+            <table class="glossary-table">
+                <tr><th>Vocabulary</th><th>POS</th><th>Meaning</th></tr>
+                <tr><td>Curb</td><td>(v)</td><td>Kiềm chế, hạn chế (điều tồi tệ)</td></tr>
+                <tr><td>Reluctant</td><td>(adj)</td><td>Miễn cưỡng, bất đắc dĩ</td></tr>
+                <tr><td>Advocate</td><td>(v)</td><td>Biện hộ, ủng hộ công khai</td></tr>
+                <tr><td>Underlying</td><td>(adj)</td><td>Tiềm ẩn, cơ bản, nằm dưới</td></tr>
+                <tr><td>Precautions</td><td>(n)</td><td>Các biện pháp phòng ngừa</td></tr>
+                <tr><td>Transmission</td><td>(n)</td><td>Sự lây truyền, truyền bệnh</td></tr>
+                <tr><td>Persist</td><td>(v)</td><td>Khăng khăng, tiếp tục tồn tại</td></tr>
+                <tr><td>Exploitation</td><td>(n)</td><td>Sự bóc lột, lợi dụng</td></tr>
+                <tr><td>Accountability</td><td>(n)</td><td>Trách nhiệm giải trình</td></tr>
+                <tr><td>Enforcement</td><td>(n)</td><td>Sự thực thi (luật pháp)</td></tr>
+            </table>
+        `;
+
+        // ================= DỮ LIỆU GIẢI THÍCH CHUẨN MASTER =================
+        const questionsData = [
+            // EXERCISE 1
+            {
+                qNum: 1, 
+                options: [ {t:"Every", c:false}, {t:"Many", c:true}, {t:"Little", c:false}, {t:"Another", c:false} ],
+                exp: `
+                    <div class="exp-title">📝 Dịch câu hỏi:</div>
+                    (1) _______ quốc gia hiện đang thực hiện các quy định mới...<br><br>
+                    <div class="exp-title">🔍 Phân tích đáp án:</div>
+                    A. Every (Mỗi): <span class="hl-red">❌ Sai vì "every" + Danh từ số ít, trong khi "countries" là số nhiều.</span><br>
+                    B. Many (Nhiều): <span class="hl-green">✅ Đúng. Cấu trúc <span class="p-grammar">"Many + Danh từ đếm được số nhiều"</span>. Rất phù hợp với ngữ cảnh bàn về "nhiều quốc gia".</span><br>
+                    C. Little (Ít, gần như không): <span class="hl-red">❌ Sai vì "little" + Danh từ KHÔNG đếm được.</span><br>
+                    D. Another (Một ... khác): <span class="hl-red">❌ Sai vì "another" + Danh từ số ít.</span><br>
+                    <div class="exp-quote">"(1) <strong>Many</strong> countries are now implementing new regulations..."</div>
+                    👉 Dịch: <span class="hl-green">Nhiều</span> <span class="p-word">countries</span> (<span class="p-mean">quốc gia</span>) hiện đang áp dụng...
+                `
+            },
+            {
+                qNum: 2, 
+                options: [ {t:"amount", c:true}, {t:"basis", c:false}, {t:"scale", c:false}, {t:"number", c:false} ],
+                exp: `
+                    <div class="exp-title">📝 Dịch câu hỏi:</div>
+                    Một (2) _______ lớn nguồn tài trợ đang được hướng tới...<br><br>
+                    <div class="exp-title">🔍 Phân tích đáp án:</div>
+                    A. amount: <span class="hl-green">✅ Đúng. Cụm từ <span class="p-grammar">"A large amount of + N(không đếm được)"</span>. "Funding" (nguồn tài trợ) là danh từ không đếm được.</span><br>
+                    B. basis (Cơ sở): <span class="hl-red">❌ Sai ngữ nghĩa.</span><br>
+                    C. scale (Quy mô): <span class="hl-red">❌ Thường dùng "on a large scale", không đi kèm "of funding".</span><br>
+                    D. number (Số lượng): <span class="hl-red">❌ "A large number of" chỉ cộng với danh từ đếm được số nhiều.</span><br>
+                    <div class="exp-quote">"A large <strong>amount</strong> of funding is being directed..."</div>
+                    👉 Dịch: Một <span class="hl-green">lượng</span> lớn nguồn tài trợ...
+                `
+            },
+            {
+                qNum: 3, 
+                options: [ {t:"come up with", c:false}, {t:"get down to", c:true}, {t:"cut down on", c:false}, {t:"stand up for", c:false} ],
+                exp: `
+                    <div class="exp-title">📝 Dịch câu hỏi:</div>
+                    ...một số ngành công nghiệp vẫn còn miễn cưỡng (3) _______ việc áp dụng công nghệ xanh...<br><br>
+                    <div class="exp-title">🔍 Phân tích đáp án:</div>
+                    A. come up with (Nghĩ ra ý tưởng): <span class="hl-red">❌ Không phù hợp.</span><br>
+                    B. get down to: <span class="hl-green">✅ Đúng. Cụm phrasal verb <span class="p-grammar">"get down to + V-ing"</span> nghĩa là <span class="p-mean">"bắt tay vào việc gì đó nghiêm túc"</span>. Ở đây là bắt tay vào việc áp dụng công nghệ.</span><br>
+                    C. cut down on (Cắt giảm): <span class="hl-red">❌ Sai nghĩa.</span><br>
+                    D. stand up for (Bênh vực): <span class="hl-red">❌ Không hợp ngữ cảnh.</span><br>
+                    <div class="exp-quote">"...reluctant to <strong>get down to</strong> adopting green technologies..."</div>
+                    👉 Dịch: ...miễn cưỡng <span class="hl-green">bắt tay vào</span> việc áp dụng công nghệ xanh...
+                `
+            },
+            {
+                qNum: 4, 
+                options: [ {t:"in spite of", c:true}, {t:"due to", c:false}, {t:"except for", c:false}, {t:"apart from", c:false} ],
+                exp: `
+                    <div class="exp-title">📝 Dịch câu hỏi:</div>
+                    ...miễn cưỡng áp dụng công nghệ xanh, (4) _______ lợi ích lâu dài.<br><br>
+                    <div class="exp-title">🔍 Phân tích đáp án:</div>
+                    A. in spite of: <span class="hl-green">✅ Đúng. Cấu trúc <span class="p-grammar">"In spite of + Noun/V-ing"</span> mang nghĩa là <span class="p-mean">"mặc dù"</span>. Rất phù hợp ngữ cảnh diễn tả sự tương phản: miễn cưỡng MẶC DÙ có lợi ích lâu dài.</span><br>
+                    B. due to (Bởi vì): <span class="hl-red">❌ Sai logic (Không ai miễn cưỡng VÌ nó có lợi).</span><br>
+                    C. except for (Ngoại trừ): <span class="hl-red">❌ Sai ngữ cảnh.</span><br>
+                    D. apart from (Ngoài ra): <span class="hl-red">❌ Sai ngữ cảnh.</span><br>
+                    <div class="exp-quote">"...adopting green technologies, <strong>in spite of</strong> the long-term benefits."</div>
+                    👉 Dịch: ...áp dụng công nghệ xanh, <span class="hl-green">mặc dù</span> có những lợi ích lâu dài.
+                `
+            },
+            {
+                qNum: 5, 
+                options: [ {t:"maintenance", c:false}, {t:"expertise", c:false}, {t:"investment", c:true}, {t:"advancement", c:false} ],
+                exp: `
+                    <div class="exp-title">📝 Dịch câu hỏi:</div>
+                    Khuyến khích (5) _______ vào năng lượng tái tạo...<br><br>
+                    <div class="exp-title">🔍 Phân tích đáp án:</div>
+                    A. maintenance (Sự bảo trì): <span class="hl-red">❌ Không phù hợp.</span><br>
+                    B. expertise (Sự chuyên môn): <span class="hl-red">❌ Không đi với giới từ "in" mang nghĩa rót vốn/nguồn lực vào ngành nghề mới.</span><br>
+                    C. investment: <span class="hl-green">✅ Đúng. Cụm từ <span class="p-grammar">"encourage investment in..."</span> nghĩa là <span class="p-mean">"khuyến khích đầu tư vào..."</span>. Hoàn toàn phù hợp ngữ cảnh phát triển công nghệ xanh.</span><br>
+                    D. advancement (Sự tiến bộ): <span class="hl-red">❌ Không đúng ngữ cảnh khuyến khích hành động kinh tế.</span><br>
+                    <div class="exp-quote">"Encourage <strong>investment</strong> in renewable energy..."</div>
+                    👉 Dịch: Khuyến khích <span class="hl-green">sự đầu tư</span> vào năng lượng tái tạo...
+                `
+            },
+            {
+                qNum: 6, 
+                options: [ {t:"intercession", c:false}, {t:"investigation", c:false}, {t:"collaboration", c:true}, {t:"advertisement", c:false} ],
+                exp: `
+                    <div class="exp-title">📝 Dịch câu hỏi:</div>
+                    ...giải quyết biến đổi khí hậu và khuyến khích (6) _______ giữa các quốc gia.<br><br>
+                    <div class="exp-title">🔍 Phân tích đáp án:</div>
+                    A. intercession (Sự can thiệp): <span class="hl-red">❌ Sai ngữ nghĩa.</span><br>
+                    B. investigation (Sự điều tra): <span class="hl-red">❌ Không phù hợp.</span><br>
+                    C. collaboration: <span class="hl-green">✅ Đúng. Cụm từ <span class="p-word">"encourage collaboration across nations"</span> có nghĩa là <span class="p-mean">"khuyến khích sự hợp tác giữa các quốc gia"</span>. Lời kêu gọi hành động toàn cầu.</span><br>
+                    D. advertisement (Quảng cáo): <span class="hl-red">❌ Sai ngữ cảnh.</span><br>
+                    <div class="exp-quote">"...address climate change and encourage <strong>collaboration</strong> across nations."</div>
+                    👉 Dịch: ...khuyến khích <span class="hl-green">sự hợp tác</span> giữa các quốc gia.
+                `
+            },
+            // EXERCISE 2
+            {
+                qNum: 7, 
+                options: [ {t:"Much", c:false}, {t:"Each", c:true}, {t:"Many", c:false}, {t:"Another", c:false} ],
+                exp: `
+                    <div class="exp-title">📝 Dịch câu hỏi:</div>
+                    (7) _______ trường hợp nhiễm HMPV đang được theo dõi chặt chẽ...<br><br>
+                    <div class="exp-title">🔍 Phân tích đáp án:</div>
+                    A. Much (Nhiều): <span class="hl-red">❌ Đi với danh từ không đếm được.</span><br>
+                    B. Each (Mỗi): <span class="hl-green">✅ Đúng. <span class="p-grammar">Quy tắc "each + danh từ đếm được số ít"</span>. "Case" ở đây là số ít không có "s". Nghĩa là "Mỗi trường hợp...".</span><br>
+                    C. Many (Nhiều): <span class="hl-red">❌ Phải đi với "cases" (số nhiều).</span><br>
+                    D. Another (Một cái khác): <span class="hl-red">❌ Sai ngữ cảnh vì đây là câu mở đầu nói về việc theo dõi từng ca bệnh nói chung.</span><br>
+                    <div class="exp-quote">"<strong>Each</strong> case of Human Metapneumovirus (HMPV) is being closely monitored..."</div>
+                    👉 Dịch: <span class="hl-green">Mỗi</span> <span class="p-word">case</span> (<span class="p-mean">trường hợp</span>) HMPV đang được theo dõi chặt chẽ...
+                `
+            },
+            {
+                qNum: 8, 
+                options: [ {t:"Except for", c:false}, {t:"On top of", c:false}, {t:"In terms of", c:false}, {t:"Regardless of", c:true} ],
+                exp: `
+                    <div class="exp-title">📝 Dịch câu hỏi:</div>
+                    (8) _______ tuổi tác hay tình trạng sức khỏe tiềm ẩn...<br><br>
+                    <div class="exp-title">🔍 Phân tích đáp án:</div>
+                    A. Except for (Ngoại trừ): <span class="hl-red">❌ Không hợp lý. Bệnh không "ngoại trừ" tuổi tác.</span><br>
+                    B. On top of (Bên cạnh, ngoài ra): <span class="hl-red">❌ Sai ngữ cảnh.</span><br>
+                    C. In terms of (Xét về khía cạnh): <span class="hl-red">❌ Khuyết thiếu ý nghĩa cảnh báo.</span><br>
+                    D. Regardless of: <span class="hl-green">✅ Đúng. Cụm <span class="p-grammar">"regardless of + Noun"</span> có nghĩa là <span class="p-mean">"Bất kể, không phân biệt"</span>. Ý nói bất kể tuổi tác nào cũng có thể bị nhiễm.</span><br>
+                    <div class="exp-quote">"<strong>Regardless of</strong> age or underlying health conditions..."</div>
+                    👉 Dịch: <span class="hl-green">Bất kể</span> tuổi tác...
+                `
+            },
+            {
+                qNum: 9, 
+                options: [ {t:"amount", c:false}, {t:"scale", c:false}, {t:"variety", c:true}, {t:"level", c:false} ],
+                exp: `
+                    <div class="exp-title">📝 Dịch câu hỏi:</div>
+                    ...người nhiễm có thể trải qua một (9) _______ lớn các triệu chứng.<br><br>
+                    <div class="exp-title">🔍 Phân tích đáp án:</div>
+                    A. amount (Lượng): <span class="hl-red">❌ Dùng cho danh từ không đếm được, "symptoms" đếm được.</span><br>
+                    B. scale (Quy mô): <span class="hl-red">❌ Sai cụm từ.</span><br>
+                    C. variety: <span class="hl-green">✅ Đúng. Cụm từ cố định <span class="p-grammar">"a wide variety of + Ns"</span> nghĩa là <span class="p-mean">"nhiều/rất đa dạng các..."</span>. Rất đúng với "triệu chứng đa dạng".</span><br>
+                    D. level (Mức độ): <span class="hl-red">❌ Sai cụm từ.</span><br>
+                    <div class="exp-quote">"...experience a wide <strong>variety</strong> of symptoms."</div>
+                    👉 Dịch: ...trải qua nhiều <span class="p-word">symptoms</span> (<span class="p-mean">triệu chứng</span>) <span class="hl-green">đa dạng</span>.
+                `
+            },
+            {
+                qNum: 10, 
+                options: [ {t:"Keep up with", c:true}, {t:"Come up with", c:false}, {t:"Get ahead with", c:false}, {t:"Get away with", c:false} ],
+                exp: `
+                    <div class="exp-title">📝 Dịch câu hỏi:</div>
+                    (10) _______ tin tức mới nhất về HMPV và hướng dẫn...<br><br>
+                    <div class="exp-title">🔍 Phân tích đáp án:</div>
+                    A. Keep up with: <span class="hl-green">✅ Đúng. Phrasal verb <span class="p-grammar">"keep up with sth"</span> nghĩa là <span class="p-mean">"theo kịp, theo dõi sát sao, cập nhật liên tục"</span>.</span><br>
+                    B. Come up with (Nghĩ ra ý tưởng): <span class="hl-red">❌ Sai nghĩa.</span><br>
+                    C. Get ahead with (Tiến triển): <span class="hl-red">❌ Không đi với "tin tức".</span><br>
+                    D. Get away with (Thoát tội): <span class="hl-red">❌ Không hợp nghĩa.</span><br>
+                    <div class="exp-quote">"<strong>Keep up with</strong> the latest HMPV news..."</div>
+                    👉 Dịch: <span class="hl-green">Theo dõi/Cập nhật</span> tin tức mới nhất...
+                `
+            },
+            {
+                qNum: 11, 
+                options: [ {t:"strategies", c:false}, {t:"campaigns", c:false}, {t:"precautions", c:true}, {t:"solutions", c:false} ],
+                exp: `
+                    <div class="exp-title">📝 Dịch câu hỏi:</div>
+                    Thực hiện các (11) _______ như rửa tay thường xuyên...<br><br>
+                    <div class="exp-title">🔍 Phân tích đáp án:</div>
+                    A. strategies (Chiến lược): <span class="hl-red">❌ Rửa tay chỉ là hành động phòng ngừa, dùng "chiến lược" thì hơi quá mức vĩ mô.</span><br>
+                    B. campaigns (Chiến dịch): <span class="hl-red">❌ Sai.</span><br>
+                    C. precautions: <span class="hl-green">✅ Đúng. Cụm từ <span class="p-grammar">"take precautions"</span> nghĩa là <span class="p-mean">"thực hiện các biện pháp phòng ngừa"</span> (đề phòng rủi ro).</span><br>
+                    D. solutions (Giải pháp): <span class="hl-red">❌ Không sát nghĩa bằng "biện pháp phòng ngừa" để nói về dịch bệnh.</span><br>
+                    <div class="exp-quote">"Take <strong>precautions</strong> such as washing hands regularly..."</div>
+                    👉 Dịch: Thực hiện các <span class="hl-green">biện pháp phòng ngừa</span> như rửa tay...
+                `
+            },
+            {
+                qNum: 12, 
+                options: [ {t:"incubation", c:false}, {t:"diagnosis", c:false}, {t:"transmission", c:true}, {t:"initiation", c:false} ],
+                exp: `
+                    <div class="exp-title">📝 Dịch câu hỏi:</div>
+                    ...rửa tay thường xuyên và đeo khẩu trang... để giảm sự (12) _______ của HMPV.<br><br>
+                    <div class="exp-title">🔍 Phân tích đáp án:</div>
+                    A. incubation (Thời kỳ ủ bệnh): <span class="hl-red">❌ Khẩu trang không làm giảm thời gian ủ bệnh.</span><br>
+                    B. diagnosis (Sự chẩn đoán): <span class="hl-red">❌ Sai.</span><br>
+                    C. transmission: <span class="hl-green">✅ Đúng. Từ vựng <span class="p-word">"transmission"</span> mang nghĩa là <span class="p-mean">"sự lây truyền"</span>. Đeo khẩu trang giúp giảm lây truyền virus.</span><br>
+                    D. initiation (Sự khởi đầu): <span class="hl-red">❌ Sai nghĩa.</span><br>
+                    <div class="exp-quote">"...to reduce the <strong>transmission</strong> of HMPV."</div>
+                    👉 Dịch: ...để giảm thiểu <span class="hl-green">sự lây truyền</span> của HMPV.
+                `
+            },
+            // EXERCISE 3
+            {
+                qNum: 13, 
+                options: [ {t:"locations", c:false}, {t:"conditions", c:true}, {t:"situations", c:false}, {t:"transitions", c:false} ],
+                exp: `
+                    <div class="exp-title">📝 Dịch câu hỏi:</div>
+                    Một vấn đề quan trọng... là sự gia tăng của (13) _______ làm việc tồi tệ...<br><br>
+                    <div class="exp-title">🔍 Phân tích đáp án:</div>
+                    A. locations (Địa điểm): <span class="hl-red">❌ Nghĩa hẹp, không bao quát được "lương thấp, môi trường không an toàn" ở câu sau.</span><br>
+                    B. conditions: <span class="hl-green">✅ Đúng. Cụm từ cố định <span class="p-grammar">"working conditions"</span> có nghĩa là <span class="p-mean">"điều kiện làm việc / môi trường lao động"</span>.</span><br>
+                    C. situations (Tình huống): <span class="hl-red">❌ Không đi kèm "working" tạo thành thuật ngữ chuẩn.</span><br>
+                    D. transitions (Sự chuyển tiếp): <span class="hl-red">❌ Sai.</span><br>
+                    <div class="exp-quote">"...the rise of poor working <strong>conditions</strong> across various industries."</div>
+                    👉 Dịch: ...sự gia tăng của các <span class="hl-green">điều kiện</span> làm việc tồi tệ...
+                `
+            },
+            {
+                qNum: 14, 
+                options: [ {t:"running into", c:true}, {t:"figuring out", c:false}, {t:"bringing about", c:false}, {t:"coming forward", c:false} ],
+                exp: `
+                    <div class="exp-title">📝 Dịch câu hỏi:</div>
+                    Người lao động đang ngày càng (14) _______ những khó khăn như tiền lương không công bằng...<br><br>
+                    <div class="exp-title">🔍 Phân tích đáp án:</div>
+                    A. running into: <span class="hl-green">✅ Đúng. Phrasal verb <span class="p-grammar">"run into difficulties/problems"</span> có nghĩa là <span class="p-mean">"vấp phải, gặp phải khó khăn/vấn đề"</span>.</span><br>
+                    B. figuring out (Tìm hiểu, giải quyết): <span class="hl-red">❌ Sai ngữ cảnh.</span><br>
+                    C. bringing about (Gây ra, mang lại): <span class="hl-red">❌ Công nhân là nạn nhân, họ không "gây ra" tiền lương bất công cho chính mình.</span><br>
+                    D. coming forward (Tiến lên, xung phong): <span class="hl-red">❌ Sai nghĩa.</span><br>
+                    <div class="exp-quote">"Workers are increasingly <strong>running into</strong> difficulties such as unfair wages..."</div>
+                    👉 Dịch: Công nhân ngày càng <span class="hl-green">gặp phải</span> những khó khăn...
+                `
+            },
+            {
+                qNum: 15, 
+                options: [ {t:"degree", c:false}, {t:"quantity", c:false}, {t:"amount", c:false}, {t:"scale", c:true} ],
+                exp: `
+                    <div class="exp-title">📝 Dịch câu hỏi:</div>
+                    Bất chấp những nỗ lực, vấn đề này vẫn tồn tại trên một (15) _______ lớn.<br><br>
+                    <div class="exp-title">🔍 Phân tích đáp án:</div>
+                    A. degree (Mức độ): <span class="hl-red">❌ Không đi cùng mạo từ "a" và tính từ "large" theo cụm cố định ở ngữ cảnh này.</span><br>
+                    B. quantity (Số lượng): <span class="hl-red">❌ Không dùng để chỉ sự lan rộng.</span><br>
+                    C. amount (Khối lượng): <span class="hl-red">❌ Sai cụm từ.</span><br>
+                    D. scale: <span class="hl-green">✅ Đúng. Cụm từ cố định <span class="p-grammar">"on a large scale"</span> mang nghĩa <span class="p-mean">"trên một quy mô lớn"</span> (rộng khắp).</span><br>
+                    <div class="exp-quote">"...the problem persists on a large <strong>scale</strong>."</div>
+                    👉 Dịch: ...vấn đề vẫn tồn tại trên <span class="hl-green">quy mô</span> lớn.
+                `
+            },
+            {
+                qNum: 16, 
+                options: [ {t:"in spite of", c:false}, {t:"in light of", c:false}, {t:"in terms of", c:true}, {t:"instead of", c:false} ],
+                exp: `
+                    <div class="exp-title">📝 Dịch câu hỏi:</div>
+                    ...và ủng hộ các chiến dịch (16) _______ việc nâng cao nhận thức...<br><br>
+                    <div class="exp-title">🔍 Phân tích đáp án:</div>
+                    A. in spite of (Mặc dù): <span class="hl-red">❌ Sai nghĩa.</span><br>
+                    B. in light of (Do, bởi vì, xét đến): <span class="hl-red">❌ Không làm rõ mục đích của chiến dịch.</span><br>
+                    C. in terms of: <span class="hl-green">✅ Đúng. Cụm từ <span class="p-grammar">"campaigns in terms of..."</span> diễn tả ý <span class="p-mean">"các chiến dịch về việc/liên quan đến khía cạnh..."</span>.</span><br>
+                    D. instead of (Thay vì): <span class="hl-red">❌ Sai nghĩa.</span><br>
+                    <div class="exp-quote">"...support campaigns <strong>in terms of</strong> raising awareness..."</div>
+                    👉 Dịch: ...hỗ trợ các chiến dịch <span class="hl-green">về khía cạnh</span> nâng cao nhận thức...
+                `
+            },
+            {
+                qNum: 17, 
+                options: [ {t:"little", c:false}, {t:"every", c:true}, {t:"much", c:false}, {t:"some", c:false} ],
+                exp: `
+                    <div class="exp-title">📝 Dịch câu hỏi:</div>
+                    ...để đảm bảo sự an toàn và hạnh phúc của (17) _______ công nhân.<br><br>
+                    <div class="exp-title">🔍 Phân tích đáp án:</div>
+                    A. little (Ít): <span class="hl-red">❌ Cộng danh từ không đếm được.</span><br>
+                    B. every: <span class="hl-green">✅ Đúng. <span class="p-grammar">Quy tắc "every + danh từ số ít đếm được"</span>. "Worker" đang ở dạng số ít không "s". Phù hợp ngữ nghĩa bảo vệ "mọi công nhân".</span><br>
+                    C. much (Nhiều): <span class="hl-red">❌ Cộng danh từ không đếm được.</span><br>
+                    D. some (Một vài): <span class="hl-red">❌ Nếu dùng some thì worker phải có "s".</span><br>
+                    <div class="exp-quote">"...ensure the safety and well-being of <strong>every</strong> worker."</div>
+                    👉 Dịch: ...đảm bảo sự an toàn của <span class="hl-green">mọi</span> công nhân.
+                `
+            },
+            {
+                qNum: 18, 
+                options: [ {t:"prosecution", c:false}, {t:"precedent", c:false}, {t:"enforcement", c:true}, {t:"compliance", c:false} ],
+                exp: `
+                    <div class="exp-title">📝 Dịch câu hỏi:</div>
+                    Yêu cầu (18) _______ pháp luật tốt hơn để ngăn chặn bóc lột...<br><br>
+                    <div class="exp-title">🔍 Phân tích đáp án:</div>
+                    A. prosecution (Sự truy tố): <span class="hl-red">❌ Có luật chưa đủ, cần phải có người đứng ra áp dụng luật vào đời sống.</span><br>
+                    B. precedent (Tiền lệ): <span class="hl-red">❌ Sai nghĩa.</span><br>
+                    C. enforcement: <span class="hl-green">✅ Đúng. Cụm từ <span class="p-grammar">"law enforcement"</span> có nghĩa là <span class="p-mean">"sự thực thi pháp luật"</span>, bảo đảm rằng các quy định thực sự được áp dụng và tuân thủ chặt chẽ.</span><br>
+                    D. compliance (Sự tuân thủ): <span class="hl-red">❌ "Law compliance" nghe hơi ngược, thường nói "compliance with the law".</span><br>
+                    <div class="exp-quote">"Demand better law <strong>enforcement</strong> to prevent exploitation..."</div>
+                    👉 Dịch: Đòi hỏi sự <span class="hl-green">thực thi</span> pháp luật tốt hơn...
+                `
+            }
+        ];
+
+        // ================= LOGIC GIAO DIỆN CHÍNH =================
+        function initApp() {
+            let leftHTML = '';
+            readingData.forEach(p => {
+                leftHTML += `<div class="passage-box"><div class="passage-title">${p.title}</div>${p.content}</div>`;
+            });
+            leftHTML += glossaryHTML;
+            document.getElementById('readingPanel').innerHTML = leftHTML;
+
+            let rightHTML = '';
+            questionsData.forEach(q => {
+                let shuffled = [...q.options].sort(() => Math.random() - 0.5);
+                let btnsHTML = '';
+                shuffled.forEach(opt => {
+                    btnsHTML += `<button class="opt-btn" onclick="checkAnswer(this, ${q.qNum}, ${opt.c})">${opt.t}</button>`;
+                });
+
+                rightHTML += `
+                    <div class="question-card" id="qCard_${q.qNum}">
+                        <div class="q-text">Question ${q.qNum}: Choose the best option.</div>
+                        <div class="options-grid">${btnsHTML}</div>
+                        <div class="explanation" id="exp_${q.qNum}">${q.exp}</div>
+                    </div>
+                `;
+            });
+            document.getElementById('questionsPanel').innerHTML = rightHTML;
+        }
+
+        function toggleTrans(btn) {
+            let transDiv = btn.nextElementSibling;
+            if (transDiv.style.display === 'block') {
+                transDiv.style.display = 'none';
+                btn.innerHTML = 'Mở dịch đoạn này 🌟';
+            } else {
+                transDiv.style.display = 'block';
+                btn.innerHTML = 'Đóng dịch 🙈';
+            }
+        }
+
+        let score = 0;
+        let answeredQuestions = new Set();
+
+        function checkAnswer(btn, qNum, isCorrect) {
+            if (answeredQuestions.has(qNum)) return;
+            answeredQuestions.add(qNum);
+
+            let card = document.getElementById(`qCard_${qNum}`);
+            let btns = card.querySelectorAll('.opt-btn');
+            btns.forEach(b => b.disabled = true);
+
+            if (isCorrect) {
+                btn.classList.add('correct');
+                document.getElementById('audioDing').play().catch(e=>{});
+                score++;
+                fireConfetti();
+            } else {
+                btn.classList.add('wrong');
+                document.getElementById('audioHuh').play().catch(e=>{});
+                btns.forEach(b => {
+                    let optData = questionsData.find(x => x.qNum === qNum).options.find(x => x.t === b.innerText);
+                    if(optData && optData.c) b.classList.add('correct');
+                });
+            }
+
+            document.getElementById(`exp_${qNum}`).style.display = 'block';
+        }
+
+        // ================= HIỆU ỨNG CONFETTI =================
+        function fireConfetti() {
+            const canvas = document.getElementById('confettiCanvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+            let particles = [];
+            for(let i=0; i<80; i++) {
+                particles.push({
+                    x: Math.random() * canvas.width, y: Math.random() * canvas.height - canvas.height,
+                    w: Math.random() * 12 + 5, h: Math.random() * 12 + 5,
+                    color: `hsl(${Math.random()*360}, 100%, 60%)`,
+                    vy: Math.random() * 4 + 2, vx: Math.random() * 3 - 1.5,
+                    rot: Math.random() * 360, rotSpeed: Math.random() * 10 - 5
+                });
+            }
+            function draw() {
+                ctx.clearRect(0,0,canvas.width,canvas.height);
+                let active = false;
+                particles.forEach(p => {
+                    p.y += p.vy; p.x += p.vx; p.rot += p.rotSpeed;
+                    ctx.save();
+                    ctx.translate(p.x, p.y); ctx.rotate(p.rot * Math.PI / 180);
+                    ctx.fillStyle = p.color; ctx.fillRect(-p.w/2, -p.h/2, p.w, p.h);
+                    ctx.restore();
+                    if(p.y < canvas.height) active = true;
+                });
+                if(active) requestAnimationFrame(draw); else ctx.clearRect(0,0,canvas.width,canvas.height);
+            }
+            draw();
+        }
+
+        // ================= NỘP BÀI & KẾT QUẢ =================
+        function submitExam() {
+            if(answeredQuestions.size < 18) {
+                alert("Con ơi, con chưa làm hết bài kìa! Cố lên làm nốt nhé! 💪 Cô dặn phải đọc giải thích nữa nha!");
+                return;
+            }
+            document.getElementById('nameModal').style.display = 'flex';
+        }
+
+        function calculateScore() {
+            const name = document.getElementById('studentName').value.trim();
+            if(!name) { alert("Nhập tên để Ms Mai An còn ghi điểm 10 vào sổ nào!"); return; }
+            
+            document.getElementById('nameModal').style.display = 'none';
+            document.getElementById('resultModal').style.display = 'flex';
+            
+            document.getElementById('finalScore').innerText = `${score}/18`;
+            document.getElementById('resName').innerText = `🏆 ${name} 🏆`;
+            
+            let percentage = (score / 18) * 100;
+            let msg = '', gif = '';
+            
+            if(percentage === 100) {
+                msg = "THIÊN TÀI LÀ ĐÂY! Ms Mai An siêu tự hào về con! 🌟✨";
+                gif = "https://media.giphy.com/media/11sBLVxNs7v6WA/giphy.gif"; 
+            } else if (percentage >= 60) {
+                msg = "GIỎI QUÁ! Cố gắng thêm chút nữa để đạt điểm tối đa nha con! 🔥💪";
+                gif = "https://media.giphy.com/media/3o72FcJmLzIdYJiyTq/giphy.gif"; 
+            } else {
+                msg = "Ôi, sai mất vài câu rồi! Nhớ đọc lại phần GIẢI THÍCH CHI TIẾT bên trên để giỏi hơn nhé! 🥺❤️";
+                gif = "https://media.giphy.com/media/OPU6wzx8JrHna/giphy.gif"; 
+            }
+            
+            document.getElementById('resMsg').innerText = msg;
+            document.getElementById('resGif').src = gif;
+        }
+
+        initApp();
+    </script>
+</body>
+</html>

@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reading Practice - Ms Mai An ULIS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Cinzel:wght@700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        /* BASE & THEME */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: linear-gradient(-45deg, #dcffbd, #e8a5d8, #cc86d1, #a8e6cf);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            color: #333;
+            overflow: hidden;
+            height: 100vh;
+        }
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* FLOATING EMOJIS */
+        .floating-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: -1; overflow: hidden; }
+        .emoji-float {
+            position: absolute; font-size: 3rem; opacity: 0.4;
+            animation: floatUp linear infinite, sway 3s ease-in-out infinite alternate;
+        }
+        @keyframes floatUp { from { transform: translateY(100vh); } to { transform: translateY(-100px); } }
+        @keyframes sway { from { margin-left: -20px; } to { margin-left: 20px; } }
+
+        /* HEADER */
+        header {
+            position: fixed; top: 0; left: 0; width: 100%; z-index: 100;
+            background: rgba(255, 255, 255, 0.3); backdrop-filter: blur(10px);
+            padding: 10px 20px; text-align: center;
+            border-bottom: 1px solid rgba(255,255,255,0.5);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+        .author { font-size: 0.9rem; font-weight: 700; color: #5a3e7a; letter-spacing: 1px; }
+
+        /* SPLIT SCREEN LAYOUT */
+        .container { display: flex; height: 100vh; padding-top: 45px; }
+        .panel { flex: 1; padding: 20px; overflow-y: auto; scrollbar-width: thin; }
+        .panel::-webkit-scrollbar { width: 8px; }
+        .panel::-webkit-scrollbar-thumb { background: rgba(204, 134, 209, 0.8); border-radius: 10px; }
+        .left-panel { border-right: 2px dashed rgba(255,255,255,0.6); }
+
+        /* GLASSMORPHISM CARDS */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.45);
+            backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.7);
+            border-radius: 20px; padding: 25px; margin-bottom: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            transition: transform 0.3s;
+        }
+        .glass-card:hover { transform: translateY(-3px); box-shadow: 0 15px 35px rgba(0,0,0,0.12); }
+        
+        /* READING SECTION STYLES */
+        .reading-title { font-size: 1.5rem; color: #6A0572; margin-bottom: 15px; font-weight: 800; text-align: center;}
+        .passage-section { margin-bottom: 20px; line-height: 1.7; font-size: 1.1rem; }
+        .passage-section ul { margin-left: 25px; margin-top: 10px;}
+        .passage-section li { margin-bottom: 8px; }
+        .blank-space { display: inline-block; width: 60px; border-bottom: 2px solid #6A0572; text-align: center; font-weight: bold; color: #6A0572;}
+        .translate-btn {
+            background: linear-gradient(135deg, #a8e6cf, #dcffbd); border: none; padding: 6px 12px;
+            border-radius: 15px; font-size: 0.85rem; font-weight: bold; color: #2d6a4f;
+            cursor: pointer; display: block; margin-top: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .translation-text {
+            display: none; margin-top: 10px; padding: 12px;
+            background: rgba(255,255,255,0.6); border-left: 4px solid #a8e6cf;
+            border-radius: 8px; font-size: 0.95rem; color: #444; font-style: italic;
+        }
+
+        /* GLOSSARY */
+        .glossary-table { width: 100%; border-collapse: collapse; margin-top: 15px; background: rgba(255,255,255,0.5); border-radius: 10px; overflow: hidden; }
+        .glossary-table th { background: rgba(106, 5, 114, 0.1); padding: 10px; text-align: left; font-weight: 800; color: #6A0572; }
+        .glossary-table td { padding: 10px; border-top: 1px solid rgba(255,255,255,0.6); }
+
+        /* QUESTION SECTION STYLES */
+        .question-number { font-weight: 800; color: #9B1FA8; font-size: 1.2rem; margin-bottom: 15px; }
+        .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 15px; }
+        .opt-btn {
+            background: rgba(255,255,255,0.7); border: 2px solid transparent;
+            padding: 12px; border-radius: 15px; font-size: 1.05rem; font-weight: 700;
+            color: #333; cursor: pointer; transition: all 0.2s; font-family: 'Nunito', sans-serif;
+        }
+        .opt-btn:hover { background: #fff; transform: scale(1.02); border-color: #cc86d1; box-shadow: 0 4px 15px rgba(204,134,209,0.3); }
+        .opt-btn.correct { background: #d4edda; border-color: #28a745; color: #155724; pointer-events: none; }
+        .opt-btn.wrong { background: #f8d7da; border-color: #dc3545; color: #721c24; pointer-events: none; animation: shakeBtn 0.4s; }
+        .opt-btn.disabled { pointer-events: none; opacity: 0.7; }
+        @keyframes shakeBtn { 0%, 100% {transform: translateX(0);} 25% {transform: translateX(-5px);} 75% {transform: translateX(5px);} }
+
+        /* MASTER EXPLANATION STYLES (STRICT COMPLIANCE) */
+        .explanation-box {
+            display: none; margin-top: 15px; padding: 15px; border-radius: 15px;
+            background: rgba(255,255,255,0.85); border: 1px solid #cc86d1;
+            font-size: 1rem; line-height: 1.6;
+            animation: slideDown 0.3s ease-out;
+        }
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .p-word { color: #0056b3; font-weight: bold; }
+        .p-mean { color: #e07a5f; font-style: italic; }
+        .p-grammar { text-decoration: underline red; font-weight: bold; }
+        .hl-green { color: #2a9d8f; font-weight: bold; background: rgba(42, 157, 143, 0.1); padding: 0 4px; border-radius: 4px; }
+        .hl-red { color: #d62828; text-decoration: line-through; background: rgba(214, 40, 40, 0.1); padding: 0 4px; border-radius: 4px; }
+        
+        .exp-title { font-weight: bold; color: #6A0572; margin-bottom: 8px; border-bottom: 1px dashed #6A0572; display: inline-block;}
+        .exp-quote { margin: 10px 0; padding: 10px; background: #f1f8ff; border-left: 4px solid #0056b3; border-radius: 5px;}
+
+        /* SUBMIT BUTTON & MODALS */
+        .submit-btn {
+            display: block; width: 100%; max-width: 400px; margin: 30px auto;
+            padding: 18px; border-radius: 50px; border: none;
+            background: linear-gradient(135deg, #6A0572, #F0C040); color: #fff;
+            font-size: 1.3rem; font-weight: 800; cursor: pointer; text-transform: uppercase;
+            box-shadow: 0 8px 20px rgba(106, 5, 114, 0.4); transition: transform 0.2s;
+        }
+        .submit-btn:hover { transform: scale(1.05); }
+
+        /* PASSWORD MODAL (From user prompt) */
+        #passwordModal {
+            position:fixed; inset:0; z-index:9999;
+            display:flex; align-items:center; justify-content:center;
+            background:rgba(5,2,15,0.92); backdrop-filter:blur(20px);
+        }
+        .pw-card {
+            background:linear-gradient(160deg, rgba(40,10,70,0.95) 0%, rgba(15,5,30,0.98) 100%);
+            border:1.5px solid rgba(240,192,64,0.4); border-radius:24px; padding:48px 40px 40px; 
+            max-width:440px; width:93%; text-align:center; position:relative; overflow:hidden;
+            box-shadow:0 0 60px rgba(106,5,114,0.6), 0 0 120px rgba(240,192,64,0.1), inset 0 1px 0 rgba(240,192,64,0.15);
+        }
+        .pw-card::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; background:linear-gradient(90deg, #6A0572, #F0C040, #6A0572); }
+        .pw-crest { font-size:4rem; margin-bottom:8px; display:block; }
+        .pw-title { font-family:'Cinzel', serif; font-size:1.4rem; font-weight:700; color:#F0C040; margin-bottom:6px; letter-spacing:1px; }
+        .pw-sub   { font-size:.87rem; color:rgba(200,200,212,0.6); margin-bottom:24px; }
+        .pw-input {
+            width:100%; padding:13px 20px; border-radius:12px; border:1.5px solid rgba(240,192,64,0.3); background:rgba(255,255,255,0.05);
+            color:#FFE082; font-size:1rem; font-family:'Nunito', sans-serif; outline:none; letter-spacing:3px; text-align:center; transition:all .3s;
+        }
+        .pw-input:focus { border-color:#F0C040; box-shadow:0 0 0 3px rgba(240,192,64,0.15); }
+        .pw-input.error { border-color:#FF4757; box-shadow:0 0 0 3px rgba(255,71,87,0.25); animation:shake .4s ease; }
+        .pw-input::placeholder { color:rgba(200,200,212,0.3); letter-spacing:1px; }
+        .pw-btn {
+            width:100%; padding:14px; margin-top:14px; border-radius:12px; border:none;
+            background:linear-gradient(135deg, #6A0572 0%, #9B1FA8 40%, #F0C040 100%);
+            color:#fff; font-size:1rem; font-weight:700; font-family:'Cinzel', serif; cursor:pointer; letter-spacing:.5px; transition:transform .2s;
+        }
+        .pw-btn:hover { transform:translateY(-2px); box-shadow:0 8px 32px rgba(106,5,114,0.7); }
+        .pw-err { color:#ff8a9a; font-size:.84rem; margin-top:10px; display:none; font-weight:700; }
+
+        /* RESULT POPUP */
+        #resultModal {
+            position: fixed; inset: 0; z-index: 10000; display: none; align-items: center; justify-content: center;
+            background: rgba(255,255,255,0.3); backdrop-filter: blur(15px);
+        }
+        .result-card {
+            background: rgba(255,255,255,0.85); border-radius: 25px; padding: 30px; width: 90%; max-width: 500px;
+            text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.2); border: 2px solid #fff;
+        }
+        .result-card img { width: 100%; max-width: 250px; border-radius: 15px; margin: 15px 0; }
+        #studentNameInput { width: 80%; padding: 12px; margin-bottom: 20px; border-radius: 10px; border: 2px solid #cc86d1; font-size: 1.1rem; text-align: center; outline:none; }
+    </style>
+</head>
+<body>
+
+    <audio id="audioIntro" src="https://hoctienganhcungcomaianulis.github.io/homework/%E1%BA%A2nh_File%20nghe/File%20nghe%20Ket%20A2/ti%E1%BA%BFng%20%C4%91%E1%BB%8Dc%20kh%C3%ADch%20l%E1%BB%87%20p1.mp3"></audio>
+    <audio id="audioWrong" src="https://hoctienganhcungcomaianulis.github.io/homework/%E1%BA%A2nh_File%20nghe/Sound/Am_thanh_meme_Oi_doi_oi_huan_hoa_hong-www_tiengdong_com.mp3"></audio>
+    <audio id="audioCorrect" src="https://assets.mixkit.co/active_storage/sfx/2013/2013-preview.mp3"></audio> <div class="floating-bg" id="floatingBg"></div>
+
+    <div id="passwordModal">
+      <div class="pw-card">
+        <span class="pw-crest">🔒</span>
+        <div class="pw-title">BẢO MẬT</div>
+        <div class="pw-sub">Vui lòng nhập mật khẩu để làm bài</div>
+        <input type="password" class="pw-input" id="pwInput" placeholder="Nhập mật khẩu..." autocomplete="off" />
+        <button class="pw-btn" onclick="checkPassword()">XÁC NHẬN</button>
+        <div class="pw-err" id="pwErr">Mật khẩu không đúng! Vui lòng thử lại.</div>
+      </div>
+    </div>
+
+    <div id="mainContent" style="display: none;">
+        <header>
+            <div class="author">Giáo viên tạo: Ms Mai An ULIS</div>
+        </header>
+        
+        <div class="container">
+            <div class="panel left-panel" id="readingContainer">
+                </div>
+
+            <div class="panel right-panel" id="questionsContainer">
+                <button class="submit-btn" onclick="openSubmitModal()">🎯 Nộp bài tính điểm</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="resultModal">
+        <div class="result-card" id="nameEntryState">
+            <h2 style="color: #6A0572; margin-bottom: 10px;">Nhập tên của bạn nhé! 🌟</h2>
+            <input type="text" id="studentNameInput" placeholder="Tên học sinh...">
+            <button class="submit-btn" style="margin: 0 auto; width: 80%; padding: 12px; font-size: 1rem;" onclick="showFinalResult()">Hoàn thành</button>
+        </div>
+        <div class="result-card" id="scoreState" style="display: none;">
+            <h1 style="color: #9B1FA8; font-size: 2.5rem;" id="finalScoreText">0/18</h1>
+            <h3 id="studentNameDisplay" style="color: #333; margin: 10px 0;"></h3>
+            <div id="teacherComment" style="font-size: 1.2rem; font-weight: bold; color: #2d6a4f; margin: 10px 0;"></div>
+            <img id="resultGif" src="" alt="Result Meme">
+            <button class="submit-btn" style="margin-top: 15px; padding: 10px;" onclick="location.reload()">Làm lại</button>
+        </div>
+    </div>
+
+    <script>
+        // --- PASSWORD LOGIC ---
+        const _k  = [49, 54, 49, 49]; 
+        const _pw = _k.map(c => String.fromCharCode(c)).join('');
+
+        function checkPassword() {
+            const inp = document.getElementById('pwInput');
+            const err = document.getElementById('pwErr');
+            if (inp.value === _pw) {
+                document.getElementById('passwordModal').style.display = 'none';
+                document.getElementById('mainContent').style.display = 'block';
+                
+                spawnFloats();
+                document.getElementById('audioIntro').play().catch(e=>console.log('Audio autoplay blocked'));
+                initApp();
+            } else {
+                inp.classList.remove('error'); void inp.offsetWidth; inp.classList.add('error');
+                err.style.display = 'block'; setTimeout(() => inp.classList.remove('error'), 500);
+            }
+        }
+        document.addEventListener('DOMContentLoaded', () => {
+            const pwInput = document.getElementById('pwInput');
+            if(pwInput) pwInput.addEventListener('keydown', e => { if (e.key==='Enter') checkPassword(); });
+        });
+
+        // --- FLOATING BG ---
+        function spawnFloats() {
+            const bg = document.getElementById('floatingBg');
+            const emojis = ['🌱', '🏙️', '🤖', '📚', '✨', '🌍'];
+            for(let i=0; i<15; i++) {
+                let el = document.createElement('div');
+                el.className = 'emoji-float';
+                el.innerText = emojis[Math.floor(Math.random() * emojis.length)];
+                el.style.left = Math.random() * 100 + 'vw';
+                el.style.animationDuration = (Math.random() * 10 + 10) + 's, ' + (Math.random() * 2 + 2) + 's';
+                el.style.animationDelay = (Math.random() * 5) + 's, 0s';
+                bg.appendChild(el);
+            }
+        }
+
+        // --- DATA ---
+        let score = 0;
+        let answeredQuestions = 0;
+        const totalQuestions = 18;
+
+        const passages = [
+            {
+                title: "Exercise 1: Alarming Biodiversity Loss in Urban Areas",
+                content: `
+                    <div class="passage-section">
+                        <b>Facts and Figures:</b>
+                        <ul>
+                            <li>Cities across the globe are facing a dramatic decline in biodiversity, (1) <span class="blank-space">1</span> urban quality of life.</li>
+                            <li>Scientists warn that current efforts are (2) <span class="blank-space">2</span> to counteract habitat destruction and climate change impacts.</li>
+                            <li>Biodiversity loss is happening on a global (3) <span class="blank-space">3</span> with nearly 1 million species at risk of extinction.</li>
+                        </ul>
+                        <button class="translate-btn" onclick="toggleTrans(this)">Mở dịch đoạn này 🌟</button>
+                        <div class="translation-text">
+                            Sự thật và số liệu:<br>
+                            - Các thành phố trên toàn cầu đang đối mặt với sự suy giảm đa dạng sinh học nghiêm trọng, làm giảm chất lượng cuộc sống đô thị.<br>
+                            - Các nhà khoa học cảnh báo rằng những nỗ lực hiện tại là không đủ để chống lại sự phá hủy môi trường sống và tác động của biến đổi khí hậu.<br>
+                            - Mất đa dạng sinh học đang diễn ra trên quy mô toàn cầu với gần 1 triệu loài có nguy cơ tuyệt chủng.
+                        </div>
+                    </div>
+                    <div class="passage-section">
+                        <b>Positive Action!</b><br>
+                        🌱 <b>Urban Greening Initiatives:</b>
+                        <ul>
+                            <li>Plant trees and create green spaces (4) <span class="blank-space">4</span> preserving existing habitats to support wildlife in cities.</li>
+                        </ul>
+                        📢 <b>Community Awareness:</b>
+                        <ul>
+                            <li>Run campaigns to educate residents about the importance of biodiversity in city (5) <span class="blank-space">5</span>.</li>
+                        </ul>
+                        ♻️ <b>Eco-Friendly Urban Planning:</b>
+                        <ul>
+                            <li>Advocate for policies that incorporate biodiversity conservation on (6) <span class="blank-space">6</span> level of city development.</li>
+                        </ul>
+                        <p style="text-align:right; font-style:italic; font-size: 0.9rem;">(Adapted from Global Biodiversity Outlook)</p>
+                        <button class="translate-btn" onclick="toggleTrans(this)">Mở dịch đoạn này 🌟</button>
+                        <div class="translation-text">
+                            Hành động Tích cực!<br>
+                            🌱 Sáng kiến Xanh hóa Đô thị: Trồng cây và tạo không gian xanh ngoài việc bảo tồn môi trường sống hiện tại để hỗ trợ động vật hoang dã trong thành phố.<br>
+                            📢 Nhận thức Cộng đồng: Tổ chức các chiến dịch giáo dục cư dân về tầm quan trọng của đa dạng sinh học trong cảnh quan thành phố.<br>
+                            ♻️ Quy hoạch Đô thị Thân thiện Môi trường: Vận động cho các chính sách kết hợp bảo tồn đa dạng sinh học ở mọi cấp độ phát triển thành phố.
+                        </div>
+                    </div>
+                    <div class="passage-section">
+                        <table class="glossary-table">
+                            <tr><th>Từ vựng</th><th>Loại từ</th><th>Nghĩa tiếng Việt</th></tr>
+                            <tr><td>dramatic</td><td>adj</td><td>đáng kể, nghiêm trọng</td></tr>
+                            <tr><td>counteract</td><td>v</td><td>chống lại, làm giảm tác dụng</td></tr>
+                            <tr><td>habitat</td><td>n</td><td>môi trường sống</td></tr>
+                            <tr><td>extinction</td><td>n</td><td>sự tuyệt chủng</td></tr>
+                            <tr><td>initiative</td><td>n</td><td>sáng kiến</td></tr>
+                            <tr><td>conservation</td><td>n</td><td>sự bảo tồn</td></tr>
+                        </table>
+                    </div>
+                `
+            },
+            {
+                title: "Exercise 2: Revolutionizing Education: AI-Integrated Learning Sparks Debate",
+                content: `
+                    <div class="passage-section">
+                        <b>Facts and Figures:</b>
+                        <ul>
+                            <li>Recent studies show AI-based learning tools are not yet able to (7) <span class="blank-space">7</span> expectations in improving overall student performance.</li>
+                            <li>Many schools lack prior (8) <span class="blank-space">8</span> to AI tools, creating challenges in implementation and training. Despite the hype, experts report (9) <span class="blank-space">9</span> progress in closing the education gap between disadvantaged and affluent students.</li>
+                        </ul>
+                        <button class="translate-btn" onclick="toggleTrans(this)">Mở dịch đoạn này 🌟</button>
+                        <div class="translation-text">
+                            Sự thật và số liệu:<br>
+                            - Các nghiên cứu gần đây cho thấy các công cụ học tập dựa trên AI vẫn chưa thể đáp ứng kỳ vọng trong việc cải thiện kết quả học tập tổng thể của học sinh.<br>
+                            - Nhiều trường học thiếu sự tiếp xúc trước đó với các công cụ AI, tạo ra những thách thức trong việc triển khai và đào tạo. Bất chấp sự cường điệu, các chuyên gia báo cáo rằng có rất ít tiến bộ trong việc thu hẹp khoảng cách giáo dục giữa học sinh có hoàn cảnh khó khăn và khá giả.
+                        </div>
+                    </div>
+                    <div class="passage-section">
+                        <b>Positive Action!</b><br>
+                        📋 <b>Enhanced Training Programs:</b>
+                        <ul>
+                            <li>Provide teachers with specialized training (10) <span class="blank-space">10</span> relying solely on external AI tool providers.</li>
+                        </ul>
+                        📖 <b>Comprehensive Plans:</b>
+                        <ul>
+                            <li>Governments and schools must draw up detailed strategies to integrate AI tools into curricula to a significant (11) <span class="blank-space">11</span>.</li>
+                        </ul>
+                        🎓 <b>Equity in Education:</b>
+                        <ul>
+                            <li>Ensure all students, regardless of background, gain access to resources and receive AI certifications to improve future job (12) <span class="blank-space">12</span>.</li>
+                        </ul>
+                        <p style="text-align:right; font-style:italic; font-size: 0.9rem;">(Adapted from UNESCO Education 2025 Report)</p>
+                        <button class="translate-btn" onclick="toggleTrans(this)">Mở dịch đoạn này 🌟</button>
+                        <div class="translation-text">
+                            Hành động Tích cực!<br>
+                            📋 Chương trình Đào tạo Nâng cao: Cung cấp cho giáo viên đào tạo chuyên sâu thay vì chỉ dựa vào các nhà cung cấp công cụ AI bên ngoài.<br>
+                            📖 Kế hoạch Toàn diện: Chính phủ và trường học phải vạch ra các chiến lược chi tiết để tích hợp công cụ AI vào chương trình giảng dạy ở một mức độ đáng kể.<br>
+                            🎓 Công bằng trong Giáo dục: Đảm bảo mọi học sinh, bất kể hoàn cảnh, đều được tiếp cận tài nguyên và nhận chứng chỉ AI để cải thiện triển vọng nghề nghiệp trong tương lai.
+                        </div>
+                    </div>
+                     <div class="passage-section">
+                        <table class="glossary-table">
+                            <tr><th>Từ vựng</th><th>Loại từ</th><th>Nghĩa tiếng Việt</th></tr>
+                            <tr><td>implementation</td><td>n</td><td>sự triển khai, thực hiện</td></tr>
+                            <tr><td>affluent</td><td>adj</td><td>giàu có, khá giả</td></tr>
+                            <tr><td>integrate</td><td>v</td><td>tích hợp</td></tr>
+                            <tr><td>curricula</td><td>n</td><td>chương trình giảng dạy (số nhiều)</td></tr>
+                        </table>
+                    </div>
+                `
+            },
+            {
+                title: "Exercise 3: The Future of AI: ChatGPT Dominates Tech Headlines",
+                content: `
+                    <div class="passage-section">
+                        <b>Facts and Figures:</b>
+                        <ul>
+                            <li>Businesses these days (13) <span class="blank-space">13</span> sophisticated tools like ChatGPT to streamline operations. While (14) <span class="blank-space">14</span> industries benefit, concerns about data misuse persist, as users avoid sharing sensitive information (15) <span class="blank-space">15</span> breaches.</li>
+                        </ul>
+                        <button class="translate-btn" onclick="toggleTrans(this)">Mở dịch đoạn này 🌟</button>
+                        <div class="translation-text">
+                            Sự thật và số liệu:<br>
+                            - Các doanh nghiệp ngày nay sử dụng các công cụ tinh vi như ChatGPT để hợp lý hóa hoạt động. Mặc dù nhiều ngành công nghiệp được hưởng lợi, những lo ngại về việc lạm dụng dữ liệu vẫn tồn tại, do người dùng tránh chia sẻ thông tin nhạy cảm vì sợ vi phạm dữ liệu.
+                        </div>
+                    </div>
+                    <div class="passage-section">
+                        <b>Positive Action!</b><br>
+                        🤝 <b>Promoting Collaboration:</b>
+                        <ul>
+                            <li>Encourage companies to (16) <span class="blank-space">16</span> to developers and stakeholders for ethical AI integration strategies.</li>
+                        </ul>
+                        🛡️ <b>Strengthening Security Measures:</b>
+                        <ul>
+                            <li>Invest in robust data protection protocols to handle huge (17) <span class="blank-space">17</span> of sensitive user data securely.</li>
+                        </ul>
+                        ✅ <b>Setting Clear Goals:</b>
+                        <ul>
+                            <li>Organizations should align their AI use with well-defined (18) <span class="blank-space">18</span> to maximize efficiency and minimize risks.</li>
+                        </ul>
+                        <p style="text-align:right; font-style:italic; font-size: 0.9rem;">(Adapted from Forbes)</p>
+                        <button class="translate-btn" onclick="toggleTrans(this)">Mở dịch đoạn này 🌟</button>
+                        <div class="translation-text">
+                            Hành động Tích cực!<br>
+                            🤝 Thúc đẩy Hợp tác: Khuyến khích các công ty kết nối với các nhà phát triển và các bên liên quan để có các chiến lược tích hợp AI có đạo đức.<br>
+                            🛡️ Tăng cường Biện pháp An ninh: Đầu tư vào các giao thức bảo vệ dữ liệu mạnh mẽ để xử lý an toàn lượng lớn dữ liệu người dùng nhạy cảm.<br>
+                            ✅ Đặt Mục tiêu Rõ ràng: Các tổ chức nên điều chỉnh việc sử dụng AI của họ với các mục tiêu được xác định rõ ràng để tối đa hóa hiệu quả và giảm thiểu rủi ro.
+                        </div>
+                    </div>
+                    <div class="passage-section">
+                        <table class="glossary-table">
+                            <tr><th>Từ vựng</th><th>Loại từ</th><th>Nghĩa tiếng Việt</th></tr>
+                            <tr><td>sophisticated</td><td>adj</td><td>tinh vi, phức tạp</td></tr>
+                            <tr><td>streamline</td><td>v</td><td>hợp lý hóa, làm cho tinh gọn</td></tr>
+                            <tr><td>persist</td><td>v</td><td>vẫn còn, kiên trì</td></tr>
+                            <tr><td>stakeholder</td><td>n</td><td>bên liên quan</td></tr>
+                            <tr><td>robust</td><td>adj</td><td>mạnh mẽ, vững chắc</td></tr>
+                            <tr><td>align</td><td>v</td><td>căn chỉnh, điều chỉnh cho phù hợp</td></tr>
+                        </table>
+                    </div>
+                `
+            }
+        ];
+
+        // HỆ THỐNG DỮ LIỆU CÂU HỎI & GIẢI THÍCH MASTER
+        const questions = [
+            // EXERCISE 1
+            { id: 1, correct: "bringing down", options: ["turning down", "putting off", "catching up", "bringing down"], 
+              exp: `
+                <div class="exp-title">Dịch & Phân tích câu hỏi:</div>
+                <p>Các thành phố trên toàn cầu đang đối mặt với sự suy giảm đa dạng sinh học nghiêm trọng, (1) ______ chất lượng cuộc sống ở đô thị.</p>
+                <ul style="margin: 10px 0 10px 20px;">
+                    <li><span class="p-word">turning down</span> (<span class="p-mean">từ chối/vặn nhỏ</span>) <span class="hl-red">❌ Sai nghĩa.</span></li>
+                    <li><span class="p-word">putting off</span> (<span class="p-mean">trì hoãn</span>) <span class="hl-red">❌ Sai ngữ cảnh.</span></li>
+                    <li><span class="p-word">catching up</span> (<span class="p-mean">theo kịp</span>) <span class="hl-red">❌ Không liên quan.</span></li>
+                    <li><span class="p-word">bringing down</span> (<span class="p-mean">làm giảm xuống</span>) <span class="hl-green">✅ Đúng. Cụm "bringing down urban quality of life" = "làm giảm chất lượng cuộc sống đô thị".</span></li>
+                </ul>
+                <div class="exp-quote">🔍 Dẫn chứng: "Cities across the globe are facing a dramatic decline in biodiversity, <b>bringing down</b> urban quality of life."</div>
+                <p>👉 Dịch: Các thành phố... <span class="hl-green">làm giảm</span> chất lượng cuộc sống đô thị.</p>
+              `
+            },
+            { id: 2, correct: "insufficient", options: ["inaccessible", "irrelevant", "insufficient", "irreplaceable"],
+              exp: `
+                <div class="exp-title">Dịch & Phân tích câu hỏi:</div>
+                <p>Các nhà khoa học cảnh báo rằng những nỗ lực hiện tại là (2) ______ để chống lại sự phá hủy môi trường sống.</p>
+                <ul style="margin: 10px 0 10px 20px;">
+                    <li><span class="p-word">inaccessible</span> (<span class="p-mean">không thể tiếp cận</span>) <span class="hl-red">❌ Sai.</span></li>
+                    <li><span class="p-word">irrelevant</span> (<span class="p-mean">không liên quan</span>) <span class="hl-red">❌ Sai.</span></li>
+                    <li><span class="p-word">insufficient</span> (<span class="p-mean">không đủ</span>) <span class="hl-green">✅ Đúng. Phù hợp để diễn tả nỗ lực chưa đủ mạnh.</span></li>
+                    <li><span class="p-word">irreplaceable</span> (<span class="p-mean">không thể thay thế</span>) <span class="hl-red">❌ Sai.</span></li>
+                </ul>
+                <div class="exp-quote">🔍 Dẫn chứng: "...current efforts are <b>insufficient</b> to counteract habitat destruction..."</div>
+                <p>👉 Dịch: ...những nỗ lực hiện tại là <span class="hl-green">không đủ</span> để chống lại sự phá hủy môi trường sống...</p>
+              `
+            },
+            { id: 3, correct: "scale", options: ["extent", "basis", "scale", "number"],
+              exp: `
+                <div class="exp-title">Dịch & Phân tích câu hỏi:</div>
+                <p>Mất đa dạng sinh học đang diễn ra trên (3) ______ toàn cầu...</p>
+                <ul style="margin: 10px 0 10px 20px;">
+                    <li><span class="p-grammar">Collocation:</span> <span class="p-word">on a global scale</span> (<span class="p-mean">trên quy mô toàn cầu</span>) <span class="hl-green">✅ Đúng.</span> Các từ còn lại không tạo thành cụm từ cố định phù hợp trong ngữ cảnh này.</li>
+                </ul>
+                <div class="exp-quote">🔍 Dẫn chứng: "Biodiversity loss is happening on a global <b>scale</b>..."</div>
+                <p>👉 Dịch: Mất đa dạng sinh học đang diễn ra trên <span class="hl-green">quy mô</span> toàn cầu...</p>
+              `
+            },
+            { id: 4, correct: "on top of", options: ["on top of", "instead of", "except for", "for fear of"],
+              exp: `
+                <div class="exp-title">Dịch & Phân tích câu hỏi:</div>
+                <p>Trồng cây và tạo không gian xanh (4) ______ việc bảo tồn môi trường sống hiện tại...</p>
+                <ul style="margin: 10px 0 10px 20px;">
+                    <li><span class="p-word">on top of</span> (<span class="p-mean">ngoài việc/thêm vào đó</span>) <span class="hl-green">✅ Đúng. Ý nói kết hợp cả 2 việc: trồng mới và bảo tồn cái cũ.</span></li>
+                    <li><span class="p-word">instead of</span> (<span class="p-mean">thay vì</span>) <span class="hl-red">❌ Sai nghĩa.</span></li>
+                    <li><span class="p-word">except for</span> (<span class="p-mean">ngoại trừ</span>) <span class="hl-red">❌ Sai.</span></li>
+                    <li><span class="p-word">for fear of</span> (<span class="p-mean">vì sợ</span>) <span class="hl-red">❌ Sai.</span></li>
+                </ul>
+                <div class="exp-quote">🔍 Dẫn chứng: "Plant trees and create green spaces <b>on top of</b> preserving existing habitats..."</div>
+                <p>👉 Dịch: Trồng cây và tạo không gian xanh <span class="hl-green">ngoài việc</span> bảo tồn môi trường sống hiện tại...</p>
+              `
+            },
+            { id: 5, correct: "landscapes", options: ["resources", "attractions", "landscapes", "regulations"],
+              exp: `
+                <div class="exp-title">Dịch & Phân tích câu hỏi:</div>
+                <p>...giáo dục cư dân về tầm quan trọng của đa dạng sinh học trong (5) ______ thành phố.</p>
+                <ul style="margin: 10px 0 10px 20px;">
+                    <li><span class="p-word">resources</span> (<span class="p-mean">tài nguyên</span>) <span class="hl-red">❌ Sai.</span></li>
+                    <li><span class="p-word">attractions</span> (<span class="p-mean">điểm thu hút</span>) <span class="hl-red">❌ Sai.</span></li>
+                    <li><span class="p-word">landscapes</span> (<span class="p-mean">cảnh quan</span>) <span class="hl-green">✅ Đúng. City landscapes = cảnh quan đô thị.</span></li>
+                    <li><span class="p-word">regulations</span> (<span class="p-mean">quy định</span>) <span class="hl-red">❌ Sai.</span></li>
+                </ul>
+                <div class="exp-quote">🔍 Dẫn chứng: "...about the importance of biodiversity in city <b>landscapes</b>."</div>
+                <p>👉 Dịch: ...về tầm quan trọng của đa dạng sinh học trong <span class="hl-green">cảnh quan</span> thành phố.</p>
+              `
+            },
+            { id: 6, correct: "every", options: ["every", "other", "many", "little"],
+              exp: `
+                <div class="exp-title">Dịch & Phân tích câu hỏi:</div>
+                <p>...kết hợp bảo tồn đa dạng sinh học ở (6) ______ cấp độ phát triển thành phố.</p>
+                <ul style="margin: 10px 0 10px 20px;">
+                    <li><span class="p-grammar">Quy tắc:</span> <span class="p-word">every + Danh từ số ít đếm được</span>. Trong câu, "level" là danh từ số ít. Do đó chọn <span class="hl-green">every</span> (<span class="p-mean">mọi</span>) là chính xác tuyệt đối.</li>
+                    <li>"many" + N(số nhiều); "little" + N(không đếm được); "other" + N(số nhiều/không đếm được). <span class="hl-red">❌ Đều sai ngữ pháp.</span></li>
+                </ul>
+                <div class="exp-quote">🔍 Dẫn chứng: "...biodiversity conservation on <b>every</b> level of city development."</div>
+                <p>👉 Dịch: ...bảo tồn đa dạng sinh học ở <span class="hl-green">mọi</span> cấp độ phát triển thành phố.</p>
+              `
+            },
+            // EXERCISE 2
+            { id: 7, correct: "live up to", options: ["get on with", "fill in for", "live up to", "come out with"],
+              exp: `
+                <div class="exp-title">Dịch & Phân tích câu hỏi:</div>
+                <p>...các công cụ học tập dựa trên AI vẫn chưa thể (7) ______ kỳ vọng trong việc cải thiện...</p>
+                <ul style="margin: 10px 0 10px 20px;">
+                    <li><span class="p-word">get on with</span> (<span class="p-mean">tiếp tục</span>) <span class="hl-red">❌ Sai.</span></li>
+                    <li><span class="p-word">fill in for</span> (<span class="p-mean">thay thế cho</span>) <span class="hl-red">❌ Sai.</span></li>
+                    <li><span class="p-word">live up to</span> (<span class="p-mean">đáp ứng</span>) <span class="hl-green">✅ Đúng. Cụm "live up to expectations" = đáp ứng kỳ vọng.</span></li>
+                    <li><span class="p-word">come out with</span> (<span class="p-mean">phát hành/tung ra</span>) <span class="hl-red">❌ Sai.</span></li>
+                </ul>
+                <div class="exp-quote">🔍 Dẫn chứng: "...tools are not yet able to <b>live up to</b> expectations..."</div>
+                <p>👉 Dịch: ...công cụ chưa thể <span class="hl-green">đáp ứng</span> kỳ vọng...</p>
+              `
+            },
+            { id: 8, correct: "exposure", options: ["innovation", "analysis", "cognition", "exposure"],
+              exp: `
+                <div class="exp-title">Dịch & Phân tích câu hỏi:</div>
+                <p>Nhiều trường học thiếu (8) ______ trước đó với các công cụ AI...</p>
+                <ul style="margin: 10px 0 10px 20px;">
+                    <li><span class="p-word">innovation</span> (<span class="p-mean">sự đổi mới</span>) <span class="hl-red">❌ Sai.</span></li>
+                    <li><span class="p-word">analysis</span> (<span class="p-mean">phân tích</span>) <span class="hl-red">❌ Sai.</span></li>
+                    <li><span class="p-word">cognition</span> (<span class="p-mean">nhận thức</span>) <span class="hl-red">❌ Sai.</span></li>
+                    <li><span class="p-word">exposure</span> (<span class="p-mean">sự tiếp xúc</span>) <span class="hl-green">✅ Đúng. "lack prior exposure to" = thiếu sự tiếp xúc/kinh nghiệm trước đó với cái gì.</span></li>
+                </ul>
+                <div class="exp-quote">🔍 Dẫn chứng: "Many schools lack prior <b>exposure</b> to AI tools..."</div>
+                <p>👉 Dịch: Nhiều trường học thiếu <span class="hl-green">sự tiếp xúc</span> trước đó với các công cụ AI...</p>
+              `
+            },
+            { id: 9, correct: "little", options: ["little", "every", "many", "another"],
+              exp: `
+                <div class="exp-title">Dịch & Phân tích câu hỏi:</div>
+                <p>...các chuyên gia báo cáo rằng có (9) ______ tiến bộ trong việc thu hẹp khoảng cách...</p>
+                <ul style="margin: 10px 0 10px 20px;">
+                    <li><span class="p-grammar">Ngữ pháp:</span> Danh từ "progress" (sự tiến bộ) là danh từ không đếm được.</li>
+                    <li><span class="p-word">little</span> + N(không đếm được) = <span class="p-mean">rất ít/gần như không có</span>. <span class="hl-green">✅ Đúng.</span></li>
+                    <li>"every", "many", "another" đều không đi với N không đếm được. <span class="hl-red">❌ Sai.</span></li>
+                </ul>
+                <div class="exp-quote">🔍 Dẫn chứng: "...experts report <b>little</b> progress in closing the education gap..."</div>
+                <p>👉 Dịch: ...chuyên gia báo cáo rằng có <span class="hl-green">rất ít</span> tiến bộ...</p>
+              `
+            },
+            { id: 10, correct: "instead of", options: ["instead of", "for fear of", "apart from", "with regard to"],
+              exp: `
+                <div class="exp-title">Dịch & Phân tích câu hỏi:</div>
+                <p>Cung cấp cho giáo viên đào tạo chuyên sâu (10) ______ chỉ dựa vào các nhà cung cấp bên ngoài.</p>
+                <ul style="margin: 10px 0 10px 20px;">
+                    <li><span class="p-word">instead of</span> (<span class="p-mean">thay vì</span>) <span class="hl-green">✅ Đúng ngữ nghĩa. Nhà trường tự đào tạo THAY VÌ đi thuê.</span></li>
+                    <li><span class="p-word">for fear of</span> (<span class="p-mean">vì sợ</span>) <span class="hl-red">❌ Sai.</span></li>
+                    <li><span class="p-word">apart from</span> (<span class="p-mean">ngoài ra</span>) <span class="hl-red">❌ Sai.</span></li>
+                    <li><span class="p-word">with regard to</span> (<span class="p-mean">liên quan đến</span>) <span class="hl-red">❌ Sai.</span></li>
+                </ul>
+                <div class="exp-quote">🔍 Dẫn chứng: "...specialized training <b>instead of</b> relying solely on external..."</div>
+                <p>👉 Dịch: ...đào tạo chuyên sâu <span class="hl-green">thay vì</span> chỉ dựa vào bên ngoài.</p>
+              `
+            },
+            { id: 11, correct: "degree", options: ["amount", "quantity", "variety", "degree"],
+              exp: `
+                <div class="exp-title">Dịch & Phân tích câu hỏi:</div>
+                <p>...tích hợp công cụ AI vào chương trình giảng dạy ở một (11) ______ đáng kể.</p>
+                <ul style="margin: 10px 0 10px 20px;">
+                    <li><span class="p-grammar">Collocation:</span> <span class="p-word">to a significant degree</span> (<span class="p-mean">ở một mức độ đáng kể</span>) <span class="hl-green">✅ Đúng.</span></li>
+                    <li><span class="p-word">amount/quantity</span> (<span class="p-mean">số lượng</span>), <span class="p-word">variety</span> (<span class="p-mean">sự đa dạng</span>) <span class="hl-red">❌ Sai ngữ cảnh ghép từ.</span></li>
+                </ul>
+                <div class="exp-quote">🔍 Dẫn chứng: "...integrate AI tools into curricula to a significant <b>degree</b>."</div>
+                <p>👉 Dịch: ...tích hợp công cụ AI... ở một <span class="hl-green">mức độ</span> đáng kể.</p>
+              `
+            },
+            { id: 12, correct: "prospects", options: ["conditions", "requirements", "prospects", "descriptions"],
+              exp: `
+                <div class="exp-title">Dịch & Phân tích câu hỏi:</div>
+                <p>...nhận chứng chỉ AI để cải thiện (12) ______ nghề nghiệp trong tương lai.</p>
+                <ul style="margin: 10px 0 10px 20px;">
+                    <li><span class="p-word">conditions</span> (<span class="p-mean">điều kiện</span>) <span class="hl-red">❌ Sai.</span></li>
+                    <li><span class="p-word">requirements</span> (<span class="p-mean">yêu cầu</span>) <span class="hl-red">❌ Sai.</span></li>
+                    <li><span class="p-word">prospects</span> (<span class="p-mean">triển vọng</span>) <span class="hl-green">✅ Đúng. "Job prospects" = triển vọng nghề nghiệp, cơ hội việc làm.</span></li>
+                    <li><span class="p-word">descriptions</span> (<span class="p-mean">mô tả</span>) <span class="hl-red">❌ Sai.</span></li>
+                </ul>
+                <div class="exp-quote">🔍 Dẫn chứng: "...receive AI certifications to improve future job <b>prospects</b>."</div>
+                <p>👉 Dịch: ...nhận chứng chỉ AI để cải thiện <span class="hl-green">triển vọng</span> nghề nghiệp trong tương lai.</p>
+              `
+            },
+            // EXERCISE 3
+            { id: 13, correct: "employ", options: ["recruit", "employ", "gather", "appoint"],
+              exp: `
+                <div class="exp-title">Dịch & Phân tích câu hỏi:</div>
+                <p>Các doanh nghiệp ngày nay (13) ______ các công cụ tinh vi như ChatGPT...</p>
+                <ul style="margin: 10px 0 10px 20px;">
+                    <li><span class="p-word">recruit</span> (<span class="p-mean">tuyển dụng - dùng cho người</span>) <span class="hl-red">❌ Sai.</span></li>
+                    <li><span class="p-word">employ</span> (<span class="p-mean">sử dụng/áp dụng - dùng cho công cụ/phương pháp</span>) <span class="hl-green">✅ Đúng.</span></li>
+                    <li><span class="p-word">gather</span> (<span class="p-mean">thu thập</span>) <span class="hl-red">❌ Sai.</span></li>
+                    <li><span class="p-word">appoint</span> (<span class="p-mean">bổ nhiệm</span>) <span class="hl-red">❌ Sai.</span></li>
+                </ul>
+                <div class="exp-quote">🔍 Dẫn chứng: "Businesses these days <b>employ</b> sophisticated tools like ChatGPT..."</div>
+                <p>👉 Dịch: Các doanh nghiệp ngày nay <span class="hl-green">sử dụng</span> các công cụ tinh vi...</p>
+              `
+            },
+            { id: 14, correct: "many", options: ["many", "every", "little", "another"],
+              exp: `
+                <div class="exp-title">Dịch & Phân tích câu hỏi:</div>
+                <p>Mặc dù (14) ______ ngành công nghiệp được hưởng lợi...</p>
+                <ul style="margin: 10px 0 10px 20px;">
+                    <li><span class="p-grammar">Ngữ pháp:</span> "industries" là danh từ đếm được số nhiều.</li>
+                    <li><span class="p-word">many</span> + N(số nhiều) = <span class="p-mean">nhiều</span>. <span class="hl-green">✅ Đúng.</span></li>
+                    <li>"every", "another" + N(số ít). "little" + N(không đếm được). <span class="hl-red">❌ Đều sai ngữ pháp.</span></li>
+                </ul>
+                <div class="exp-quote">🔍 Dẫn chứng: "While <b>many</b> industries benefit..."</div>
+                <p>👉 Dịch: Mặc dù <span class="hl-green">nhiều</span> ngành công nghiệp được hưởng lợi...</p>
+              `
+            },
+            { id: 15, correct: "for fear of", options: ["rather than", "except for", "in regard to", "for fear of"],
+              exp: `
+                <div class="exp-title">Dịch & Phân tích câu hỏi:</div>
+                <p>...người dùng tránh chia sẻ thông tin nhạy cảm (15) ______ vi phạm dữ liệu.</p>
+                <ul style="margin: 10px 0 10px 20px;">
+                    <li><span class="p-word">rather than</span> (<span class="p-mean">hơn là</span>) <span class="hl-red">❌ Sai.</span></li>
+                    <li><span class="p-word">except for</span> (<span class="p-mean">ngoại trừ</span>) <span class="hl-red">❌ Sai.</span></li>
+                    <li><span class="p-word">in regard to</span> (<span class="p-mean">liên quan đến</span>) <span class="hl-red">❌ Sai.</span></li>
+                    <li><span class="p-word">for fear of</span> (<span class="p-mean">vì sợ</span>) <span class="hl-green">✅ Đúng. Chỉ nguyên nhân họ không dám chia sẻ.</span></li>
+                </ul>
+                <div class="exp-quote">🔍 Dẫn chứng: "...avoid sharing sensitive information <b>for fear of</b> breaches."</div>
+                <p>👉 Dịch: ...tránh chia sẻ thông tin nhạy cảm <span class="hl-green">vì sợ</span> vi phạm dữ liệu.</p>
+              `
+            },
+            { id: 16, correct: "reach out", options: ["bring in", "reach out", "look forward", "get ahead"],
+              exp: `
+                <div class="exp-title">Dịch & Phân tích câu hỏi:</div>
+                <p>Khuyến khích các công ty (16) ______ với các nhà phát triển...</p>
+                <ul style="margin: 10px 0 10px 20px;">
+                    <li><span class="p-word">bring in</span> (<span class="p-mean">mời vào/mang vào</span>) <span class="hl-red">❌ Sai.</span></li>
+                    <li><span class="p-word">reach out</span> (<span class="p-mean">kết nối, liên hệ</span>) <span class="hl-green">✅ Đúng. Cụm "reach out to sb" = liên hệ/kết nối với ai.</span></li>
+                    <li><span class="p-word">look forward</span> (<span class="p-mean">mong đợi</span>) <span class="hl-red">❌ Sai.</span></li>
+                    <li><span class="p-word">get ahead</span> (<span class="p-mean">tiến lên</span>) <span class="hl-red">❌ Sai.</span></li>
+                </ul>
+                <div class="exp-quote">🔍 Dẫn chứng: "Encourage companies to <b>reach out</b> to developers..."</div>
+                <p>👉 Dịch: Khuyến khích các công ty <span class="hl-green">kết nối</span> với các nhà phát triển...</p>
+              `
+            },
+            { id: 17, correct: "amounts", options: ["levels", "numbers", "amounts", "degrees"],
+              exp: `
+                <div class="exp-title">Dịch & Phân tích câu hỏi:</div>
+                <p>...xử lý an toàn (17) ______ lớn dữ liệu người dùng nhạy cảm.</p>
+                <ul style="margin: 10px 0 10px 20px;">
+                    <li><span class="p-grammar">Ngữ pháp:</span> "data" ở đây được coi là không đếm được.</li>
+                    <li><span class="p-word">amounts</span> (<span class="p-mean">lượng</span>) thường đi với danh từ không đếm được ("huge amounts of data"). <span class="hl-green">✅ Đúng.</span></li>
+                    <li>"numbers" dùng cho danh từ đếm được. "levels", "degrees" không hợp nghĩa chỉ khối lượng dữ liệu. <span class="hl-red">❌ Sai.</span></li>
+                </ul>
+                <div class="exp-quote">🔍 Dẫn chứng: "...to handle huge <b>amounts</b> of sensitive user data securely."</div>
+                <p>👉 Dịch: ...để xử lý an toàn <span class="hl-green">lượng</span> lớn dữ liệu người dùng nhạy cảm.</p>
+              `
+            },
+            { id: 18, correct: "objectives", options: ["constraints", "objectives", "guidelines", "instructions"],
+              exp: `
+                <div class="exp-title">Dịch & Phân tích câu hỏi:</div>
+                <p>Các tổ chức nên điều chỉnh việc sử dụng AI của họ với các (18) ______ được xác định rõ ràng để tối đa hóa hiệu quả...</p>
+                <ul style="margin: 10px 0 10px 20px;">
+                    <li><span class="p-word">constraints</span> (<span class="p-mean">hạn chế</span>) <span class="hl-red">❌ Sai.</span></li>
+                    <li><span class="p-word">objectives</span> (<span class="p-mean">mục tiêu</span>) <span class="hl-green">✅ Đúng. "well-defined objectives" = mục tiêu được xác định rõ.</span></li>
+                    <li><span class="p-word">guidelines</span> (<span class="p-mean">hướng dẫn</span>) <span class="hl-red">❌ Sai nghĩa ngữ cảnh.</span></li>
+                    <li><span class="p-word">instructions</span> (<span class="p-mean">chỉ dẫn</span>) <span class="hl-red">❌ Sai.</span></li>
+                </ul>
+                <div class="exp-quote">🔍 Dẫn chứng: "Organizations should align their AI use with well-defined <b>objectives</b>..."</div>
+                <p>👉 Dịch: Các tổ chức nên điều chỉnh... với các <span class="hl-green">mục tiêu</span> được xác định rõ ràng...</p>
+              `
+            }
+        ];
+
+        // --- RENDER APP ---
+        function initApp() {
+            // Render Bài đọc (Left Pane)
+            const leftPane = document.getElementById('readingContainer');
+            passages.forEach(p => {
+                const card = document.createElement('div');
+                card.className = 'glass-card';
+                card.innerHTML = `<div class="reading-title">${p.title}</div>${p.content}`;
+                leftPane.appendChild(card);
+            });
+
+            // Render Câu hỏi (Right Pane)
+            const rightPane = document.getElementById('questionsContainer');
+            // Insert title before questions but after container starts, wait, questions are rendered directly.
+            const rightTitle = document.createElement('div');
+            rightTitle.className = 'reading-title';
+            rightTitle.innerText = "Exercises (Multiple Choice)";
+            rightPane.insertBefore(rightTitle, rightPane.firstChild);
+
+            questions.forEach(q => {
+                const qCard = document.createElement('div');
+                qCard.className = 'glass-card';
+                qCard.id = `q-card-${q.id}`;
+                
+                let html = `<div class="question-number">Question ${q.id}: Select the best option</div>`;
+                html += `<div class="options-grid" id="opts-${q.id}">`;
+                
+                // Shuffle Array
+                let shuffledOpts = [...q.options].sort(() => Math.random() - 0.5);
+                
+                shuffledOpts.forEach(opt => {
+                    html += `<button class="opt-btn" onclick="checkAnswer(${q.id}, '${opt}', this)">${opt}</button>`;
+                });
+                
+                html += `</div>`;
+                html += `<div class="explanation-box" id="exp-${q.id}">${q.exp}</div>`;
+                
+                qCard.innerHTML = html;
+                // Insert before the submit button
+                const submitBtn = rightPane.querySelector('.submit-btn');
+                rightPane.insertBefore(qCard, submitBtn);
+            });
+        }
+
+        // --- INTERACTION LOGIC ---
+        function toggleTrans(btn) {
+            const text = btn.nextElementSibling;
+            if(text.style.display === 'block') {
+                text.style.display = 'none';
+                btn.innerText = "Mở dịch đoạn này 🌟";
+            } else {
+                text.style.display = 'block';
+                btn.innerText = "Đóng dịch 🌟";
+            }
+        }
+
+        function checkAnswer(qId, selectedOpt, btnElement) {
+            const q = questions.find(x => x.id === qId);
+            const grid = document.getElementById(`opts-${qId}`);
+            const buttons = grid.querySelectorAll('.opt-btn');
+            const expBox = document.getElementById(`exp-${qId}`);
+            
+            // Disable all buttons in this question
+            buttons.forEach(b => b.classList.add('disabled'));
+            
+            if (selectedOpt === q.correct) {
+                // Correct
+                btnElement.classList.add('correct');
+                btnElement.classList.remove('disabled');
+                document.getElementById('audioCorrect').play().catch(()=>{});
+                fireConfetti(btnElement);
+                score++;
+            } else {
+                // Wrong
+                btnElement.classList.add('wrong');
+                btnElement.classList.remove('disabled');
+                document.getElementById('audioWrong').play().catch(()=>{});
+                // Highlight correct
+                buttons.forEach(b => {
+                    if(b.innerText === q.correct) {
+                        b.classList.add('correct');
+                        b.classList.remove('disabled');
+                    }
+                });
+            }
+            
+            answeredQuestions++;
+            expBox.style.display = 'block';
+            
+            // Cuộn mượt đến giải thích
+            expBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        function fireConfetti(element) {
+            const rect = element.getBoundingClientRect();
+            const x = (rect.left + rect.width / 2) / window.innerWidth;
+            const y = (rect.top + rect.height / 2) / window.innerHeight;
+            
+            confetti({
+                particleCount: 80, spread: 60, origin: { x: x, y: y },
+                colors: ['#26ccff', '#a25afd', '#ff5e7e', '#88ff5a', '#fcff42']
+            });
+        }
+
+        // --- SUBMIT LOGIC ---
+        function openSubmitModal() {
+            if(answeredQuestions < totalQuestions) {
+                alert(`Bạn mới làm ${answeredQuestions}/${totalQuestions} câu. Hãy hoàn thành hết nhé!`);
+                return;
+            }
+            document.getElementById('resultModal').style.display = 'flex';
+        }
+
+        function showFinalResult() {
+            const nameInput = document.getElementById('studentNameInput').value.trim();
+            if(!nameInput) {
+                alert("Bạn quên nhập tên kìa!");
+                return;
+            }
+            
+            document.getElementById('nameEntryState').style.display = 'none';
+            document.getElementById('scoreState').style.display = 'block';
+            
+            document.getElementById('finalScoreText').innerText = `${score} / ${totalQuestions}`;
+            document.getElementById('studentNameDisplay').innerText = `Học sinh: ${nameInput}`;
+            
+            const commentEl = document.getElementById('teacherComment');
+            const gifEl = document.getElementById('resultGif');
+            let percentage = score / totalQuestions;
+            
+            if (percentage === 1) {
+                commentEl.innerText = "Tuyệt đỉnh! Con là thiên tài ngoại ngữ! 🌟🏆";
+                commentEl.style.color = "#FFD700";
+                gifEl.src = "https://media.giphy.com/media/11sBLVxNs7v6WA/giphy.gif"; // Smart clapping
+                confetti({particleCount: 300, spread: 100, origin: {y: 0.3}});
+            } else if (percentage >= 0.6) {
+                commentEl.innerText = "Rất tốt! Cô Mai An rất tự hào về con! 👏✨";
+                gifEl.src = "https://media.giphy.com/media/l41lZxzroU33typuU/giphy.gif"; // High five
+            } else {
+                commentEl.innerText = "Cố lên nhé! Lần sau con sẽ làm tốt hơn! 💪😢";
+                commentEl.style.color = "#d62828";
+                gifEl.src = "https://media.giphy.com/media/d2lcHJTG5Tscg/giphy.gif"; // Crying/sad but cute
+            }
+        }
+    </script>
+</body>
+</html>

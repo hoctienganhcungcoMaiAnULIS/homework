@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Global English Stage 7 - Final Term Test</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800&family=Cinzel:wght@700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        /* =========================================
+           1. CORE STYLES & NEW BACKGROUND
+           ========================================= */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        body {
+            font-family: 'Nunito', sans-serif;
+            /* MÀU LOANG KHÁC ĐI: Tông xanh - tím êm dịu hơn */
+            background: linear-gradient(-45deg, #a8edea, #fed6e3, #c3cfe2, #e0c3fc);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            min-height: 100vh;
+            color: #333;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* =========================================
+           2. HIỆU ỨNG BAY BỔNG MỚI: BÓNG KHÍ (NO STARS/FLOWERS)
+           ========================================= */
+        .bubbles-container {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -1; overflow: hidden; pointer-events: none;
+        }
+
+        .bubble {
+            position: absolute; bottom: -100px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.5);
+            animation: rise 10s infinite ease-in;
+        }
+
+        @keyframes rise {
+            0% { transform: translateY(0) scale(0.5); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(-1000px) scale(1.2); opacity: 0; }
+        }
+
+        /*Tạo các kích thước và thời gian ngẫu nhiên cho bóng khí bằng JS*/
+
+        /* =========================================
+           3. UI ELEMENTS (GLASSMORPHISM)
+           ========================================= */
+        .glass-container {
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            border-radius: 24px;
+            padding: 20px 30px;
+            max-width: 900px;
+            margin: 20px auto;
+            box-shadow: 0 10px 40px 0 rgba(31, 38, 135, 0.15);
+            position: relative; z-index: 1;
+        }
+
+        .teacher-header {
+            text-align: right; font-size: 0.85rem; font-weight: 700;
+            color: rgba(0, 0, 0, 0.5); margin-bottom: 10px;
+        }
+
+        .main-title {
+            text-align: center; font-size: 2rem; font-weight: 800;
+            color: #4a148c; text-shadow: 1px 1px 2px rgba(255,255,255,0.5);
+            margin-bottom: 25px; text-transform: uppercase; letter-spacing: 1px;
+        }
+
+        .part-header {
+            font-size: 1.4rem; font-weight: 800; color: #6a1b9a;
+            margin: 30px 0 15px; padding-bottom: 5px;
+            border-bottom: 3px solid #ce93d8; display: inline-block;
+        }
+
+        /* Question Cards */
+        .question-card {
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 20px; padding: 25px; margin-bottom: 20px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+            transition: transform 0.3s ease;
+        }
+        .question-card:hover { transform: translateY(-3px); }
+
+        .question-text {
+            font-size: 1.15rem; font-weight: 700; margin-bottom: 20px;
+            color: #2c3e50; line-height: 1.5;
+        }
+
+        /* =========================================
+           4. LOGIC NHẬP LIỆU (PART II & III)
+           ========================================= */
+        .input-wrapper {
+            display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
+            margin-top: 15px;
+        }
+
+        .quiz-input {
+            flex-grow: 1; min-width: 250px;
+            padding: 14px 20px; font-size: 1.08rem; font-family: 'Nunito', sans-serif;
+            font-weight: 700; border: 2px solid #e0e0e0; border-radius: 15px;
+            background: #fff; color: #333; outline: none;
+            transition: all 0.3s;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .quiz-input:focus { border-color: #ba68c8; box-shadow: 0 0 0 3px rgba(186, 104, 200, 0.2); }
+
+        /* Trạng thái Input */
+        .quiz-input.correct-input {
+            border-color: #00D26A; background-color: #e8f5e9; color: #1b5e20;
+        }
+        .quiz-input.wrong-input {
+            border-color: #FF4757; background-color: #ffebee; color: #b71c1c;
+        }
+
+        .btn-check {
+            padding: 14px 25px; font-size: 1rem; font-weight: 800;
+            font-family: 'Nunito', sans-serif; text-transform: uppercase;
+            color: white; background: linear-gradient(135deg, #ba68c8, #8e24aa);
+            border: none; border-radius: 15px; cursor: pointer;
+            box-shadow: 0 4px 0 #6a1b9a; transition: all 0.1s;
+        }
+        .btn-check:hover { background: linear-gradient(135deg, #ce93d8, #ab47bc); }
+        .btn-check:active { transform: translateY(3px); box-shadow: 0 1px 0 #6a1b9a; }
+        .btn-check:disabled { background: #bdbdbd; box-shadow: 0 4px 0 #9e9e9e; cursor: not-allowed; }
+
+        /* =========================================
+           5. OPTIONS (PART I) - KEEP PREVIOUS STYLE
+           ========================================= */
+        .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        @media (max-width: 600px) { .options-grid { grid-template-columns: 1fr; } }
+
+        .option-btn {
+            background: #ffffff; border: 2px solid #e0e0e0; border-radius: 18px;
+            padding: 16px; font-size: 1.08rem; font-weight: 700;
+            font-family: 'Nunito', sans-serif; color: #34495e; cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 6px 0 #d1d1d1; text-align: left; position: relative;
+        }
+        .option-btn:hover:not(:disabled) { transform: scale(1.02) translateY(-2px); box-shadow: 0 8px 0 #b0b0b0; border-color: #bdc3c7; }
+        .option-btn:active:not(:disabled) { transform: scale(0.98) translateY(4px); box-shadow: 0 2px 0 #b0b0b0; }
+        
+        .option-btn.correct { background: #00D26A !important; color: white !important; border-color: #00b058 !important; box-shadow: 0 6px 0 #00994d !important; }
+        .option-btn.wrong { background: #FF4757 !important; color: white !important; border-color: #e03e4d !important; box-shadow: 0 6px 0 #cc3340 !important; }
+        .option-btn:disabled { cursor: default; }
+
+        /* Shake animation */
+        .shake { animation: shakeEffect 0.4s ease-in-out; }
+        @keyframes shakeEffect {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-8px); }
+            40%, 80% { transform: translateX(8px); }
+        }
+
+        /* =========================================
+           6. EXPLANATION BOX & TÔ MÀU
+           ========================================= */
+        .explanation-box {
+            display: none; margin-top: 20px; padding: 20px;
+            background: rgba(243, 229, 245, 0.5); border: 2px dashed #ba68c8;
+            border-radius: 15px; font-size: 1rem; line-height: 1.6;
+            animation: slideDown 0.3s ease-out;
+        }
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Class tô màu bắt buộc */
+        .translation-box { background-color: #ffe0b2; color: #d35400; font-weight: 800; padding: 12px; border-radius: 10px; margin-bottom: 15px; border-left: 5px solid #e67e22; }
+        .p-word { color: #0984e3; font-weight: bold; } /* Tiếng Anh: Xanh dương */
+        .p-phonetic { background: #f3e5f5; color: #7b1fa2; padding: 0 4px; border-radius: 4px; } /* IPA: Tím nền nhạt */
+        .p-mean { color: #d35400; font-style: italic; } /* Nghĩa: Đất nung */
+        .p-grammar { color: #d63031; text-decoration: underline; font-weight: bold; } /* Ngữ pháp: Gạch chân Đỏ */
+        .hl-green { color: #00b894; font-weight: bold; } /* Đúng: Xanh lá, đậm */
+        .hl-red { color: #d63031; text-decoration: line-through; margin-right: 5px;} /* Sai: Đỏ sậm gạch ngang */
+        
+        .step-title { font-weight: 800; color: #4a148c; margin-top: 10px; margin-bottom: 5px; display: block;}
+        .correct-ans-display { background: #e8f5e9; color: #1b5e20; font-weight: 800; padding: 10px; border-radius: 8px; margin-top: 10px; border: 1px solid #c8e6c9;}
+
+        /* =========================================
+           7. SUBMIT & MODALS (KEEP PREVIOUS)
+           ========================================= */
+        .submit-container { text-align: center; margin-top: 40px; }
+        .btn-final-submit {
+            background: linear-gradient(135deg, #00C9A7, #00b894);
+            color: white; font-size: 1.25rem; font-weight: 800;
+            padding: 18px 50px; border: none; border-radius: 50px;
+            cursor: pointer; box-shadow: 0 8px 0 #00997a;
+            transition: all 0.2s; text-transform: uppercase;
+            font-family: 'Nunito', sans-serif; letter-spacing: 1px;
+        }
+        .btn-final-submit:hover { transform: translateY(-3px); box-shadow: 0 11px 0 #00997a; }
+        .btn-final-submit:active { transform: translateY(5px); box-shadow: 0 3px 0 #00997a; }
+
+        /* Modals */
+        .modal-overlay {
+            position: fixed; inset: 0; z-index: 10000;
+            background: rgba(0,0,0,0.7); backdrop-filter: blur(8px);
+            display: none; align-items: center; justify-content: center;
+        }
+        .modal-content {
+            background: white; border-radius: 24px; padding: 40px;
+            max-width: 500px; width: 90%; text-align: center;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+        }
+        @keyframes popIn { 0% { transform: scale(0.8); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+        
+        .input-name {
+            width: 100%; padding: 15px; border: 2px solid #bdbdbd;
+            border-radius: 12px; font-size: 1.1rem; margin: 25px 0;
+            font-family: 'Nunito', sans-serif; text-align: center; outline: none;
+        }
+        .input-name:focus { border-color: #ba68c8; }
+        .input-name.error { border-color: #FF4757; animation: shakeEffect 0.3s; }
+        
+        .result-gif { width: 100%; max-width: 280px; border-radius: 15px; margin: 20px auto; display: block; box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
+        .score-text { font-size: 3rem; font-weight: 800; color: #8e24aa; margin: 15px 0; }
+        .greeting-text { font-size: 1.5rem; font-weight: 700; color: #2c3e50; line-height: 1.3; }
+
+        /* =========================================
+           8. PASSCODE STYLES (FROM USER)
+           ========================================= */
+        #passwordModal {
+            position:fixed; inset:0; z-index:9999;
+            display:flex; align-items:center; justify-content:center;
+            background:rgba(5,2,15,0.95); backdrop-filter:blur(20px);
+        }
+        .pw-card {
+            background:linear-gradient(160deg, rgba(40,10,70,0.95) 0%, rgba(15,5,30,0.98) 100%);
+            border:1.5px solid rgba(240,192,64,0.4); border-radius:24px; padding:48px 40px 40px; 
+            max-width:440px; width:93%; text-align:center; position:relative; overflow:hidden;
+            box-shadow:0 0 60px rgba(106,5,114,0.6), 0 0 120px rgba(240,192,64,0.1), inset 0 1px 0 rgba(240,192,64,0.15);
+        }
+        .pw-card::before {
+            content:''; position:absolute; top:0; left:0; right:0; height:3px;
+            background:linear-gradient(90deg, #6A0572, #F0C040, #6A0572);
+        }
+        .pw-crest { font-size:4rem; margin-bottom:8px; display:block; }
+        .pw-title { font-family:'Cinzel', serif; font-size:1.4rem; font-weight:700; color:#F0C040; margin-bottom:6px; letter-spacing:1px; }
+        .pw-sub   { font-size:.87rem; color:rgba(200,200,212,0.6); margin-bottom:24px; }
+        .pw-input {
+            width:100%; padding:13px 20px; border-radius:12px;
+            border:1.5px solid rgba(240,192,64,0.3); background:rgba(255,255,255,0.05);
+            color:#FFE082; font-size:1rem; font-family:'Nunito', sans-serif;
+            outline:none; letter-spacing:3px; text-align:center; transition:all .3s;
+        }
+        .pw-input:focus { border-color:#F0C040; box-shadow:0 0 0 3px rgba(240,192,64,0.15); }
+        .pw-input.error { border-color:#FF4757; box-shadow:0 0 0 3px rgba(255,71,87,0.25); animation:shakeEffect .4s ease; }
+        .pw-input::placeholder { color:rgba(200,200,212,0.3); letter-spacing:1px; }
+        .pw-btn {
+            width:100%; padding:14px; margin-top:14px; border-radius:12px; border:none;
+            background:linear-gradient(135deg, #6A0572 0%, #9B1FA8 40%, #F0C040 100%);
+            color:#fff; font-size:1rem; font-weight:700; font-family:'Cinzel', serif;
+            cursor:pointer; letter-spacing:.5px; transition:transform .2s;
+        }
+        .pw-btn:hover { transform:translateY(-2px); box-shadow:0 8px 32px rgba(106,5,114,0.7); }
+        .pw-err { color:#ff8a9a; font-size:.84rem; margin-top:10px; display:none; font-weight:700; }
+    </style>
+</head>
+<body>
+
+    <div class="bubbles-container" id="bubbles"></div>
+
+    <audio id="welcomeAudio" src="https://hoctienganhcungcomaianulis.github.io/homework/%E1%BA%A2nh_File%20nghe/Sound/export_7wcKV5pKUrQYWyi7XgktJM.mp3"></audio>
+    <audio id="wrongAudio" src="https://hoctienganhcungcomaianulis.github.io/homework/%E1%BA%A2nh_File%20nghe/File%20nghe%20Ket%20A2/huh_sound_effect-www_tiengdong_com.mp3"></audio>
+
+    <div id="passwordModal">
+      <div class="pw-card">
+        <span class="pw-crest">🔒</span>
+        <div class="pw-title">BẢO MẬT</div>
+        <div class="pw-sub">Vui lòng nhập mật khẩu để làm bài</div>
+        <input type="password" class="pw-input" id="pwInput" placeholder="Nhập mật khẩu..." autocomplete="off" />
+        <button class="pw-btn" onclick="checkPassword()">XÁC NHẬN</button>
+        <div class="pw-err" id="pwErr">Mật khẩu không đúng! Vui lòng thử lại.</div>
+      </div>
+    </div>
+
+    <div id="mainContent" style="display: none;">
+        <div class="glass-container">
+            <div class="teacher-header">Giáo viên tạo: Ms Mai An ULIS</div>
+            <div class="main-title">Global English Stage 7<br>Final Term Test</div>
+            
+            <div id="quizContainer"></div>
+            
+            <div class="submit-container">
+                <button class="btn-final-submit" onclick="openNameModal()">🎯 NỘP BÀI & XEM KẾT QUẢ</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="nameModal">
+        <div class="modal-content">
+            <h2 style="color: #6a1b9a; font-weight: 800; margin-bottom: 10px;">TUYỆT VỜI! 🎉</h2>
+            <p style="color: #616161;">Trước khi xem điểm, hãy cho cô biết tên của con nhé:</p>
+            <input type="text" id="studentName" class="input-name" placeholder="Ví dụ: Nguyễn Văn A..." />
+            <button class="btn-final-submit" onclick="submitTest()">XEM KẾT QUẢ NGAY</button>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="resultModal">
+        <div class="modal-content">
+            <div class="greeting-text" id="resGreeting">🌟 HOÀN THÀNH!</div>
+            <img id="resMeme" class="result-gif" src="" alt="Meme" />
+            <div style="font-size: 1.1rem; font-weight: bold; color: #757575;">Điểm số của con:</div>
+            <div class="score-text" id="resScore">0/40</div>
+            <button class="btn-final-submit" style="margin-top: 15px; background: #8e24aa;" onclick="location.reload()">LÀM LẠI BÀI</button>
+        </div>
+    </div>
+
+<script>
+/* =========================================
+   DATA & LOGIC XỬ LÝ
+   ========================================= */
+
+// --- 1. TẠO HIỆU ỨNG BÓNG KHÍ BAY BỔNG ---
+function createBubbles() {
+    const container = document.getElementById('bubbles');
+    const bubbleCount = 30; // Số lượng bóng
+
+    for (let i = 0; i < bubbleCount; i++) {
+        const bubble = document.createElement('div');
+        bubble.classList.add('bubble');
+        
+        // Kích thước ngẫu nhiên 20px - 80px
+        const size = Math.random() * 60 + 20 + 'px';
+        bubble.style.width = size;
+        bubble.style.height = size;
+        
+        // Vị trí ngang ngẫu nhiên
+        bubble.style.left = Math.random() * 100 + '%';
+        
+        // Thời gian animation ngẫu nhiên 8s - 15s
+        bubble.style.animationDuration = Math.random() * 7 + 8 + 's';
+        
+        // Delay ngẫu nhiên để không lên cùng lúc
+        bubble.style.animationDelay = Math.random() * 5 + 's';
+
+        container.appendChild(bubble);
+    }
+}
+createBubbles(); // Chạy ngay
+
+// --- 2. AUDIO & PASSWORD (KEEP/UPDATE) ---
+const AudioContext = window.AudioContext || window.webkitAudioContext;
+let audioCtx;
+
+function playCorrectSound() {
+    if (!audioCtx) audioCtx = new AudioContext();
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(587.33, audioCtx.currentTime); // D5
+    osc.frequency.setValueAtTime(880.00, audioCtx.currentTime + 0.1); // A5
+    gain.gain.setValueAtTime(0.4, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+    osc.start(); osc.stop(audioCtx.currentTime + 0.4);
+}
+
+function playWrongSound() {
+    const w = document.getElementById('wrongAudio');
+    if(w) { w.currentTime = 0; w.play(); }
+}
+
+// Password ẩn
+const _k  = [99, 111, 103, 97, 110, 103, 100, 97, 116, 100, 105, 101, 109, 99, 97, 111]; 
+const _pw = _k.map(c => String.fromCharCode(c)).join('');
+
+function checkPassword() {
+  const inp = document.getElementById('pwInput');
+  const err = document.getElementById('pwErr');
+  if (inp.value === _pw) {
+    document.getElementById('passwordModal').style.display = 'none';
+    document.getElementById('mainContent').style.display = 'block';
+    
+    // Play welcome sound
+    const welcome = document.getElementById('welcomeAudio');
+    if(welcome) { welcome.volume = 0.7; welcome.play(); }
+
+  } else {
+    inp.classList.remove('error'); void inp.offsetWidth; inp.classList.add('error');
+    err.style.display = 'block'; setTimeout(() => inp.classList.remove('error'), 500);
+  }
+}
+document.getElementById('pwInput').addEventListener('keydown', e => { if (e.key==='Enter') checkPassword(); });
+
+// --- 3. CƠ SỞ DỮ LIỆU CÂU HỎI (Hỗ trợ MC và Input) ---
+const quizData = [
+    // PART I: CHOOSE (Keep Multiple Choice)
+    { type: 'mc', part: "PART I. Choose the correct answer", q: "We _____ to the history museum last weekend for our school project.", options: ["go", "are going", "went", "have gone"], ans: "went", exp_vi: "Chúng tôi đã đi đến bảo tàng lịch sử vào cuối tuần trước cho dự án của trường.", exp_opt: "<span class='p-word'>go</span> (<span class='p-mean'>đi - HTĐ</span>), <span class='p-word'>are going</span> (<span class='p-mean'>đang đi - HTTD</span>), <span class='p-word'>went</span> (<span class='p-mean'>đã đi - QKĐ</span>), <span class='p-word'>have gone</span> (<span class='p-mean'>đã đi - HTHT</span>)", exp_right: "Có dấu hiệu <span class='hl-green'>last weekend</span> (cuối tuần trước) -> chia thì <span class='p-grammar'>Quá khứ đơn (V2/ed)</span>.", exp_wrong: "Các thì Hiện tại và Hiện tại hoàn thành <span class='hl-red'>không dùng</span> với mốc thời gian xác định trong quá khứ." },
+    { type: 'mc', q: "The students were completely _____ by the virtual reality science experiment.", options: ["fascinated", "fascinates", "fascinating", "fascinate"], ans: "fascinated", exp_vi: "Các học sinh hoàn toàn bị lôi cuốn bởi thí nghiệm khoa học thực tế ảo.", exp_opt: "<span class='p-word'>fascinated</span> (<span class='p-mean'>bị lôi cuốn - Adj ed</span>), <span class='p-word'>fascinating</span> (<span class='p-mean'>thú vị - Adj ing</span>)", exp_right: "Dùng tính từ đuôi -ed <span class='hl-green'>fascinated</span> để miêu tả <span class='p-grammar'>cảm xúc của con người</span> bị tác động.", exp_wrong: "<span class='hl-red'>fascinating</span> dùng cho tính chất sự vật. Các dạng khác là động từ." },
+    { type: 'mc', q: "You _____ spend so much time scrolling through social media if you want to pass the exam.", options: ["ought to", "should", "have to", "shouldn't"], ans: "shouldn't", exp_vi: "Con không nên dành quá nhiều thời gian lướt mạng xã hội nếu muốn đỗ kỳ thi.", exp_opt: "<span class='p-word'>should</span>/<span class='p-word'>ought to</span> (<span class='p-mean'>nên</span>), <span class='p-word'>have to</span> (<span class='p-mean'>phải</span>), <span class='p-word'>shouldn't</span> (<span class='p-mean'>không nên</span>)", exp_right: "Dựa vào ngữ cảnh để đỗ kỳ thi, lướt MXH là tiêu cực nên dùng lời khuyên phủ định <span class='p-grammar'>shouldn't + V</span>.", exp_wrong: "Các từ khác mang nghĩa khẳng định <span class='hl-red'>sai logic</span> câu." },
+    { type: 'mc', q: "The girl _____ is standing next to the principal is the new transfer student.", options: ["which", "who", "whose", "whom"], ans: "who", exp_vi: "Cô gái người mà đang đứng cạnh thầy hiệu trưởng là học sinh mới chuyển đến.", exp_opt: "<span class='p-word'>which</span> (<span class='p-mean'>vật</span>), <span class='p-word'>who</span> (<span class='p-mean'>người - S</span>), <span class='p-word'>whose</span> (<span class='p-mean'>sở hữu</span>), <span class='p-word'>whom</span> (<span class='p-mean'>người - O</span>)", exp_right: "Đại từ quan hệ thay thế cho 'The girl' (người) và làm chủ ngữ cho động từ 'is standing' -> dùng <span class='hl-green'>who</span>.", exp_wrong: "<span class='hl-red'>which</span> sai vì chỉ vật, <span class='hl-red'>whose/whom</span> không làm chủ ngữ." },
+    { type: 'mc', q: "We usually have a huge family gathering _____ New Year's Eve.", options: ["in", "by", "at", "on"], ans: "on", exp_vi: "Chúng tôi thường có một buổi tụ họp gia đình lớn vào đêm Giao thừa.", exp_opt: "<span class='p-word'>in</span> (<span class='p-mean'>tháng/năm</span>), <span class='p-word'>at</span> (<span class='p-mean'>giờ</span>), <span class='p-word'>on</span> (<span class='p-mean'>ngày/dịp cụ thể</span>)", exp_right: "Với các dịp lễ/ngày cụ thể (có chữ 'Eve' hoặc 'Day'), ta dùng giới từ <span class='p-grammar'>on</span>.", exp_wrong: "Giới từ <span class='hl-red'>in, at</span> không dùng cho ngày/dịp cụ thể." },
+    { type: 'mc', q: "Did you see that _____ sports car driving down the street?", options: ["fast-move", "fast-moving", "moved-fast", "move-fast"], ans: "fast-moving", exp_vi: "Bạn có thấy chiếc xe thể thao di chuyển nhanh đang chạy trên đường không?", exp_opt: "Cụm từ kết hợp <span class='p-word'>fast</span> (nhanh) và <span class='p-word'>move</span> (di chuyển).", exp_right: "Cấu trúc tính từ ghép: <span class='p-grammar'>Adv + V-ing</span> mang nghĩa chủ động -> <span class='hl-green'>fast-moving</span> (đang di chuyển nhanh).", exp_wrong: "Các dạng khác <span class='hl-red'>không đúng cấu trúc</span> tính từ ghép." },
+    { type: 'mc', q: "Please remember to _____ your shoes before entering the computer lab.", options: ["put on", "turn off", "take off", "look after"], ans: "take off", exp_vi: "Vui lòng nhớ cởi giày ra trước khi vào phòng máy tính.", exp_opt: "<span class='p-word'>put on</span> (<span class='p-mean'>đi vào</span>), <span class='p-word'>turn off</span> (<span class='p-mean'>tắt</span>), <span class='p-word'>take off</span> (<span class='p-mean'>cởi ra</span>), <span class='p-word'>look after</span> (<span class='p-mean'>chăm sóc</span>)", exp_right: "Ngữ cảnh yêu cầu bỏ giày -> dùng cụm động từ <span class='hl-green'>take off</span>.", exp_wrong: "<span class='hl-red'>put on</span> trái nghĩa, các từ khác <span class='hl-red'>sai nghĩa hoàn toàn</span>." },
+    { type: 'mc', q: "Has _____ seen my laboratory goggles? I can't find them anywhere.", options: ["anyone", "nothing", "everyone", "someone"], ans: "anyone", exp_vi: "Có ai đã thấy kính bảo hộ phòng thí nghiệm của tôi không? Tôi không thể tìm thấy chúng.", exp_opt: "<span class='p-word'>anyone</span> (<span class='p-mean'>ai đó - nghi vấn</span>), <span class='p-word'>someone</span> (<span class='p-mean'>ai đó - khẳng định</span>)", exp_right: "Trong <span class='p-grammar'>câu hỏi</span> (Has...?), đại từ bất định thường dùng là <span class='hl-green'>anyone</span>.", exp_wrong: "<span class='hl-red'>someone</span> thường dùng câu khẳng định hoặc mời mọc. <span class='hl-red'>nothing/everyone</span> không hợp nghĩa." },
+    { type: 'mc', q: "You _____ bring a towel to the swimming pool; the sports center provides them.", options: ["mustn't", "don't need to", "ought not to", "haven't to"], ans: "don't need to", exp_vi: "Con không cần phải mang khăn tắm đến hồ bơi; trung tâm thể thao có cung cấp chúng.", exp_opt: "<span class='p-word'>mustn't</span> (<span class='p-mean'>cấm</span>), <span class='p-word'>don't need to</span> (<span class='p-mean'>không cần</span>), <span class='p-word'>ought not to</span> (<span class='p-mean'>không nên</span>)", exp_right: "Vì trung tâm có sẵn nên việc mang theo là không cần thiết -> <span class='hl-green'>don't need to</span>.", exp_wrong: "<span class='hl-red'>mustn't</span> sai nghĩa (lệnh cấm). <span class='hl-red'>haven't to</span> sai cấu trúc." },
+    { type: 'mc', q: "The science project application form must _____ before Friday afternoon.", options: ["submit", "submitting", "submitted", "be submitted"], ans: "be submitted", exp_vi: "Mẫu đơn đăng ký dự án khoa học phải được nộp trước chiều thứ Sáu.", exp_opt: "Dạng chủ động/bị động của <span class='p-word'>submit</span> (nộp).", exp_right: "Chủ ngữ là 'form' (vật) nên cần chia <span class='p-grammar'>Bị động với Modal verb: must + be + V-p2</span>.", exp_wrong: "Các dạng <span class='hl-red'>submit, submitting, submitted</span> đứng sau must sai cấu trúc bị động." },
+    { type: 'mc', q: "Even though they practiced together, Tom plays the guitar _____ than his brother.", options: ["better", "well", "more good", "best"], ans: "better", exp_vi: "Mặc dù họ luyện tập cùng nhau, Tom chơi guitar giỏi hơn anh trai mình.", exp_opt: "<span class='p-word'>well</span> (Adv), <span class='p-word'>better</span> (Adv so sánh hơn), <span class='p-word'>best</span> (Adv so sánh nhất)", exp_right: "Có 'than' -> <span class='p-grammar'>so sánh hơn</span>. Trạng từ 'well' chuyển bất quy tắc thành <span class='hl-green'>better</span>.", exp_wrong: "<span class='hl-red'>more good</span> sai ngữ pháp, <span class='hl-red'>best</span> dùng so sánh nhất." },
+    { type: 'mc', q: "Are you still afraid _____ spiders after learning about them in biology class?", options: ["with", "of", "in", "about"], ans: "of", exp_vi: "Con có còn sợ nhện sau khi học về chúng trong lớp sinh học không?", exp_opt: "Các giới từ đi sau tính từ.", exp_right: "Cấu trúc cố định (Collocation): <span class='p-grammar'>afraid + of</span> (sợ cái gì).", exp_wrong: "Các giới từ <span class='hl-red'>with, in, about</span> không đi với afraid." },
+    { type: 'mc', q: "Hurry up and take your seat! The movie has _____ started.", options: ["already", "yet", "just", "since"], ans: "just", exp_vi: "Nhanh lên và ngồi vào chỗ đi! Bộ phim vừa mới bắt đầu.", exp_opt: "<span class='p-word'>already</span> (đã...rồi), <span class='p-word'>yet</span> (chưa), <span class='p-word'>just</span> (vừa mới)", exp_right: "Thì HTHT dùng <span class='hl-green'>just</span> đứng giữa have/has và V-p2 để chỉ hành động <span class='p-grammar'>vừa mới xảy ra</span>.", exp_wrong: "<span class='hl-red'>yet</span> dùng câu phủ định/nghi vấn. <span class='hl-red'>already</span> không hợp ngữ cảnh hối hả này." },
+    { type: 'mc', q: "_____ the weather forecast predicted heavy rain, they still decided to go hiking.", options: ["Because", "So that", "Therefore", "Although"], ans: "Although", exp_vi: "Mặc dù dự báo thời tiết dự đoán có mưa lớn, họ vẫn quyết định đi bộ đường dài.", exp_opt: "<span class='p-word'>Because</span> (Bởi vì), <span class='p-word'>Although</span> (Mặc dù), <span class='p-word'>Therefore</span> (Vì vậy)", exp_right: "Hai vế mang nghĩa tương phản (mưa >< vẫn đi) -> dùng liên từ nhượng bộ <span class='hl-green'>Although</span>.", exp_wrong: "<span class='hl-red'>Because</span> sai logic. <span class='hl-red'>Therefore</span> đứng đầu câu phải có dấu phẩy." },
+    { type: 'mc', q: "It is really important _____ new vocabulary every day to improve your English.", options: ["to practice", "practicing", "practice", "practiced"], ans: "to practice", exp_vi: "Việc thực hành từ vựng mới mỗi ngày để cải thiện tiếng Anh của con là thực sự quan trọng.", exp_opt: "Các dạng động từ đứng sau tính từ.", exp_right: "Cấu trúc chủ ngữ giả: <span class='p-grammar'>It is + adj + to-V</span> -> dùng <span class='hl-green'>to practice</span>.", exp_wrong: "Dùng <span class='hl-red'>V-ing</span> hay <span class='hl-red'>V nguyên thể</span> là sai cấu trúc này." },
+    { type: 'mc', q: "Look at those incredibly dark clouds! It _____ heavily in a few minutes.", options: ["will rain", "is going to rain", "rains", "rained"], ans: "is going to rain", exp_vi: "Nhìn những đám mây đen kịt kìa! Trời sắp mưa to trong vài phút nữa.", exp_opt: "Các thì tương lai.", exp_right: "Có bằng chứng rõ ràng ở hiện tại ('dark clouds') -> dùng <span class='p-grammar'>Tương lai gần (be going to)</span> để dự đoán.", exp_wrong: "<span class='hl-red'>will rain</span> dùng dự đoán không căn cứ. <span class='hl-red'>rains/rained</span> sai thì." },
+    { type: 'mc', q: "This math puzzle is _____ difficult than the one we solved yesterday.", options: ["as", "far", "less more", "far less"], ans: "far less", exp_vi: "Câu đố toán học này ít khó hơn nhiều so với câu chúng ta đã giải hôm qua.", exp_opt: "Các từ nhấn mạnh so sánh.", exp_right: "Dùng 'far' kết hợp 'less' để nhấn mạnh so sánh kém: <span class='p-grammar'>far less + adj dài + than</span>.", exp_wrong: "<span class='hl-red'>less more</span> sai ngữ pháp, <span class='hl-red'>as</span> dùng so sánh bằng." },
+    { type: 'mc', q: "The homeroom teacher encouraged the students _____ actively in the sports competition.", options: ["participating", "participate", "to participate", "participated"], ans: "to participate", exp_vi: "Giáo viên chủ nhiệm đã khuyến khích các học sinh tham gia tích cực vào cuộc thi thể thao.", exp_opt: "Dạng động từ theo sau tân ngữ.", exp_right: "Cấu trúc: <span class='p-grammar'>encourage sb + to-V</span> (khuyến khích ai làm gì).", exp_wrong: "Theo sau encourage tân ngữ <span class='hl-red'>không dùng V-ing</span> hay V nguyên thể." },
+    { type: 'mc', q: "My new laptop, _____ I bought with my savings last month, is already running slowly.", options: ["which", "that", "who", "whose"], ans: "which", exp_vi: "Chiếc máy tính xách tay mới của tôi, cái mà tôi đã mua bằng tiền tiết kiệm tháng trước, đã chạy chậm rồi.", exp_opt: "Đại từ quan hệ.", exp_right: "Mệnh đề quan hệ không xác định (có dấu phẩy) bổ nghĩa cho vật ('laptop') -> chỉ dùng <span class='hl-green'>which</span>.", exp_wrong: "<span class='hl-red'>that</span> không đứng sau dấu phẩy. <span class='hl-red'>who</span> chỉ người." },
+    { type: 'mc', q: "True _____ is hard to find, but it lasts a lifetime.", options: ["friend", "friendship", "friendly", "friendliness"], ans: "friendship", exp_vi: "Tình bạn đích thực thì khó tìm, nhưng nó kéo dài cả đời.", exp_opt: "Word form: <span class='p-word'>friend</span> (N-người), <span class='p-word'>friendship</span> (N-tình bạn), <span class='p-word'>friendly</span> (Adj)", exp_right: "Cần một danh từ trừu tượng làm chủ ngữ chỉ khái niệm -> chọn <span class='hl-green'>friendship</span>.", exp_wrong: "<span class='hl-red'>friend</span> sai nghĩa ngữ cảnh (phải có 'a' hoặc số nhiều). <span class='hl-red'>friendly</span> là tính từ." },
+    
+    // PART II: ĐỂ NGUYÊN CÂU - HS GÕ (Change to 'input' type)
+    { type: 'input', part: "PART II. Give the correct form of the words/verbs in brackets.", raw_q: "I (read) _______________ an interesting article about climate change when the lights suddenly went out.", accept: ["was reading"], exp_vi: "Tôi đang đọc một bài báo thú vị về biến đổi khí hậu thì đèn đột ngột tắt.", exp_opt: "Động từ <span class='p-word'>read</span> (<span class='p-mean'>đọc</span>).", exp_right: "Hành động đang diễn ra (đọc) thì hành động khác cắt ngang (tắt đèn) trong quá khứ -> chia <span class='p-grammar'>Quá khứ tiếp diễn (was/were + V-ing)</span>.", exp_wrong: "Chia Quá khứ đơn <span class='hl-red'>read</span> hay Hiện tại <span class='hl-red'>am reading</span> là sai ngữ cảnh." },
+    { type: 'input', raw_q: "They (not/finish) _______________ their geography presentation yet.", accept: ["haven't finished", "have not finished"], exp_vi: "Họ vẫn chưa hoàn thành bài thuyết trình địa lý của mình.", exp_opt: "Động từ <span class='p-word'>finish</span> (<span class='p-mean'>hoàn thành</span>) dạng phủ định.", exp_right: "Có dấu hiệu <span class='hl-green'>yet</span> ở cuối câu phủ định -> chia thì <span class='p-grammar'>Hiện tại hoàn thành (have/has + V-p2)</span>.", exp_wrong: "Chia Quá khứ đơn <span class='hl-red'>didn't finish</span> là sai dấu hiệu 'yet'." },
+    { type: 'input', raw_q: "Nowadays, thousands of text messages (send) _______________ every second worldwide.", accept: ["are sent"], exp_vi: "Ngày nay, hàng ngàn tin nhắn văn bản được gửi đi mỗi giây trên toàn thế giới.", exp_opt: "Động từ <span class='p-word'>send</span> (<span class='p-mean'>gửi</span>).", exp_right: "Chủ ngữ 'messages' (vật) bị tác động, có 'every second' -> <span class='p-grammar'>Bị động Hiện tại đơn (am/is/are + V-p2)</span>.", exp_wrong: "Chia chủ động <span class='hl-red'>send</span> hay <span class='hl-red'>are sending</span> là sai bản chất câu." },
+    { type: 'input', raw_q: "The famous Sydney Opera House (build) _______________ in the 20th century.", accept: ["was built"], exp_vi: "Nhà hát Opera Sydney nổi tiếng đã được xây dựng vào thế kỷ 20.", exp_opt: "Động từ <span class='p-word'>build</span> (<span class='p-mean'>xây dựng</span>).", exp_right: "Sự việc quá khứ ('in the 20th century') và mang nghĩa bị động -> <span class='p-grammar'>Bị động Quá khứ đơn (was/were + V-p2)</span>.", exp_wrong: "Chia chủ động <span class='hl-red'>built</span> hoặc sai thì <span class='hl-red'>has been built</span>." },
+    { type: 'input', raw_q: "Do you mind (help) _______________ me set up the projector for the meeting?", accept: ["helping"], exp_vi: "Con có phiền giúp cô cài đặt máy chiếu cho cuộc họp không?", exp_opt: "Động từ <span class='p-word'>help</span> (<span class='p-mean'>giúp đỡ</span>).", exp_right: "Cấu trúc lời yêu cầu lịch sự: <span class='p-grammar'>Do/Would you mind + V-ing</span>.", exp_wrong: "Sau mind <span class='hl-red'>không dùng to-V</span> hay V nguyên thể." },
+    { type: 'input', raw_q: "(Swim) _______________ in the ocean is my favorite activity during the summer holidays.", accept: ["Swimming"], exp_vi: "Bơi lội trên đại dương là hoạt động yêu thích của tôi trong kỳ nghỉ hè.", exp_opt: "Động từ <span class='p-word'>swim</span> (<span class='p-mean'>bơi</span>).", exp_right: "Dùng <span class='p-grammar'>Danh động từ (V-ing)</span> làm chủ ngữ chỉ hoạt động -> <span class='hl-green'>Swimming</span>.", exp_wrong: "Dùng động từ nguyên thể <span class='hl-red'>Swim</span> hay quá khứ <span class='hl-red'>Swam</span> làm chủ ngữ là sai." },
+    { type: 'input', raw_q: "She speaks French much (fluent) _______________ than most of her classmates.", accept: ["more fluently"], exp_vi: "Cô ấy nói tiếng Pháp trôi chảy hơn nhiều so với hầu hết các bạn cùng lớp.", exp_opt: "Từ loại của <span class='p-word'>fluent</span> (<span class='p-mean'>trôi chảy</span>).", exp_right: "Bổ nghĩa cho động từ 'speaks' cần trạng từ (adv). Có 'than' -> <span class='p-grammar'>so sánh hơn của trạng từ dài (more + adv)</span> -> <span class='hl-green'>more fluently</span>.", exp_wrong: "Dùng tính từ <span class='hl-red'>fluent</span> hay so sánh tính từ <span class='hl-red'>more fluent</span> là sai." },
+    { type: 'input', raw_q: "We decided (stay) _______________ at home and play Blooket instead of going out.", accept: ["to stay"], exp_vi: "Chúng tôi đã quyết định ở nhà và chơi Blooket thay vì ra ngoài.", exp_opt: "Động từ <span class='p-word'>stay</span> (<span class='p-mean'>ở lại</span>).", exp_right: "Cấu trúc cố định: <span class='p-grammar'>decide + to-V</span> (quyết định làm gì).", exp_wrong: "Theo sau decide <span class='hl-red'>không dùng V-ing</span> staying." },
+    { type: 'input', raw_q: "J.K. Rowling is a (well-know) _______________ author around the world.", accept: ["well-known"], exp_vi: "J.K. Rowling là một tác giả nổi tiếng trên toàn thế giới.", exp_opt: "Cụm từ <span class='p-word'>well-know</span>.", exp_right: "Tạo tính từ ghép <span class='p-grammar'>Adv + V-p2</span> mang nghĩa bị động/nổi tiếng -> <span class='hl-green'>well-known</span>.", exp_wrong: "Viết <span class='hl-red'>well-know</span> (thiếu n) hay <span class='hl-red'>well-knowing</span> là sai." },
+    { type: 'input', raw_q: "The young firefighter showed great (brave) _______________ during the rescue operation.", accept: ["bravery"], exp_vi: "Người lính cứu hỏa trẻ tuổi đã thể hiện sự dũng cảm to lớn trong suốt chiến dịch cứu hộ.", exp_opt: "Từ loại của <span class='p-word'>brave</span> (<span class='p-mean'>dũng cảm</span>).", exp_right: "Sau tính từ 'great' cần một <span class='p-grammar'>Danh từ</span> -> chuyển brave thành danh từ trừu tượng <span class='hl-green'>bravery</span> (sự dũng cảm).", exp_wrong: "Dùng tính từ <span class='hl-red'>brave</span> hay trạng từ <span class='hl-red'>bravely</span> là sai vị trí." },
+
+    // PART III: ĐỂ NGUYÊN - HS GÕ CẢ CÂU (Change to 'input' type)
+    { type: 'input', part: "PART III. Complete the second sentence so that it has a similar meaning. Use the word in brackets.", raw_q: "A smartphone is not as expensive as a high-end gaming laptop. (MORE)<br>→ ______________________________________________________________________.", accept: ["A high-end gaming laptop is more expensive than a smartphone"], exp_vi: "Một chiếc điện thoại thông minh thì không đắt bằng một chiếc laptop chơi game cấu hình cao.", exp_core: "Viết lại câu <span class='p-grammar'>so sánh không bằng -> so sánh hơn</span>.", exp_right: "Laptop đắt hơn điện thoại -> <span class='hl-green'>A high-end gaming laptop is more expensive than a smartphone</span>.", exp_wrong: "Viết ngược nghĩa <span class='hl-red'>Smartphone is more expensive...</span> là sai." },
+    { type: 'input', raw_q: "People should plant more trees in the city center to reduce pollution. (BE)<br>→ ______________________________________________________________________.", accept: ["More trees should be planted in the city center to reduce pollution"], exp_vi: "Mọi người nên trồng nhiều cây hơn ở trung tâm thành phố để giảm thiểu ô nhiễm.", exp_core: "Chuyển câu <span class='p-grammar'>chủ động -> bị động với Should</span>.", exp_right: "Cây nên được trồng -> <span class='hl-green'>More trees should be planted...</span> (should be + Vp2).", exp_wrong: "Viết <span class='hl-red'>should be plant</span> (thiếu ed) là sai." },
+    { type: 'input', raw_q: "The book is very interesting. I borrowed it from the school library yesterday. (WHICH)<br>→ ______________________________________________________________________.", accept: ["The book which I borrowed from the school library yesterday is very interesting", "The book which I borrowed yesterday from the school library is very interesting"], exp_vi: "Cuốn sách rất thú vị. Tôi đã mượn nó từ thư viện trường hôm qua.", exp_core: "Nối câu dùng <span class='p-grammar'>Mệnh đề quan hệ</span> thay cho 'it'.", exp_right: "Sách cái mà tôi mượn -> <span class='hl-green'>The book which I borrowed from...</span> (bỏ 'it').", exp_wrong: "Vẫn giữ lại <span class='hl-red'>borrowed it</span> là lỗi phổ biến." },
+    { type: 'input', raw_q: "He missed the school bus because of the heavy rain. (AS)<br>→ ______________________________________________________________________.", accept: ["As it rained heavily, he missed the school bus", "He missed the school bus as it rained heavily"], exp_vi: "Cậu ấy bị lỡ chuyến xe buýt của trường vì cơn mưa lớn.", exp_core: "Chuyển từ <span class='p-grammar'>Because of + Cụm danh từ -> As + Mệnh đề</span> chỉ nguyên nhân.", exp_right: "Vì trời mưa to -> <span class='hl-green'>As it rained heavily, ...</span>.", exp_wrong: "Viết <span class='hl-red'>As the heavy rain</span> là sai ngữ pháp (As + clause)." },
+    { type: 'input', raw_q: "It is necessary for all students to wear a helmet when riding an e-bike. (HAVE)<br>→ ______________________________________________________________________.", accept: ["All students have to wear a helmet when riding an e-bike"], exp_vi: "Việc tất cả học sinh đội mũ bảo hiểm khi đi xe đạp điện là điều cần thiết.", exp_core: "Chuyển từ <span class='p-grammar'>It is necessary for sb to-V -> Sb + have to + V</span> (bắt buộc).", exp_right: "Học sinh phải đội -> <span class='hl-green'>All students have to wear...</span>.", exp_wrong: "Viết thiếu 'to' <span class='hl-red'>have wear</span> là sai." },
+    { type: 'input', raw_q: "The last time I saw my best friend was in 2022. (SINCE)<br>→ ______________________________________________________________________.", accept: ["I haven't seen my best friend since 2022", "I have not seen my best friend since 2022"], exp_vi: "Lần cuối cùng tôi gặp người bạn thân nhất của mình là vào năm 2022.", exp_core: "Chuyển từ <span class='p-grammar'>Quá khứ đơn -> Hiện tại hoàn thành phủ định</span> với Since.", exp_right: "Tôi đã không gặp... kể từ... -> <span class='hl-green'>I haven't seen... since 2022</span>.", exp_wrong: "Dùng thì quá khứ <span class='hl-red'>didn't see</span> với since là sai." },
+    { type: 'input', raw_q: "Mr. Smith is our new English teacher. His son is studying in my class. (WHOSE)<br>→ ______________________________________________________________________.", accept: ["Mr. Smith, whose son is studying in my class, is our new English teacher", "Mr. Smith is our new English teacher whose son is studying in my class"], exp_vi: "Ông Smith là giáo viên tiếng Anh mới của chúng tôi. Con trai của ông ấy đang học trong lớp của tôi.", exp_core: "Dùng <span class='p-grammar'>Mệnh đề quan hệ chỉ sở hữu whose</span> thay cho 'His'.", exp_right: "Mr. Smith, người có con trai... -> <span class='hl-green'>Mr. Smith, whose son...</span>.", exp_wrong: "Viết <span class='hl-red'>whose his son</span> là lặp từ, sai." },
+    { type: 'input', raw_q: "I am studying really hard. I want to get a high score on the final exam. (THAT)<br>→ ______________________________________________________________________.", accept: ["I am studying really hard so that I can get a high score on the final exam", "I am studying really hard that I can get a high score on the final exam"], exp_vi: "Tôi đang học rất chăm chỉ. Tôi muốn đạt điểm cao trong kỳ thi cuối kỳ.", exp_core: "Nối câu chỉ mục đích dùng <span class='p-grammar'>so that + mệnh đề</span>.", exp_right: "... để mà tôi có thể -> <span class='hl-green'>... so that I can get...</span>.", exp_wrong: "Chỉ dùng <span class='hl-red'>that</span> không đủ cấu trúc." },
+    { type: 'input', raw_q: "She really likes reading comic books in her free time. (INTERESTED)<br>→ ______________________________________________________________________.", accept: ["She is interested in reading comic books in her free time", "She is very interested in reading comic books in her free time"], exp_vi: "Cô ấy thực sự thích đọc truyện tranh trong thời gian rảnh rỗi.", exp_core: "Chuyển <span class='p-grammar'>like V-ing -> be interested in V-ing</span>.", exp_right: "Cô ấy thích -> <span class='hl-green'>She is interested in reading...</span>.", exp_wrong: "Thiếu tobe <span class='hl-red'>She interested</span> hoặc sai giới từ." },
+    { type: 'input', raw_q: "At 8 PM yesterday, my brother was doing his homework. My sister was playing the piano. (WHILE)<br>→ ______________________________________________________________________.", accept: ["While my brother was doing his homework at 8 PM yesterday, my sister was playing the piano", "My brother was doing his homework at 8 PM yesterday while my sister was playing the piano", "My sister was playing the piano while my brother was doing his homework at 8 PM yesterday"], exp_vi: "Vào lúc 8 giờ tối hôm qua, anh trai tôi đang làm bài tập. Chị gái tôi đang chơi piano.", exp_core: "Nối hành động song song quá khứ dùng <span class='p-grammar'>While + Quá khứ tiếp diễn</span>.", exp_right: "Trong khi anh đang làm... thì chị đang chơi... -> chia cả 2 vế QKTD.", exp_wrong: "Chia một vế quá khứ đơn <span class='hl-red'>played</span> là sai." }
+];
+
+// Trộn mảng (cho Phần I)
+function shuffleArray(array) {
+    let copy = [...array];
+    for (let i = copy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+    }
+    return copy;
+}
+
+let currentScore = 0;
+let answeredCount = 0;
+const totalQuestions = quizData.length;
+
+// --- 4. RENDER GIAO DIỆN BÀI LÀM ---
+function renderQuiz() {
+    const container = document.getElementById('quizContainer');
+    let html = '';
+
+    quizData.forEach((item, index) => {
+        let partHtml = item.part ? `<div class="part-header">${item.part}</div>` : '';
+        
+        // --- HIỂN THỊ CÂU HỎI TRẮC NGHIỆM (PART I) ---
+        if (item.type === 'mc') {
+            let shuffOptions = shuffleArray(item.options);
+            let optsHtml = shuffOptions.map(opt => {
+                const isCor = (opt === item.ans);
+                return `<button class="option-btn" onclick="checkMcAns(this, ${isCor}, ${index})">${opt}</button>`;
+            }).join('');
+
+            html += `
+                ${partHtml}
+                <div class="question-card" id="qCard_${index}">
+                    <div class="question-text">Q${index + 1}: ${item.q}</div>
+                    <div class="options-grid" id="grid_${index}">
+                        ${optsHtml}
+                    </div>
+                    <div class="explanation-box" id="exp_${index}">
+                        <div class="translation-box">Dịch câu: ${item.exp_vi}</div>
+                        <span class="step-title">1. Phân tích các đáp án:</span>
+                        <div>${item.exp_opt}</div>
+                        <span class="step-title">2. Tại sao chọn đáp án này?</span>
+                        <div>${item.exp_right}</div>
+                        <span class="step-title">3. Tại sao các đáp án khác sai?</span>
+                        <div>${item.exp_wrong}</div>
+                    </div>
+                </div>
+            `;
+        } 
+        // --- HIỂN THỊ CÂU HỎI NHẬP LIỆU (PART II & III - ĐỂ NGUYÊN CÂU) ---
+        else if (item.type === 'input') {
+            html += `
+                ${partHtml}
+                <div class="question-card" id="qCard_${index}">
+                    <div class="question-text">Q${index + 1}: ${item.raw_q}</div>
+                    <div class="input-wrapper" id="inputWrap_${index}">
+                        <input type="text" class="quiz-input" id="input_${index}" placeholder="Gõ câu trả lời của con vào đây..." autocomplete="off">
+                        <button class="btn-check" id="btnCheck_${index}" onclick="checkInputAns(${index})">Kiểm tra</button>
+                    </div>
+                    <div class="explanation-box" id="exp_${index}">
+                        <div class="translation-box">Dịch câu: ${item.exp_vi}</div>
+                        <span class="step-title">1. Phân tích ngữ pháp:</span>
+                        <div>${item.exp_core || item.exp_opt}</div>
+                        <span class="step-title">2. Giải thích chi tiết:</span>
+                        <div>${item.exp_right}</div>
+                        ${item.exp_wrong ? `<span class='step-title'>3. Lỗi sai cần tránh:</span><div>${item.exp_wrong}</div>` : ''}
+                        <div class="correct-ans-display">Đáp án đúng: ${item.accept[0]}</div>
+                    </div>
+                </div>
+            `;
+        }
+    });
+    container.innerHTML = html;
+}
+
+// --- 5. LOGIC CHẤM ĐIỂM TỨC THÌ ---
+
+// Chấm Trắc nghiệm (Part I)
+function checkMcAns(btn, isCorrect, qIndex) {
+    const grid = document.getElementById(`grid_${qIndex}`);
+    const card = document.getElementById(`qCard_${qIndex}`);
+    const allBtns = grid.querySelectorAll('.option-btn');
+    
+    // Khóa nút
+    allBtns.forEach(b => b.disabled = true);
+
+    if (isCorrect) {
+        btn.classList.add('correct');
+        currentScore++;
+        playCorrectSound();
+        confetti({ particleCount: 60, spread: 50, origin: { y: 0.7 }, colors: ['#ba68c8', '#00D26A', '#fff'] });
+    } else {
+        btn.classList.add('wrong');
+        card.classList.add('shake'); // Rung cả thẻ câu hỏi
+        playWrongSound();
+        // Hiện đáp án đúng
+        allBtns.forEach(b => {
+            if (b.innerText === quizData[qIndex].ans) b.classList.add('correct');
+        });
+        setTimeout(() => card.classList.remove('shake'), 400);
+    }
+
+    answeredCount++;
+    // Hiện giải thích
+    document.getElementById(`exp_${qIndex}`).style.display = 'block';
+}
+
+// Chấm Nhập liệu (Part II & III)
+function checkInputAns(qIndex) {
+    const input = document.getElementById(`input_${qIndex}`);
+    const btnCheck = document.getElementById(`btnCheck_${qIndex}`);
+    const card = document.getElementById(`qCard_${qIndex}`);
+    const data = quizData[qIndex];
+
+    // Lấy nội dung, viết thường, bỏ khoảng trắng đầu cuối, bỏ dấu chấm cuối câu (nếu hs gõ thừa)
+    let userAns = input.value.trim().toLowerCase().replace(/\.$/, '');
+    
+    if (userAns === "") {
+        input.classList.add('shake');
+        input.style.borderColor = "#FF9800";
+        setTimeout(() => { input.classList.remove('shake'); input.style.borderColor = ""; }, 400);
+        return; // Không làm gì nếu bỏ trống
+    }
+
+    // Khóa input và nút
+    input.disabled = true;
+    btnCheck.disabled = true;
+
+    // Chuẩn hóa mảng đáp án chấp nhận được
+    let acceptableAnswers = data.accept.map(a => a.trim().toLowerCase().replace(/\.$/, ''));
+
+    if (acceptableAnswers.includes(userAns)) {
+        // ĐÚNG
+        input.classList.add('correct-input');
+        currentScore++;
+        playCorrectSound();
+        confetti({ particleCount: 50, spread: 40, origin: { y: 0.7 } });
+    } else {
+        // SAI
+        input.classList.add('wrong-input');
+        card.classList.add('shake');
+        playWrongSound();
+        setTimeout(() => card.classList.remove('shake'), 400);
+    }
+
+    answeredCount++;
+    // Hiện giải thích
+    document.getElementById(`exp_${qIndex}`).style.display = 'block';
+}
+
+// --- 6. SUBMIT & MÀN HÌNH KẾT QUẢ ---
+function openNameModal() {
+    if(answeredCount < totalQuestions) {
+        if(!confirm(`Con mới làm được ${answeredCount}/${totalQuestions} câu. Vẫn muốn nộp bài chứ?`)) return;
+    }
+    document.getElementById('nameModal').style.display = 'flex';
+    document.getElementById('studentName').focus();
+}
+
+function submitTest() {
+    const nameInput = document.getElementById('studentName');
+    const name = nameInput.value.trim();
+    
+    if (name === "") {
+        nameInput.classList.add('error');
+        nameInput.focus();
+        setTimeout(() => nameInput.classList.remove('error'), 400);
+        return;
+    }
+
+    document.getElementById('nameModal').style.display = 'none';
+    showResults(name);
+}
+
+function showResults(playerName) {
+    const modal = document.getElementById('resultModal');
+    const greeting = document.getElementById('resGreeting');
+    const scoreDisp = document.getElementById('resScore');
+    const meme = document.getElementById('resMeme');
+
+    scoreDisp.innerText = `${currentScore} / ${totalQuestions}`;
+    
+    const percentage = (currentScore / totalQuestions) * 100;
+
+    // Phân loại kết quả và hiển thị Meme/Lời chào (Blooket style)
+    if (percentage === 100) {
+        greeting.innerText = `🏆 THIÊN TÀI Tiếng Anh! ${playerName} tuyệt đối xuất sắc!`;
+        meme.src = "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExdWd0NzZ0Ym95b3NxYnh3YWxtYXY1amM4OXV5ZXFubTBrM3BvcmV4MCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zy4xMU5OWTNROHREbXpX/giphy.gif"; // Kid celebrating
+    } else if (percentage >= 80) {
+        greeting.innerText = `🌟 Siêu sao! ${playerName} làm bài rất giỏi!`;
+        meme.src = "https://media.giphy.com/media/3o7abKhOpu0NwenH3O/giphy.gif"; // Minion cheering
+    } else if (percentage >= 60) {
+        greeting.innerText = `👍 Tốt lắm ${playerName}! Cố gắng phát huy nhé!`;
+        meme.src = "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExM2UzZzh1YmI0NXp1OWN5Z3NoYmZpYmEzeWphZ3d4ODF6YmE1Z3A4MyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zy4xM0NSRjk5Q09SN09v/giphy.gif"; // Spongebob thumbs up
+    } else {
+        greeting.innerText = `💪 Cố lên ${playerName}! Ôn tập lại và làm lại nhé!`;
+        meme.src = "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExM3Vxd3MwaG5oNDZ4NTRmY3V4ZWZpZWltZWhhYmRtOGd0Mnd4YmFpcyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zy4yNndrSzhERjhPV055Lgiphy.gif"; // Sad puppy/Never give up
+    }
+
+    modal.style.display = 'flex';
+    
+    // Bắn pháo hoa ăn mừng lớn nếu điểm cao
+    if(percentage >= 80) {
+        setTimeout(() => confetti({ particleCount: 150, spread: 100, origin: { y: 0.6 } }), 300);
+    }
+}
+
+// Khởi tạo
+window.onload = function() {
+    renderQuiz();
+};
+
+</script>
+</body>
+</html>

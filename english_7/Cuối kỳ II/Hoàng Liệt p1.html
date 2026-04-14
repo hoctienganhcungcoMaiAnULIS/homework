@@ -1,0 +1,1029 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>English Quiz – Ms Mai An ULIS</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ocean-deep:#023E8A; --ocean-mid:#0077B6; --ocean-teal:#00B4D8;
+  --sand:#FFD166; --coral:#FF6B6B; --seagreen:#06D6A0;
+  --glass:rgba(255,255,255,0.18); --glass-b:rgba(255,255,255,0.42);
+  --text:#fff; --correct:#00D26A; --wrong:#FF4757;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Nunito',sans-serif; min-height:100vh; color:#fff; overflow-x:hidden; }
+
+/* ──────────────── MÀU LOANG CỐ ĐỊNH ──────────────── */
+.bg-anim {
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  background: linear-gradient(-45deg, #023E8A, #0077B6, #00B4D8, #06D6A0, #48CAE4, #0096C7, #FFD166, #00B4D8);
+  background-size: 600% 600%;
+  animation: oceanFlow 18s ease infinite;
+}
+@keyframes oceanFlow { 0%,100% {background-position:0% 50%} 50% {background-position:100% 50%} }
+
+/* ──────────────── HIỆU ỨNG BỌT BIỂN BAY BAY ──────────────── */
+#sea-layer { position:fixed; inset:0; pointer-events:none; z-index:-1; overflow:hidden; }
+.bubble {
+  position: absolute;
+  bottom: -50px;
+  background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.1) 60%);
+  border-radius: 50%;
+  animation: floatUp infinite ease-in;
+  box-shadow: inset 0 0 10px rgba(255,255,255,0.3);
+}
+@keyframes floatUp {
+  0% { transform: translateY(0) scale(1) translateX(0); opacity: 0.8; }
+  50% { transform: translateY(-55vh) scale(1.2) translateX(15px); opacity: 0.5; }
+  100% { transform: translateY(-110vh) scale(1.5) translateX(-15px); opacity: 0; }
+}
+
+/* ──────────────── CÁC THÀNH PHẦN QUIZ ──────────────── */
+.quiz-wrap { position:relative; z-index:1; max-width:880px; margin:0 auto; padding:18px 14px 70px; }
+.hdr { text-align:center; padding:14px 20px 12px; background:var(--glass); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px); border:1.5px solid var(--glass-b); border-radius:20px; margin-bottom:22px; box-shadow:0 8px 32px rgba(0,0,0,.18); }
+.hdr-title { font-size:1.45rem; font-weight:900; color:#fff; text-shadow:0 2px 8px rgba(0,0,0,.35); margin-bottom:3px; }
+.hdr-sub { font-size:.82rem; color:rgba(255,255,255,.88); font-weight:700; }
+.sec-hdr { background:rgba(255,255,255,.22); backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px); border:1.5px solid rgba(255,255,255,.5); border-radius:15px; padding:11px 18px; margin:28px 0 14px; text-align:center; }
+.sec-title { font-size:1rem; font-weight:900; color:var(--sand); letter-spacing:1px; text-shadow:0 2px 4px rgba(0,0,0,.3); }
+.sec-instr { font-size:.84rem; color:rgba(255,255,255,.92); font-weight:600; margin-top:4px; font-style:italic; }
+.q-card { background:var(--glass); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); border:1.5px solid var(--glass-b); border-radius:20px; padding:20px 22px; margin-bottom:18px; box-shadow:0 8px 32px rgba(2,62,138,.22); transition:transform .2s; }
+.q-card:hover { transform:translateY(-2px); }
+.q-num { display:inline-block; background:linear-gradient(135deg,#FFD166,#FF6B6B); color:#fff; font-size:.75rem; font-weight:800; padding:3px 12px; border-radius:20px; margin-bottom:9px; text-shadow:0 1px 3px rgba(0,0,0,.3); }
+.q-text { font-size:1.12rem; font-weight:700; color:#fff; text-shadow:0 1px 4px rgba(0,0,0,.3); margin-bottom:14px; line-height:1.55; }
+.q-context { background:rgba(255,209,102,.2); border:2px solid rgba(255,209,102,.45); border-radius:10px; padding:9px 14px; margin-bottom:10px; font-size:.93rem; color:rgba(255,255,255,.95); font-style:italic; font-weight:700; }
+.q-context span { color:#FFD166; font-weight:900; }
+.q-sentences { background:rgba(255,255,255,.1); border-radius:10px; padding:9px 14px; margin-bottom:11px; font-size:.9rem; color:rgba(255,255,255,.92); line-height:1.85; }
+.opts { display:grid; grid-template-columns:1fr 1fr; gap:11px; }
+@media(max-width:560px) { .opts{grid-template-columns:1fr;} }
+.opt { background:rgba(255,255,255,.22); border:2px solid rgba(255,255,255,.4); border-radius:16px; padding:13px 14px; cursor:pointer; font-family:'Nunito',sans-serif; font-size:1.06rem; font-weight:700; color:#fff; text-align:center; line-height:1.4; box-shadow:0 6px 0 rgba(0,0,50,.22); transition:transform .15s,background .15s,box-shadow .15s; text-shadow:0 1px 3px rgba(0,0,0,.3); position:relative; top:0; }
+.opt:hover:not([disabled]) { transform:scale(1.04) translateY(-3px); background:rgba(255,255,255,.34); box-shadow:0 9px 0 rgba(0,0,50,.22); }
+.opt:active:not([disabled]) { top:4px; box-shadow:0 2px 0 rgba(0,0,50,.22); transform:scale(1); }
+.opt.correct { background:#00D26A!important; border-color:#00a854!important; box-shadow:0 6px 0 #006b34!important; color:#fff!important; }
+.opt.wrong { background:#FF4757!important; border-color:#cc2233!important; box-shadow:0 6px 0 #991a27!important; color:#fff!important; animation:shake .4s ease; }
+.opt.dim { opacity:.55; cursor:not-allowed; }
+
+/* ──────────────── Ô GIẢI THÍCH ──────────────── */
+.expl {
+  display: none;
+  margin-top: 15px;
+  background: rgba(0, 15, 30, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-left: 5px solid var(--sand);
+  border-radius: 12px;
+  padding: 18px 20px;
+  font-size: .95rem;
+  color: #f1f5f9;
+  line-height: 1.75;
+  box-shadow: inset 0 0 20px rgba(0,0,0,0.5), 0 5px 15px rgba(0,0,0,0.3);
+  animation: slideD .3s ease;
+}
+.expl.show { display: block; }
+@keyframes slideD { from { opacity:0; transform:translateY(-8px); } to { opacity:1; transform:translateY(0); } }
+.expl-title { font-size:1rem; font-weight:900; color:var(--sand); margin-bottom:12px; display:flex; align-items:center; gap:7px; letter-spacing:0.5px; }
+.vi-box { background:rgba(255,165,89,.15); border:1px dashed rgba(255,165,89,.6); border-radius:8px; padding:9px 14px; margin:10px 0; font-weight:700; color:#FFE8D0; font-size:.9rem; }
+.expl ul { padding-left:20px; margin:8px 0; }
+.expl li { margin-bottom:6px; }
+.p-word { color:#7DD3FC; font-weight:800; font-size: 1.05em; }
+.p-phonetic { color:#C4B5FD; background:rgba(139,92,246,.25); padding:2px 6px; border-radius:4px; font-style:italic; }
+.p-mean { color:#FCA5A5; font-weight:700; }
+.p-grammar { text-decoration:underline wavy #EF4444; color:#FCA5A5; font-weight:700; }
+.hl-green { color:#86EFAC; font-weight:900; background:rgba(134, 239, 172, 0.15); padding: 2px 4px; border-radius: 4px; }
+.hl-red { color:#FCA5A5; text-decoration:line-through; }
+
+/* ──────────────── NÚT & MODAL KẾT QUẢ ──────────────── */
+.sub-area { text-align:center; margin-top:38px; padding:18px; }
+.sub-btn { background:linear-gradient(135deg,#FFD166,#FF6B6B); border:none; border-radius:25px; padding:17px 46px; font-family:'Nunito',sans-serif; font-size:1.15rem; font-weight:900; color:#fff; cursor:pointer; box-shadow:0 8px 0 rgba(0,0,0,.3),0 15px 30px rgba(0,0,0,.22); transition:all .15s; text-shadow:0 2px 4px rgba(0,0,0,.3); }
+.sub-btn:hover { transform:translateY(-4px); box-shadow:0 12px 0 rgba(0,0,0,.3),0 20px 35px rgba(0,0,0,.25); }
+.sub-btn:active { transform:translateY(4px); box-shadow:0 4px 0 rgba(0,0,0,.3); }
+.modal-ov { display:none; position:fixed; inset:0; background:rgba(0,10,30,.85); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); z-index:1000; align-items:center; justify-content:center; padding:18px; }
+.modal-ov.show { display:flex; }
+.modal-box { background:linear-gradient(135deg,rgba(0,119,182,.95),rgba(2,62,138,.98)); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); border:2px solid rgba(255,255,255,.42); border-radius:24px; padding:32px 36px; max-width:480px; width:100%; text-align:center; box-shadow:0 25px 60px rgba(0,0,0,.6); animation:popIn .4s cubic-bezier(.34,1.56,.64,1); }
+@keyframes popIn { from { transform:scale(.5) translateY(30px); opacity:0; } to { transform:scale(1) translateY(0); opacity:1; } }
+.m-title { font-size:1.35rem; font-weight:900; color:var(--sand); margin-bottom:18px; text-shadow:0 2px 6px rgba(0,0,0,.3); }
+.name-inp { width:100%; padding:13px 16px; border:2px solid rgba(255,255,255,.4); border-radius:12px; background:rgba(255,255,255,.15); color:#fff; font-family:'Nunito',sans-serif; font-size:.98rem; font-weight:700; outline:none; margin-bottom:7px; transition:border-color .2s; }
+.name-inp::placeholder { color:rgba(255,255,255,.5); }
+.name-inp.err { border-color:#FF4757; }
+.err-msg { color:#FF8094; font-size:.82rem; font-weight:700; display:none; margin-bottom:9px; }
+.err-msg.show { display:block; }
+.m-btn { background:linear-gradient(135deg,#06D6A0,#0096C7); border:none; border-radius:12px; padding:13px 32px; font-family:'Nunito',sans-serif; font-size:.98rem; font-weight:800; color:#fff; cursor:pointer; box-shadow:0 5px 0 rgba(0,0,0,.28); margin-top:8px; transition:all .15s; }
+.m-btn:hover { transform:translateY(-3px); box-shadow:0 8px 0 rgba(0,0,0,.28); }
+.res-greet { font-size:1.4rem; font-weight:900; color:var(--sand); margin-bottom:12px; }
+.res-score { font-size:2.8rem; font-weight:900; color:#fff; margin:16px 0; text-shadow:0 4px 10px rgba(0,0,0,.4); }
+.res-meme { width:200px; height:148px; border-radius:14px; margin:12px auto; display:block; object-fit:cover; border:3px solid rgba(255,255,255,.4); }
+.retry-btn { background:linear-gradient(135deg,#FFD166,#FF6B6B); border:none; border-radius:12px; padding:13px 32px; font-family:'Nunito',sans-serif; font-size:.98rem; font-weight:800; color:#fff; cursor:pointer; box-shadow:0 5px 0 rgba(0,0,0,.28); margin-top:14px; transition:all .15s; }
+.retry-btn:hover { transform:translateY(-3px); }
+.cft { position:fixed; width:10px; height:10px; border-radius:2px; animation:cftFall linear forwards; z-index:9999; pointer-events:none; }
+@keyframes cftFall { 0% { transform:translateY(-20px) rotate(0deg); opacity:1; } 100% { transform:translateY(100vh) rotate(720deg); opacity:0; } }
+.prog-wrap { background:rgba(255,255,255,.18); border-radius:10px; height:5px; margin:12px 0; overflow:hidden; box-shadow:inset 0 1px 3px rgba(0,0,0,.3); }
+.prog-bar { background:linear-gradient(90deg,#06D6A0,#FFD166); height:100%; border-radius:10px; transition:width .5s ease; width:0%; }
+
+/* ──────────────── MÀN HÌNH KHÓA (PASSWORD MODAL) ──────────────── */
+#passwordModal {
+  position: fixed; inset: 0; z-index: 9999;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(5,2,15,0.92); backdrop-filter: blur(20px);
+}
+.pw-card {
+  background: linear-gradient(160deg, rgba(40,10,70,0.95) 0%, rgba(15,5,30,0.98) 100%);
+  border: 1.5px solid rgba(240,192,64,0.4); border-radius: 24px; padding: 48px 40px 40px; 
+  max-width: 440px; width: 93%; text-align: center; position: relative; overflow: hidden;
+  box-shadow: 0 0 60px rgba(106,5,114,0.6), 0 0 120px rgba(240,192,64,0.1), inset 0 1px 0 rgba(240,192,64,0.15);
+}
+.pw-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  background: linear-gradient(90deg, #6A0572, #F0C040, #6A0572);
+}
+.pw-crest { font-size: 4rem; margin-bottom: 8px; display: block; }
+.pw-title { font-family: 'Cinzel', serif; font-size: 1.4rem; font-weight: 700; color: #F0C040; margin-bottom: 6px; letter-spacing: 1px; }
+.pw-sub   { font-size: .87rem; color: rgba(200,200,212,0.6); margin-bottom: 24px; }
+.pw-input {
+  width: 100%; padding: 13px 20px; border-radius: 12px;
+  border: 1.5px solid rgba(240,192,64,0.3); background: rgba(255,255,255,0.05);
+  color: #FFE082; font-size: 1rem; font-family: 'Nunito', sans-serif;
+  outline: none; letter-spacing: 3px; text-align: center; transition: all .3s;
+}
+.pw-input:focus { border-color: #F0C040; box-shadow: 0 0 0 3px rgba(240,192,64,0.15); }
+.pw-input.error { border-color: #FF4757; box-shadow: 0 0 0 3px rgba(255,71,87,0.25); animation: shake .4s ease; }
+.pw-input::placeholder { color: rgba(200,200,212,0.3); letter-spacing: 1px; }
+.pw-btn {
+  width: 100%; padding: 14px; margin-top: 14px; border-radius: 12px; border: none;
+  background: linear-gradient(135deg, #6A0572 0%, #9B1FA8 40%, #F0C040 100%);
+  color: #fff; font-size: 1rem; font-weight: 700; font-family: 'Cinzel', serif;
+  cursor: pointer; letter-spacing: .5px; transition: transform .2s;
+}
+.pw-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(106,5,114,0.7); }
+.pw-err { color: #ff8a9a; font-size: .84rem; margin-top: 10px; display: none; font-weight: 700; }
+@keyframes shake { 0%,100%{transform:translateX(0)} 15%,45%,75%{transform:translateX(-6px)} 30%,60%,90%{transform:translateX(6px)} }
+</style>
+</head>
+<body>
+
+<div class="bg-anim"></div>
+<div id="sea-layer"></div>
+
+<div id="passwordModal">
+  <div class="pw-card">
+    <span class="pw-crest">🔒</span>
+    <div class="pw-title">BẢO MẬT</div>
+    <div class="pw-sub">Vui lòng nhập mật khẩu để làm bài</div>
+    <input type="password" class="pw-input" id="pwInput" placeholder="Nhập mật khẩu..." autocomplete="off" />
+    <button class="pw-btn" onclick="checkPassword()">XÁC NHẬN</button>
+    <div class="pw-err" id="pwErr">Mật khẩu không đúng! Vui lòng thử lại.</div>
+  </div>
+</div>
+
+<div id="mainContent" style="display: none;">
+  <div class="quiz-wrap">
+    <div class="hdr">
+      <div class="hdr-title">🌊 ENGLISH QUIZ – TỔNG ÔN TẬP</div>
+      <div class="hdr-sub">Giáo viên tạo: Ms Mai An ULIS</div>
+      <div class="prog-wrap"><div class="prog-bar" id="progBar"></div></div>
+      <div id="progText" style="font-size:.8rem;color:rgba(255,255,255,.9);font-weight:800;margin-top:3px;text-shadow:0 1px 2px rgba(0,0,0,.4)">0 / 0 câu đã trả lời</div>
+    </div>
+    <div id="quiz-container"></div>
+    <div class="sub-area">
+      <button class="sub-btn" onclick="openNameModal()">🎯 NỘP BÀI &amp; XEM KẾT QUẢ</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-ov" id="nameModal">
+  <div class="modal-box">
+    <div class="m-title">✏️ Nhập tên của bạn</div>
+    <input type="text" class="name-inp" id="nameInput" placeholder="Ví dụ: Nguyễn Văn A..." onkeydown="if(event.key==='Enter')submitName()">
+    <div class="err-msg" id="nameErr">⚠️ Vui lòng nhập tên trước khi nộp bài!</div>
+    <button class="m-btn" onclick="submitName()">✅ XEM KẾT QUẢ</button>
+  </div>
+</div>
+
+<div class="modal-ov" id="resultModal">
+  <div class="modal-box">
+    <div class="res-greet" id="resGreet"></div>
+    <div class="res-score" id="resScore"></div>
+    <img class="res-meme" id="resMeme" src="" alt="" style="display:none;">
+    <br>
+    <button class="retry-btn" onclick="retryQuiz()">🔄 LÀM LẠI BÀI</button>
+  </div>
+</div>
+
+<script>
+// ─────────────────────────────── ÂM THANH ───────────────────────────────
+const wrongSound = new Audio('https://hoctienganhcungcomaianulis.github.io/homework/%E1%BA%A2nh_File%20nghe/File%20nghe%20Ket%20A2/huh_sound_effect-www_tiengdong_com.mp3');
+const welcomeSound = new Audio('https://hoctienganhcungcomaianulis.github.io/homework/%E1%BA%A2nh_File%20nghe/Sound/ti%E1%BA%BFng%20%C4%91%E1%BB%8Dc%20kh%C3%ADch%20l%E1%BB%87%20p2.mp3');
+
+// ─────────────────────────────── MÃ BẢO MẬT ───────────────────────────────
+const _k  = [99,111,109,97,105,97,110,117,108,105,115]; 
+const _pw = _k.map(c => String.fromCharCode(c)).join('');
+
+function checkPassword() {
+  const inp = document.getElementById('pwInput');
+  const err = document.getElementById('pwErr');
+  
+  if (inp.value === _pw) {
+    document.getElementById('passwordModal').style.display = 'none';
+    document.getElementById('mainContent').style.display = 'block';
+    
+    welcomeSound.currentTime = 0;
+    welcomeSound.play().catch(e => console.log('Autoplay bị chặn bởi trình duyệt:', e));
+    
+  } else {
+    inp.classList.remove('error'); 
+    void inp.offsetWidth; 
+    inp.classList.add('error');
+    err.style.display = 'block'; 
+    setTimeout(() => inp.classList.remove('error'), 500);
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  const pwInput = document.getElementById('pwInput');
+  if(pwInput) pwInput.addEventListener('keydown', e => { 
+    if (e.key==='Enter') checkPassword(); 
+  });
+});
+
+// ─────────────────────────────── TẠO BỌT BIỂN (BUBBLES) ───────────────────────────────
+function createBubbles() {
+  const seaLayer = document.getElementById("sea-layer");
+  seaLayer.innerHTML = ''; 
+  const bubbleCount = 20; 
+  
+  for(let i=0; i<bubbleCount; i++) {
+    let bubble = document.createElement("div");
+    bubble.className = "bubble";
+    bubble.style.left = Math.random() * 100 + "vw";
+    let size = Math.random() * 25 + 10;
+    bubble.style.width = size + "px";
+    bubble.style.height = size + "px";
+    bubble.style.animationDuration = (Math.random() * 6 + 6) + "s";
+    bubble.style.animationDelay = (Math.random() * 5) + "s";
+    seaLayer.appendChild(bubble);
+  }
+}
+
+// ─────────────────────────────── QUESTION DATA ───────────────────────────────
+const SECTIONS = [
+{
+  title:"PHONETICS",
+  instruction:"I. Chọn từ có phần <u>gạch chân</u> được phát âm <strong>KHÁC</strong> với các từ còn lại.",
+  qs:[
+        {
+      t:"Câu 2.",txt:"",
+      opts:[
+        {h:"<u>e</u>xciting",c:true},
+        {h:"indep<u>e</u>ndent",c:false},
+        {h:"succ<u>e</u>ss",c:false},
+        {h:"h<u>e</u>ritage",c:false}
+      ],
+      expl:`<div class='expl-title'>💡 PHÂN TÍCH PHÁT ÂM</div><div class='vi-box'>📌 Dịch: Chọn từ có phần gạch chân phát âm KHÁC với các từ còn lại.</div><ul><li><span class='p-word'><u>e</u>xciting</span> <span class='p-phonetic'>/ɪ/</span> → <span class='p-mean'>thú vị</span> — "e" đọc là <span class='hl-green'>/ɪ/</span> ← KHÁC</li><li><span class='p-word'>indep<u>e</u>ndent</span> <span class='p-phonetic'>/e/</span> → <span class='p-mean'>độc lập</span> — "e" đọc là /e/</li><li><span class='p-word'>succ<u>e</u>ss</span> <span class='p-phonetic'>/e/</span> → <span class='p-mean'>thành công</span> — "e" đọc là /e/</li><li><span class='p-word'>h<u>e</u>ritage</span> <span class='p-phonetic'>/e/</span> → <span class='p-mean'>di sản</span> — "e" đọc là /e/</li></ul><p>✅ <span class='hl-green'>exciting</span>: chữ "e" được phát âm là <span class='p-phonetic'>/ɪ/</span>, trong khi ở 3 từ còn lại chữ "e" đều được phát âm là <span class='p-phonetic'>/e/</span>.</p>`
+    },
+    {
+      t:"Câu 3.",txt:"",
+      opts:[
+        {h:"watch<u>ed</u>",c:true},
+        {h:"play<u>ed</u>",c:false},
+        {h:"remember<u>ed</u>",c:false},
+        {h:"open<u>ed</u>",c:false}
+      ],
+      expl:`<div class='expl-title'>💡 PHÂN TÍCH ĐUÔI "-ED"</div><div class='vi-box'>📌 Dịch: Chọn từ có đuôi "-ed" phát âm KHÁC với các từ còn lại.</div><p><span class='p-grammar'>Quy tắc phát âm "-ed":</span> /t/ sau phụ âm vô thanh (p,k,f,s,ʃ,tʃ,θ) | /d/ sau phụ âm hữu thanh | /ɪd/ sau /t/ hoặc /d/</p><ul><li><span class='p-word'>watch<u>ed</u></span> <span class='p-phonetic'>/t/</span> → <span class='p-mean'>đã xem</span> — đuôi /tʃ/ là vô thanh → "-ed" = <span class='hl-green'>/t/</span> ← KHÁC</li><li><span class='p-word'>play<u>ed</u></span> <span class='p-phonetic'>/d/</span> → <span class='p-mean'>đã chơi</span> — /l/ hữu thanh → "-ed" = /d/</li><li><span class='p-word'>remember<u>ed</u></span> <span class='p-phonetic'>/d/</span> → <span class='p-mean'>đã nhớ</span> — /r/ hữu thanh → "-ed" = /d/</li><li><span class='p-word'>open<u>ed</u></span> <span class='p-phonetic'>/d/</span> → <span class='p-mean'>đã mở</span> — /n/ hữu thanh → "-ed" = /d/</li></ul><p>✅ <span class='hl-green'>watched /t/</span> là từ duy nhất có đuôi "-ed" đọc là <span class='p-phonetic'>/t/</span>, trong khi 3 từ còn lại đọc là <span class='p-phonetic'>/d/</span>.</p>`
+    },
+    {
+      t:"Câu 4.",txt:"",
+      opts:[
+        {h:"tak<u>es</u>",c:true},
+        {h:"s<u>ee</u>s",c:false},
+        {h:"kn<u>ow</u>s",c:false},
+        {h:"understand<u>s</u>",c:false}
+      ],
+      expl:`<div class='expl-title'>💡 PHÂN TÍCH ĐUÔI "-S/-ES"</div><div class='vi-box'>📌 Dịch: Chọn từ có phần gạch chân phát âm KHÁC với các từ còn lại.</div><p><span class='p-grammar'>Quy tắc phát âm "-s/-es":</span> /s/ sau phụ âm vô thanh | /z/ sau phụ âm hữu thanh hoặc nguyên âm</p><ul><li><span class='p-word'>tak<u>es</u></span> <span class='p-phonetic'>/s/</span> → <span class='p-mean'>lấy, mang</span> — /k/ vô thanh → "-s" = <span class='hl-green'>/s/</span> ← KHÁC</li><li><span class='p-word'>s<u>ee</u>s</span> <span class='p-phonetic'>/z/</span> → <span class='p-mean'>nhìn thấy</span> — nguyên âm → "-s" = /z/</li><li><span class='p-word'>kn<u>ow</u>s</span> <span class='p-phonetic'>/z/</span> → <span class='p-mean'>biết</span> — /n/ hữu thanh → "-s" = /z/</li><li><span class='p-word'>understand<u>s</u></span> <span class='p-phonetic'>/z/</span> → <span class='p-mean'>hiểu</span> — /d/ hữu thanh → "-s" = /z/</li></ul><p>✅ <span class='hl-green'>takes /s/</span> là từ duy nhất có đuôi đọc /s/; ba từ còn lại đều đọc <span class='p-phonetic'>/z/</span>.</p>`
+    },
+    {
+      t:"Câu 5.",txt:"",
+      opts:[
+        {h:"inst<u>ea</u>d",c:false},
+        {h:"<u>i</u>dea",c:true},
+        {h:"br<u>ea</u>d",c:false},
+        {h:"spr<u>ea</u>d",c:false}
+      ],
+      expl:`<div class='expl-title'>💡 PHÂN TÍCH NGUYÊN ÂM "EA / I"</div><div class='vi-box'>📌 Dịch: Chọn từ có phần gạch chân phát âm KHÁC với các từ còn lại.</div><ul><li><span class='p-word'>inst<u>ea</u>d</span> <span class='p-phonetic'>/e/</span> → <span class='p-mean'>thay vào đó</span> — "ea" = /e/ (ngắn)</li><li><span class='p-word'><u>i</u>dea</span> <span class='p-phonetic'>/aɪ/</span> → <span class='p-mean'>ý tưởng</span> — "i" = <span class='hl-green'>/aɪ/</span> ← KHÁC</li><li><span class='p-word'>br<u>ea</u>d</span> <span class='p-phonetic'>/e/</span> → <span class='p-mean'>bánh mì</span> — "ea" = /e/</li><li><span class='p-word'>spr<u>ea</u>d</span> <span class='p-phonetic'>/e/</span> → <span class='p-mean'>lan rộng, phết</span> — "ea" = /e/</li></ul><p>✅ <span class='hl-green'>idea</span>: chữ "i" đọc là <span class='p-phonetic'>/aɪ/</span>, trong khi "ea" trong 3 từ kia đều đọc là <span class='p-phonetic'>/e/</span>.</p>`
+    },
+    {
+      t:"Câu 6.",txt:"",
+      opts:[
+        {h:"w<u>ea</u>ther",c:false},
+        {h:"dr<u>ea</u>m",c:true},
+        {h:"inst<u>ea</u>d",c:false},
+        {h:"h<u>ea</u>vy",c:false}
+      ],
+      expl:`<div class='expl-title'>💡 PHÂN TÍCH NGUYÊN ÂM "EA"</div><div class='vi-box'>📌 Dịch: Chọn từ có chữ "ea" được phát âm KHÁC với các từ còn lại.</div><p><span class='p-grammar'>Lưu ý:</span> chữ "ea" có thể đọc /e/ (ngắn) hoặc /iː/ (dài)</p><ul><li><span class='p-word'>w<u>ea</u>ther</span> <span class='p-phonetic'>/e/</span> → <span class='p-mean'>thời tiết</span> — "ea" = /e/ (ngắn)</li><li><span class='p-word'>dr<u>ea</u>m</span> <span class='p-phonetic'>/iː/</span> → <span class='p-mean'>giấc mơ</span> — "ea" = <span class='hl-green'>/iː/</span> ← KHÁC</li><li><span class='p-word'>inst<u>ea</u>d</span> <span class='p-phonetic'>/e/</span> → <span class='p-mean'>thay vào đó</span> — "ea" = /e/ (ngắn)</li><li><span class='p-word'>h<u>ea</u>vy</span> <span class='p-phonetic'>/e/</span> → <span class='p-mean'>nặng</span> — "ea" = /e/ (ngắn)</li></ul><p>✅ <span class='hl-green'>dream /iː/</span>: "ea" đọc dài như trong "sea, team, read"; 3 từ kia đều đọc /e/ ngắn như "bed".</p>`
+    },
+    {
+      t:"Câu 7.",txt:"",
+      opts:[
+        {h:"ask<u>ed</u>",c:false},
+        {h:"stopp<u>ed</u>",c:false},
+        {h:"call<u>ed</u>",c:true},
+        {h:"watch<u>ed</u>",c:false}
+      ],
+      expl:`<div class='expl-title'>💡 PHÂN TÍCH ĐUÔI "-ED"</div><div class='vi-box'>📌 Dịch: Chọn từ có đuôi "-ed" phát âm KHÁC với các từ còn lại.</div><ul><li><span class='p-word'>ask<u>ed</u></span> <span class='p-phonetic'>/t/</span> → <span class='p-mean'>đã hỏi</span> — /sk/ vô thanh → "-ed" = /t/</li><li><span class='p-word'>stopp<u>ed</u></span> <span class='p-phonetic'>/t/</span> → <span class='p-mean'>đã dừng</span> — /p/ vô thanh → "-ed" = /t/</li><li><span class='p-word'>call<u>ed</u></span> <span class='p-phonetic'>/d/</span> → <span class='p-mean'>đã gọi</span> — /l/ hữu thanh → "-ed" = <span class='hl-green'>/d/</span> ← KHÁC</li><li><span class='p-word'>watch<u>ed</u></span> <span class='p-phonetic'>/t/</span> → <span class='p-mean'>đã xem</span> — /tʃ/ vô thanh → "-ed" = /t/</li></ul><p>✅ <span class='hl-green'>called /d/</span> là từ duy nhất đuôi "-ed" đọc /d/; 3 từ còn lại đọc /t/ vì đứng sau phụ âm vô thanh.</p>`
+    },
+    {
+      t:"Câu 8.",txt:"",
+      opts:[
+        {h:"<u>th</u>ink",c:true},
+        {h:"<u>th</u>is",c:false},
+        {h:"mo<u>th</u>er",c:false},
+        {h:"<u>th</u>e",c:false}
+      ],
+      expl:`<div class='expl-title'>💡 PHÂN TÍCH "TH" — /θ/ vs /ð/</div><div class='vi-box'>📌 Dịch: Chọn từ có "th" được phát âm KHÁC với các từ còn lại.</div><p><span class='p-grammar'>2 cách đọc "th":</span> /θ/ (vô thanh – không rung) như "think" | /ð/ (hữu thanh – có rung) như "this"</p><ul><li><span class='p-word'><u>th</u>ink</span> <span class='p-phonetic'>/θ/</span> → <span class='p-mean'>nghĩ</span> — <span class='hl-green'>/θ/ vô thanh</span> ← KHÁC</li><li><span class='p-word'><u>th</u>is</span> <span class='p-phonetic'>/ð/</span> → <span class='p-mean'>cái này</span> — /ð/ hữu thanh</li><li><span class='p-word'>mo<u>th</u>er</span> <span class='p-phonetic'>/ð/</span> → <span class='p-mean'>mẹ</span> — /ð/ hữu thanh</li><li><span class='p-word'><u>th</u>e</span> <span class='p-phonetic'>/ð/</span> → <span class='p-mean'>mạo từ xác định</span> — /ð/ hữu thanh</li></ul><p>✅ <span class='hl-green'>think /θ/</span> duy nhất đọc vô thanh; "this / mother / the" đều đọc /ð/ hữu thanh.</p>`
+    },
+    {
+      t:"Câu 9.",txt:"",
+      opts:[
+        {h:"brush<u>ed</u>",c:true},
+        {h:"tri<u>ed</u>",c:false},
+        {h:"comb<u>ed</u>",c:false},
+        {h:"iron<u>ed</u>",c:false}
+      ],
+      expl:`<div class='expl-title'>💡 PHÂN TÍCH ĐUÔI "-ED"</div><div class='vi-box'>📌 Dịch: Chọn từ có đuôi "-ed" phát âm KHÁC với các từ còn lại.</div><ul><li><span class='p-word'>brush<u>ed</u></span> <span class='p-phonetic'>/t/</span> → <span class='p-mean'>đã chải</span> — /ʃ/ vô thanh → "-ed" = <span class='hl-green'>/t/</span> ← KHÁC</li><li><span class='p-word'>tri<u>ed</u></span> <span class='p-phonetic'>/d/</span> → <span class='p-mean'>đã thử</span> — nguyên âm /aɪ/ → "-ed" = /d/</li><li><span class='p-word'>comb<u>ed</u></span> <span class='p-phonetic'>/d/</span> → <span class='p-mean'>đã chải tóc</span> — /m/ hữu thanh → "-ed" = /d/</li><li><span class='p-word'>iron<u>ed</u></span> <span class='p-phonetic'>/d/</span> → <span class='p-mean'>đã là (quần áo)</span> — /n/ hữu thanh → "-ed" = /d/</li></ul><p>✅ <span class='hl-green'>brushed /t/</span> — chữ "sh" /ʃ/ là vô thanh nên đuôi "-ed" đọc /t/; 3 từ còn lại đọc /d/.</p>`
+    },
+    {
+      t:"Câu 10.",txt:"",
+      opts:[
+        {h:"ab<u>s</u>ent",c:false},
+        {h:"di<u>s</u>ease",c:true},
+        {h:"po<u>s</u>ter",c:false},
+        {h:"e<u>ss</u>ay",c:false}
+      ],
+      expl:`<div class='expl-title'>💡 PHÂN TÍCH CHỮ "S"</div><div class='vi-box'>📌 Dịch: Chọn từ có chữ "s" được phát âm KHÁC với các từ còn lại.</div><ul><li><span class='p-word'>ab<u>s</u>ent</span> <span class='p-phonetic'>/s/</span> → <span class='p-mean'>vắng mặt</span> — "s" = /s/ (vô thanh)</li><li><span class='p-word'>di<u>s</u>ease</span> <span class='p-phonetic'>/z/</span> → <span class='p-mean'>bệnh tật</span> — "s" = <span class='hl-green'>/z/</span> (hữu thanh) ← KHÁC</li><li><span class='p-word'>po<u>s</u>ter</span> <span class='p-phonetic'>/s/</span> → <span class='p-mean'>áp phích, tờ quảng cáo</span> — "s" = /s/</li><li><span class='p-word'>e<u>ss</u>ay</span> <span class='p-phonetic'>/s/</span> → <span class='p-mean'>bài luận</span> — "ss" = /s/</li></ul><p>✅ <span class='hl-green'>disease /z/</span> — chữ "s" đứng giữa 2 nguyên âm nên đọc là /z/ hữu thanh; 3 từ kia đọc /s/ vô thanh.</p>`
+    },
+    {
+      t:"Câu 11.",txt:"",
+      opts:[
+        {h:"decid<u>ed</u>",c:false},
+        {h:"fitt<u>ed</u>",c:false},
+        {h:"need<u>ed</u>",c:false},
+        {h:"watch<u>ed</u>",c:true}
+      ],
+      expl:`<div class='expl-title'>💡 PHÂN TÍCH ĐUÔI "-ED" → /ɪd/ vs /t/</div><div class='vi-box'>📌 Dịch: Chọn từ có đuôi "-ed" phát âm KHÁC với các từ còn lại.</div><p><span class='p-grammar'>Quy tắc:</span> đuôi "-ed" đọc <span class='p-phonetic'>/ɪd/</span> khi từ kết thúc bằng /t/ hoặc /d/</p><ul><li><span class='p-word'>decid<u>ed</u></span> <span class='p-phonetic'>/ɪd/</span> → <span class='p-mean'>đã quyết định</span> — kết thúc /d/ → "-ed" = /ɪd/</li><li><span class='p-word'>fitt<u>ed</u></span> <span class='p-phonetic'>/ɪd/</span> → <span class='p-mean'>đã vừa khít</span> — kết thúc /t/ → "-ed" = /ɪd/</li><li><span class='p-word'>need<u>ed</u></span> <span class='p-phonetic'>/ɪd/</span> → <span class='p-mean'>đã cần</span> — kết thúc /d/ → "-ed" = /ɪd/</li><li><span class='p-word'>watch<u>ed</u></span> <span class='p-phonetic'>/t/</span> → <span class='p-mean'>đã xem</span> — kết thúc /tʃ/ vô thanh → <span class='hl-green'>"-ed" = /t/</span> ← KHÁC</li></ul><p>✅ <span class='hl-green'>watched /t/</span> — kết thúc bằng /tʃ/ (vô thanh) nên đuôi "-ed" đọc /t/, khác với /ɪd/ của 3 từ kia.</p>`
+    }
+  ]
+},
+{
+  title:"PHONETICS",
+  instruction:"II. Chọn từ có trọng âm chính đặt ở vị trí <strong>KHÁC</strong> với các từ còn lại.",
+  qs:[
+    {
+      t:"Câu 1.",txt:"",
+      opts:[
+        {h:"safety",c:false},
+        {h:"avoid",c:true},
+        {h:"second",c:false},
+        {h:"solar",c:false}
+      ],
+      expl:`<div class='expl-title'>💡 PHÂN TÍCH TRỌNG ÂM</div><div class='vi-box'>📌 Dịch: Chọn từ có trọng âm đặt ở VỊ TRÍ KHÁC với các từ còn lại.</div><ul><li><span class='p-word'>SAF-e-ty</span> <span class='p-phonetic'>/'seɪfti/</span> → <span class='p-mean'>sự an toàn</span> — trọng âm âm tiết 1</li><li><span class='p-word'>a-VOID</span> <span class='p-phonetic'>/ə'vɔɪd/</span> → <span class='p-mean'>tránh né</span> — trọng âm âm tiết 2 ← <span class='hl-green'>KHÁC</span></li><li><span class='p-word'>SEC-ond</span> <span class='p-phonetic'>/'sekənd/</span> → <span class='p-mean'>giây; thứ hai</span> — trọng âm âm tiết 1</li><li><span class='p-word'>SO-lar</span> <span class='p-phonetic'>/'soʊlər/</span> → <span class='p-mean'>thuộc về mặt trời</span> — trọng âm âm tiết 1</li></ul><p>✅ <span class='hl-green'>avoid</span> — trọng âm rơi vào âm tiết thứ 2, trong khi safety/second/solar đều có trọng âm ở âm tiết đầu.</p>`
+    },
+    {
+      t:"Câu 2.",txt:"",
+      opts:[
+        {h:"energy",c:false},
+        {h:"project",c:false},
+        {h:"remember",c:true},
+        {h:"favorite",c:false}
+      ],
+      expl:`<div class='expl-title'>💡 PHÂN TÍCH TRỌNG ÂM</div><div class='vi-box'>📌 Dịch: Chọn từ có trọng âm KHÁC với 3 từ còn lại.</div><ul><li><span class='p-word'>EN-er-gy</span> <span class='p-phonetic'>/'enərdʒi/</span> → <span class='p-mean'>năng lượng</span> — âm tiết 1</li><li><span class='p-word'>PRO-ject</span> <span class='p-phonetic'>/'prɒdʒekt/</span> → <span class='p-mean'>dự án</span> — âm tiết 1 (danh từ)</li><li><span class='p-word'>re-MEM-ber</span> <span class='p-phonetic'>/rɪ'membər/</span> → <span class='p-mean'>nhớ</span> — âm tiết 2 ← <span class='hl-green'>KHÁC</span></li><li><span class='p-word'>FA-vor-ite</span> <span class='p-phonetic'>/'feɪvərɪt/</span> → <span class='p-mean'>yêu thích</span> — âm tiết 1</li></ul><p>✅ <span class='hl-green'>remember</span> — trọng âm rơi vào âm tiết 2 (-MEM-), ba từ kia đều nhấn âm tiết đầu.</p>`
+    },
+    {
+      t:"Câu 3.",txt:"",
+      opts:[
+        {h:"successful",c:true},
+        {h:"famous",c:false},
+        {h:"healthy",c:false},
+        {h:"serious",c:false}
+      ],
+      expl:`<div class='expl-title'>💡 PHÂN TÍCH TRỌNG ÂM</div><div class='vi-box'>📌 Dịch: Chọn từ có trọng âm KHÁC với 3 từ còn lại.</div><ul><li><span class='p-word'>suc-CESS-ful</span> <span class='p-phonetic'>/sək'sesfl/</span> → <span class='p-mean'>thành công</span> — âm tiết 2 ← <span class='hl-green'>KHÁC</span></li><li><span class='p-word'>FA-mous</span> <span class='p-phonetic'>/'feɪməs/</span> → <span class='p-mean'>nổi tiếng</span> — âm tiết 1</li><li><span class='p-word'>HEALTH-y</span> <span class='p-phonetic'>/'helθi/</span> → <span class='p-mean'>khỏe mạnh</span> — âm tiết 1</li><li><span class='p-word'>SE-ri-ous</span> <span class='p-phonetic'>/'sɪəriəs/</span> → <span class='p-mean'>nghiêm túc</span> — âm tiết 1</li></ul><p>✅ <span class='hl-green'>successful</span> — tiền tố "suc-" không mang trọng âm, trọng âm nhấn vào "-CESS-" (âm tiết 2).</p>`
+    },
+    {
+      t:"Câu 4.",txt:"",
+      opts:[
+        {h:"amazing",c:false},
+        {h:"hilarious",c:false},
+        {h:"gripping",c:true},
+        {h:"abundant",c:false}
+      ],
+      expl:`<div class='expl-title'>💡 PHÂN TÍCH TRỌNG ÂM</div><div class='vi-box'>📌 Dịch: Chọn từ có trọng âm KHÁC với 3 từ còn lại.</div><ul><li><span class='p-word'>a-MAZ-ing</span> <span class='p-phonetic'>/ə'meɪzɪŋ/</span> → <span class='p-mean'>tuyệt vời</span> — âm tiết 2</li><li><span class='p-word'>hi-LAR-i-ous</span> <span class='p-phonetic'>/hɪ'leəriəs/</span> → <span class='p-mean'>buồn cười</span> — âm tiết 2</li><li><span class='p-word'>GRIP-ping</span> <span class='p-phonetic'>/'grɪpɪŋ/</span> → <span class='p-mean'>hấp dẫn, lôi cuốn</span> — âm tiết 1 ← <span class='hl-green'>KHÁC</span></li><li><span class='p-word'>a-BUN-dant</span> <span class='p-phonetic'>/ə'bʌndənt/</span> → <span class='p-mean'>phong phú</span> — âm tiết 2</li></ul><p>✅ <span class='hl-green'>gripping</span> — nhấn âm tiết 1 (GRIP-), trong khi amazing/hilarious/abundant đều nhấn âm tiết 2.</p>`
+    },
+    {
+      t:"Câu 5.",txt:"",
+      opts:[
+        {h:"available",c:false},
+        {h:"plentiful",c:true},
+        {h:"expensive",c:false},
+        {h:"alone",c:false}
+      ],
+      expl:`<div class='expl-title'>💡 PHÂN TÍCH TRỌNG ÂM</div><div class='vi-box'>📌 Dịch: Chọn từ có trọng âm KHÁC với 3 từ còn lại.</div><ul><li><span class='p-word'>a-VAIL-a-ble</span> <span class='p-phonetic'>/ə'veɪləbl/</span> → <span class='p-mean'>sẵn có</span> — âm tiết 2</li><li><span class='p-word'>PLEN-ti-ful</span> <span class='p-phonetic'>/'plentɪfl/</span> → <span class='p-mean'>dồi dào</span> — âm tiết 1 ← <span class='hl-green'>KHÁC</span></li><li><span class='p-word'>ex-PEN-sive</span> <span class='p-phonetic'>/ɪk'spensɪv/</span> → <span class='p-mean'>đắt tiền</span> — âm tiết 2</li><li><span class='p-word'>a-LONE</span> <span class='p-phonetic'>/ə'loʊn/</span> → <span class='p-mean'>một mình</span> — âm tiết 2</li></ul><p>✅ <span class='hl-green'>plentiful</span> — nhấn âm đầu; available/expensive/alone đều nhấn âm tiết 2.</p>`
+    },
+    {
+      t:"Câu 6.",txt:"",
+      opts:[
+        {h:"pollution",c:false},
+        {h:"restaurant",c:true},
+        {h:"consumer",c:false},
+        {h:"construction",c:false}
+      ],
+      expl:`<div class='expl-title'>💡 PHÂN TÍCH TRỌNG ÂM</div><div class='vi-box'>📌 Dịch: Chọn từ có trọng âm KHÁC với 3 từ còn lại.</div><ul><li><span class='p-word'>pol-LU-tion</span> <span class='p-phonetic'>/pə'luːʃn/</span> → <span class='p-mean'>ô nhiễm</span> — âm tiết 2</li><li><span class='p-word'>RES-tau-rant</span> <span class='p-phonetic'>/'restrɒnt/</span> → <span class='p-mean'>nhà hàng</span> — âm tiết 1 ← <span class='hl-green'>KHÁC</span></li><li><span class='p-word'>con-SUM-er</span> <span class='p-phonetic'>/kən'sjuːmər/</span> → <span class='p-mean'>người tiêu dùng</span> — âm tiết 2</li><li><span class='p-word'>con-STRUC-tion</span> <span class='p-phonetic'>/kən'strʌkʃn/</span> → <span class='p-mean'>xây dựng</span> — âm tiết 2</li></ul><p>✅ <span class='hl-green'>restaurant</span> — nhấn âm tiết 1 (RES-), ba từ kia đều nhấn âm tiết 2 do có tiền tố không nhấn (pol-, con-).</p>`
+    },
+    {
+      t:"Câu 7.",txt:"",
+      opts:[
+        {h:"culture",c:false},
+        {h:"parade",c:true},
+        {h:"cannon",c:false},
+        {h:"weather",c:false}
+      ],
+      expl:`<div class='expl-title'>💡 PHÂN TÍCH TRỌNG ÂM</div><div class='vi-box'>📌 Dịch: Chọn từ có trọng âm KHÁC với 3 từ còn lại.</div><ul><li><span class='p-word'>CUL-ture</span> <span class='p-phonetic'>/'kʌltʃər/</span> → <span class='p-mean'>văn hóa</span> — âm tiết 1</li><li><span class='p-word'>pa-RADE</span> <span class='p-phonetic'>/pə'reɪd/</span> → <span class='p-mean'>diễu hành</span> — âm tiết 2 ← <span class='hl-green'>KHÁC</span></li><li><span class='p-word'>CAN-non</span> <span class='p-phonetic'>/'kænən/</span> → <span class='p-mean'>đại bác</span> — âm tiết 1</li><li><span class='p-word'>WEATH-er</span> <span class='p-phonetic'>/'weðər/</span> → <span class='p-mean'>thời tiết</span> — âm tiết 1</li></ul><p>✅ <span class='hl-green'>parade</span> — nhấn âm tiết 2; culture/cannon/weather đều nhấn âm tiết đầu.</p>`
+    },
+    {
+      t:"Câu 8.",txt:"",
+      opts:[
+        {h:"professor",c:false},
+        {h:"illegal",c:false},
+        {h:"entertain",c:true},
+        {h:"disaster",c:false}
+      ],
+      expl:`<div class='expl-title'>💡 PHÂN TÍCH TRỌNG ÂM 3 ÂM TIẾT</div><div class='vi-box'>📌 Dịch: Chọn từ có trọng âm KHÁC với 3 từ còn lại.</div><ul><li><span class='p-word'>pro-FES-sor</span> <span class='p-phonetic'>/prə'fesər/</span> → <span class='p-mean'>giáo sư</span> — âm tiết 2</li><li><span class='p-word'>il-LE-gal</span> <span class='p-phonetic'>/ɪ'liːgəl/</span> → <span class='p-mean'>bất hợp pháp</span> — âm tiết 2</li><li><span class='p-word'>en-ter-TAIN</span> <span class='p-phonetic'>/ˌentər'teɪn/</span> → <span class='p-mean'>giải trí, tiếp đãi</span> — âm tiết 3 ← <span class='hl-green'>KHÁC</span></li><li><span class='p-word'>dis-AS-ter</span> <span class='p-phonetic'>/dɪ'zɑːstər/</span> → <span class='p-mean'>thảm họa</span> — âm tiết 2</li></ul><p>✅ <span class='hl-green'>entertain</span> — nhấn âm tiết cuối (-TAIN); professor/illegal/disaster đều nhấn âm tiết 2 (giữa).</p>`
+    },
+    {
+      t:"Câu 9.",txt:"",
+      opts:[
+        {h:"traffic",c:false},
+        {h:"agree",c:true},
+        {h:"noisy",c:false},
+        {h:"student",c:false}
+      ],
+      expl:`<div class='expl-title'>💡 PHÂN TÍCH TRỌNG ÂM</div><div class='vi-box'>📌 Dịch: Chọn từ có trọng âm KHÁC với 3 từ còn lại.</div><ul><li><span class='p-word'>TRAF-fic</span> <span class='p-phonetic'>/'træfɪk/</span> → <span class='p-mean'>giao thông</span> — âm tiết 1</li><li><span class='p-word'>a-GREE</span> <span class='p-phonetic'>/ə'griː/</span> → <span class='p-mean'>đồng ý</span> — âm tiết 2 ← <span class='hl-green'>KHÁC</span></li><li><span class='p-word'>NOI-sy</span> <span class='p-phonetic'>/'nɔɪzi/</span> → <span class='p-mean'>ồn ào</span> — âm tiết 1</li><li><span class='p-word'>STU-dent</span> <span class='p-phonetic'>/'stjuːdənt/</span> → <span class='p-mean'>học sinh</span> — âm tiết 1</li></ul><p>✅ <span class='hl-green'>agree</span> — nhấn âm tiết 2; traffic/noisy/student đều nhấn âm tiết đầu.</p>`
+    },
+    {
+      t:"Câu 10.",txt:"",
+      opts:[
+        {h:"plentiful",c:false},
+        {h:"energy",c:false},
+        {h:"renewable",c:true},
+        {h:"library",c:false}
+      ],
+      expl:`<div class='expl-title'>💡 PHÂN TÍCH TRỌNG ÂM</div><div class='vi-box'>📌 Dịch: Chọn từ có trọng âm KHÁC với 3 từ còn lại.</div><ul><li><span class='p-word'>PLEN-ti-ful</span> <span class='p-phonetic'>/'plentɪfl/</span> → <span class='p-mean'>dồi dào</span> — âm tiết 1</li><li><span class='p-word'>EN-er-gy</span> <span class='p-phonetic'>/'enərdʒi/</span> → <span class='p-mean'>năng lượng</span> — âm tiết 1</li><li><span class='p-word'>re-NEW-a-ble</span> <span class='p-phonetic'>/rɪ'njuːəbl/</span> → <span class='p-mean'>có thể tái tạo</span> — âm tiết 2 ← <span class='hl-green'>KHÁC</span></li><li><span class='p-word'>LI-brar-y</span> <span class='p-phonetic'>/'laɪbrəri/</span> → <span class='p-mean'>thư viện</span> — âm tiết 1</li></ul><p>✅ <span class='hl-green'>renewable</span> — nhấn âm tiết 2 (-NEW-); plentiful/energy/library đều nhấn âm tiết đầu.</p>`
+    }
+  ]
+},
+{
+  title:"GRAMMAR & VOCABULARY",
+  instruction:"Chọn đáp án đúng nhất (A, B, C hoặc D) để hoàn thành câu.",
+  qs:[
+    {
+      t:"Câu 1.",txt:"Coal is a(n) _______ energy source.",
+      opts:[
+        {h:"renewable",c:false},
+        {h:"non-renewable",c:true},
+        {h:"expensive",c:false},
+        {h:"good for the environment",c:false}
+      ],
+      expl:`<div class='expl-title'>💡 PHÂN TÍCH TỪ VỰNG</div><div class='vi-box'>📌 Dịch: "Than đá là một nguồn năng lượng _______."</div><ul><li><span class='p-word'>renewable</span> → <span class='p-mean'>có thể tái tạo</span> — than đá <span class='hl-red'>KHÔNG thể tái tạo</span></li><li><span class='p-word'>non-renewable</span> → <span class='p-mean'>không thể tái tạo</span> — <span class='hl-green'>ĐÚNG!</span> Than đá là tài nguyên hữu hạn, dùng hết là hết</li><li><span class='p-word'>expensive</span> → <span class='p-mean'>đắt tiền</span> — không mô tả đặc tính của nguồn năng lượng</li><li><span class='p-word'>good for the environment</span> → <span class='p-mean'>tốt cho môi trường</span> — than đá thực ra <span class='hl-red'>gây ô nhiễm</span></li></ul><p>✅ <span class='hl-green'>non-renewable</span>: than đá là nhiên liệu hóa thạch, một khi cạn kiệt không thể phục hồi.</p>`
+    },
+    {
+      t:"Câu 2.",txt:"Cyclists need to obey the traffic _______ by not carrying more than one passenger.",
+      opts:[
+        {h:"rules",c:true},
+        {h:"jams",c:false},
+        {h:"lights",c:false},
+        {h:"All are correct",c:false}
+      ],
+      expl:`<div class='expl-title'>💡 PHÂN TÍCH TỪ VỰNG</div><div class='vi-box'>📌 Dịch: "Người đi xe đạp cần tuân thủ _______ giao thông bằng cách không chở quá một người."</div><ul><li><span class='p-word'>rules</span> → <span class='p-mean'>quy tắc, quy định</span> — <span class='p-grammar'>traffic rules = luật giao thông</span> → <span class='hl-green'>ĐÚNG!</span></li><li><span class='p-word'>jams</span> → <span class='p-mean'>ùn tắc</span> — "traffic jams" = tắc đường, không liên quan</li><li><span class='p-word'>lights</span> → <span class='p-mean'>đèn giao thông</span> — "obey traffic lights" đúng ngữ nghĩa nhưng câu nói về quy tắc chung</li><li><span class='p-word'>All are correct</span> → <span class='hl-red'>Không đúng</span> — chỉ có "rules" phù hợp nhất với ngữ cảnh toàn câu</li></ul><p>✅ <span class='hl-green'>traffic rules</span>: bao gồm tất cả quy định giao thông, bao hàm luôn việc chở người.</p>`
+    },
+    {
+      t:"Câu 3.",txt:"Scotland, with its _______ landscape, attracts millions of visitors every year.",
+      opts:[
+        {h:"warm",c:false},
+        {h:"amazing",c:true},
+        {h:"local",c:false},
+        {h:"interesting",c:false}
+      ],
+      expl:`<div class='expl-title'>💡 PHÂN TÍCH TỪ VỰNG</div><div class='vi-box'>📌 Dịch: "Scotland, với cảnh quan _______, thu hút hàng triệu du khách mỗi năm."</div><ul><li><span class='p-word'>warm</span> → <span class='p-mean'>ấm áp</span> — Scotland nổi tiếng lạnh và mưa, không phù hợp</li><li><span class='p-word'>amazing</span> → <span class='p-mean'>tuyệt vời, ấn tượng</span> — <span class='hl-green'>ĐÚNG!</span> Phù hợp với "thu hút hàng triệu du khách"</li><li><span class='p-word'>local</span> → <span class='p-mean'>địa phương</span> — không có giá trị thu hút như "amazing"</li><li><span class='p-word'>interesting</span> → <span class='p-mean'>thú vị</span> — cũng chấp nhận được nhưng "amazing" mạnh hơn, phù hợp hơn với việc thu hút <i>hàng triệu</i> du khách</li></ul>`
+    },
+    {
+      t:"Câu 4.",txt:"A teleporter is _______, so it doesn't cause pollution.",
+      opts:[
+        {h:"limited",c:false},
+        {h:"fast",c:false},
+        {h:"available",c:false},
+        {h:"eco-friendly",c:true}
+      ],
+      expl:`<div class='expl-title'>💡 PHÂN TÍCH TỪ VỰNG</div><div class='vi-box'>📌 Dịch: "Máy dịch chuyển tức thời _______, vì vậy nó không gây ô nhiễm."</div><ul><li><span class='p-word'>limited</span> → <span class='p-mean'>bị giới hạn</span> — không liên quan đến ô nhiễm</li><li><span class='p-word'>fast</span> → <span class='p-mean'>nhanh</span> — tốc độ không liên quan đến ô nhiễm</li><li><span class='p-word'>available</span> → <span class='p-mean'>sẵn có</span> — không giải thích tại sao không gây ô nhiễm</li><li><span class='p-word'>eco-friendly</span> → <span class='p-mean'>thân thiện với môi trường</span> — <span class='hl-green'>ĐÚNG!</span> Đây là lý do trực tiếp tại sao không gây ô nhiễm</li></ul><p>✅ Câu có từ nối <span class='p-grammar'>"so" (vì vậy)</span> — nguyên nhân → kết quả. "Eco-friendly" là nguyên nhân của việc không gây ô nhiễm.</p>`
+    },
+    {
+      t:"Câu 5.",txt:"A solowheel runs _______ electricity, so it is safe for the environment.",
+      opts:[
+        {h:"out",c:false},
+        {h:"in",c:false},
+        {h:"on",c:true},
+        {h:"by",c:false}
+      ],
+      expl:`<div class='expl-title'>💡 PHÂN TÍCH CỤMTỪ (COLLOCATION)</div><div class='vi-box'>📌 Dịch: "Solowheel chạy _______ điện, vì vậy nó an toàn cho môi trường."</div><ul><li><span class='p-word'>run out</span> → <span class='p-mean'>cạn kiệt, hết</span> — "run out of electricity" = hết điện → <span class='hl-red'>sai nghĩa</span></li><li><span class='p-word'>run in</span> → <span class='p-mean'>không phải cụm từ chuẩn</span> với nghĩa này</li><li><span class='p-word'>run on</span> → <span class='p-mean'>chạy bằng (nhiên liệu)</span> → <span class='hl-green'>ĐÚNG!</span> "run on electricity" = chạy bằng điện</li><li><span class='p-word'>run by</span> → <span class='p-mean'>không phải cụm từ chuẩn</span> trong ngữ cảnh này</li></ul><p>✅ <span class='p-grammar'>run on + [fuel/energy]</span> là cụm từ cố định: "run on electricity/solar power/gasoline..."</p>`
+    },
+    {
+      t:"Câu 6.",txt:"_______ turbines transform kinetic energy of air currents into electrical energy.",
+      opts:[
+        {h:"Hydro",c:false},
+        {h:"Solar",c:false},
+        {h:"Water",c:false},
+        {h:"Wind",c:true}
+      ],
+      expl:`<div class='expl-title'>💡 PHÂN TÍCH TỪ VỰNG KHOA HỌC</div><div class='vi-box'>📌 Dịch: "Tua bin _______ biến đổi năng lượng động học của dòng không khí thành điện năng."</div><ul><li><span class='p-word'>Hydro</span> → <span class='p-mean'>thủy lực (nước)</span> — tua bin thủy điện dùng sức nước, không phải không khí</li><li><span class='p-word'>Solar</span> → <span class='p-mean'>mặt trời</span> — năng lượng mặt trời dùng tấm pin, không phải tua bin</li><li><span class='p-word'>Water</span> → <span class='p-mean'>nước</span> — tương tự hydro, dùng nước chứ không phải không khí</li><li><span class='p-word'>Wind</span> → <span class='p-mean'>gió</span> — <span class='hl-green'>ĐÚNG!</span> <span class='p-grammar'>wind turbine = tua bin gió</span>, dùng sức gió (không khí)</li></ul><p>✅ Từ khóa: <span class='p-word'>"kinetic energy of air currents"</span> = <span class='p-mean'>năng lượng động học của dòng không khí</span> → đây là gió!</p>`
+    },
+    {
+      t:"Câu 7.",txt:"They expect zero-emission fuel cell buses to become a _______ of transport.",
+      opts:[
+        {h:"means",c:true},
+        {h:"measure",c:false},
+        {h:"instrument",c:false},
+        {h:"channel",c:false}
+      ],
+      expl:`<div class='expl-title'>💡 PHÂN TÍCH COLLOCATION</div><div class='vi-box'>📌 Dịch: "Họ kỳ vọng xe buýt tế bào nhiên liệu không phát thải sẽ trở thành một _______ giao thông."</div><ul><li><span class='p-word'>means</span> → <span class='p-mean'>phương tiện, phương thức</span> — <span class='p-grammar'>means of transport = phương tiện giao thông</span> → <span class='hl-green'>ĐÚNG!</span></li><li><span class='p-word'>measure</span> → <span class='p-mean'>biện pháp, đo lường</span> — "measure of transport" <span class='hl-red'>không phải cụm từ tồn tại</span></li><li><span class='p-word'>instrument</span> → <span class='p-mean'>dụng cụ, nhạc cụ</span> — không dùng với "transport"</li><li><span class='p-word'>channel</span> → <span class='p-mean'>kênh, luồng</span> — "channel of transport" <span class='hl-red'>không đúng</span></li></ul><p>✅ <span class='p-grammar'>means of transport</span> là <b>cụm từ cố định</b> — luôn học thuộc lòng!</p>`
+    },
+    {
+      t:"Câu 8.",txt:"_______ the film was gripping, Tom slept from beginning to the end.",
+      opts:[
+        {h:"Although",c:true},
+        {h:"Despite",c:false},
+        {h:"In spite of",c:false},
+        {h:"However",c:false}
+      ],
+      expl:`<div class='expl-title'>💡 PHÂN TÍCH LIÊN TỪ TƯƠNG PHẢN</div><div class='vi-box'>📌 Dịch: "_______ bộ phim rất hấp dẫn, Tom vẫn ngủ từ đầu đến cuối."</div><p><span class='p-grammar'>Cấu trúc quan trọng:</span></p><ul><li><span class='p-word'>Although</span> + <span class='p-grammar'>mệnh đề (S+V)</span> → <span class='hl-green'>ĐÚNG!</span> "Although the film was gripping, Tom slept..." ✓</li><li><span class='p-word'>Despite</span> + <span class='p-grammar'>danh từ / V-ing</span> → "Despite <u>the gripping film</u>" mới đúng</li><li><span class='p-word'>In spite of</span> + <span class='p-grammar'>danh từ / V-ing</span> → tương tự Despite, không dùng với mệnh đề đầy đủ</li><li><span class='p-word'>However</span> → <span class='p-grammar'>trạng từ liên kết</span>, không đứng đầu câu ngay trước mệnh đề như vậy</li></ul><p>✅ <span class='hl-green'>Although</span> đứng trước mệnh đề S+V ("the film was gripping"). Despite/In spite of đứng trước cụm danh từ.</p>`
+    },
+    {
+      t:"Câu 9.",txt:'Jim wanted to _______ the boat alone, but his parents didn\'t agree.',
+      opts:[
+        {h:"let",c:false},
+        {h:"travel",c:false},
+        {h:"get",c:false},
+        {h:"sail",c:true}
+      ],
+      expl:`<div class='expl-title'>💡 PHÂN TÍCH TỪ VỰNG</div><div class='vi-box'>📌 Dịch: "Jim muốn _______ con thuyền một mình, nhưng bố mẹ anh không đồng ý."</div><ul><li><span class='p-word'>let</span> → <span class='p-mean'>để cho, thả</span> — "let the boat" không có nghĩa điều hướng thuyền</li><li><span class='p-word'>travel</span> → <span class='p-mean'>đi du lịch</span> — thường dùng "travel by boat", không "travel a boat"</li><li><span class='p-word'>get</span> → <span class='p-mean'>lấy, lên</span> — "get a boat" có thể dùng nhưng không diễn đạt hành động điều khiển</li><li><span class='p-word'>sail</span> → <span class='p-mean'>lái thuyền, điều hướng thuyền</span> → <span class='hl-green'>ĐÚNG!</span></li></ul><p>✅ <span class='p-grammar'>sail a boat</span> = lái thuyền buồm / điều khiển thuyền. Đây là collocation chính xác nhất.</p>`
+    },
+    {
+      t:"Câu 10.",txt:"Globally, _______ was ranked as the 5th top non-native English-speaking country, behind the Netherlands, Sweden, Norway and Denmark.",
+      opts:[
+        {h:"Canada",c:true},
+        {h:"the UK",c:false},
+        {h:"Singapore",c:false},
+        {h:"the USA",c:false}
+      ],
+      expl:`<div class='expl-title'>💡 KIẾN THỨC THỰC TẾ</div><div class='vi-box'>📌 Dịch: "Trên toàn thế giới, _______ được xếp hạng là quốc gia nói tiếng Anh không phải bản ngữ đứng thứ 5, sau Hà Lan, Thụy Điển, Na Uy và Đan Mạch."</div><p>Từ khóa quan trọng: <span class='p-word'>"non-native English-speaking"</span> → <span class='p-mean'>quốc gia không nói tiếng Anh như tiếng mẹ đẻ</span></p><ul><li><span class='hl-red'>the UK</span> → <span class='p-mean'>Vương quốc Anh</span> — tiếng Anh là ngôn ngữ <b>bản địa</b>, không thuộc diện này</li><li><span class='hl-red'>the USA</span> → <span class='p-mean'>Hoa Kỳ</span> — tương tự, tiếng Anh là ngôn ngữ bản địa</li><li><span class='hl-red'>Singapore</span> → <span class='p-mean'>Singapore</span> — tiếng Anh là ngôn ngữ chính thức nhưng xếp hạng khác</li><li><span class='hl-green'>Canada</span> — mặc dù tiếng Anh phổ biến ở Canada nhưng cũng có nhiều cộng đồng nói tiếng Pháp và nhiều ngôn ngữ khác; theo bảng xếp hạng EF EPI, Canada đứng thứ 5</li></ul>`
+    },
+    {
+      t:"Câu 11.",txt:"Children should avoid _______ foods such as hamburger and snacks.",
+      opts:[
+        {h:"unhealthy",c:true},
+        {h:"nutritious",c:false},
+        {h:"uncooked",c:false},
+        {h:"fresh",c:false}
+      ],
+      expl:`<div class='expl-title'>💡 PHÂN TÍCH TỪ VỰNG</div><div class='vi-box'>📌 Dịch: "Trẻ em nên tránh các thực phẩm _______ như hamburger và đồ ăn vặt."</div><ul><li><span class='p-word'>unhealthy</span> → <span class='p-mean'>không lành mạnh</span> → <span class='hl-green'>ĐÚNG!</span> hamburger/snacks là ví dụ của đồ ăn không lành mạnh</li><li><span class='p-word'>nutritious</span> → <span class='p-mean'>bổ dưỡng</span> → <span class='hl-red'>ngược nghĩa</span>! Trẻ em NÊN ăn đồ bổ dưỡng, không cần tránh</li><li><span class='p-word'>uncooked</span> → <span class='p-mean'>chưa nấu chín</span> → hamburger thường được nấu chín, không liên quan</li><li><span class='p-word'>fresh</span> → <span class='p-mean'>tươi</span> → đồ ăn tươi tốt cho sức khỏe, không cần tránh</li></ul><p>✅ <span class='hl-green'>unhealthy foods</span>: hamburger và snacks là ví dụ điển hình của đồ ăn không lành mạnh (nhiều dầu mỡ, đường, muối).</p>`
+    },
+    {
+      t:"Câu 12.",txt:"The red _______ is one of the best known of Australia's native animals.",
+      opts:[
+        {h:"whale",c:false},
+        {h:"squirrel",c:false},
+        {h:"kangaroo",c:true},
+        {h:"kiwi",c:false}
+      ],
+      expl:`<div class='expl-title'>💡 KIẾN THỨC THỰC TẾ & TỪ VỰNG</div><div class='vi-box'>📌 Dịch: "Con _______ đỏ là một trong những loài động vật bản địa nổi tiếng nhất của Australia."</div><ul><li><span class='p-word'>whale</span> → <span class='p-mean'>cá voi</span> → không có "red whale" là loài đặc trưng của Úc</li><li><span class='p-word'>squirrel</span> → <span class='p-mean'>con sóc</span> → sóc không phải động vật biểu tượng Australia</li><li><span class='p-word'>kangaroo</span> → <span class='p-mean'>con chuột túi</span> → <span class='hl-green'>ĐÚNG!</span> "Red kangaroo" là loài chuột túi đỏ, to nhất và phổ biến nhất của Australia</li><li><span class='p-word'>kiwi</span> → <span class='p-mean'>chim kiwi</span> → kiwi là biểu tượng của <span class='hl-red'>New Zealand</span>, không phải Australia</li></ul><p>✅ <span class='p-grammar'>Red kangaroo</span> (Macropus rufus) là loài có túi lớn nhất thế giới, đặc trưng của Australia. 🦘</p>`
+    },
+    {
+      t:"Câu 13.",txt:"_______ is a self-balancing one-wheeled electric vehicle for personal transportation.",
+      opts:[
+        {h:"Bamboo-copter",c:false},
+        {h:"Car",c:false},
+        {h:"Solowheel",c:true},
+        {h:"Bullet train",c:false}
+      ],
+      expl:`<div class='expl-title'>💡 PHÂN TÍCH TỪ VỰNG CÔNG NGHỆ</div><div class='vi-box'>📌 Dịch: "_______ là xe điện một bánh tự cân bằng dùng để di chuyển cá nhân."</div><ul><li><span class='p-word'>Bamboo-copter</span> → <span class='p-mean'>chong chóng tre</span> → đồ chơi, không phải phương tiện điện</li><li><span class='p-word'>Car</span> → <span class='p-mean'>ô tô</span> → xe 4 bánh, không phải 1 bánh</li><li><span class='p-word'>Solowheel</span> → <span class='p-mean'>xe cân bằng điện 1 bánh</span> → <span class='hl-green'>ĐÚNG!</span> Định nghĩa trong câu mô tả chính xác Solowheel</li><li><span class='p-word'>Bullet train</span> → <span class='p-mean'>tàu siêu tốc</span> → tàu hỏa, không phải xe cá nhân 1 bánh</li></ul><p>✅ Phân tích định nghĩa: <b>self-balancing</b> (tự cân bằng) + <b>one-wheeled</b> (1 bánh) + <b>electric</b> (điện) + <b>personal</b> (cá nhân) = <span class='hl-green'>Solowheel</span>!</p>`
+    },
+    {
+      t:"Câu 14.",txt:"People will reduce energy _______ as much as possible.",
+      opts:[
+        {h:"consume",c:false},
+        {h:"consumption",c:true},
+        {h:"expenses",c:false},
+        {h:"appliances",c:false}
+      ],
+      expl:`<div class='expl-title'>💡 PHÂN TÍCH TỪ LOẠI (WORD FORM)</div><div class='vi-box'>📌 Dịch: "Mọi người sẽ giảm _______ năng lượng càng nhiều càng tốt."</div><p><span class='p-grammar'>Sau "energy" (danh từ) cần một danh từ khác để tạo cụm danh từ ghép:</span></p><ul><li><span class='p-word'>consume</span> → <span class='p-mean'>tiêu thụ</span> (động từ) → <span class='hl-red'>sai từ loại</span>, cần danh từ</li><li><span class='p-word'>consumption</span> → <span class='p-mean'>sự tiêu thụ</span> (danh từ) → <span class='hl-green'>ĐÚNG!</span> <span class='p-grammar'>energy consumption = lượng tiêu thụ năng lượng</span></li><li><span class='p-word'>expenses</span> → <span class='p-mean'>chi phí</span> → "energy expenses" ít dùng hơn "energy consumption"</li><li><span class='p-word'>appliances</span> → <span class='p-mean'>đồ gia dụng</span> → không phù hợp ngữ cảnh</li></ul><p>✅ <span class='p-grammar'>energy consumption</span> là cụm từ cố định rất phổ biến trong bài đọc về môi trường.</p>`
+    },
+    {
+      t:"Câu 15.",txt:"_______ the film is a bit frightening, I really enjoyed it.",
+      opts:[
+        {h:"However",c:false},
+        {h:"Nevertheless",c:false},
+        {h:"Although",c:true},
+        {h:"Despite",c:false}
+      ],
+      expl:`<div class='expl-title'>💡 PHÂN TÍCH LIÊN TỪ</div><div class='vi-box'>📌 Dịch: "_______ bộ phim hơi đáng sợ, tôi thực sự rất thích nó."</div><p>Vị trí trống: đầu câu, trước mệnh đề <b>"the film is a bit frightening"</b> (có S+V)</p><ul><li><span class='p-word'>However</span> → trạng từ liên kết, <span class='hl-red'>không đứng trước S+V như vậy</span></li><li><span class='p-word'>Nevertheless</span> → trạng từ liên kết, <span class='hl-red'>tương tự However</span></li><li><span class='p-word'>Although</span> → liên từ phụ, <span class='p-grammar'>Although + S+V, S+V</span> → <span class='hl-green'>ĐÚNG!</span></li><li><span class='p-word'>Despite</span> → giới từ, <span class='hl-red'>cần danh từ/V-ing</span> sau: "Despite <u>being frightening</u>..."</li></ul><p>✅ Ghi nhớ: <span class='p-grammar'>Although/Though + clause | Despite/In spite of + noun/V-ing</span></p>`
+    },
+    {
+      t:"Câu 16.",txt:"We will go on holiday with some friends of _______.",
+      opts:[
+        {h:"our",c:false},
+        {h:"ours",c:true},
+        {h:"us",c:false},
+        {h:"we",c:false}
+      ],
+      expl:`<div class='expl-title'>💡 PHÂN TÍCH NGỮ PHÁP – DOUBLE POSSESSIVE</div><div class='vi-box'>📌 Dịch: "Chúng tôi sẽ đi nghỉ cùng một số bạn bè của _______."</div><p><span class='p-grammar'>Cấu trúc: "some friends of + sở hữu cách kép" (double possessive)</span></p><ul><li><span class='p-word'>our</span> → tính từ sở hữu, đứng trước danh từ: "our friends" (không dùng "of our")</li><li><span class='p-word'>ours</span> → đại từ sở hữu độc lập: <span class='p-grammar'>a friend of ours = một trong những người bạn của chúng ta</span> → <span class='hl-green'>ĐÚNG!</span></li><li><span class='p-word'>us</span> → đại từ tân ngữ, "friends of us" <span class='hl-red'>không đúng ngữ pháp</span></li><li><span class='p-word'>we</span> → đại từ chủ ngữ, <span class='hl-red'>không dùng sau giới từ</span></li></ul><p>✅ <span class='p-grammar'>"a/some + N + of + sở hữu cách"</span>: "a friend of mine / yours / his / ours / theirs"</p>`
+    },
+    {
+      t:"Câu 17.",txt:"The black hover scooter is Tom's; _______ is red.",
+      opts:[
+        {h:"me",c:false},
+        {h:"my",c:false},
+        {h:"I",c:false},
+        {h:"mine",c:true}
+      ],
+      expl:`<div class='expl-title'>💡 PHÂN TÍCH ĐẠI TỪ SỞ HỮU</div><div class='vi-box'>📌 Dịch: "Xe scooter lơ lửng màu đen là của Tom; _______ màu đỏ."</div><p>Vị trí trống: đứng đầu câu, làm <b>chủ ngữ</b>, thay thế cho "my hover scooter"</p><ul><li><span class='p-word'>me</span> → đại từ tân ngữ, <span class='hl-red'>không làm chủ ngữ</span></li><li><span class='p-word'>my</span> → tính từ sở hữu, <span class='hl-red'>phải đứng trước danh từ</span>: "my scooter is red"</li><li><span class='p-word'>I</span> → đại từ chủ ngữ nhưng là <b>người</b>, câu nói về <b>xe</b></li><li><span class='p-word'>mine</span> → đại từ sở hữu = "my hover scooter" → <span class='hl-green'>ĐÚNG!</span></li></ul><p>✅ Các đại từ sở hữu độc lập (dùng thay cho N): <span class='p-grammar'>mine / yours / his / hers / ours / theirs</span></p>`
+    },
+    {
+      t:"Câu 18.",txt:"_______ being tired, they wanted to watch the film.",
+      opts:[
+        {h:"Despite",c:true},
+        {h:"In spite",c:false},
+        {h:"Although",c:false},
+        {h:"Nevertheless",c:false}
+      ],
+      expl:`<div class='expl-title'>💡 PHÂN TÍCH LIÊN TỪ/GIỚI TỪ</div><div class='vi-box'>📌 Dịch: "_______ mệt mỏi, họ vẫn muốn xem bộ phim."</div><p>Sau chỗ trống là <b>"being tired"</b> → dạng V-ing → cần giới từ/cụm giới từ</p><ul><li><span class='p-word'>Despite</span> + V-ing → <span class='p-grammar'>Despite being tired</span> → <span class='hl-green'>ĐÚNG!</span></li><li><span class='p-word'>In spite</span> → thiếu <b>"of"</b>: <span class='p-grammar'>In spite of being tired</span> mới đúng</li><li><span class='p-word'>Although</span> → cần S+V: <span class='p-grammar'>Although they were tired</span></li><li><span class='p-word'>Nevertheless</span> → trạng từ liên kết, <span class='hl-red'>không đứng trước V-ing</span></li></ul><p>✅ <span class='p-grammar'>Despite + V-ing / noun</span> — không cần thêm "of"! ("In spite of" mới cần "of")</p>`
+    },
+    {
+      t:"Câu 19.",txt:"In many countries, electricity, gas and water are _______.",
+      opts:[
+        {h:"sales",c:false},
+        {h:"consumers",c:false},
+        {h:"necessities",c:true},
+        {h:"appliances",c:false}
+      ],
+      expl:`<div class='expl-title'>💡 PHÂN TÍCH TỪ VỰNG</div><div class='vi-box'>📌 Dịch: "Ở nhiều quốc gia, điện, gas và nước là _______."</div><ul><li><span class='p-word'>sales</span> → <span class='p-mean'>doanh số bán hàng</span> → không liên quan</li><li><span class='p-word'>consumers</span> → <span class='p-mean'>người tiêu dùng</span> → điện/gas/nước không phải người</li><li><span class='p-word'>necessities</span> → <span class='p-mean'>những thứ thiết yếu</span> → <span class='hl-green'>ĐÚNG!</span> Điện/gas/nước là nhu yếu phẩm</li><li><span class='p-word'>appliances</span> → <span class='p-mean'>đồ gia dụng (tủ lạnh, máy giặt...)</span> → khác với điện/gas/nước</li></ul><p>✅ <span class='p-grammar'>necessity (n) → necessities (số nhiều)</span> = <span class='p-mean'>vật/dịch vụ thiết yếu</span>. Điện, gas, nước là những thứ không thể thiếu trong cuộc sống.</p>`
+    },
+    {
+      t:"Câu 20.",txt:"Low energy light bulbs should be used to _______ electricity.",
+      opts:[
+        {h:"spend",c:false},
+        {h:"buy",c:false},
+        {h:"convert",c:false},
+        {h:"save",c:true}
+      ],
+      expl:`<div class='expl-title'>💡 PHÂN TÍCH TỪ VỰNG</div><div class='vi-box'>📌 Dịch: "Bóng đèn tiết kiệm điện nên được sử dụng để _______ điện."</div><ul><li><span class='p-word'>spend</span> → <span class='p-mean'>tiêu xài</span> → "spend electricity" không hợp lý</li><li><span class='p-word'>buy</span> → <span class='p-mean'>mua</span> → không liên quan</li><li><span class='p-word'>convert</span> → <span class='p-mean'>chuyển đổi</span> → "convert electricity" cần bổ ngữ (convert electricity <u>into</u> heat)</li><li><span class='p-word'>save</span> → <span class='p-mean'>tiết kiệm</span> → <span class='hl-green'>ĐÚNG!</span> <span class='p-grammar'>save electricity = tiết kiệm điện</span></li></ul><p>✅ Tên "low energy light bulbs" đã gợi ý: bóng đèn <b>tiết kiệm điện</b> → mục đích là <span class='hl-green'>save electricity</span>.</p>`
+    },
+    {
+      t:"Câu 21.",txt:"We must _______ the amount of water our family use every day.",
+      opts:[
+        {h:"lower",c:false},
+        {h:"reduce",c:true},
+        {h:"increase",c:false},
+        {h:"narrow",c:false}
+      ],
+      expl:`<div class='expl-title'>💡 PHÂN TÍCH TỪ ĐỒNG NGHĨA</div><div class='vi-box'>📌 Dịch: "Chúng ta phải _______ lượng nước gia đình sử dụng mỗi ngày."</div><ul><li><span class='p-word'>lower</span> → <span class='p-mean'>hạ xuống</span> → thường dùng cho giá cả, nhiệt độ: "lower prices/temperature"</li><li><span class='p-word'>reduce</span> → <span class='p-mean'>giảm, cắt giảm</span> → <span class='hl-green'>ĐÚNG!</span> <span class='p-grammar'>reduce the amount of... = giảm lượng...</span></li><li><span class='p-word'>increase</span> → <span class='p-mean'>tăng lên</span> → <span class='hl-red'>ngược nghĩa</span> với ý định tiết kiệm</li><li><span class='p-word'>narrow</span> → <span class='p-mean'>thu hẹp (chiều rộng)</span> → dùng cho không gian, khoảng cách</li></ul><p>✅ <span class='p-grammar'>reduce the amount of water/energy/waste</span> là cụm từ rất phổ biến trong bài đọc môi trường.</p>`
+    },
+    {
+      t:"Câu 22.",txt:"Is there _______ garden in your house?",
+      opts:[
+        {h:"an",c:false},
+        {h:"the",c:false},
+        {h:"a",c:true},
+        {h:"∅ (không cần)",c:false}
+      ],
+      expl:`<div class='expl-title'>💡 PHÂN TÍCH MẠO TỪ</div><div class='vi-box'>📌 Dịch: "Trong nhà bạn có _______ khu vườn không?"</div><p><span class='p-grammar'>Quy tắc mạo từ:</span></p><ul><li><span class='p-word'>a</span> → mạo từ không xác định, dùng trước danh từ số ít bắt đầu bằng phụ âm → <span class='hl-green'>ĐÚNG!</span></li><li><span class='p-word'>an</span> → mạo từ không xác định, dùng trước danh từ bắt đầu bằng <b>nguyên âm</b>: "garden" bắt đầu bằng /g/ (phụ âm) → <span class='hl-red'>sai</span></li><li><span class='p-word'>the</span> → mạo từ xác định, dùng khi cả người nói lẫn người nghe biết đó là khu vườn nào → không hợp lý trong câu hỏi này</li><li><span class='p-word'>∅</span> → bỏ mạo từ, chỉ dùng cho danh từ không đếm được hoặc số nhiều chung</li></ul><p>✅ "garden" là danh từ đếm được số ít, lần đầu đề cập → dùng <span class='hl-green'>a garden</span>.</p>`
+    },
+    {
+      t:"Câu 23.",txt:"_______ source of energy is the source that can't be replaced after use.",
+      opts:[
+        {h:"Renewable",c:false},
+        {h:"Natural",c:false},
+        {h:"Effective",c:false},
+        {h:"Non-renewable",c:true}
+      ],
+      expl:`<div class='expl-title'>💡 PHÂN TÍCH TỪ VỰNG KHOA HỌC</div><div class='vi-box'>📌 Dịch: "Nguồn năng lượng _______ là nguồn không thể được thay thế sau khi sử dụng."</div><ul><li><span class='p-word'>Renewable</span> → <span class='p-mean'>tái tạo được</span> → <span class='hl-red'>ngược lại</span>! Renewable = có thể tái tạo, dùng mãi</li><li><span class='p-word'>Natural</span> → <span class='p-mean'>tự nhiên</span> → mô tả nguồn gốc, không mô tả tính chất không thể thay thế</li><li><span class='p-word'>Effective</span> → <span class='p-mean'>hiệu quả</span> → không liên quan</li><li><span class='p-word'>Non-renewable</span> → <span class='p-mean'>không thể tái tạo</span> → <span class='hl-green'>ĐÚNG!</span> Định nghĩa khớp hoàn toàn</li></ul><p>✅ <span class='p-grammar'>Non-renewable energy</span> (than đá, dầu mỏ, khí đốt tự nhiên) = dùng hết là hết, không thể phục hồi. ⚡</p>`
+    },
+    {
+      t:"Câu 24.",txt:"You can read a book while you are in a _______ because of the automation.",
+      opts:[
+        {h:"driverless car",c:true},
+        {h:"bullet train",c:false},
+        {h:"flying car",c:false},
+        {h:"underwater train",c:false}
+      ],
+      expl:`<div class='expl-title'>💡 PHÂN TÍCH TỪ VỰNG CÔNG NGHỆ</div><div class='vi-box'>📌 Dịch: "Bạn có thể đọc sách trong khi ngồi trên _______ nhờ sự tự động hóa."</div><p>Từ khóa: <span class='p-word'>"automation"</span> → <span class='p-mean'>sự tự động hóa</span></p><ul><li><span class='p-word'>driverless car</span> → <span class='p-mean'>xe tự lái (không có tài xế)</span> → <span class='hl-green'>ĐÚNG!</span> Nhờ automation (AI tự lái), bạn rảnh tay để đọc sách</li><li><span class='p-word'>bullet train</span> → <span class='p-mean'>tàu siêu tốc</span> → vẫn có người điều khiển, không liên hệ trực tiếp với automation cá nhân</li><li><span class='p-word'>flying car</span> → <span class='p-mean'>xe bay</span> → chưa phổ biến, rủi ro cao khi không nhìn đường</li><li><span class='p-word'>underwater train</span> → <span class='p-mean'>tàu ngầm</span> → không liên quan đến "automation"</li></ul><p>✅ <span class='p-word'>driverless car</span> = xe tự lái (xe không người lái): nhờ AI/automation điều khiển, hành khách tự do làm việc/đọc sách! 🚗🤖</p>`
+    },
+    {
+      t:"Câu 25.",txt:"We try to make the future green by using vehicles or kinds of energy that are _______.",
+      opts:[
+        {h:"environmentally friendly",c:true},
+        {h:"environment friendly",c:false},
+        {h:"environmentally friendship",c:false},
+        {h:"environmental friendly",c:false}
+      ],
+      expl:`<div class='expl-title'>💡 PHÂN TÍCH CẤU TẠO TỪ (WORD FORMATION)</div><div class='vi-box'>📌 Dịch: "Chúng ta cố gắng tạo ra tương lai xanh bằng cách sử dụng phương tiện hoặc năng lượng _______."</div><p><span class='p-grammar'>Cấu trúc tính từ ghép: [trạng từ] + [tính từ]</span></p><ul><li><span class='p-word'>environmentally friendly</span> → <span class='p-mean'>thân thiện với môi trường</span> — <span class='hl-green'>ĐÚNG!</span> "environmentally" (trạng từ) bổ nghĩa cho "friendly" (tính từ)</li><li><span class='p-word'>environment friendly</span> → <span class='hl-red'>sai</span> — "environment" là danh từ, cần thêm "-ally" để thành trạng từ</li><li><span class='p-word'>environmentally friendship</span> → <span class='hl-red'>sai</span> — "friendship" là danh từ, không thể dùng sau "environmentally"</li><li><span class='p-word'>environmental friendly</span> → <span class='hl-red'>sai</span> — "environmental" là tính từ, không bổ nghĩa cho tính từ khác</li></ul><p>✅ <span class='p-grammar'>environmentally friendly</span>: trạng từ + tính từ = tính từ ghép đúng chuẩn!</p>`
+    },
+    {
+      t:"Câu 26.",txt:"The wind turns _______ to generate electricity.",
+      opts:[
+        {h:"fans",c:false},
+        {h:"leaves",c:false},
+        {h:"turbines",c:true},
+        {h:"kites",c:false}
+      ],
+      expl:`<div class='expl-title'>💡 PHÂN TÍCH TỪ VỰNG</div><div class='vi-box'>📌 Dịch: "Gió quay _______ để tạo ra điện."</div><ul><li><span class='p-word'>fans</span> → <span class='p-mean'>quạt</span> → quạt chạy bằng điện, không tạo ra điện</li><li><span class='p-word'>leaves</span> → <span class='p-mean'>lá cây</span> → không tạo ra điện</li><li><span class='p-word'>turbines</span> → <span class='p-mean'>tua bin</span> → <span class='hl-green'>ĐÚNG!</span> Gió quay tua bin → tạo ra điện gió</li><li><span class='p-word'>kites</span> → <span class='p-mean'>diều</span> → không tạo ra điện (trong ngữ cảnh thông thường)</li></ul><p>✅ <span class='p-word'>turbine</span> <span class='p-phonetic'>/ˈtɜːbaɪn/</span> → <span class='p-mean'>tua bin</span>: thiết bị cơ học quay để tạo ra điện năng từ sức gió hoặc nước. 💨⚡</p>`
+    },
+    {
+      t:"Câu 27.",txt:'Bill: "Does that red motorbike belong to your mother?" — Nick: "No, _______ is white."',
+      opts:[
+        {h:"she",c:false},
+        {h:"her",c:false},
+        {h:"hers",c:true},
+        {h:"mine",c:false}
+      ],
+      expl:`<div class='expl-title'>💡 PHÂN TÍCH ĐẠI TỪ SỞ HỮU</div><div class='vi-box'>📌 Dịch: Bill: "Chiếc xe máy đỏ đó có phải của mẹ bạn không?" — Nick: "Không, _______ màu trắng."</div><p>Chỗ trống làm <b>chủ ngữ</b>, thay cho "her motorbike" (xe máy của mẹ cô ấy)</p><ul><li><span class='p-word'>she</span> → đại từ chủ ngữ chỉ <b>người</b>, câu nói về <b>xe máy</b> → <span class='hl-red'>sai</span></li><li><span class='p-word'>her</span> → tính từ sở hữu hoặc tân ngữ, phải đứng trước danh từ: "her motorbike" → <span class='hl-red'>sai</span> khi đứng một mình</li><li><span class='p-word'>hers</span> → đại từ sở hữu = "her motorbike" → <span class='hl-green'>ĐÚNG!</span> "Hers is white" = "Her motorbike is white"</li><li><span class='p-word'>mine</span> → <span class='p-mean'>của tôi</span> → Nick đang nói về xe của <b>mẹ</b>, không phải của Nick</li></ul><p>✅ <span class='p-grammar'>hers</span> = đại từ sở hữu chỉ phụ nữ = "her + noun". Các đại từ: mine/yours/his/hers/ours/theirs.</p>`
+    },
+    {
+      t:"Câu 28.",txt:"_______ girl sitting next to me is _______ American.",
+      opts:[
+        {h:"The / A",c:false},
+        {h:"The / An",c:true},
+        {h:"A / An",c:false},
+        {h:"∅ / A",c:false}
+      ],
+      expl:`<div class='expl-title'>💡 PHÂN TÍCH MẠO TỪ KÉP</div><div class='vi-box'>📌 Dịch: "Cô gái ngồi cạnh tôi là _______ người Mỹ."</div><p>Phân tích <b>2 chỗ trống</b>:</p><p><b>Chỗ 1:</b> "_____ girl sitting next to me" → xác định cụ thể cô gái nào (ngồi kế tôi) → dùng <span class='p-grammar'>THE</span> (mạo từ xác định)</p><p><b>Chỗ 2:</b> "is _____ American" → "American" /əˈmɛrɪkən/ bắt đầu bằng nguyên âm /ə/ → dùng <span class='p-grammar'>AN</span></p><ul><li><span class='p-word'>The / A</span> → "A" sai vì "American" bắt đầu bằng nguyên âm</li><li><span class='p-word'>The / An</span> → <span class='hl-green'>ĐÚNG!</span> "The" (xác định) + "An" (trước nguyên âm)</li><li><span class='p-word'>A / An</span> → "A" sai cho chỗ 1 vì cô gái đã xác định cụ thể</li><li><span class='p-word'>∅ / A</span> → cả hai đều sai</li></ul><p>✅ Mẹo: <span class='p-grammar'>a/an</span> phụ thuộc vào <b>âm đầu tiên</b>, không phải chữ cái. "An American" vì /ə/ là nguyên âm!</p>`
+    }
+  ]
+},
+{
+  title:"COMMUNICATION",
+  instruction:"Chọn câu trả lời phù hợp nhất để hoàn thành đoạn hội thoại.",
+  qs:[
+    {
+      t:"Câu 1.",txt:'– "I have bought you a toy. Happy birthday to you!" – "______"',
+      opts:[
+        {h:"The same to you.",c:false},
+        {h:"Have a nice day!",c:false},
+        {h:"What a pity!",c:false},
+        {h:"What a lovely toy! Thanks.",c:true}
+      ],
+      expl:`<div class='expl-title'>💡 PHÂN TÍCH GIAO TIẾP</div><div class='vi-box'>📌 Dịch: "Tôi đã mua cho bạn một món đồ chơi. Chúc mừng sinh nhật!" → "______"</div><ul><li><span class='p-word'>"The same to you."</span> → <span class='p-mean'>Chúc bạn cũng vậy!</span> — <span class='hl-red'>dùng khi được chúc điều gì đó, không phải khi nhận quà</span></li><li><span class='p-word'>"Have a nice day!"</span> → <span class='p-mean'>Chúc một ngày tốt lành!</span> — <span class='hl-red'>không liên quan đến tình huống nhận quà</span></li><li><span class='p-word'>"What a pity!"</span> → <span class='p-mean'>Thật đáng tiếc!</span> — <span class='hl-red'>dùng khi có chuyện buồn, không phải khi nhận quà</span></li><li><span class='p-word'>"What a lovely toy! Thanks."</span> → <span class='p-mean'>Đồ chơi thật dễ thương! Cảm ơn.</span> → <span class='hl-green'>ĐÚNG!</span> Khen quà + cảm ơn</li></ul><p>✅ Khi nhận quà: phản ứng lịch sự là khen quà (What a lovely...!) và nói cảm ơn.</p>`
+    },
+    {
+      t:"Câu 2.",txt:'– "Well, we\'d like to thank you for coming today. It\'s nice to meet you." – "______"',
+      opts:[
+        {h:"Oh, thank you. It's my pleasure.",c:true},
+        {h:"Not too bad. How are you?",c:false},
+        {h:"No, I don't. My name is Linda.",c:false},
+        {h:"Hi, I'm Katherine, but call me Kate.",c:false}
+      ],
+      expl:`<div class='expl-title'>💡 PHÂN TÍCH GIAO TIẾP</div><div class='vi-box'>📌 Dịch: "Chúng tôi xin cảm ơn bạn đã đến hôm nay. Rất vui được gặp bạn." → "______"</div><ul><li><span class='p-word'>"Oh, thank you. It's my pleasure."</span> → <span class='p-mean'>Ồ, cảm ơn bạn. Đó là niềm vui của tôi.</span> → <span class='hl-green'>ĐÚNG!</span> Đáp lại lời cảm ơn lịch sự</li><li><span class='p-word'>"Not too bad."</span> → <span class='p-mean'>Cũng được.</span> → <span class='hl-red'>trả lời câu hỏi "How are you?" không phải lời cảm ơn</span></li><li><span class='p-word'>"No, I don't."</span> → <span class='p-mean'>Không, tôi không.</span> → <span class='hl-red'>hoàn toàn không phù hợp</span></li><li><span class='p-word'>"Hi, I'm Katherine..."</span> → <span class='hl-red'>tự giới thiệu không phải phản hồi khi được cảm ơn</span></li></ul><p>✅ <span class='p-grammar'>"It's my pleasure"</span> / "You're welcome" / "Don't mention it" = cách đáp lại lời cảm ơn lịch sự.</p>`
+    },
+    {
+      t:"Câu 3.",txt:'– "I really appreciate what you have done." – "______"',
+      opts:[
+        {h:"Of course.",c:false},
+        {h:"No matter what.",c:false},
+        {h:"No, thanks.",c:false},
+        {h:"You're welcome.",c:true}
+      ],
+      expl:`<div class='expl-title'>💡 PHÂN TÍCH GIAO TIẾP</div><div class='vi-box'>📌 Dịch: "Tôi thực sự đánh giá cao những gì bạn đã làm." → "______"</div><p>"I appreciate what you have done" = lời cảm ơn / khen ngợi → cần phản hồi phù hợp</p><ul><li><span class='p-word'>"Of course."</span> → <span class='p-mean'>Tất nhiên rồi.</span> → hơi bất lịch sự, không phải phản hồi chuẩn</li><li><span class='p-word'>"No matter what."</span> → <span class='p-mean'>Dù sao đi nữa.</span> → <span class='hl-red'>không phù hợp</span></li><li><span class='p-word'>"No, thanks."</span> → <span class='p-mean'>Không, cảm ơn.</span> → <span class='hl-red'>từ chối điều gì đó, không phải đáp lại lời cảm ơn</span></li><li><span class='p-word'>"You're welcome."</span> → <span class='p-mean'>Không có chi. (= Không có gì)</span> → <span class='hl-green'>ĐÚNG!</span> Phản hồi chuẩn nhất khi được cảm ơn/khen</li></ul><p>✅ <span class='p-grammar'>"You're welcome"</span> = cách nói lịch sự nhất để đáp lại "thank you / appreciate". Cũng có thể nói: "My pleasure", "Not at all", "Don't mention it".</p>`
+    },
+    {
+      t:"Câu 4.",txt:'– "How long have you known him?" – "______"',
+      opts:[
+        {h:"Since five years.",c:false},
+        {h:"For five years.",c:true},
+        {h:"Ever since five years.",c:false},
+        {h:"Along five years.",c:false}
+      ],
+      expl:`<div class='expl-title'>💡 PHÂN TÍCH NGỮ PHÁP – SINCE vs FOR</div><div class='vi-box'>📌 Dịch: "Bạn đã biết anh ấy bao lâu rồi?" → "______"</div><p><span class='p-grammar'>Quy tắc: "How long" hỏi về khoảng thời gian:</span></p><ul><li><span class='p-word'>Since</span> + <span class='p-grammar'>mốc thời gian cụ thể</span> (since 2020 / since Monday / since I was a child)</li><li><span class='p-word'>For</span> + <span class='p-grammar'>khoảng thời gian (duration)</span> (for 5 years / for 3 days / for a long time)</li></ul><ul><li><span class='p-word'>"Since five years."</span> → <span class='hl-red'>sai</span> — "five years" là khoảng thời gian, không phải mốc cụ thể</li><li><span class='p-word'>"For five years."</span> → <span class='hl-green'>ĐÚNG!</span> "for + khoảng thời gian" ✓</li><li><span class='p-word'>"Ever since five years."</span> → <span class='hl-red'>sai ngữ pháp</span></li><li><span class='p-word'>"Along five years."</span> → <span class='hl-red'>"along" không dùng với thời gian</span></li></ul><p>✅ "For <b>five years</b>" (khoảng thời gian) vs "Since <b>2020</b>" (mốc thời gian). 📅</p>`
+    },
+    {
+      t:"Câu 5.",txt:'Maria: "I\'m taking my end-of-term examination tomorrow." — Sarah: "______"',
+      opts:[
+        {h:"Good day!",c:false},
+        {h:"Good luck!",c:true},
+        {h:"Good time!",c:false},
+        {h:"Good chance!",c:false}
+      ],
+      expl:`<div class='expl-title'>💡 PHÂN TÍCH GIAO TIẾP</div><div class='vi-box'>📌 Dịch: Maria: "Ngày mai mình thi hết học kỳ." — Sarah: "______"</div><ul><li><span class='p-word'>"Good day!"</span> → <span class='p-mean'>Chào! (kiểu lịch sự)</span> → dùng để chào hỏi, không phải chúc thi tốt</li><li><span class='p-word'>"Good luck!"</span> → <span class='p-mean'>Chúc may mắn!</span> → <span class='hl-green'>ĐÚNG!</span> Dùng khi ai đó sắp làm gì khó khăn (thi cử, phỏng vấn...)</li><li><span class='p-word'>"Good time!"</span> → <span class='p-mean'>không phải thành ngữ chuẩn</span> trong tiếng Anh</li><li><span class='p-word'>"Good chance!"</span> → <span class='p-mean'>không phải thành ngữ chuẩn</span> để chúc mừng</li></ul><p>✅ Khi ai đó sắp thi/phỏng vấn/trình bày: luôn dùng <span class='hl-green'>"Good luck!"</span> hoặc "Best of luck!" hoặc "Break a leg!" (tiếng Anh Mỹ, nghĩa tốt đẹp).</p>`
+    }
+  ]
+},
+{
+  title:"SENTENCE ORDERING",
+  instruction:"Xếp câu đúng thứ tự và chọn câu kết thúc phù hợp.",
+  qs:[
+    {
+      t:"Câu 1 – Films",
+      txt:`<div class='q-context'>📖 Câu mở đầu: <span>"Last Saturday, I watched a movie at the cinema. ........."</span></div><div class='q-sentences'>Sắp xếp (a), (b), (c) theo thứ tự hợp lý:<br>a. The movie was so exciting that I couldn't take my eyes off the screen.<br>b. First, I bought a ticket and some popcorn before entering the theater.<br>c. After the movie ended, I discussed it with my friends over a cup of coffee.</div>`,
+      opts:[
+        {h:"b – a – c",c:true},
+        {h:"a – c – b",c:false},
+        {h:"c – a – b",c:false},
+        {h:"b – c – a",c:false}
+      ],
+      expl:`<div class='expl-title'>💡 PHÂN TÍCH TRÌNH TỰ LOGIC</div><div class='vi-box'>📌 Dịch câu mở: "Thứ Bảy tuần trước, tôi đã xem một bộ phim ở rạp chiếu phim."</div><p>Phân tích theo trình tự thời gian:</p><ul><li><span class='p-word'>b. "First, I bought a ticket and some popcorn..."</span> → <span class='p-mean'>TRƯỚC TIÊN, mua vé và bắp rang trước khi vào rạp</span> → <span class='hl-green'>Câu đầu tiên</span></li><li><span class='p-word'>a. "The movie was so exciting..."</span> → <span class='p-mean'>TRONG KHI xem phim: phim quá hấp dẫn đến mức không rời mắt khỏi màn hình</span> → <span class='hl-green'>Câu thứ hai</span></li><li><span class='p-word'>c. "After the movie ended, I discussed..."</span> → <span class='p-mean'>SAU KHI xem xong: thảo luận về phim</span> → <span class='hl-green'>Câu thứ ba</span></li></ul><p>✅ Thứ tự: <span class='hl-green'>b → a → c</span> (Chuẩn bị trước khi vào → Trong khi xem → Sau khi xem xong)</p>`
+    },
+    {
+      t:"Câu 2 – Films",
+      txt:`<div class='q-context'>📌 Chọn câu kết thúc phù hợp nhất cho đoạn văn ở Câu 1 (phim ảnh).</div>`,
+      opts:[
+        {h:"I was so impressed that I decided to watch it again next week.",c:true},
+        {h:"I didn't like the movie at all and regretted buying the ticket.",c:false},
+        {h:"The cinema was too crowded, so I left without watching the movie.",c:false},
+        {h:"I got bored halfway through and fell asleep.",c:false}
+      ],
+      expl:`<div class='expl-title'>💡 PHÂN TÍCH CÂU KẾT THÚC</div><div class='vi-box'>📌 Dịch: Chọn câu phù hợp nhất để kết thúc câu chuyện về buổi xem phim.</div><p>Nội dung đoạn văn: phim <b>rất hấp dẫn</b> (exciting), bạn thảo luận với bạn bè → cảm xúc tích cực</p><ul><li><span class='hl-green'>"I was so impressed... decided to watch it again"</span> → <span class='p-mean'>Ấn tượng đến mức muốn xem lại</span> → <span class='hl-green'>ĐÚNG!</span> Nhất quán với "exciting"</li><li><span class='hl-red'>"didn't like the movie... regretted"</span> → mâu thuẫn với "couldn't take my eyes off the screen"</li><li><span class='hl-red'>"too crowded, so I left"</span> → mâu thuẫn (đã xem xong, thảo luận sau đó)</li><li><span class='hl-red'>"got bored... fell asleep"</span> → hoàn toàn mâu thuẫn với "exciting"</li></ul><p>✅ Câu kết phải <b>nhất quán về cảm xúc/logic</b> với toàn bộ đoạn văn.</p>`
+    }
+  ]
+}
+];
+
+// ─────────────────────────────── QUIZ LOGIC ───────────────────────────────
+let totalQuestions = 0;
+let answeredCount = 0;
+let correctCount = 0;
+let flatQuestions = [];
+
+function initQuiz() {
+  createBubbles(); 
+
+  const container = document.getElementById("quiz-container");
+  let html = "";
+  let globalQIndex = 0;
+
+  SECTIONS.forEach((section) => {
+    html += `
+      <div class="sec-hdr">
+        <div class="sec-title">${section.title}</div>
+        <div class="sec-instr">${section.instruction}</div>
+      </div>
+    `;
+
+    section.qs.forEach((q) => {
+      flatQuestions.push(q);
+      totalQuestions++;
+
+      let optsHtml = "";
+      q.opts.forEach((opt, optIndex) => {
+        optsHtml += `<div class="opt" onclick="selectOption(this, ${globalQIndex}, ${optIndex})">${opt.h}</div>`;
+      });
+
+      html += `
+        <div class="q-card" id="q-${globalQIndex}">
+          <div class="q-num">${q.t}</div>
+          ${q.txt ? `<div class="q-text">${q.txt}</div>` : ""}
+          <div class="opts" id="opts-${globalQIndex}">
+            ${optsHtml}
+          </div>
+          <div class="expl" id="expl-${globalQIndex}">${q.expl}</div>
+        </div>
+      `;
+      globalQIndex++;
+    });
+  });
+
+  container.innerHTML = html;
+  document.getElementById("progText").innerText = `0 / ${totalQuestions} câu đã trả lời`;
+}
+
+function selectOption(btnElement, qIndex, optIndex) {
+  const optsContainer = document.getElementById(`opts-${qIndex}`);
+  
+  if (optsContainer.hasAttribute("data-answered")) return;
+  optsContainer.setAttribute("data-answered", "true");
+
+  const qData = flatQuestions[qIndex];
+  const isCorrect = qData.opts[optIndex].c;
+
+  const allBtns = optsContainer.querySelectorAll(".opt");
+  allBtns.forEach((btn, idx) => {
+    btn.classList.add("dim");
+    btn.removeAttribute("onclick");
+    if (qData.opts[idx].c) {
+      btn.classList.remove("dim");
+      btn.classList.add("correct");
+    }
+  });
+
+  btnElement.classList.remove("dim");
+  if (isCorrect) {
+    btnElement.classList.add("correct");
+    correctCount++;
+  } else {
+    btnElement.classList.add("wrong");
+    wrongSound.currentTime = 0;
+    wrongSound.play().catch(e => console.log('Chưa tương tác trang', e));
+  }
+
+  document.getElementById(`expl-${qIndex}`).classList.add("show");
+
+  answeredCount++;
+  updateProgress();
+}
+
+function updateProgress() {
+  const progBar = document.getElementById("progBar");
+  const progText = document.getElementById("progText");
+  const percentage = (answeredCount / totalQuestions) * 100;
+  
+  progBar.style.width = percentage + "%";
+  progText.innerText = `${answeredCount} / ${totalQuestions} câu đã trả lời`;
+}
+
+function openNameModal() {
+  if (answeredCount === 0) {
+    alert("Bạn chưa làm câu nào cả. Vui lòng làm bài trước khi nộp!");
+    return;
+  }
+  document.getElementById("nameModal").classList.add("show");
+  document.getElementById("nameInput").focus();
+}
+
+function submitName() {
+  const nameInput = document.getElementById("nameInput");
+  const nameErr = document.getElementById("nameErr");
+  const userName = nameInput.value.trim();
+
+  if (!userName) {
+    nameInput.classList.add("err");
+    nameErr.classList.add("show");
+    return;
+  }
+
+  nameInput.classList.remove("err");
+  nameErr.classList.remove("show");
+  document.getElementById("nameModal").classList.remove("show");
+
+  showResult(userName);
+}
+
+function showResult(name) {
+  document.getElementById("resultModal").classList.add("show");
+  document.getElementById("resGreet").innerText = `🎉 Chúc mừng ${name} đã hoàn thành bài!`;
+  
+  const scoreText = `${correctCount} / ${totalQuestions}`;
+  document.getElementById("resScore").innerText = scoreText;
+
+  const percent = correctCount / totalQuestions;
+  const memeImg = document.getElementById("resMeme");
+  memeImg.style.display = "block";
+
+  if (percent === 1) {
+    memeImg.src = "https://media.giphy.com/media/11sBLVxNs7v6WA/giphy.gif"; 
+    createConfetti();
+  } else if (percent >= 0.8) {
+    memeImg.src = "https://media.giphy.com/media/l41YkxvU8c7J7Bba0/giphy.gif"; 
+    createConfetti();
+  } else if (percent >= 0.5) {
+    memeImg.src = "https://media.giphy.com/media/3o7abKhOpu0NwenH3O/giphy.gif"; 
+  } else {
+    memeImg.src = "https://media.giphy.com/media/26ybvVb9iSmht7LdC/giphy.gif"; 
+  }
+}
+
+function retryQuiz() {
+  answeredCount = 0;
+  correctCount = 0;
+  
+  document.getElementById("resultModal").classList.remove("show");
+  document.getElementById("nameInput").value = "";
+  
+  initQuiz();
+  
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function createConfetti() {
+  const colors = ['#FFD166', '#FF6B6B', '#06D6A0', '#00B4D8', '#fff'];
+  for (let i = 0; i < 80; i++) {
+    let conf = document.createElement('div');
+    conf.className = 'cft';
+    conf.style.left = Math.random() * 100 + 'vw';
+    conf.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+    conf.style.animationDuration = (Math.random() * 2 + 2) + 's'; 
+    conf.style.animationDelay = (Math.random() * 1) + 's';
+    document.body.appendChild(conf);
+    
+    setTimeout(() => { conf.remove(); }, 5000);
+  }
+}
+
+// Khởi tạo quiz khi trang load
+window.onload = initQuiz;
+
+</script>
+</body>
+</html>

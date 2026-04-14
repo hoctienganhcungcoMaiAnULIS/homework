@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>English Reading Challenge - Ocean Theme</title>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        :root {
+            --primary-bg: radial-gradient(circle at 50% 50%, #a1c4fd, #c2e9fb, #ffdde1);
+            --glass-bg: rgba(255, 255, 255, 0.4);
+            --glass-border: rgba(255, 255, 255, 0.6);
+            --text-main: #2c3e50;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Quicksand', sans-serif;
+        }
+
+        body {
+            background: var(--primary-bg);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            color: var(--text-main);
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Tông xuyệt tông Password Modal - Ocean Glassmorphism */
+        #passwordModal {
+            position: fixed; inset: 0; z-index: 9999;
+            display: flex; align-items: center; justify-content: center;
+            background: rgba(161, 196, 253, 0.3); backdrop-filter: blur(25px);
+        }
+        .pw-card {
+            background: rgba(255, 255, 255, 0.5);
+            border: 2px solid rgba(255, 255, 255, 0.8);
+            border-radius: 24px; padding: 40px; 
+            max-width: 400px; width: 90%; text-align: center;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1), inset 0 0 15px rgba(255,255,255,0.5);
+        }
+        .pw-crest { font-size: 4rem; display: block; margin-bottom: 10px; animation: floatUp 3s ease-in-out infinite alternate;}
+        .pw-title { font-size: 1.8rem; font-weight: 900; color: #2980b9; margin-bottom: 5px; text-transform: uppercase;}
+        .pw-sub { font-size: 1rem; color: #34495e; margin-bottom: 25px; font-weight: 600; }
+        .pw-input {
+            width: 100%; padding: 15px; border-radius: 15px;
+            border: 2px solid rgba(255, 255, 255, 0.8); background: rgba(255,255,255,0.7);
+            color: #2c3e50; font-size: 1.1rem; font-weight: bold;
+            outline: none; text-align: center; transition: all 0.3s;
+        }
+        .pw-input:focus { border-color: #3498db; box-shadow: 0 0 15px rgba(52, 152, 219, 0.3); }
+        .pw-input.error { border-color: #e74c3c; animation: shake 0.4s ease; }
+        .pw-btn {
+            width: 100%; padding: 15px; margin-top: 15px; border-radius: 15px; border: none;
+            background: linear-gradient(135deg, #6dd5ed, #2193b0);
+            color: white; font-size: 1.1rem; font-weight: 800; cursor: pointer;
+            transition: all 0.2s; box-shadow: 0 5px 15px rgba(33, 147, 176, 0.3);
+        }
+        .pw-btn:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(33, 147, 176, 0.5); }
+        .pw-err { color: #c0392b; font-size: 0.95rem; margin-top: 15px; display: none; font-weight: 700; }
+
+        /* Floating Sea Creatures SVG */
+        .sea-creatures {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; z-index: 0; overflow: hidden;
+        }
+        .emoji {
+            position: absolute; font-size: 2.5rem; opacity: 0.6;
+            animation: floatUp linear infinite;
+        }
+        @keyframes floatUp {
+            0% { transform: translateY(100vh) rotate(0deg); }
+            100% { transform: translateY(-10vh) rotate(360deg); }
+        }
+
+        #mainContent { display: none; height: 100%; flex-direction: column; z-index: 10; position: relative;}
+
+        /* Header & Notice Board */
+        header {
+            text-align: center; padding: 10px; background: rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(10px); border-bottom: 1px solid var(--glass-border);
+            font-size: 0.95rem; font-weight: 700; color: #2c3e50;
+        }
+        
+        .notice-board {
+            margin: 15px auto; width: 95%; background: linear-gradient(45deg, #ff9a9e 0%, #fecfef 99%, #fecfef 100%);
+            border: 2px dashed #ff4757; border-radius: 15px; padding: 15px;
+            text-align: center; font-size: 1.1rem; font-weight: 800; color: #c0392b;
+            box-shadow: 0 5px 15px rgba(255, 71, 87, 0.3);
+            animation: pulseWarning 2s infinite;
+        }
+        @keyframes pulseWarning {
+            0% { box-shadow: 0 0 0 0 rgba(255, 71, 87, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(255, 71, 87, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 71, 87, 0); }
+        }
+
+        /* Split Layout */
+        .container { display: flex; flex: 1; overflow: hidden; padding: 0 15px 15px 15px; gap: 15px; }
+        .panel {
+            flex: 1; background: var(--glass-bg); backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border); border-radius: 20px;
+            padding: 25px; overflow-y: auto;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+        }
+        .panel::-webkit-scrollbar { width: 8px; }
+        .panel::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.8); border-radius: 10px; }
+
+        h2 { text-align: center; color: #2980b9; margin-bottom: 20px; text-transform: uppercase; font-weight: 800;}
+        .passage-section { margin-bottom: 40px; border-bottom: 2px dashed #fff; padding-bottom: 20px; }
+        .paragraph-container { margin-bottom: 20px; line-height: 1.8; font-size: 1.1rem; }
+        
+        .translate-btn {
+            background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
+            border: none; border-radius: 20px; padding: 6px 15px;
+            font-size: 0.9rem; font-weight: bold; color: #fff; cursor: pointer; margin-top: 5px;
+        }
+        .vietnamese-text {
+            display: none; margin-top: 10px; padding: 12px; background: rgba(255,255,255,0.6);
+            border-left: 4px solid #f39c12; border-radius: 8px; font-size: 1rem; color: #34495e; font-weight: 600;
+        }
+
+        .glossary-table {
+            width: 100%; border-collapse: collapse; margin-top: 15px;
+            background: rgba(255,255,255,0.5); border-radius: 10px; overflow: hidden;
+        }
+        .glossary-table th, .glossary-table td { padding: 10px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.5); }
+        .glossary-table th { background: rgba(41, 128, 185, 0.2); color: #2980b9; }
+
+        /* Questions */
+        .question-card {
+            background: rgba(255, 255, 255, 0.7); border-radius: 15px;
+            padding: 20px; margin-bottom: 25px; border: 2px solid rgba(255,255,255,0.8);
+        }
+        .question-text { font-size: 1.2rem; font-weight: 800; margin-bottom: 15px; color: #8e44ad; }
+        .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .option-btn {
+            background: rgba(255,255,255,0.9); border: 2px solid transparent; padding: 12px;
+            border-radius: 12px; font-size: 1.05rem; font-weight: 700; cursor: pointer; text-align: center;
+        }
+        .option-btn:hover { background: #fff; transform: translateY(-2px); border-color: #3498db; }
+        .option-btn:disabled { cursor: not-allowed; opacity: 0.9; }
+
+        .option-btn.correct { background: #2ecc71; color: white; border-color: #27ae60; }
+        .option-btn.wrong { background: #e74c3c; color: white; border-color: #c0392b; animation: shake 0.4s; }
+
+        @keyframes shake { 0%,100%{transform:translateX(0)} 15%,45%,75%{transform:translateX(-6px)} 30%,60%,90%{transform:translateX(6px)} }
+
+        /* Explanation Rules & Highlights */
+        .explanation {
+            display: none; margin-top: 15px; padding: 15px; background: rgba(255,255,255,0.95);
+            border-radius: 10px; border-left: 5px solid #3498db; font-size: 1rem; line-height: 1.6;
+        }
+        .p-word { color: #007bff; font-weight: bold; }
+        .p-mean { color: #d35400; font-style: italic; font-weight: bold;}
+        .p-grammar { color: #c0392b; text-decoration: underline; font-weight: bold;}
+        .hl-green { color: #27ae60; font-weight: bold; }
+        .hl-red { color: #c0392b; text-decoration: line-through; }
+        
+        /* Highlight phần dịch tiếng Việt trong giải thích */
+        .trans-hl { background: #ffeaa7; color: #d35400; padding: 2px 6px; border-radius: 5px; font-weight: 800; border: 1px solid #fdcb6e; }
+
+        .submit-btn {
+            width: 100%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white; font-size: 1.2rem; font-weight: bold; padding: 15px;
+            border: none; border-radius: 15px; cursor: pointer; margin-top: 10px;
+        }
+        
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6); backdrop-filter: blur(5px);
+            display: none; justify-content: center; align-items: center; z-index: 100;
+        }
+        .modal-content { background: white; padding: 30px; border-radius: 20px; text-align: center; max-width: 400px; width: 90%; }
+        .modal-content input { width: 100%; padding: 12px; margin: 15px 0; border: 2px solid #bdc3c7; border-radius: 10px; font-size: 1rem; outline: none; text-align: center; font-weight: bold;}
+        .modal-btn { background: #2ecc71; color: white; padding: 10px 20px; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; font-size: 1.1rem;}
+        .score-gif { width: 100%; border-radius: 10px; margin-top: 15px; }
+
+    </style>
+</head>
+<body>
+
+    <div id="passwordModal">
+        <div class="pw-card">
+            <span class="pw-crest">🐬</span>
+            <div class="pw-title">LỚP CÔ MAI AN</div>
+            <div class="pw-sub">Bảo mật bài tập. Vui lòng nhập mật mã!</div>
+            <input type="password" class="pw-input" id="pwInput" placeholder="Nhập mật khẩu..." autocomplete="off" />
+            <button class="pw-btn" onclick="checkPassword()">🔓 MỞ KHÓA BÀI TẬP</button>
+            <div class="pw-err" id="pwErr">Sai mật khẩu! Con hãy thử lại nhé.</div>
+        </div>
+    </div>
+
+    <div id="mainContent">
+        <div class="sea-creatures" id="sea-bg"></div>
+
+        <header>Giáo viên tạo: Ms Mai An ULIS | Blooket/Duolingo Style Reading</header>
+        
+        <div class="notice-board">
+            ⚠️ LƯU Ý TỪ CÔ MAI AN: CHỈ CÓ ĐỌC KỸ GIẢI THÍCH MỚI THỰC SỰ GIỎI LÊN!<br>
+            <span style="font-size: 0.95rem; font-weight: 600; color: #34495e;">Làm cho xong mà không thèm đọc giải thích chi tiết thì chỉ tốn thời gian vô ích. Các con bắt buộc phải xem kỹ nhé!</span>
+        </div>
+
+        <div class="container">
+            <div class="panel" id="reading-panel">
+                <h2>📖 Reading Passages</h2>
+                <div id="passages-container"></div>
+            </div>
+
+            <div class="panel" id="exercise-panel">
+                <h2>🎯 Exercises</h2>
+                <div id="questions-container"></div>
+                <button class="submit-btn" onclick="openSubmitModal()">🎯 NỘP BÀI TÍNH ĐIỂM & XEM KẾT QUẢ</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="name-modal">
+        <div class="modal-content">
+            <h3 style="color: #2980b9;">Nhập tên của con để nộp bài nhé! 🌟</h3>
+            <input type="text" id="student-name" placeholder="Ví dụ: Nguyễn Văn A">
+            <button class="modal-btn" onclick="submitTest()">Hoàn Thành</button>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="result-modal">
+        <div class="modal-content">
+            <h2 id="result-title" style="color: #8e44ad;"></h2>
+            <h1 id="result-score" style="font-size: 2.5rem; color: #27ae60; margin: 10px 0;"></h1>
+            <p id="result-comment" style="font-size: 1.1rem; font-weight: bold;"></p>
+            <img id="result-gif" class="score-gif" src="">
+            <button class="modal-btn" style="margin-top: 15px; background: #e74c3c;" onclick="closeModal()">Xem Lại Bài</button>
+        </div>
+    </div>
+
+<script>
+    // --- BẢO MẬT: Thuật toán dịch ký tự (Shift Cipher) chống lộ code tuyệt đối ---
+    // Mật khẩu gốc "comaianulis" được cộng thêm 3 đơn vị mã ASCII
+    // Chuỗi mã hóa của pass "comaianulis" là: "frpdldqxolv"
+    function checkPassword() {
+        const inp = document.getElementById('pwInput');
+        const err = document.getElementById('pwErr');
+        const val = inp.value.trim().toLowerCase();
+        
+        const shifted = val.split('').map(c => String.fromCharCode(c.charCodeAt(0) + 3)).join('');
+        
+        if (shifted === 'frpdldqxolv') {
+            document.getElementById('passwordModal').style.display = 'none';
+            document.getElementById('mainContent').style.display = 'flex';
+            
+            // Phát Audio nhắc nhở của Cô Mai An
+            const welcomeAudio = new Audio('https://hoctienganhcungcomaianulis.github.io/homework/%E1%BA%A2nh_File%20nghe/Sound/export_2rUjepgpwpTxnU6YGv6kmq.mp3');
+            welcomeAudio.play().catch(e => console.log("Trình duyệt chặn autoplay audio, học sinh cần thao tác thêm."));
+            
+            init(); // Khởi tạo bài học
+        } else {
+            inp.classList.remove('error'); void inp.offsetWidth; inp.classList.add('error');
+            err.style.display = 'block'; setTimeout(() => inp.classList.remove('error'), 500);
+        }
+    }
+    
+    document.getElementById('pwInput').addEventListener('keydown', e => { if (e.key === 'Enter') checkPassword(); });
+
+    // --- HỆ THỐNG ÂM THANH TRẢ LỜI CÂU HỎI ---
+    const wrongSound = new Audio('https://hoctienganhcungcomaianulis.github.io/homework/%E1%BA%A2nh_File%20nghe/Sound/Am_thanh_meme_Oi_doi_oi_huan_hoa_hong-www_tiengdong_com.mp3');
+    
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    function playDing() {
+        if(audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sine'; osc.frequency.setValueAtTime(800, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.1);
+        gain.gain.setValueAtTime(1, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+        osc.connect(gain); gain.connect(audioCtx.destination);
+        osc.start(); osc.stop(audioCtx.currentTime + 0.5);
+    }
+
+    // --- DỮ LIỆU BÀI ĐỌC & CÂU HỎI (FULL 100% 4 BÀI) ---
+    const data = [
+        {
+            title: "Passage I: Commuting & Public Transport",
+            paragraphs: [
+                {
+                    en: "For many people, commuting by car or (1) ______ public transportation is a daily necessity. People with their own cars use it to commute to work, to go shopping (2) ______ to take the family out on weekends.",
+                    vi: "Đối với nhiều người, việc đi lại bằng ô tô hoặc (1) bằng phương tiện giao thông công cộng là một nhu cầu thiết yếu hàng ngày. Những người có ô tô riêng sử dụng nó để đi làm, đi mua sắm (2) hoặc đưa gia đình đi chơi vào cuối tuần."
+                },
+                {
+                    en: "For those who (3) ______ no own vehicles, they use public transport such as bus, train. (4) ______, perhaps both public transport and private one may not (5) ______ anymore if our politicians don't build better roads or resolve the on-going oil crisis.",
+                    vi: "Đối với những người (3) không có phương tiện riêng, họ sử dụng phương tiện công cộng như xe buýt, tàu hỏa. (4) Tuy nhiên, có lẽ cả phương tiện công cộng và cá nhân có thể không (5) được sử dụng nữa nếu các chính trị gia của chúng ta không xây dựng đường sá tốt hơn hoặc giải quyết cuộc khủng hoảng dầu mỏ đang diễn ra."
+                }
+            ],
+            glossary: [
+                { word: "Commute", type: "v", mean: "Đi lại thường xuyên" },
+                { word: "Necessity", type: "n", mean: "Sự cần thiết" },
+                { word: "Vehicle", type: "n", mean: "Phương tiện giao thông" },
+                { word: "Crisis", type: "n", mean: "Cuộc khủng hoảng" }
+            ],
+            questions: [
+                {   
+                    q: "Câu [1]: Select the best answer for blank (1)",
+                    options: [ { text: "by", correct: true }, { text: "for", correct: false }, { text: "at", correct: false }, { text: "of", correct: false } ],
+                    explain: `Dịch câu hỏi: Chọn từ điền vào chỗ trống số (1).<br>
+                    A. by <span class='trans-hl'>(bằng)</span> ✅ Đúng vì tạo cấu trúc song song.<br>
+                    B. for <span class='trans-hl'>(cho)</span> ❌ Sai nghĩa.<br>
+                    C. at <span class='trans-hl'>(tại)</span> ❌ Sai giới từ.<br>
+                    D. of <span class='trans-hl'>(của)</span> ❌ Sai nghĩa.<br>
+                    🔍 Dẫn chứng: "commuting by car or (1) ___ public transportation"<br>
+                    👉 Dịch: "việc di chuyển <span class='hl-green'>bằng</span> ô tô hoặc <span class='hl-green'>bằng</span> phương tiện công cộng"<br>
+                    Giải thích chi tiết: Áp dụng <span class='p-grammar'>Parallelism (Cấu trúc song song)</span> với liên từ "or". Phía trước sử dụng giới từ <span class='p-word'>by</span> + phương tiện, do đó phía sau cũng bắt buộc dùng <span class='p-word'>by</span>.`
+                },
+                {
+                    q: "Câu [2]: Select the best answer for blank (2)",
+                    options: [ { text: "or", correct: true }, { text: "but", correct: false }, { text: "so", correct: false }, { text: "because", correct: false } ],
+                    explain: `Dịch câu hỏi: Chọn từ điền vào chỗ trống số (2).<br>
+                    A. but <span class='trans-hl'>(nhưng)</span> ❌ Sai logic.<br>
+                    B. so <span class='trans-hl'>(vì vậy)</span> ❌ Sai logic.<br>
+                    C. or <span class='trans-hl'>(hoặc)</span> ✅ Đúng vì liệt kê mục đích.<br>
+                    D. because <span class='trans-hl'>(bởi vì)</span> ❌ Sai logic.<br>
+                    🔍 Dẫn chứng: "to commute to work, to go shopping (2) ___ to take the family out..."<br>
+                    👉 Dịch: "để đi làm, đi mua sắm <span class='hl-green'>hoặc</span> đưa gia đình đi chơi..."<br>
+                    Giải thích chi tiết: Câu văn đang liệt kê 3 cụm động từ chỉ mục đích. Để nối mục đích cuối cùng mang tính chất lựa chọn, ta dùng liên từ <span class='p-word'>or</span> (<span class='p-mean'>hoặc</span>).`
+                },
+                {
+                    q: "Câu [3]: Select the best answer for blank (3)",
+                    options: [ { text: "have", correct: true }, { text: "is", correct: false }, { text: "are", correct: false }, { text: "has", correct: false } ],
+                    explain: `Dịch câu hỏi: Chọn từ điền vào chỗ trống số (3).<br>
+                    A. is ❌ Sai chủ ngữ số nhiều.<br>
+                    B. have <span class='trans-hl'>(có)</span> ✅ Đúng vì chỉ sở hữu.<br>
+                    C. are ❌ Sai cấu trúc tobe + no + Noun.<br>
+                    D. has ❌ Sai vì has dùng cho số ít.<br>
+                    🔍 Dẫn chứng: "For those who (3) ___ no own vehicles"<br>
+                    👉 Dịch: "Đối với những người <span class='hl-green'>không có</span> phương tiện cá nhân"<br>
+                    Giải thích chi tiết: Đại từ <span class='p-word'>those</span> là số nhiều. Động từ chỉ sự sở hữu ở đây là <span class='p-word'>have</span>. Cấu trúc <span class='p-grammar'>have + no + Noun</span> mang nghĩa là "không có cái gì đó".`
+                },
+                {
+                    q: "Câu [4]: Select the best answer for blank (4)",
+                    options: [ { text: "However", correct: true }, { text: "Therefore", correct: false }, { text: "Although", correct: false }, { text: "Because", correct: false } ],
+                    explain: `Dịch câu hỏi: Chọn từ điền vào chỗ trống số (4).<br>
+                    A. Therefore <span class='trans-hl'>(Vì vậy)</span> ❌ Sai mạch logic.<br>
+                    B. Although <span class='trans-hl'>(Mặc dù)</span> ❌ Sai cấu trúc (có dấu phẩy sau nó).<br>
+                    C. Because <span class='trans-hl'>(Bởi vì)</span> ❌ Sai logic.<br>
+                    D. However <span class='trans-hl'>(Tuy nhiên)</span> ✅ Đúng vì thể hiện sự chuyển ý tương phản.<br>
+                    🔍 Dẫn chứng: "(4) ___, perhaps both public transport and private one may not..."<br>
+                    👉 Dịch: "<span class='hl-green'>Tuy nhiên</span>, có lẽ cả phương tiện công cộng và cá nhân có thể sẽ không được dùng nữa"<br>
+                    Giải thích chi tiết: Thể hiện sự tương phản với đoạn trước. Lưu ý <span class='p-grammar'>However luôn đứng trước dấu phẩy</span> khi đứng đầu câu.`
+                },
+                {
+                    q: "Câu [5]: Select the best answer for blank (5)",
+                    options: [ { text: "be used", correct: true }, { text: "use", correct: false }, { text: "used", correct: false }, { text: "uses", correct: false } ],
+                    explain: `Dịch câu hỏi: Chọn từ điền vào chỗ trống số (5).<br>
+                    A. be used <span class='trans-hl'>(được sử dụng)</span> ✅ Đúng cấu trúc bị động.<br>
+                    B. use <span class='trans-hl'>(sử dụng)</span> ❌ Sai vì phương tiện không tự hành động.<br>
+                    C. used ❌ Sai cấu trúc sau modal verb.<br>
+                    D. uses ❌ Sai cấu trúc.<br>
+                    🔍 Dẫn chứng: "public transport and private one may not (5) ___ anymore"<br>
+                    👉 Dịch: "phương tiện công cộng và cá nhân có thể không <span class='hl-green'>được sử dụng</span> nữa"<br>
+                    Giải thích chi tiết: Cấu trúc bị động với Động từ khuyết thiếu: <span class='p-grammar'>Modal Verb (may) + not + be + V-ed/P2</span>. Do đó <span class='p-word'>be used</span> là đáp án đúng.`
+                }
+            ]
+        },
+        {
+            title: "Passage II: Population Explosion",
+            paragraphs: [
+                {
+                    en: "The world's (1) ______ is getting bigger and bigger. There's a population explosion in some countries. I'm not sure if this is good or bad. The Earth can only support a limited number of people.",
+                    vi: "Dân số thế giới đang ngày càng lớn hơn. Có một sự bùng nổ dân số ở một số quốc gia. Tôi không chắc điều này là tốt hay xấu. Trái đất chỉ có thể hỗ trợ một số lượng người có hạn."
+                },
+                {
+                    en: "One day, the world's population will be too big to feed everyone. When that (2) ______, we'll have food wars and water wars.",
+                    vi: "Một ngày nào đó, dân số thế giới sẽ quá lớn để có thể nuôi sống tất cả mọi người. Khi điều đó (2) xảy ra, chúng ta sẽ có chiến tranh tranh giành thức ăn và nước uống."
+                },
+                {
+                    en: "Many years ago, the population (3) ______ controlled by famines, a shorter lifespan, disease and other natural causes. We are richer now and so we can control how long we live. This is already causing problems in some countries.",
+                    vi: "Nhiều năm trước, dân số (3) đã bị kiểm soát bởi nạn đói, tuổi thọ ngắn hơn, bệnh tật và các nguyên nhân tự nhiên khác. Bây giờ chúng ta giàu hơn nên có thể kiểm soát việc chúng ta sống bao lâu. Điều này đang gây ra vấn đề ở một số quốc gia."
+                },
+                {
+                    en: "Japan, (4) ______ example, has almost more retired people than working people. This means workers can't make enough money to (5) ______ old people.",
+                    vi: "Ví dụ như Nhật Bản, (4) có lượng người nghỉ hưu gần như nhiều hơn người lao động. Điều này có nghĩa là người lao động không thể kiếm đủ tiền để (5) chăm sóc người già."
+                }
+            ],
+            glossary: [
+                { word: "Population", type: "n", mean: "Dân số" },
+                { word: "Explosion", type: "n", mean: "Sự bùng nổ" },
+                { word: "Famine", type: "n", mean: "Nạn đói" },
+                { word: "Lifespan", type: "n", mean: "Tuổi thọ" }
+            ],
+            questions: [
+                {   
+                    q: "Câu [1]: Select the best answer for blank (1)",
+                    options: [ { text: "population", correct: true }, { text: "water pollution", correct: false }, { text: "air pollution", correct: false }, { text: "light pollution", correct: false } ],
+                    explain: `Dịch câu hỏi: Thế giới đang ngày càng lớn hơn về cái gì?<br>
+                    A. water pollution <span class='trans-hl'>(ô nhiễm nước)</span> ❌ Sai ngữ cảnh.<br>
+                    B. population <span class='trans-hl'>(dân số)</span> ✅ Đúng.<br>
+                    C. air pollution <span class='trans-hl'>(ô nhiễm không khí)</span> ❌ Sai ngữ cảnh.<br>
+                    D. light pollution <span class='trans-hl'>(ô nhiễm ánh sáng)</span> ❌ Sai ngữ cảnh.<br>
+                    🔍 Dẫn chứng: "There's a <span class='hl-green'>population</span> explosion in some countries."<br>
+                    👉 Dịch: "Đang có sự bùng nổ <span class='hl-green'>dân số</span> ở một số quốc gia."<br>
+                    Giải thích: Dựa vào sự lặp từ khóa (Lexical cohesion), câu thứ hai nhắc đến <span class='p-word'>population explosion</span>, do đó câu 1 điền <span class='p-word'>population</span>.`
+                },
+                {
+                    q: "Câu [2]: Select the best answer for blank (2)",
+                    options: [ { text: "happens", correct: true }, { text: "has happen", correct: false }, { text: "happening", correct: false }, { text: "happen", correct: false } ],
+                    explain: `Dịch câu hỏi: Chọn động từ đi sau đại từ "that".<br>
+                    A. has happen ❌ Sai ngữ pháp.<br>
+                    B. happening ❌ Sai vì thiếu tobe.<br>
+                    C. happen ❌ Sai vì chủ ngữ "that" là số ít.<br>
+                    D. happens <span class='trans-hl'>(xảy ra)</span> ✅ Đúng, chia động từ số ít.<br>
+                    🔍 Dẫn chứng: "When that (2) ___, we'll have food wars"<br>
+                    👉 Dịch: "Khi điều đó <span class='hl-green'>xảy ra</span>..."<br>
+                    Giải thích: Chủ ngữ <span class='p-word'>that</span> là ngôi thứ ba số ít. Theo <span class='p-grammar'>Sự hòa hợp Chủ - Vị</span>, động từ phải thêm 's'.`
+                },
+                {
+                    q: "Câu [3]: Select the best answer for blank (3)",
+                    options: [ { text: "was", correct: true }, { text: "were", correct: false }, { text: "is", correct: false }, { text: "has been", correct: false } ],
+                    explain: `Dịch câu hỏi: Chọn tobe phù hợp cho câu bị động trong quá khứ.<br>
+                    A. was <span class='trans-hl'>(đã là/bị)</span> ✅ Đúng, tobe quá khứ số ít.<br>
+                    B. were ❌ Sai vì "population" là danh từ không đếm được/số ít.<br>
+                    C. is ❌ Sai thì.<br>
+                    D. has been ❌ Sai thì.<br>
+                    🔍 Dẫn chứng: "<span class='hl-green'>Many years ago</span>, the population (3) ___ controlled by famines"<br>
+                    Giải thích: Dấu hiệu thì Quá khứ đơn là <span class='p-word'>Many years ago</span>. <span class='p-word'>population</span> là số ít nên dùng <span class='p-grammar'>was</span>.`
+                },
+                {
+                    q: "Câu [4]: Select the best answer for blank (4)",
+                    options: [ { text: "for", correct: true }, { text: "as", correct: false }, { text: "to", correct: false }, { text: "from", correct: false } ],
+                    explain: `Dịch câu hỏi: Điền giới từ đi với "example".<br>
+                    A. for <span class='trans-hl'>(cho)</span> ✅ Đúng cụm từ cố định.<br>
+                    B. as ❌ Sai.<br>
+                    C. to ❌ Sai.<br>
+                    D. from ❌ Sai.<br>
+                    🔍 Dẫn chứng: "Japan, (4) ___ example..."<br>
+                    Giải thích: Cụm từ cố định <span class='p-grammar'>for example</span> mang nghĩa là <span class='p-mean'>ví dụ như</span>.`
+                },
+                {
+                    q: "Câu [5]: Select the best answer for blank (5)",
+                    options: [ { text: "look after", correct: true }, { text: "look for", correct: false }, { text: "look into", correct: false }, { text: "look up", correct: false } ],
+                    explain: `Dịch câu hỏi: Công nhân không thể kiếm đủ tiền để làm gì người già?<br>
+                    A. look for <span class='trans-hl'>(tìm kiếm)</span> ❌ Sai nghĩa.<br>
+                    B. look after <span class='trans-hl'>(chăm sóc)</span> ✅ Đúng nghĩa.<br>
+                    C. look into <span class='trans-hl'>(điều tra)</span> ❌ Sai nghĩa.<br>
+                    D. look up <span class='trans-hl'>(tra cứu)</span> ❌ Sai nghĩa.<br>
+                    🔍 Dẫn chứng: "...make enough money to (5) ___ old people"<br>
+                    Giải thích: Phrasal verb <span class='p-word'>look after</span> đồng nghĩa với <span class='p-word'>take care of</span>.`
+                }
+            ]
+        },
+        {
+            title: "Passage III: Energy Resources",
+            paragraphs: [
+                {
+                    en: "Many people still believe that natural resources will never be used up. Actually, the world's energy resources are limited. Nobody knows exactly how much fuel is left.",
+                    vi: "Nhiều người vẫn tin rằng tài nguyên thiên nhiên sẽ không bao giờ cạn kiệt. Thực ra, nguồn tài nguyên năng lượng của thế giới là có hạn. Không ai biết chính xác còn lại bao nhiêu nhiên liệu."
+                },
+                {
+                    en: "However, we also should use them economically and try to find out alternative sources of power. According to Professor Marvin Burnham of the New England Institute of Technology, we have to start conserving coal, oil and gas before it is too late; and nuclear power is the only alternative.",
+                    vi: "Tuy nhiên, chúng ta cũng nên sử dụng chúng một cách tiết kiệm và cố gắng tìm ra các nguồn năng lượng thay thế. Theo Giáo sư Marvin Burnham của Viện Công nghệ New England, chúng ta phải bắt đầu bảo tồn than, dầu mỏ và khí đốt trước khi quá muộn; và năng lượng hạt nhân là sự thay thế duy nhất."
+                },
+                {
+                    en: "However, many people don't approve of using nuclear power because it is very dangerous. What would happen if there were a serious nuclear accident? Radioactivity causes cancer and may badly affect future generations. The most effective thing is that we should use natural resources as economically as possible.",
+                    vi: "Tuy nhiên, nhiều người không tán thành việc sử dụng năng lượng hạt nhân vì nó rất nguy hiểm. Điều gì sẽ xảy ra nếu có một tai nạn hạt nhân nghiêm trọng? Phóng xạ gây ung thư và có thể ảnh hưởng xấu đến các thế hệ tương lai. Điều hiệu quả nhất là chúng ta nên sử dụng tài nguyên thiên nhiên một cách tiết kiệm nhất có thể."
+                }
+            ],
+            glossary: [
+                { word: "Natural resources", type: "n", mean: "Tài nguyên thiên nhiên" },
+                { word: "Economically", type: "adv", mean: "Một cách tiết kiệm" },
+                { word: "Alternative", type: "adj/n", mean: "Thay thế / Sự lựa chọn thay thế" },
+                { word: "Radioactivity", type: "n", mean: "Phóng xạ" }
+            ],
+            questions: [
+                {
+                    q: "1. According to the passage, using nuclear power is ________.",
+                    options: [ { text: "dangerous", correct: true }, { text: "interesting", correct: false }, { text: "safe", correct: false }, { text: "cheap", correct: false } ],
+                    explain: `Dịch câu hỏi: Theo đoạn văn, sử dụng năng lượng hạt nhân thì như thế nào?<br>
+                    A. dangerous <span class='trans-hl'>(nguy hiểm)</span> ✅ Đúng.<br>
+                    B. interesting <span class='trans-hl'>(thú vị)</span> ❌ Không được nhắc tới.<br>
+                    C. safe <span class='trans-hl'>(an toàn)</span> ❌ Ngược với bài.<br>
+                    D. cheap <span class='trans-hl'>(rẻ)</span> ❌ Không được nhắc tới.<br>
+                    🔍 Dẫn chứng (Đoạn 3): "many people don't approve of using nuclear power because it is very dangerous."<br>
+                    👉 Dịch: "nhiều người không tán thành sử dụng năng lượng hạt nhân vì nó rất <span class='hl-green'>nguy hiểm</span>."`
+                },
+                {
+                    q: "2. Radioactivity from nuclear power ________.",
+                    options: [
+                        { text: "causes cancer and has bad effect on the future generations.", correct: true },
+                        { text: "The future generations do nothing with it.", correct: false },
+                        { text: "alters a new kind of energy.", correct: false },
+                        { text: "are necessary to cure diseases.", correct: false }
+                    ],
+                    explain: `Dịch câu hỏi: Phóng xạ từ năng lượng hạt nhân thì sao?<br>
+                    A. The future generations do nothing with it. ❌ Sai logic.<br>
+                    B. alters a new kind of energy. ❌ Không có thông tin.<br>
+                    C. are necessary to cure diseases. ❌ Sai (nó gây ung thư chứ không chữa bệnh).<br>
+                    D. causes cancer and has bad effect on the future generations. ✅ Đúng.<br>
+                    🔍 Dẫn chứng (Đoạn 3): "Radioactivity causes cancer and may badly affect future generations."<br>
+                    👉 Dịch: "Phóng xạ <span class='hl-green'>gây ung thư và có thể ảnh hưởng xấu đến các thế hệ tương lai.</span>"`
+                },
+                {
+                    q: "3. How much fuel is left?",
+                    options: [
+                        { text: "No one knows exactly.", correct: true },
+                        { text: "Let's use it as much as we would like.", correct: false },
+                        { text: "It will never be used up.", correct: false },
+                        { text: "There is a lot of fuel.", correct: false }
+                    ],
+                    explain: `Dịch câu hỏi: Còn lại bao nhiêu nhiên liệu?<br>
+                    A. No one knows exactly. <span class='trans-hl'>(Không ai biết chính xác)</span> ✅ Đúng.<br>
+                    B. Let's use it as much as we would like. ❌ Lời khuyên sai.<br>
+                    C. It will never be used up. ❌ Quan điểm sai lầm.<br>
+                    D. There is a lot of fuel. ❌ Trái ngược bài đọc.<br>
+                    🔍 Dẫn chứng (Đoạn 1): "Nobody knows exactly how much fuel is left."<br>
+                    👉 Dịch: "<span class='hl-green'>Không ai biết chính xác</span> còn lại bao nhiêu nhiên liệu."`
+                },
+                {
+                    q: "4. We should use coal, oil and gas ________.",
+                    options: [
+                        { text: "as economically as possible.", correct: true },
+                        { text: "carelessly.", correct: false },
+                        { text: "as much as possible.", correct: false },
+                        { text: "all are incorrect.", correct: false }
+                    ],
+                    explain: `Dịch câu hỏi: Chúng ta nên sử dụng than, dầu mỏ và khí đốt như thế nào?<br>
+                    A. as economically as possible. <span class='trans-hl'>(Tiết kiệm nhất có thể)</span> ✅ Đúng.<br>
+                    B. carelessly. <span class='trans-hl'>(Cẩu thả)</span> ❌ Sai.<br>
+                    C. as much as possible. <span class='trans-hl'>(Nhiều nhất có thể)</span> ❌ Sai.<br>
+                    D. all are incorrect. ❌ Sai.<br>
+                    🔍 Dẫn chứng (Đoạn 3): "The most effective thing is that we should use natural resources as economically as possible."<br>
+                    👉 Dịch: "Điều hiệu quả nhất là chúng ta nên sử dụng tài nguyên thiên nhiên <span class='hl-green'>một cách tiết kiệm nhất có thể.</span>"`
+                },
+                {
+                    q: "5. According to Professor Marvin Burnham, ________.",
+                    options: [
+                        { text: "Nuclear power is the only alternative and we have to conserve coal, oil and gas.", correct: true },
+                        { text: "Nuclear power is the only alternative coal, oil and gas and we have to conserve are incorrect.", correct: false },
+                        { text: "Nuclear power is the only alternative coal, oil and gas.", correct: false },
+                        { text: "We have to conserve.", correct: false }
+                    ],
+                    explain: `Dịch câu hỏi: Theo Giáo sư Marvin Burnham thì sao?<br>
+                    🔍 Dẫn chứng (Đoạn 2): "According to Professor Marvin Burnham... we have to start conserving coal, oil and gas before it is too late; and nuclear power is the only alternative."<br>
+                    👉 Dịch: "Theo Giáo sư Marvin Burnham... chúng ta <span class='hl-green'>phải bắt đầu bảo tồn than, dầu mỏ, khí đốt</span> trước khi quá muộn; và <span class='hl-green'>năng lượng hạt nhân là sự thay thế duy nhất.</span>"<br>
+                    Giải thích: Phương án bao trọn vẹn cả 2 vế quan điểm của Giáo sư là phương án chuẩn xác nhất.`
+                }
+            ]
+        },
+        {
+            title: "Passage IV: The Flying Car TF-X™",
+            paragraphs: [
+                {
+                    en: "I'm here at Noi Bai Airport to tell you about this amazing flying car. It just landed here at the airport 15 minutes ago. This vehicle is called TF-X™. It was designed in 2013.",
+                    vi: "Tôi đang ở Sân bay Nội Bài để kể cho bạn nghe về chiếc ô tô bay tuyệt vời này. Nó vừa hạ cánh xuống sân bay cách đây 15 phút. Phương tiện này được gọi là TF-X™. Nó được thiết kế vào năm 2013."
+                },
+                {
+                    en: "But it will take a couple of years before you can own yours. It's a kind of driverless car and airplane. It has many benefits. With its automated system, the car can avoid traffic. It drives at 300 kph - impressive, isn't it?",
+                    vi: "Nhưng sẽ mất một vài năm trước khi bạn có thể sở hữu chiếc xe của riêng mình. Nó là một dạng ô tô không người lái và máy bay. Nó có nhiều lợi ích. Với hệ thống tự động, xe có thể tránh kẹt xe. Nó chạy với tốc độ 300 km/h - ấn tượng phải không?"
+                },
+                {
+                    en: "It has 4 seats, so your family or friends can join the ride. The coolest thing is learning to drive a TF-X™ is simple: you'll be able to do it just after a few hours!",
+                    vi: "Nó có 4 chỗ ngồi, để gia đình hoặc bạn bè của bạn có thể đi cùng. Điều tuyệt vời nhất là việc học lái chiếc TF-X™ rất đơn giản: bạn sẽ có thể làm được điều đó chỉ sau vài giờ!"
+                }
+            ],
+            glossary: [
+                { word: "Driverless", type: "adj", mean: "Không người lái" },
+                { word: "Benefit", type: "n", mean: "Lợi ích" },
+                { word: "Automated", type: "adj", mean: "Tự động hóa" },
+                { word: "Impressive", type: "adj", mean: "Ấn tượng" }
+            ],
+            questions: [
+                {
+                    q: "1. You will own your flying car ________ a couple of years.",
+                    options: [ { text: "after", correct: true }, { text: "for", correct: false }, { text: "before", correct: false }, { text: "since", correct: false } ],
+                    explain: `Dịch câu hỏi: Bạn sẽ sở hữu chiếc xe bay của mình ____ vài năm nữa.<br>
+                    A. for ❌ Sai nghĩa.<br>
+                    B. before ❌ Sai logic (không thể sở hữu "trước" vài năm).<br>
+                    C. after <span class='trans-hl'>(sau)</span> ✅ Đúng logic.<br>
+                    D. since ❌ Sai ngữ pháp.<br>
+                    🔍 Dẫn chứng: "But it will take a couple of years before you can own yours."<br>
+                    👉 Dịch: "Sẽ mất một vài năm nữa trước khi bạn có thể sở hữu chiếc của mình." -> Nghĩa là phải <span class='hl-green'>sau (after)</span> vài năm nữa bạn mới có nó.`
+                },
+                {
+                    q: "2. The word \"own\" could be best replaced by which of the following?",
+                    options: [ { text: "have", correct: true }, { text: "be", correct: false }, { text: "take", correct: false }, { text: "get", correct: false } ],
+                    explain: `Dịch câu hỏi: Từ "own" có thể được thay thế tốt nhất bởi từ nào?<br>
+                    A. be ❌<br>
+                    B. have <span class='trans-hl'>(có, sở hữu)</span> ✅ Đúng.<br>
+                    C. take ❌<br>
+                    D. get ❌<br>
+                    Giải thích: Động từ <span class='p-word'>own</span> mang nghĩa là <span class='p-mean'>sở hữu, có được vật gì đó thuộc về mình</span>. Từ đồng nghĩa trực tiếp nhất là <span class='p-word'>have</span>.`
+                },
+                {
+                    q: "3. This vehicle has many benefits means ________.",
+                    options: [
+                        { text: "All the things above.", correct: true },
+                        { text: "The system is automated.", correct: false },
+                        { text: "It can avoid traffic.", correct: false },
+                        { text: "It travels fast.", correct: false }
+                    ],
+                    explain: `Dịch câu hỏi: "Phương tiện này có nhiều lợi ích" có nghĩa là gì?<br>
+                    A. The system is automated.<br>
+                    B. It can avoid traffic.<br>
+                    C. It travels fast.<br>
+                    D. All the things above. <span class='trans-hl'>(Tất cả những điều trên)</span> ✅ Đúng.<br>
+                    🔍 Dẫn chứng: "With its <span class='hl-green'>automated system</span>, the car can <span class='hl-green'>avoid traffic</span>. It drives at <span class='hl-green'>300 kph</span>..."<br>
+                    Giải thích: Cả 3 tính năng được đề cập ở A, B, C đều được liệt kê trực tiếp trong bài đọc. Do đó chọn D.`
+                },
+                {
+                    q: "4. Which of the following is NOT true?",
+                    options: [
+                        { text: "You can invite four of your relatives to travel with you in this vehicle at the same time.", correct: true },
+                        { text: "It was designed in 2013.", correct: false },
+                        { text: "It can travel at 300 kph.", correct: false },
+                        { text: "Learning to drive this flying car is not difficult.", correct: false }
+                    ],
+                    explain: `Dịch câu hỏi: Điều nào sau đây là KHÔNG đúng?<br>
+                    A. Thiết kế năm 2013. -> Đúng theo bài.<br>
+                    B. Tốc độ 300kph -> Đúng theo bài.<br>
+                    C. Học lái không khó. -> Đúng (bài ghi "is simple").<br>
+                    D. Mời 4 người họ hàng đi cùng. ❌ Sai, nên là đáp án được chọn.<br>
+                    🔍 Dẫn chứng: "It has 4 seats, so your family or friends can join the ride."<br>
+                    👉 Dịch: "Nó có <span class='hl-red'>4 chỗ ngồi</span>, vì vậy gia đình hoặc bạn bè có thể đi cùng."<br>
+                    Giải thích: Xe chỉ có <span class='p-word'>4 seats</span> (4 chỗ). Nếu bạn lái xe (mất 1 chỗ), bạn chỉ có thể mời thêm <span class='hl-red'>tối đa 3 người</span>. Mời 4 người họ hàng đi cùng là quá tải, sai sự thật.`
+                }
+            ]
+        }
+    ];
+
+    let globalQuestions = [];
+    let score = 0;
+
+    function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+    }
+
+    function createSeaCreatures() {
+        const bg = document.getElementById('sea-bg');
+        const emojis = ['🫧', '🐟', '🐙', '🐢', '🐬', '🦀', '🌊'];
+        for(let i = 0; i < 20; i++) {
+            let el = document.createElement('div');
+            el.className = 'emoji';
+            el.innerText = emojis[Math.floor(Math.random() * emojis.length)];
+            el.style.left = Math.random() * 100 + 'vw';
+            el.style.animationDuration = (Math.random() * 15 + 10) + 's';
+            el.style.animationDelay = (Math.random() * 10) + 's';
+            bg.appendChild(el);
+        }
+    }
+
+    function init() {
+        createSeaCreatures();
+        const passagePanel = document.getElementById('passages-container');
+        const questionPanel = document.getElementById('questions-container');
+        let globalQIndex = 0;
+
+        data.forEach((passage, pIndex) => {
+            let passageHTML = `<div class="passage-section"><h3 style="color: #2980b9; margin-bottom:10px;">${passage.title}</h3>`;
+            passage.paragraphs.forEach((para, paraIndex) => {
+                passageHTML += `
+                <div class="paragraph-container">
+                    <p>${para.en}</p>
+                    <button class="translate-btn" onclick="toggleTranslate('trans-${pIndex}-${paraIndex}')">Mở dịch đoạn này 🌟</button>
+                    <div class="vietnamese-text" id="trans-${pIndex}-${paraIndex}">${para.vi}</div>
+                </div>`;
+            });
+
+            passageHTML += `<table class="glossary-table"><tr><th>Từ vựng</th><th>Loại từ</th><th>Nghĩa Tiếng Việt</th></tr>`;
+            passage.glossary.forEach(g => {
+                passageHTML += `<tr><td><b>${g.word}</b></td><td><i>${g.type}</i></td><td>${g.mean}</td></tr>`;
+            });
+            passageHTML += `</table></div>`;
+            passagePanel.innerHTML += passageHTML;
+
+            passage.questions.forEach((q, qIndex) => {
+                const shuffledOptions = shuffleArray([...q.options]);
+                globalQuestions.push(q);
+                let qHTML = `
+                <div class="question-card">
+                    <div class="question-text">${q.q}</div>
+                    <div class="options-grid" id="grid-${globalQIndex}">`;
+                
+                shuffledOptions.forEach((opt, optIndex) => {
+                    qHTML += `<button class="option-btn" onclick="checkAnswer(this, ${globalQIndex}, ${opt.correct})">${opt.text}</button>`;
+                });
+
+                qHTML += `</div><div class="explanation" id="exp-${globalQIndex}">${q.explain}</div></div>`;
+                questionPanel.innerHTML += qHTML;
+                globalQIndex++;
+            });
+        });
+    }
+
+    function toggleTranslate(id) {
+        const el = document.getElementById(id);
+        el.style.display = el.style.display === 'block' ? 'none' : 'block';
+    }
+
+    function checkAnswer(btn, qIndex, isCorrect) {
+        const grid = document.getElementById(`grid-${qIndex}`);
+        const buttons = grid.getElementsByTagName('button');
+        for(let b of buttons) { b.disabled = true; }
+
+        if(isCorrect) {
+            btn.classList.add('correct');
+            playDing(); score++;
+            confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 }, colors: ['#2ecc71', '#f1c40f', '#3498db'] });
+        } else {
+            btn.classList.add('wrong');
+            wrongSound.play().catch(e => console.log("Lỗi phát âm thanh sai"));
+            
+            for(let b of buttons) {
+                const originalOption = globalQuestions[qIndex].options.find(o => o.text === b.innerText);
+                if(originalOption && originalOption.correct) b.classList.add('correct');
+            }
+        }
+        
+        const exp = document.getElementById(`exp-${qIndex}`);
+        exp.style.display = 'block';
+        exp.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    function openSubmitModal() { document.getElementById('name-modal').style.display = 'flex'; }
+
+    function submitTest() {
+        const name = document.getElementById('student-name').value.trim();
+        if(!name) { alert("Con nhớ nhập tên trước khi nộp bài nhé!"); return; }
+        
+        document.getElementById('name-modal').style.display = 'none';
+        const total = globalQuestions.length; const percent = score / total;
+        
+        document.getElementById('result-title').innerText = `Bảng Điểm của ${name}`;
+        document.getElementById('result-score').innerText = `${score} / ${total}`;
+        
+        let comment, gifSrc;
+        if(percent === 1) {
+            comment = "Ms Mai An: Tuyệt vời! Con là một thiên tài tiếng Anh thực thụ! 🏆";
+            gifSrc = "https://media.giphy.com/media/l41YmQj1JZhCwqzTq/giphy.gif"; 
+        } else if(percent >= 0.6) {
+            comment = "Ms Mai An: Rất tốt! Cô khen ngợi nỗ lực của con. Tiếp tục phát huy nhé! 🌟";
+            gifSrc = "https://media.giphy.com/media/3oz8xAFtjouKCSiOMw/giphy.gif";
+        } else {
+            comment = "Ms Mai An: Hãy đọc kỹ lại LƯU Ý của cô và phần giải thích nhé! Cố lên! 💪";
+            gifSrc = "https://media.giphy.com/media/OPU6wzx8JrHna/giphy.gif"; 
+        }
+
+        document.getElementById('result-comment').innerText = comment;
+        document.getElementById('result-gif').src = gifSrc;
+        document.getElementById('result-modal').style.display = 'flex';
+    }
+
+    function closeModal() { document.getElementById('result-modal').style.display = 'none'; }
+</script>
+</body>
+</html>

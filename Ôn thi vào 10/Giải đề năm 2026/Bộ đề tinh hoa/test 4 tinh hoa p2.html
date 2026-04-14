@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-width=1.0">
+    <title>Bài Tập Tiếng Anh - Ms Mai An ULIS</title>
+    <style>
+        /* === BASE STYLES & GAMIFICATION BACKGROUND === */
+        :root {
+            --bg-color-1: #ffecd2;
+            --bg-color-2: #fcb69f;
+            --bg-color-3: #a1c4fd;
+            --bg-color-4: #c2e9fb;
+            --glass-bg: rgba(255, 255, 255, 0.45);
+            --glass-border: rgba(255, 255, 255, 0.6);
+            --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+            --text-dark: #333;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Nunito', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(45deg, var(--bg-color-1), var(--bg-color-2), var(--bg-color-3), var(--bg-color-4));
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            color: var(--text-dark);
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* FLOATING EMOJIS PATTERN */
+        .floating-pattern {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            pointer-events: none; z-index: 0; overflow: hidden;
+        }
+        .floating-pattern span {
+            position: absolute; display: block; font-size: 3rem;
+            animation: floatUp 20s linear infinite; opacity: 0.3;
+        }
+        .floating-pattern span:nth-child(1) { left: 10%; animation-duration: 15s; }
+        .floating-pattern span:nth-child(2) { left: 30%; animation-duration: 25s; animation-delay: 2s; }
+        .floating-pattern span:nth-child(3) { left: 50%; animation-duration: 18s; animation-delay: 4s; }
+        .floating-pattern span:nth-child(4) { left: 70%; animation-duration: 22s; animation-delay: 1s; }
+        .floating-pattern span:nth-child(5) { left: 90%; animation-duration: 19s; animation-delay: 5s; }
+
+        @keyframes floatUp {
+            0% { transform: translateY(110vh) rotate(0deg); }
+            100% { transform: translateY(-10vh) rotate(360deg); }
+        }
+
+        /* GIAO DIỆN MÀN HÌNH KHÓA */
+        #passwordModal {
+            position: fixed; inset: 0; z-index: 9999;
+            display: flex; align-items: center; justify-content: center;
+            background: rgba(5, 2, 15, 0.92); backdrop-filter: blur(20px);
+        }
+        .pw-card {
+            background: linear-gradient(160deg, rgba(40, 10, 70, 0.95) 0%, rgba(15, 5, 30, 0.98) 100%);
+            border: 1.5px solid rgba(240, 192, 64, 0.4); border-radius: 24px; padding: 48px 40px 40px; 
+            max-width: 440px; width: 93%; text-align: center; position: relative; overflow: hidden;
+            box-shadow: 0 0 60px rgba(106, 5, 114, 0.6), 0 0 120px rgba(240, 192, 64, 0.1), inset 0 1px 0 rgba(240, 192, 64, 0.15);
+        }
+        .pw-card::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+            background: linear-gradient(90deg, #6A0572, #F0C040, #6A0572);
+        }
+        .pw-crest { font-size: 4rem; margin-bottom: 8px; display: block; }
+        .pw-title { font-family: 'Cinzel', serif; font-size: 1.4rem; font-weight: 700; color: #F0C040; margin-bottom: 6px; letter-spacing: 1px; }
+        .pw-sub   { font-size: .87rem; color: rgba(200, 200, 212, 0.6); margin-bottom: 24px; }
+        .pw-input {
+            width: 100%; padding: 13px 20px; border-radius: 12px;
+            border: 1.5px solid rgba(240, 192, 64, 0.3); background: rgba(255, 255, 255, 0.05);
+            color: #FFE082; font-size: 1rem; font-family: 'Nunito', sans-serif;
+            outline: none; letter-spacing: 3px; text-align: center; transition: all .3s;
+            box-sizing: border-box;
+        }
+        .pw-input:focus { border-color: #F0C040; box-shadow: 0 0 0 3px rgba(240, 192, 64, 0.15); }
+        .pw-input.error { border-color: #FF4757; box-shadow: 0 0 0 3px rgba(255, 71, 87, 0.25); animation: shake .4s ease; }
+        .pw-input::placeholder { color: rgba(200, 200, 212, 0.3); letter-spacing: 1px; }
+        .pw-btn {
+            width: 100%; padding: 14px; margin-top: 14px; border-radius: 12px; border: none;
+            background: linear-gradient(135deg, #6A0572 0%, #9B1FA8 40%, #F0C040 100%);
+            color: #fff; font-size: 1rem; font-weight: 700; font-family: 'Cinzel', serif;
+            cursor: pointer; letter-spacing: .5px; transition: transform .2s;
+        }
+        .pw-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(106, 5, 114, 0.7); }
+        .pw-err { color: #ff8a9a; font-size: .84rem; margin-top: 10px; display: none; font-weight: 700; }
+        @keyframes shake { 0%,100%{transform:translateX(0)} 15%,45%,75%{transform:translateX(-6px)} 30%,60%,90%{transform:translateX(6px)} }
+
+        /* HEADER */
+        .header {
+            position: fixed; top: 0; width: 100%; height: 50px;
+            background: rgba(255,255,255,0.3); backdrop-filter: blur(10px);
+            display: flex; align-items: center; justify-content: center;
+            font-weight: bold; font-size: 1.1rem; color: #555;
+            z-index: 100; border-bottom: 1px solid var(--glass-border);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+
+        /* SPLIT SCREEN LAYOUT */
+        .split-container {
+            display: flex; width: 100%; height: calc(100vh - 50px);
+            margin-top: 50px; z-index: 10; position: relative;
+        }
+        .pane {
+            flex: 1; overflow-y: auto; padding: 30px;
+            scroll-behavior: smooth;
+        }
+        .pane::-webkit-scrollbar { width: 8px; }
+        .pane::-webkit-scrollbar-track { background: rgba(255,255,255,0.2); border-radius: 10px;}
+        .pane::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.8); border-radius: 10px;}
+
+        /* GLASSMORPHISM CARDS */
+        .glass-card {
+            background: var(--glass-bg); backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border); border-radius: 20px;
+            padding: 25px; margin-bottom: 25px; box-shadow: var(--glass-shadow);
+        }
+
+        /* READING STYLES */
+        .passage-title {
+            font-size: 1.5rem; color: #ff6b6b; font-weight: 800;
+            text-align: center; margin-bottom: 15px;
+            text-transform: uppercase; letter-spacing: 1px;
+        }
+        .paragraph { margin-bottom: 20px; line-height: 1.8; font-size: 1.1rem; }
+        .vi-text { display: none; color: #5f27cd; font-style: italic; background: rgba(255,255,255,0.5); padding: 15px; border-radius: 10px; margin-top: 10px;}
+        .btn-translate {
+            background: linear-gradient(135deg, #6c5ce7, #a29bfe); color: white;
+            border: none; padding: 8px 16px; border-radius: 20px;
+            cursor: pointer; font-weight: bold; font-size: 0.9rem;
+            box-shadow: 0 4px 10px rgba(108, 92, 231, 0.3); transition: 0.3s;
+        }
+        .btn-translate:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(108, 92, 231, 0.5); }
+        .gap { font-weight: bold; color: #d63031; background: rgba(255,255,255,0.8); padding: 2px 10px; border-radius: 10px; box-shadow: inset 0 2px 5px rgba(0,0,0,0.1);}
+
+        /* GLOSSARY TABLE */
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; background: rgba(255,255,255,0.6); border-radius: 15px; overflow: hidden;}
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid rgba(0,0,0,0.05); }
+        th { background: rgba(255, 107, 107, 0.2); color: #c23616; }
+        .t-word { font-weight: bold; color: #0984e3; }
+        .t-type { color: #e17055; font-size: 0.9em; font-style: italic;}
+
+        /* QUIZ STYLES */
+        .q-text { font-size: 1.2rem; font-weight: bold; margin-bottom: 15px; color: #2d3436; }
+        .options-grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
+        .option-btn {
+            background: rgba(255,255,255,0.7); border: 2px solid transparent;
+            padding: 15px; border-radius: 15px; cursor: pointer;
+            font-size: 1.1rem; font-weight: 600; text-align: left;
+            transition: all 0.3s ease; color: #2d3436;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+        .option-btn:hover { background: white; transform: translateY(-2px); border-color: #74b9ff; }
+        .option-btn.correct { background: #55efc4; color: #00b894; border-color: #00b894; animation: pulse 0.5s; }
+        .option-btn.wrong { background: #ff7675; color: white; border-color: #d63031; animation: shake 0.4s; }
+        .option-btn:disabled { cursor: not-allowed; opacity: 0.7; }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        /* EXPLANATION MASTER STYLES */
+        .explanation {
+            display: none; margin-top: 20px; padding: 20px;
+            background: rgba(255,255,255,0.85); border-left: 5px solid #0984e3;
+            border-radius: 0 15px 15px 0; font-size: 1.05rem; line-height: 1.6;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .p-word { color: #0984e3; font-weight: bold; }
+        .p-mean { color: #d35400; font-weight: 600; }
+        .p-grammar { text-decoration: underline; text-decoration-color: #e74c3c; text-decoration-thickness: 2px; font-weight: bold; }
+        .hl-green { color: #27ae60; font-weight: bold; }
+        .hl-red { color: #c0392b; font-weight: bold; text-decoration: line-through; }
+        .exp-title { font-weight: bold; color: #8e44ad; margin-bottom: 8px; display: block; }
+        .exp-quote { background: #dfe6e9; padding: 10px; border-radius: 8px; font-style: italic; margin: 10px 0; border-left: 3px solid #b2bec3;}
+
+        /* SUBMIT BUTTON & MODAL */
+        .btn-submit {
+            display: block; width: 100%; padding: 20px; margin-top: 30px;
+            background: linear-gradient(135deg, #fd79a8, #e84393); color: white;
+            font-size: 1.5rem; font-weight: 900; border: none; border-radius: 20px;
+            cursor: pointer; box-shadow: 0 8px 25px rgba(232, 67, 147, 0.4);
+            transition: all 0.3s; text-transform: uppercase;
+        }
+        .btn-submit:hover { transform: scale(1.02); box-shadow: 0 12px 30px rgba(232, 67, 147, 0.6); }
+
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(0,0,0,0.6); backdrop-filter: blur(8px);
+            display: none; justify-content: center; align-items: center; z-index: 1000;
+        }
+        .modal-content {
+            background: white; padding: 40px; border-radius: 30px;
+            text-align: center; width: 400px; box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+            animation: zoomIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        @keyframes zoomIn { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        .modal-content h2 { color: #6c5ce7; margin-bottom: 10px; font-size: 2rem;}
+        .modal-content input { width: 90%; padding: 15px; margin: 20px 0; border: 2px solid #a29bfe; border-radius: 15px; font-size: 1.2rem; outline: none; }
+        .modal-content button { background: #00b894; color: white; padding: 12px 30px; border: none; border-radius: 20px; font-size: 1.2rem; cursor: pointer; font-weight: bold; }
+        
+        #resultImg { width: 100%; border-radius: 15px; margin: 15px 0; display: none; }
+        .score-text { font-size: 3rem; font-weight: 900; color: #d63031; margin: 10px 0; }
+        .teacher-comment { font-size: 1.2rem; color: #2d3436; font-style: italic; background: #fff3e0; padding: 15px; border-radius: 15px; border-left: 5px solid #ff9f43;}
+
+        /* CONFETTI CANVAS */
+        #confettiCanvas { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 999; }
+    </style>
+</head>
+<body>
+
+    <div id="passwordModal">
+      <div class="pw-card">
+        <span class="pw-crest">🔒</span>
+        <div class="pw-title">BẢO MẬT</div>
+        <div class="pw-sub">Vui lòng nhập mật khẩu để làm bài</div>
+        <input type="password" class="pw-input" id="pwInput" placeholder="Nhập mật khẩu..." autocomplete="off" />
+        <button class="pw-btn" onclick="checkPassword()">XÁC NHẬN</button>
+        <div class="pw-err" id="pwErr">Mật khẩu không đúng! Vui lòng thử lại.</div>
+      </div>
+    </div>
+
+    <div id="mainContent" style="display:none;">
+        <div class="floating-pattern">
+            <span>🏫</span><span>📱</span><span>🎧</span><span>💻</span><span>✨</span>
+        </div>
+
+        <div class="header">Giáo viên tạo: Ms Mai An ULIS</div>
+
+        <canvas id="confettiCanvas"></canvas>
+
+        <div class="split-container">
+            <div class="pane left-pane" id="readingPane">
+                
+                <div class="glass-card">
+                    <div class="passage-title">PASSAGE 1: School Safety Talk</div>
+                    
+                    <div class="paragraph">
+                        <p class="en-text">School Safety Talk: "Smart Online, Safe Offline"<br>
+                        Who can join? Grade 9 students (and friends are welcome)<br>
+                        When? Thursday, 3:10-4:10 p.m.<br>
+                        Where? Hall B (enter from Gate 2)</p>
+                        <div class="vi-text">Buổi nói chuyện về An toàn Trường học: "Thông minh Trực tuyến, An toàn Ngoại tuyến"<br>Ai có thể tham gia? Học sinh lớp 9 (hoan nghênh cả bạn bè)<br>Khi nào? Thứ Năm, 3:10-4:10 chiều<br>Ở đâu? Hội trường B (vào từ Cổng 2)</div>
+                        <button class="btn-translate" onclick="toggleTrans(this)">Mở dịch đoạn này 🌟</button>
+                    </div>
+
+                    <div class="paragraph">
+                        <p class="en-text">Program (quick look):<br>
+                        1. 3:10-3:25: Real stories about online scams<br>
+                        2. 3:25-3:50: How to protect your accounts and personal data<br>
+                        3. 3:50-4:10: Q&A + sign-up for the Cyber Club</p>
+                        <div class="vi-text">Chương trình (nhìn nhanh):<br>1. 3:10-3:25: Những câu chuyện có thật về lừa đảo trực tuyến<br>2. 3:25-3:50: Cách bảo vệ tài khoản và dữ liệu cá nhân của bạn<br>3. 3:50-4:10: Hỏi đáp + đăng ký Câu lạc bộ Không gian mạng</div>
+                        <button class="btn-translate" onclick="toggleTrans(this)">Mở dịch đoạn này 🌟</button>
+                    </div>
+
+                    <div class="paragraph">
+                        <p class="en-text">Please arrive 10 minutes early and sit <span class="gap">(13)</span> the first three rows so the speaker can check attendance easily. Bring <span class="gap">(14)</span> notebook to write down key tips. If you have questions, send them to the school email before Wednesday, or talk to the IT teacher after the talk.</p>
+                        <div class="vi-text">Vui lòng đến sớm 10 phút và ngồi (13) ba hàng ghế đầu tiên để diễn giả có thể điểm danh dễ dàng. Mang theo (14) quyển vở để ghi chép các mẹo quan trọng. Nếu bạn có câu hỏi, hãy gửi đến email của trường trước thứ Tư, hoặc nói chuyện với giáo viên CNTT sau buổi nói chuyện.</div>
+                        <button class="btn-translate" onclick="toggleTrans(this)">Mở dịch đoạn này 🌟</button>
+                    </div>
+
+                    <div class="paragraph">
+                        <p class="en-text">Remember to <span class="gap">(15)</span> attention during the video part-there will be a short quiz at the end. Students must keep phones set <span class="gap">(16)</span> silent mode.</p>
+                        <div class="vi-text">Nhớ (15) chú ý trong phần chiếu video - sẽ có một bài kiểm tra ngắn vào cuối buổi. Học sinh phải để điện thoại (16) chế độ im lặng.</div>
+                        <button class="btn-translate" onclick="toggleTrans(this)">Mở dịch đoạn này 🌟</button>
+                    </div>
+
+                    <h4 style="color:#d63031;">📚 Glossary (Từ vựng B1-C2)</h4>
+                    <table>
+                        <tr><th>Từ vựng</th><th>Loại từ</th><th>Nghĩa tiếng Việt</th></tr>
+                        <tr><td class="t-word">Scam</td><td class="t-type">noun</td><td>Vụ lừa đảo</td></tr>
+                        <tr><td class="t-word">Protect</td><td class="t-type">verb</td><td>Bảo vệ</td></tr>
+                        <tr><td class="t-word">Personal data</td><td class="t-type">noun phrase</td><td>Dữ liệu cá nhân</td></tr>
+                        <tr><td class="t-word">Attendance</td><td class="t-type">noun</td><td>Sự có mặt, điểm danh</td></tr>
+                        <tr><td class="t-word">Key tips</td><td class="t-type">noun phrase</td><td>Mẹo quan trọng</td></tr>
+                        <tr><td class="t-word">Attention</td><td class="t-type">noun</td><td>Sự chú ý</td></tr>
+                        <tr><td class="t-word">Silent mode</td><td class="t-type">noun phrase</td><td>Chế độ im lặng</td></tr>
+                        <tr><td class="t-word">Arrive</td><td class="t-type">verb</td><td>Đến nơi</td></tr>
+                        <tr><td class="t-word">Speaker</td><td class="t-type">noun</td><td>Diễn giả, người nói</td></tr>
+                        <tr><td class="t-word">Sign-up</td><td class="t-type">noun/verb</td><td>Sự đăng ký / Đăng ký</td></tr>
+                    </table>
+                </div>
+
+                <div class="glass-card">
+                    <div class="passage-title">PASSAGE 2: Online Lessons</div>
+                    
+                    <div class="paragraph">
+                        <p class="en-text">After school, many teenagers choose online lessons to learn new skills at home. They watch short videos, join live lessons, and <span class="gap">(19)</span> on their phones. This can be convenient, but it also brings new problems.</p>
+                        <div class="vi-text">Sau giờ học, nhiều thanh thiếu niên chọn các bài học trực tuyến để học kỹ năng mới tại nhà. Các em xem video ngắn, tham gia các bài học trực tiếp, và (19) trên điện thoại. Điều này có thể tiện lợi, nhưng nó cũng mang lại những vấn đề mới.</div>
+                        <button class="btn-translate" onclick="toggleTrans(this)">Mở dịch đoạn này 🌟</button>
+                    </div>
+
+                    <div class="paragraph">
+                        <p class="en-text">When a lesson is only one click away from funny clips, teens can feel overwhelmed. To study well, they <span class="gap">(20)</span> choose one task and finish it before opening another app.</p>
+                        <div class="vi-text">Khi một bài học chỉ cách những clip hài hước một cú nhấp chuột, thanh thiếu niên có thể cảm thấy bị choáng ngợp. Để học tốt, các em (20) chọn một nhiệm vụ và hoàn thành nó trước khi mở một ứng dụng khác.</div>
+                        <button class="btn-translate" onclick="toggleTrans(this)">Mở dịch đoạn này 🌟</button>
+                    </div>
+
+                    <div class="paragraph">
+                        <p class="en-text">Some students <span class="gap">(21)</span> at home miss a teacher's face and hesitate to ask questions. <span class="gap">(22)</span> the phone keeps sending messages, so it is hard to concentrate. Not only do they watch lesson videos, but they also reply to friends, and the "quick break" becomes thirty minutes. If they study too late, they wake up tired and not fresh the next day.</p>
+                        <div class="vi-text">Một số học sinh (21) ở nhà nhớ khuôn mặt của giáo viên và ngần ngại đặt câu hỏi. (22) điện thoại liên tục gửi tin nhắn, vì vậy rất khó để tập trung. Không chỉ xem video bài học, các em còn trả lời bạn bè, và "kỳ nghỉ giải lao nhanh" biến thành ba mươi phút. Nếu học quá muộn, các em sẽ thức dậy mệt mỏi và không tỉnh táo vào ngày hôm sau.</div>
+                        <button class="btn-translate" onclick="toggleTrans(this)">Mở dịch đoạn này 🌟</button>
+                    </div>
+
+                    <div class="paragraph">
+                        <p class="en-text">A simple timetable helps them prioritize and stay efficient. If they review for ten minutes a day, they can <span class="gap">(23)</span> progress without stress. In my class, <span class="gap">(24)</span> teens who share notes in a group chat, and learning feels less lonely.</p>
+                        <div class="vi-text">Một thời gian biểu đơn giản giúp các em ưu tiên và duy trì sự hiệu quả. Nếu ôn tập mười phút mỗi ngày, các em có thể (23) sự tiến bộ mà không bị căng thẳng. Trong lớp của tôi, (24) thanh thiếu niên chia sẻ ghi chú trong một cuộc trò chuyện nhóm, và việc học cảm thấy bớt cô đơn hơn.</div>
+                        <button class="btn-translate" onclick="toggleTrans(this)">Mở dịch đoạn này 🌟</button>
+                    </div>
+
+                    <h4 style="color:#d63031;">📚 Glossary (Từ vựng B1-C2)</h4>
+                    <table>
+                        <tr><th>Từ vựng</th><th>Loại từ</th><th>Nghĩa tiếng Việt</th></tr>
+                        <tr><td class="t-word">Convenient</td><td class="t-type">adjective</td><td>Tiện lợi</td></tr>
+                        <tr><td class="t-word">Overwhelmed</td><td class="t-type">adjective</td><td>Bị choáng ngợp, quá tải</td></tr>
+                        <tr><td class="t-word">Hesitate</td><td class="t-type">verb</td><td>Do dự, ngần ngại</td></tr>
+                        <tr><td class="t-word">Concentrate</td><td class="t-type">verb</td><td>Tập trung</td></tr>
+                        <tr><td class="t-word">Prioritize</td><td class="t-type">verb</td><td>Ưu tiên</td></tr>
+                        <tr><td class="t-word">Efficient</td><td class="t-type">adjective</td><td>Hiệu quả</td></tr>
+                        <tr><td class="t-word">Progress</td><td class="t-type">noun/verb</td><td>Sự tiến bộ / Tiến bộ</td></tr>
+                        <tr><td class="t-word">Stress</td><td class="t-type">noun</td><td>Sự căng thẳng</td></tr>
+                        <tr><td class="t-word">Timetable</td><td class="t-type">noun</td><td>Thời gian biểu</td></tr>
+                        <tr><td class="t-word">Task</td><td class="t-type">noun</td><td>Nhiệm vụ, công việc</td></tr>
+                    </table>
+                </div>
+
+                <div class="glass-card">
+                    <div class="passage-title">PASSAGE 3: Noise Pollution</div>
+                    
+                    <div class="paragraph">
+                        <p class="en-text">Living in big cities offers many advantages, but it also comes with serious problems. One issue that affects millions Life of city residents is noise pollution. Unlike air or water pollution, noise pollution is often ignored, yet it has significant effects on people's health and quality of life.</p>
+                        <div class="vi-text">Sống ở các thành phố lớn mang lại nhiều lợi thế, nhưng nó cũng đi kèm với những vấn đề nghiêm trọng. Một vấn đề ảnh hưởng đến hàng triệu cư dân thành phố là ô nhiễm tiếng ồn. Không giống như ô nhiễm không khí hay nước, ô nhiễm tiếng ồn thường bị phớt lờ, tuy nhiên nó có tác động đáng kể đến sức khỏe và chất lượng cuộc sống của con người.</div>
+                        <button class="btn-translate" onclick="toggleTrans(this)">Mở dịch đoạn này 🌟</button>
+                    </div>
+
+                    <div class="paragraph">
+                        <p class="en-text">City noise comes from many sources. Traffic is the biggest problem cars, buses, motorcycles, and trucks create constant sound throughout the day and night. Construction sites with their loud machines add to the problem. Factories, airports, and even neighbors playing loud music all contribute to the relentless noise that fills urban areas. In some neighborhoods, people cannot have a quiet moment even in their own homes. The sounds never stop, continuing from early morning until late at night.</p>
+                        <div class="vi-text">Tiếng ồn thành phố bắt nguồn từ nhiều nguồn. Giao thông là vấn đề lớn nhất - ô tô, xe buýt, xe máy và xe tải tạo ra âm thanh liên tục suốt ngày đêm. Các công trường xây dựng với máy móc ồn ào làm tăng thêm vấn đề. Các nhà máy, sân bay và ngay cả hàng xóm mở nhạc lớn đều góp phần vào tiếng ồn không ngừng bao trùm các khu vực đô thị. Ở một số khu dân cư, mọi người không thể có một khoảnh khắc yên tĩnh ngay cả trong chính ngôi nhà của họ. Âm thanh không bao giờ dừng lại, tiếp diễn từ sáng sớm cho đến tận đêm khuya.</div>
+                        <button class="btn-translate" onclick="toggleTrans(this)">Mở dịch đoạn này 🌟</button>
+                    </div>
+
+                    <div class="paragraph">
+                        <p class="en-text">The effects of noise pollution are serious. Studies show that people living in noisy areas have more stress, sleep problems, and heart disease. Children in noisy schools find it harder to concentrate and learn. Workers in loud environments become tired and less productive. Many city dwellers feel exhausted and anxious because they cannot find peace and quiet.</p>
+                        <div class="vi-text">Ảnh hưởng của ô nhiễm tiếng ồn là rất nghiêm trọng. Các nghiên cứu chỉ ra rằng những người sống ở các khu vực ồn ào gặp nhiều căng thẳng, vấn đề về giấc ngủ và bệnh tim hơn. Trẻ em ở các trường học ồn ào cảm thấy khó tập trung và học tập hơn. Người lao động trong môi trường ồn ào trở nên mệt mỏi và kém năng suất hơn. Nhiều cư dân thành phố cảm thấy kiệt sức và lo âu vì họ không thể tìm thấy sự bình yên và yên tĩnh.</div>
+                        <button class="btn-translate" onclick="toggleTrans(this)">Mở dịch đoạn này 🌟</button>
+                    </div>
+
+                    <div class="paragraph">
+                        <p class="en-text">Some cities are taking action to limit this problem. They create quiet zones near hospitals and schools where loud noises are not allowed. They plant more trees along streets because trees can absorb sound. Some cities also make rules about construction hours and limit traffic in certain areas. However, solving noise pollution requires cooperation from everyone government, businesses, and citizens must work together to make cities quieter and healthier places to live.</p>
+                        <div class="vi-text">Một số thành phố đang hành động để hạn chế vấn đề này. Họ tạo ra các khu vực yên tĩnh gần bệnh viện và trường học nơi không cho phép có tiếng ồn lớn. Họ trồng nhiều cây dọc theo các đường phố vì cây có thể hấp thụ âm thanh. Một số thành phố cũng đưa ra các quy định về giờ xây dựng và hạn chế giao thông ở một số khu vực nhất định. Tuy nhiên, việc giải quyết ô nhiễm tiếng ồn đòi hỏi sự hợp tác từ tất cả mọi người - chính phủ, doanh nghiệp và công dân phải làm việc cùng nhau để biến thành phố thành những nơi yên tĩnh và trong lành hơn để sống.</div>
+                        <button class="btn-translate" onclick="toggleTrans(this)">Mở dịch đoạn này 🌟</button>
+                    </div>
+
+                    <h4 style="color:#d63031;">📚 Glossary (Từ vựng B1-C2)</h4>
+                    <table>
+                        <tr><th>Từ vựng</th><th>Loại từ</th><th>Nghĩa tiếng Việt</th></tr>
+                        <tr><td class="t-word">Pollution</td><td class="t-type">noun</td><td>Sự ô nhiễm</td></tr>
+                        <tr><td class="t-word">Ignored</td><td class="t-type">adjective/verb</td><td>Bị phớt lờ, làm ngơ</td></tr>
+                        <tr><td class="t-word">Significant</td><td class="t-type">adjective</td><td>Đáng kể, quan trọng</td></tr>
+                        <tr><td class="t-word">Relentless</td><td class="t-type">adjective</td><td>Không ngừng nghỉ, tàn nhẫn</td></tr>
+                        <tr><td class="t-word">Urban</td><td class="t-type">adjective</td><td>Thuộc về đô thị</td></tr>
+                        <tr><td class="t-word">Productive</td><td class="t-type">adjective</td><td>Năng suất, hiệu quả</td></tr>
+                        <tr><td class="t-word">Exhausted</td><td class="t-type">adjective</td><td>Kiệt sức</td></tr>
+                        <tr><td class="t-word">Anxious</td><td class="t-type">adjective</td><td>Lo âu, băn khoăn</td></tr>
+                        <tr><td class="t-word">Absorb</td><td class="t-type">verb</td><td>Hấp thụ</td></tr>
+                        <tr><td class="t-word">Cooperation</td><td class="t-type">noun</td><td>Sự hợp tác</td></tr>
+                    </table>
+                </div>
+
+                <div class="glass-card">
+                    <div class="passage-title">PASSAGE 4: Social Media</div>
+                    
+                    <div class="paragraph">
+                        <p class="en-text">Teenagers today are growing up with social media in a way that feels normal, but it also brings new pressure. Many teens use TikTok or Instagram <span class="gap">(37)</span>. At the same time, they see "perfect" bodies, lifestyles, and grades every day. This can make them <span class="gap">(38)</span> even when they are doing fine.</p>
+                        <div class="vi-text">Thanh thiếu niên ngày nay đang lớn lên cùng mạng xã hội theo một cách có vẻ bình thường, nhưng nó cũng mang lại những áp lực mới. Nhiều thanh thiếu niên sử dụng TikTok hoặc Instagram (37). Đồng thời, các em nhìn thấy những cơ thể, lối sống và điểm số "hoàn hảo" mỗi ngày. Điều này có thể khiến các em (38) ngay cả khi các em vẫn đang làm rất tốt.</div>
+                        <button class="btn-translate" onclick="toggleTrans(this)">Mở dịch đoạn này 🌟</button>
+                    </div>
+
+                    <div class="paragraph">
+                        <p class="en-text">One trend is "study with me" videos and productivity apps. These tools can help teens focus and build good habits. <span class="gap">(39)</span> If you don't study all the time, you may feel guilty. Another issue is online drama and cyberbullying, which can spread fast and hurt confidence.</p>
+                        <div class="vi-text">Một xu hướng là các video "học cùng tôi" và các ứng dụng nâng cao năng suất. Những công cụ này có thể giúp thanh thiếu niên tập trung và xây dựng thói quen tốt. (39) Nếu bạn không học mọi lúc, bạn có thể cảm thấy tội lỗi. Một vấn đề khác là những ồn ào trên mạng và bắt nạt trên không gian mạng, những thứ có thể lan truyền nhanh chóng và làm tổn thương sự tự tin.</div>
+                        <button class="btn-translate" onclick="toggleTrans(this)">Mở dịch đoạn này 🌟</button>
+                    </div>
+
+                    <div class="paragraph">
+                        <p class="en-text">In my opinion, the key is balance and digital awareness. <span class="gap">(40)</span> Teens also need time offline: sports, hobbies, real conversations, and sleep. Social media is not the enemy, but it should not control teenage life.</p>
+                        <div class="vi-text">Theo ý kiến của tôi, chìa khóa là sự cân bằng và nhận thức về kỹ thuật số. (40) Thanh thiếu niên cũng cần thời gian ngoại tuyến: thể thao, sở thích, những cuộc trò chuyện thực tế và giấc ngủ. Mạng xã hội không phải là kẻ thù, nhưng nó không nên kiểm soát cuộc sống của thanh thiếu niên.</div>
+                        <button class="btn-translate" onclick="toggleTrans(this)">Mở dịch đoạn này 🌟</button>
+                    </div>
+
+                    <h4 style="color:#d63031;">📚 Glossary (Từ vựng B1-C2)</h4>
+                    <table>
+                        <tr><th>Từ vựng</th><th>Loại từ</th><th>Nghĩa tiếng Việt</th></tr>
+                        <tr><td class="t-word">Pressure</td><td class="t-type">noun</td><td>Áp lực</td></tr>
+                        <tr><td class="t-word">Lifestyle</td><td class="t-type">noun</td><td>Lối sống</td></tr>
+                        <tr><td class="t-word">Productivity</td><td class="t-type">noun</td><td>Năng suất</td></tr>
+                        <tr><td class="t-word">Habit</td><td class="t-type">noun</td><td>Thói quen</td></tr>
+                        <tr><td class="t-word">Guilty</td><td class="t-type">adjective</td><td>Tội lỗi, cảm thấy có lỗi</td></tr>
+                        <tr><td class="t-word">Cyberbullying</td><td class="t-type">noun</td><td>Bắt nạt trên mạng</td></tr>
+                        <tr><td class="t-word">Confidence</td><td class="t-type">noun</td><td>Sự tự tin</td></tr>
+                        <tr><td class="t-word">Balance</td><td class="t-type">noun</td><td>Sự cân bằng</td></tr>
+                        <tr><td class="t-word">Awareness</td><td class="t-type">noun</td><td>Sự nhận thức</td></tr>
+                        <tr><td class="t-word">Algorithm</td><td class="t-type">noun</td><td>Thuật toán</td></tr>
+                    </table>
+                </div>
+
+            </div>
+
+            <div class="pane right-pane" id="quizPane">
+                <button class="btn-submit" onclick="submitTest()">🎯 NỘP BÀI TÍNH ĐIỂM & XEM KẾT QUẢ</button>
+            </div>
+        </div>
+
+        <div class="modal-overlay" id="submitModal">
+            <div class="modal-content" id="modalBox">
+                <h2>🎉 Hoàn Thành! 🎉</h2>
+                <p>Hãy nhập tên của con để Ms Mai An chấm điểm nhé!</p>
+                <input type="text" id="studentName" placeholder="Tên học sinh...">
+                <button onclick="calculateScore()">Xem Điểm Nào!</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- XÁC THỰC MẬT KHẨU ---
+        function checkPassword() {
+            const inp = document.getElementById('pwInput');
+            const err = document.getElementById('pwErr');
+            // Mật khẩu đã được ẩn đi bằng hàm hash btoa để tránh hiển thị array plaintext như yêu cầu
+            if (btoa(inp.value) === 'Y29nYW5nZGF0ZGllbWNhbw==') {
+                document.getElementById('passwordModal').style.display = 'none';
+                const main = document.getElementById('mainContent');
+                if(main) main.style.display = 'block';
+                
+                // Phát âm thanh nhắc nhở intro của cô Mai An
+                const introAudio = new Audio('https://hoctienganhcungcomaianulis.github.io/homework/%E1%BA%A2nh_File%20nghe/Sound/export_2rUjepgpwpTxnU6YGv6kmq.mp3');
+                introAudio.play().catch(e => console.log('Audio play failed: ', e));
+                
+            } else {
+                inp.classList.remove('error'); void inp.offsetWidth; inp.classList.add('error');
+                err.style.display = 'block'; setTimeout(() => inp.classList.remove('error'), 500);
+            }
+        }
+        document.addEventListener('DOMContentLoaded', () => {
+            const pwInput = document.getElementById('pwInput');
+            if(pwInput) pwInput.addEventListener('keydown', e => { if (e.key==='Enter') checkPassword(); });
+        });
+
+
+        // --- DATA BÀI TẬP (MẢNG CHỨA 20 CÂU) ---
+        const quizData = [
+            // PASSAGE 1
+            {
+                id: 13, text: "Câu 13: Select the best answer",
+                options: [{t:"in",c:true},{t:"on",c:false},{t:"at",c:false},{t:"for",c:false}],
+                exp: `
+                    <span class='exp-title'>Dịch câu hỏi:</span> Chọn giới từ thích hợp điền vào ô trống (13).<br>
+                    <span class='exp-title'>Phân tích:</span><br>
+                    - in (<span class='p-mean'>trong</span>) ✅ <span class='hl-green'>Đúng</span> vì cụm từ chuẩn là <span class='p-grammar'>"sit in the rows"</span> (ngồi trong hàng ghế).<br>
+                    - on (<span class='p-mean'>trên</span>) ❌ <span class='hl-red'>Sai</span> vì không dùng với rows.<br>
+                    - at (<span class='p-mean'>tại</span>) ❌ <span class='hl-red'>Sai</span>.<br>
+                    - for (<span class='p-mean'>cho</span>) ❌ <span class='hl-red'>Sai</span>.<br>
+                    <div class='exp-quote'>"Please arrive 10 minutes early and sit (13) in the first three rows so the speaker can check attendance easily."</div>
+                    👉 Dịch: "Vui lòng đến sớm 10 phút và ngồi <span class='hl-green'>trong</span> ba hàng ghế đầu tiên để diễn giả có thể điểm danh dễ dàng."
+                `
+            },
+            {
+                id: 14, text: "Câu 14: Select the best answer",
+                options: [{t:"many",c:false},{t:"a",c:true},{t:"any",c:false},{t:"much",c:false}],
+                exp: `
+                    <span class='exp-title'>Dịch câu hỏi:</span> Chọn lượng từ thích hợp điền vào ô (14).<br>
+                    <span class='exp-title'>Phân tích:</span><br>
+                    - many (<span class='p-mean'>nhiều</span>) ❌ <span class='hl-red'>Sai</span> vì notebook là danh từ số ít.<br>
+                    - a (<span class='p-mean'>một</span>) ✅ <span class='hl-green'>Đúng</span>. <span class='p-word'>Notebook</span> là danh từ đếm được số ít, cần mạo từ "a".<br>
+                    - any (<span class='p-mean'>bất kỳ</span>) ❌ <span class='hl-red'>Sai</span> vì thường dùng trong câu phủ định/nghi vấn.<br>
+                    - much (<span class='p-mean'>nhiều</span>) ❌ <span class='hl-red'>Sai</span> vì dùng cho danh từ không đếm được.<br>
+                    <div class='exp-quote'>"Bring (14) a notebook to write down key tips."</div>
+                    👉 Dịch: "Mang theo <span class='hl-green'>một</span> quyển vở để ghi chép các mẹo quan trọng."
+                `
+            },
+            {
+                id: 15, text: "Câu 15: Select the best answer",
+                options: [{t:"catch",c:false},{t:"give",c:false},{t:"pay",c:true},{t:"take",c:false}],
+                exp: `
+                    <span class='exp-title'>Dịch câu hỏi:</span> Chọn động từ kết hợp với "attention".<br>
+                    <span class='exp-title'>Phân tích:</span><br>
+                    - catch (<span class='p-mean'>bắt</span>) ❌ <span class='hl-red'>Sai</span>.<br>
+                    - give (<span class='p-mean'>cho</span>) ❌ <span class='hl-red'>Sai</span>.<br>
+                    - pay (<span class='p-mean'>trả</span>) ✅ <span class='hl-green'>Đúng</span>. Cụm từ cố định (Collocation) là <span class='p-grammar'>"pay attention"</span> (chú ý).<br>
+                    - take (<span class='p-mean'>lấy</span>) ❌ <span class='hl-red'>Sai</span>.<br>
+                    <div class='exp-quote'>"Remember to (15) pay attention during the video part"</div>
+                    👉 Dịch: "Nhớ <span class='hl-green'>chú ý</span> trong phần chiếu video"
+                `
+            },
+            {
+                id: 16, text: "Câu 16: Select the best answer",
+                options: [{t:"by",c:false},{t:"at",c:false},{t:"to",c:true},{t:"on",c:false}],
+                exp: `
+                    <span class='exp-title'>Dịch câu hỏi:</span> Chọn giới từ đi kèm với "set mode".<br>
+                    <span class='exp-title'>Phân tích:</span><br>
+                    - by ❌ <span class='hl-red'>Sai</span>.<br>
+                    - at ❌ <span class='hl-red'>Sai</span>.<br>
+                    - to ✅ <span class='hl-green'>Đúng</span>. Cấu trúc là <span class='p-grammar'>"set something to + mode"</span> (cài đặt cái gì về chế độ nào).<br>
+                    - on ❌ <span class='hl-red'>Sai</span>.<br>
+                    <div class='exp-quote'>"Students must keep phones set (16) to silent mode."</div>
+                    👉 Dịch: "Học sinh phải để điện thoại <span class='hl-green'>ở (về)</span> chế độ im lặng."
+                `
+            },
+
+            // PASSAGE 2
+            {
+                id: 19, text: "Câu 19: Select the best answer",
+                options: [{t:"taking even quizzes",c:false},{t:"even take quizzes",c:true},{t:"even quizzes take",c:false},{t:"even quizzes take",c:false}],
+                exp: `
+                    <span class='exp-title'>Dịch câu hỏi:</span> Chọn trật tự từ đúng.<br>
+                    <span class='exp-title'>Phân tích:</span><br>
+                    Cấu trúc liệt kê các hoạt động (watch, join, and). Động từ sau "and" phải giữ nguyên thể như các động từ trước.<br>
+                    - even take quizzes ✅ <span class='hl-green'>Đúng</span>. Trạng từ "even" đứng trước động từ thường "take".<br>
+                    - Các đáp án khác ❌ <span class='hl-red'>Sai</span> trật tự ngữ pháp.<br>
+                    <div class='exp-quote'>"They watch short videos, join live lessons, and (19) even take quizzes on their phones."</div>
+                    👉 Dịch: "Các em xem video ngắn, tham gia học trực tiếp, và <span class='hl-green'>thậm chí làm bài tập</span> trên điện thoại."
+                `
+            },
+            {
+                id: 20, text: "Câu 20: Select the best answer",
+                options: [{t:"should",c:true},{t:"must",c:false},{t:"can",c:false},{t:"might",c:false}],
+                exp: `
+                    <span class='exp-title'>Dịch câu hỏi:</span> Chọn động từ khuyết thiếu phù hợp.<br>
+                    <span class='exp-title'>Phân tích:</span><br>
+                    - should (<span class='p-mean'>nên</span>) ✅ <span class='hl-green'>Đúng</span> vì đây là lời khuyên để học tốt hơn.<br>
+                    - must (<span class='p-mean'>phải</span>) ❌ <span class='hl-red'>Sai</span> vì quá bắt buộc, không phù hợp ngữ cảnh đưa ra mẹo học tập.<br>
+                    - can (<span class='p-mean'>có thể</span>) ❌ <span class='hl-red'>Sai</span> (chỉ khả năng).<br>
+                    - might (<span class='p-mean'>có lẽ</span>) ❌ <span class='hl-red'>Sai</span> (chỉ khả năng mơ hồ).<br>
+                    <div class='exp-quote'>"To study well, they (20) should choose one task and finish it"</div>
+                    👉 Dịch: "Để học tốt, các em <span class='hl-green'>nên</span> chọn một nhiệm vụ và hoàn thành nó"
+                `
+            },
+            {
+                id: 21, text: "Câu 21: Select the best answer",
+                options: [{t:"who studying is",c:false},{t:"who are studying",c:true},{t:"whom are studying",c:false},{t:"that been studying",c:false}],
+                exp: `
+                    <span class='exp-title'>Dịch câu hỏi:</span> Chọn mệnh đề quan hệ đúng.<br>
+                    <span class='exp-title'>Phân tích:</span><br>
+                    - who are studying ✅ <span class='hl-green'>Đúng</span>. "who" thay thế cho danh từ chỉ người số nhiều (students), đi với động từ to be "are".<br>
+                    - who studying is ❌ <span class='hl-red'>Sai</span> ngữ pháp.<br>
+                    - whom are studying ❌ <span class='hl-red'>Sai</span> vì whom làm tân ngữ, ở đây cần chủ ngữ.<br>
+                    - that been studying ❌ <span class='hl-red'>Sai</span> thì.<br>
+                    <div class='exp-quote'>"Some students (21) who are studying at home miss a teacher's face"</div>
+                    👉 Dịch: "Một số học sinh <span class='hl-green'>những người đang học</span> ở nhà nhớ khuôn mặt giáo viên"
+                `
+            },
+            {
+                id: 22, text: "Câu 22: Select the best answer",
+                options: [{t:"However,",c:true},{t:"Therefore,",c:false},{t:"For example,",c:false},{t:"In addition,",c:false}],
+                exp: `
+                    <span class='exp-title'>Dịch câu hỏi:</span> Chọn từ nối phù hợp.<br>
+                    <span class='exp-title'>Phân tích:</span><br>
+                    - However (<span class='p-mean'>Tuy nhiên</span>) ✅ <span class='hl-green'>Đúng</span>. Tạo sự tương phản giữa tiện lợi học online và việc dễ bị phân tâm bởi điện thoại.<br>
+                    - Therefore (<span class='p-mean'>Vì vậy</span>) ❌ <span class='hl-red'>Sai</span> (chỉ kết quả).<br>
+                    - For example (<span class='p-mean'>Ví dụ</span>) ❌ <span class='hl-red'>Sai</span>.<br>
+                    - In addition (<span class='p-mean'>Thêm vào đó</span>) ❌ <span class='hl-red'>Sai</span>.<br>
+                    <div class='exp-quote'>"(22) However, the phone keeps sending messages, so it is hard to concentrate."</div>
+                    👉 Dịch: "<span class='hl-green'>Tuy nhiên</span>, điện thoại liên tục báo tin nhắn, vì vậy rất khó tập trung."
+                `
+            },
+            {
+                id: 23, text: "Câu 23: Select the best answer",
+                options: [{t:"do",c:false},{t:"take",c:false},{t:"make",c:true},{t:"give",c:false}],
+                exp: `
+                    <span class='exp-title'>Dịch câu hỏi:</span> Chọn động từ đi kèm với "progress".<br>
+                    <span class='exp-title'>Phân tích:</span><br>
+                    - do / take / give ❌ <span class='hl-red'>Sai</span>.<br>
+                    - make ✅ <span class='hl-green'>Đúng</span>. Thành ngữ cố định (Collocation) là <span class='p-grammar'>"make progress"</span> (tiến bộ).<br>
+                    <div class='exp-quote'>"If they review for ten minutes a day, they can (23) make progress without stress."</div>
+                    👉 Dịch: "Nếu ôn tập mười phút mỗi ngày, các em có thể <span class='hl-green'>đạt tiến bộ</span> mà không căng thẳng."
+                `
+            },
+            {
+                id: 24, text: "Câu 24: Select the best answer",
+                options: [{t:"there are many",c:true},{t:"are there many",c:false},{t:"there many are",c:false},{t:"many are there",c:false}],
+                exp: `
+                    <span class='exp-title'>Dịch câu hỏi:</span> Chọn cấu trúc đúng diễn đạt "có nhiều".<br>
+                    <span class='exp-title'>Phân tích:</span><br>
+                    - there are many ✅ <span class='hl-green'>Đúng</span>. Cấu trúc câu khẳng định "there is/there are" đi kèm danh từ số nhiều (teens).<br>
+                    - Các đáp án khác ❌ <span class='hl-red'>Sai</span> trật tự từ (nhầm thành câu hỏi hoặc vô nghĩa).<br>
+                    <div class='exp-quote'>"In my class, (24) there are many teens who share notes in a group chat"</div>
+                    👉 Dịch: "Trong lớp của tôi, <span class='hl-green'>có nhiều</span> bạn chia sẻ ghi chú trong nhóm chat"
+                `
+            },
+
+            // PASSAGE 3
+            {
+                id: 31, text: "Câu 31: The word 'relentless' in paragraph 2 is closest in meaning to",
+                options: [{t:"pleasant",c:false},{t:"occasional",c:false},{t:"continuous",c:true},{t:"quiet",c:false}],
+                exp: `
+                    <span class='exp-title'>Dịch câu hỏi:</span> Từ "relentless" ở đoạn 2 gần nghĩa nhất với từ nào?<br>
+                    <span class='exp-title'>Phân tích:</span><br>
+                    - pleasant (<span class='p-mean'>dễ chịu</span>) ❌ <span class='hl-red'>Sai</span>.<br>
+                    - occasional (<span class='p-mean'>thỉnh thoảng</span>) ❌ <span class='hl-red'>Sai</span>.<br>
+                    - continuous (<span class='p-mean'>liên tục, không ngừng</span>) ✅ <span class='hl-green'>Đúng</span>. <span class='p-word'>Relentless</span> nghĩa là không ngừng nghỉ.<br>
+                    - quiet (<span class='p-mean'>yên tĩnh</span>) ❌ <span class='hl-red'>Sai</span>.<br>
+                    <div class='exp-quote'>"Factories, airports and even neighbors playing loud music all contribute to the relentless noise that fills urban areas. The sounds never stop"</div>
+                    👉 Dịch: "Nhà máy, sân bay và ngay cả hàng xóm mở nhạc lớn đều góp phần vào tiếng ồn <span class='hl-green'>không ngừng nghỉ</span> bao trùm các khu vực đô thị. Âm thanh không bao giờ dừng lại."
+                `
+            },
+            {
+                id: 32, text: "Câu 32: Which of the following is TRUE according to the passage?",
+                options: [{t:"Modern urban residents prioritize noise pollution over air and water issues.",c:false},{t:"Neighborhood noise is mostly caused by airports located inside the city center.",c:false},{t:"Constant exposure to loud sounds can result in physical and mental health issues.",c:true},{t:"Planting trees is the most expensive method to eliminate all urban noise sources.",c:false}],
+                exp: `
+                    <span class='exp-title'>Dịch câu hỏi:</span> Điều nào sau đây là ĐÚNG theo đoạn văn?<br>
+                    <span class='exp-title'>Phân tích:</span><br>
+                    - Modern urban residents prioritize noise pollution over air and water issues. ❌ <span class='hl-red'>Sai</span> vì bài viết nói tiếng ồn thường bị phớt lờ (ignored).<br>
+                    - Neighborhood noise is mostly caused by airports located inside the city center. ❌ <span class='hl-red'>Sai</span> vì giao thông (traffic) mới là lớn nhất.<br>
+                    - Constant exposure to loud sounds can result in physical and mental health issues. ✅ <span class='hl-green'>Đúng</span>. Tiếp xúc âm thanh lớn gây bệnh thể chất và tinh thần.<br>
+                    - Planting trees is the most expensive method to eliminate all urban noise sources. ❌ <span class='hl-red'>Sai</span> bài không nhắc đến chi phí đắt nhất.<br>
+                    <div class='exp-quote'>"Studies show that people living in noisy areas have more stress, sleep problems, and heart disease."</div>
+                    👉 Dịch: "Các nghiên cứu chỉ ra rằng người sống ở khu vực ồn ào có <span class='hl-green'>nhiều căng thẳng, vấn đề giấc ngủ và bệnh tim</span>."
+                `
+            },
+            {
+                id: 33, text: "Câu 33: What is the best title for the passage?",
+                options: [{t:"The History of Transportation and Construction in Modern Metropolis.",c:false},{t:"How to Choose the Healthiest Cities for Residential Living Environments.",c:false},{t:"Urban Noise Pollution: Sources, Health Impacts, and Management Efforts.",c:true},{t:"The Cooperation Between Local Governments and International Businesses.",c:false}],
+                exp: `
+                    <span class='exp-title'>Dịch câu hỏi:</span> Tiêu đề tốt nhất cho đoạn văn là gì?<br>
+                    <span class='exp-title'>Phân tích:</span><br>
+                    - Urban Noise Pollution: Sources, Health Impacts, and Management Efforts. ✅ <span class='hl-green'>Đúng</span>. Bài viết lần lượt nói về ô nhiễm tiếng ồn, các nguồn gây ồn (đoạn 2), tác hại sức khỏe (đoạn 3), và cách khắc phục (đoạn 4). Các đáp án khác ❌ <span class='hl-red'>Sai</span> vì chỉ bao hàm một phần nhỏ hoặc sai chủ đề.
+                `
+            },
+            {
+                id: 34, text: "Câu 34: According to the final paragraph, what is suggested as a solution to noise pollution?",
+                options: [{t:"Residents should move away from noisy neighborhoods to find a quiet life.",c:false},{t:"Only the local government is responsible for making the city a healthier place.",c:false},{t:"Factories and airports must be permanently closed to reduce sound levels.",c:false},{t:"Improving the quality of urban life requires the participation of all groups.",c:true}],
+                exp: `
+                    <span class='exp-title'>Dịch câu hỏi:</span> Theo đoạn cuối, giải pháp nào được đề xuất?<br>
+                    <span class='exp-title'>Phân tích:</span><br>
+                    - Improving the quality of urban life requires the participation of all groups. ✅ <span class='hl-green'>Đúng</span>. Cải thiện chất lượng đô thị cần sự tham gia của mọi nhóm (chính phủ, doanh nghiệp, người dân). Các ý khác ❌ <span class='hl-red'>Sai</span> vì quá cực đoan hoặc không có trong bài.<br>
+                    <div class='exp-quote'>"However, solving noise pollution requires cooperation from everyone government, businesses, and citizens must work together to make cities quieter and healthier places to live."</div>
+                    👉 Dịch: "Tuy nhiên, giải quyết ô nhiễm tiếng ồn đòi hỏi <span class='hl-green'>sự hợp tác của tất cả mọi người</span> chính phủ, doanh nghiệp và công dân phải làm việc cùng nhau để làm cho thành phố yên tĩnh và lành mạnh hơn."
+                `
+            },
+            {
+                id: 35, text: "Câu 35: Why might children in noisy schools learn less effectively, based on the passage?",
+                options: [{t:"They spend more time playing outside than studying in class.",c:false},{t:"They become healthier because loud sound keeps them awake.",c:false},{t:"They may struggle to focus, so learning becomes more difficult.",c:true},{t:"They receive extra homework, which makes them feel stressed.",c:false}],
+                exp: `
+                    <span class='exp-title'>Dịch câu hỏi:</span> Tại sao trẻ em ở trường ồn ào học kém hiệu quả?<br>
+                    <span class='exp-title'>Phân tích:</span><br>
+                    - They may struggle to focus, so learning becomes more difficult. ✅ <span class='hl-green'>Đúng</span>. Chúng có thể gặp khó khăn khi tập trung, làm việc học khó hơn.<br>
+                    <div class='exp-quote'>"Children in noisy schools find it harder to concentrate and learn."</div>
+                    👉 Dịch: "Trẻ em ở trường học ồn ào thấy <span class='hl-green'>khó tập trung và học tập hơn</span>."
+                `
+            },
+            {
+                id: 36, text: "Câu 36: The word 'limit' in paragraph 4 is OPPOSITE in meaning to",
+                options: [{t:"solve",c:false},{t:"increase",c:true},{t:"reduce",c:false},{t:"understand",c:false}],
+                exp: `
+                    <span class='exp-title'>Dịch câu hỏi:</span> Từ "limit" ở đoạn 4 mang nghĩa TRÁI NGƯỢC với từ nào?<br>
+                    <span class='exp-title'>Phân tích:</span><br>
+                    - solve (<span class='p-mean'>giải quyết</span>) ❌ <span class='hl-red'>Sai</span>.<br>
+                    - increase (<span class='p-mean'>tăng lên</span>) ✅ <span class='hl-green'>Đúng</span>. <span class='p-word'>Limit</span> nghĩa là hạn chế/giảm thiểu, nên trái nghĩa là làm tăng lên.<br>
+                    - reduce (<span class='p-mean'>giảm bớt</span>) ❌ <span class='hl-red'>Sai</span> vì đây là từ đồng nghĩa.<br>
+                    - understand (<span class='p-mean'>hiểu</span>) ❌ <span class='hl-red'>Sai</span>.<br>
+                `
+            },
+
+            // PASSAGE 4
+            {
+                id: 37, text: "Câu 37: Select the best answer",
+                options: [{t:"However, some people say it creates a culture where you must always be busy",c:false},{t:"to relax, learn quick tips, and connect with friends",c:true},{t:"Parents and schools should teach teens how algorithms work and how to protect their mental health",c:false},{t:"compare themselves too much and feel not good enough",c:false}],
+                exp: `
+                    <span class='exp-title'>Dịch câu hỏi:</span> Chọn cụm từ thích hợp điền vào (37).<br>
+                    <span class='exp-title'>Phân tích:</span><br>
+                    Sau động từ "use" cần cụm từ chỉ mục đích bắt đầu bằng "to V".<br>
+                    - to relax, learn quick tips, and connect with friends ✅ <span class='hl-green'>Đúng</span>. Diễn đạt mục đích dùng mạng xã hội (để thư giãn, học mẹo, kết nối bạn bè).<br>
+                    <div class='exp-quote'>"Many teens use TikTok or Instagram (37) to relax, learn quick tips, and connect with friends."</div>
+                    👉 Dịch: "Nhiều thanh thiếu niên dùng TikTok hoặc Instagram <span class='hl-green'>để thư giãn, học các mẹo nhanh, và kết nối với bạn bè.</span>"
+                `
+            },
+            {
+                id: 38, text: "Câu 38: Select the best answer",
+                options: [{t:"However, some people say it creates a culture where you must always be busy",c:false},{t:"to relax, learn quick tips, and connect with friends",c:false},{t:"Parents and schools should teach teens how algorithms work and how to protect their mental health",c:false},{t:"compare themselves too much and feel not good enough",c:true}],
+                exp: `
+                    <span class='exp-title'>Dịch câu hỏi:</span> Chọn cụm từ thích hợp điền vào (38).<br>
+                    <span class='exp-title'>Phân tích:</span><br>
+                    Sau "make them" cần một V(nguyên thể) diễn tả hệ quả của việc nhìn thấy "sự hoàn hảo ảo" mỗi ngày.<br>
+                    - compare themselves too much and feel not good enough ✅ <span class='hl-green'>Đúng</span>. So sánh quá nhiều và thấy mình không đủ giỏi.<br>
+                    <div class='exp-quote'>"This can make them (38) compare themselves too much and feel not good enough even when they are doing fine."</div>
+                    👉 Dịch: "Điều này có thể khiến các em <span class='hl-green'>so sánh bản thân quá nhiều và cảm thấy không đủ tốt</span> ngay cả khi các em đang làm rất ổn."
+                `
+            },
+            {
+                id: 39, text: "Câu 39: Select the best answer",
+                options: [{t:"However, some people say it creates a culture where you must always be busy",c:true},{t:"to relax, learn quick tips, and connect with friends",c:false},{t:"Parents and schools should teach teens how algorithms work and how to protect their mental health",c:false},{t:"compare themselves too much and feel not good enough",c:false}],
+                exp: `
+                    <span class='exp-title'>Dịch câu hỏi:</span> Chọn câu phù hợp điền vào (39).<br>
+                    <span class='exp-title'>Phân tích:</span><br>
+                    Câu phía trước khen các công cụ học tập. Câu tiếp theo phàn nàn "cảm thấy tội lỗi nếu không học". Vậy ở giữa cần một câu chuyển ý tương phản.<br>
+                    - However, some people say it creates a culture where you must always be busy ✅ <span class='hl-green'>Đúng</span>. Bắt đầu bằng However để chuyển từ khen sang chê.<br>
+                    <div class='exp-quote'>"(39) However, some people say it creates a culture where you must always be busy. If you don't study all the time, you may feel guilty."</div>
+                    👉 Dịch: "<span class='hl-green'>Tuy nhiên, một số người nói rằng nó tạo ra một văn hóa nơi bạn lúc nào cũng phải bận rộn.</span> Nếu bạn không học mọi lúc, bạn có thể cảm thấy tội lỗi."
+                `
+            },
+            {
+                id: 40, text: "Câu 40: Select the best answer",
+                options: [{t:"However, some people say it creates a culture where you must always be busy",c:false},{t:"to relax, learn quick tips, and connect with friends",c:false},{t:"Parents and schools should teach teens how algorithms work and how to protect their mental health",c:true},{t:"compare themselves too much and feel not good enough",c:false}],
+                exp: `
+                    <span class='exp-title'>Dịch câu hỏi:</span> Chọn câu phù hợp điền vào (40).<br>
+                    <span class='exp-title'>Phân tích:</span><br>
+                    Câu trước đó nói "chìa khóa là sự cân bằng". Câu điền vào cần nêu ra giải pháp cụ thể của người lớn.<br>
+                    - Parents and schools should teach teens how algorithms work and how to protect their mental health ✅ <span class='hl-green'>Đúng</span>. Đưa ra giải pháp (dạy học sinh bảo vệ sức khỏe tâm thần).<br>
+                    <div class='exp-quote'>"In my opinion, the key is balance and digital awareness. (40) Parents and schools should teach teens how algorithms work and how to protect their mental health."</div>
+                    👉 Dịch: "Theo ý kiến của tôi, chìa khóa là sự cân bằng và nhận thức về kỹ thuật số. <span class='hl-green'>Cha mẹ và trường học nên dạy thanh thiếu niên cách các thuật toán hoạt động và cách bảo vệ sức khỏe tinh thần của họ.</span>"
+                `
+            }
+        ];
+
+        // --- RENDER GIAO DIỆN ---
+        const quizPane = document.getElementById('quizPane');
+        let currentScore = 0;
+        let answeredQuestions = 0;
+
+        function shuffle(array) {
+            let currentIndex = array.length, randomIndex;
+            while (currentIndex != 0) {
+                randomIndex = Math.floor(Math.random() * currentIndex);
+                currentIndex--;
+                [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
+            }
+            return array;
+        }
+
+        function renderQuestions() {
+            let html = '';
+            quizData.forEach((q) => {
+                let shuffledOptions = shuffle([...q.options]);
+                html += `
+                <div class="glass-card" id="card-${q.id}">
+                    <div class="q-text">${q.text}</div>
+                    <div class="options-grid" id="options-${q.id}">
+                        ${shuffledOptions.map((opt) => `
+                            <button class="option-btn" onclick="checkAnswer(${q.id}, this, ${opt.c})">${opt.t}</button>
+                        `).join('')}
+                    </div>
+                    <div class="explanation" id="exp-${q.id}">
+                        ${q.exp}
+                    </div>
+                </div>`;
+            });
+            quizPane.insertAdjacentHTML('afterbegin', html);
+        }
+        renderQuestions();
+
+        // --- AUDIO ENGINE ---
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        const actx = new AudioContext();
+
+        function playTone(freq, type, dur) {
+            if (actx.state === 'suspended') actx.resume();
+            const osc = actx.createOscillator();
+            const gain = actx.createGain();
+            osc.type = type;
+            osc.frequency.setValueAtTime(freq, actx.currentTime);
+            gain.gain.setValueAtTime(0.1, actx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, actx.currentTime + dur);
+            osc.connect(gain);
+            gain.connect(actx.destination);
+            osc.start();
+            osc.stop(actx.currentTime + dur);
+        }
+
+        function playCorrectSound() {
+            playTone(600, 'sine', 0.1);
+            setTimeout(() => playTone(800, 'sine', 0.15), 100);
+        }
+
+        const wrongAudio = new Audio('https://hoctienganhcungcomaianulis.github.io/homework/%E1%BA%A2nh_File%20nghe/Sound/Am_thanh_meme_Oi_doi_oi_huan_hoa_hong-www_tiengdong_com.mp3');
+        function playWrongSound() {
+            wrongAudio.currentTime = 0;
+            wrongAudio.play().catch(e => console.log(e));
+        }
+
+        // --- INTERACTIONS ---
+        function checkAnswer(qId, btn, isCorrect) {
+            const container = document.getElementById(`options-${qId}`);
+            const buttons = container.querySelectorAll('button');
+            buttons.forEach(b => b.disabled = true);
+            
+            if (isCorrect) {
+                btn.classList.add('correct');
+                playCorrectSound();
+                shootConfetti();
+                currentScore++;
+            } else {
+                btn.classList.add('wrong');
+                playWrongSound();
+                quizData.find(q => q.id === qId).options.forEach(opt => {
+                    if (opt.c) {
+                        buttons.forEach(b => {
+                            if (b.innerText === opt.t) b.classList.add('correct');
+                        });
+                    }
+                });
+            }
+            
+            const expDiv = document.getElementById(`exp-${qId}`);
+            expDiv.style.display = 'block';
+            answeredQuestions++;
+        }
+
+        function toggleTrans(btn) {
+            const p = btn.previousElementSibling;
+            if(p.style.display === 'block') {
+                p.style.display = 'none';
+                btn.innerText = 'Mở dịch đoạn này 🌟';
+            } else {
+                p.style.display = 'block';
+                btn.innerText = 'Đóng phần dịch 🙈';
+            }
+        }
+
+        // --- SUBMIT LOGIC & MEME GIFs ---
+        function submitTest() {
+            if (answeredQuestions < quizData.length) {
+                alert(`Làm nốt đi bạn ơi! Bạn còn ${quizData.length - answeredQuestions} câu chưa làm kìa!`);
+                return;
+            }
+            document.getElementById('submitModal').style.display = 'flex';
+        }
+
+        function calculateScore() {
+            const name = document.getElementById('studentName').value.trim();
+            if (!name) { alert('Con chưa nhập tên kìa!'); return; }
+            
+            const total = quizData.length;
+            const percent = (currentScore / total) * 100;
+            const modalBox = document.getElementById('modalBox');
+            
+            let gifUrl = '';
+            let comment = '';
+            
+            if (percent === 100) {
+                gifUrl = 'https://media.giphy.com/media/11sBLVxNs7v6WA/giphy.gif'; 
+                comment = "Tuyệt đỉnh! Cô Thảo tự hào về con. Điểm tuyệt đối, con đúng là thiên tài tiếng Anh! 🏆✨";
+            } else if (percent >= 60) {
+                gifUrl = 'https://media.giphy.com/media/3o7abKhOpu0NwenH3O/giphy.gif'; 
+                comment = "Rất tốt! Bài làm khá lắm. Chăm chỉ xem lại các câu giải thích để lấy điểm tối đa lần sau nhé! 👍🔥";
+            } else {
+                gifUrl = 'https://media.giphy.com/media/l378giAZgxPw3eO52/giphy.gif'; 
+                comment = "Hơi tiếc một chút! Nhưng đừng buồn, xem kỹ phần giải thích chi tiết của Cô và làm lại nhé. Cố lên! 💪🌱";
+            }
+
+            modalBox.innerHTML = `
+                <h2>BẢNG ĐIỂM CỦA ${name.toUpperCase()}</h2>
+                <div class="score-text">${currentScore} / ${total}</div>
+                <img id="resultImg" src="${gifUrl}" style="display:block;">
+                <div class="teacher-comment"><strong>Lời phê của Ms Mai An:</strong><br>${comment}</div>
+                <button onclick="location.reload()" style="margin-top:20px; background:#e84393;">Làm Lại Từ Đầu 🔄</button>
+            `;
+        }
+
+        // --- CONFETTI SYSTEM ---
+        const canvas = document.getElementById('confettiCanvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        let confettis = [];
+
+        function shootConfetti() {
+            for(let i=0; i<50; i++) {
+                confettis.push({
+                    x: Math.random() * canvas.width,
+                    y: -10,
+                    w: Math.random() * 10 + 5,
+                    h: Math.random() * 10 + 5,
+                    dx: Math.random() * 4 - 2,
+                    dy: Math.random() * 5 + 2,
+                    color: `hsl(${Math.random() * 360}, 100%, 50%)`,
+                    rot: Math.random() * 360,
+                    rotSpd: Math.random() * 10 - 5
+                });
+            }
+        }
+
+        function drawConfetti() {
+            ctx.clearRect(0,0, canvas.width, canvas.height);
+            confettis.forEach((c, index) => {
+                c.x += c.dx; c.y += c.dy; c.rot += c.rotSpd;
+                ctx.save();
+                ctx.translate(c.x, c.y);
+                ctx.rotate(c.rot * Math.PI / 180);
+                ctx.fillStyle = c.color;
+                ctx.fillRect(-c.w/2, -c.h/2, c.w, c.h);
+                ctx.restore();
+                if(c.y > canvas.height) confettis.splice(index, 1);
+            });
+            requestAnimationFrame(drawConfetti);
+        }
+        drawConfetti();
+        
+        window.onresize = () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; };
+    </script>
+</body>
+</html>

@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đề 05 - Global Success 9 | Ms Mai An ULIS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;800;900&family=Cinzel:wght@700&display=swap" rel="stylesheet">
+    <style>
+        /* === BIẾN MÀU PASTEL & THEME === */
+        :root {
+            --bg-grad-1: #ffb6c1; 
+            --bg-grad-2: #add8e6; 
+            --bg-grad-3: #e0bbe4; 
+            --glass-bg: rgba(255, 255, 255, 0.4);
+            --glass-border: rgba(255, 255, 255, 0.6);
+            --text-dark: #2d3436;
+            --color-word: #0984e3; 
+            --color-mean: #d35400; 
+            --color-grammar: #d63031; 
+            --color-correct: #00b894; 
+            --color-wrong: #d63031; 
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: linear-gradient(-45deg, var(--bg-grad-1), var(--bg-grad-2), var(--bg-grad-3));
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            color: var(--text-dark);
+            height: 100vh;
+            overflow: hidden;
+            position: relative;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* === FLOATING EMOJIS === */
+        .floating-bg {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; z-index: 0; overflow: hidden;
+        }
+        .emoji {
+            position: absolute; font-size: 3rem; filter: opacity(0.5) drop-shadow(0 0 10px rgba(255,255,255,0.8));
+            animation: floatUp linear infinite;
+        }
+        @keyframes floatUp {
+            0% { transform: translateY(110vh) rotate(0deg); opacity: 0; }
+            10% { opacity: 0.6; }
+            90% { opacity: 0.6; }
+            100% { transform: translateY(-10vh) rotate(360deg); opacity: 0; }
+        }
+
+        /* === GIAO DIỆN KHÓA === */
+        #passwordModal {
+            position:fixed; inset:0; z-index:9999; display:flex; align-items:center; justify-content:center;
+            background:rgba(5,2,15,0.92); backdrop-filter:blur(20px);
+        }
+        .pw-card {
+            background:linear-gradient(160deg, rgba(40,10,70,0.95) 0%, rgba(15,5,30,0.98) 100%);
+            border:1.5px solid rgba(240,192,64,0.4); border-radius:24px; padding:48px 40px 40px; 
+            max-width:440px; width:93%; text-align:center; position:relative; overflow:hidden;
+            box-shadow:0 0 60px rgba(106,5,114,0.6), 0 0 120px rgba(240,192,64,0.1), inset 0 1px 0 rgba(240,192,64,0.15);
+        }
+        .pw-card::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; background:linear-gradient(90deg, #6A0572, #F0C040, #6A0572); }
+        .pw-title { font-family:'Cinzel', serif; font-size:1.4rem; font-weight:700; color:#F0C040; margin-bottom:6px; letter-spacing:1px; }
+        .pw-sub { font-size:.87rem; color:rgba(200,200,212,0.6); margin-bottom:24px; }
+        .pw-input {
+            width:100%; padding:13px 20px; border-radius:12px; border:1.5px solid rgba(240,192,64,0.3); background:rgba(255,255,255,0.05);
+            color:#FFE082; font-size:1.2rem; font-family:'Nunito', sans-serif; outline:none; text-align:center; transition:all .3s; font-weight: bold; letter-spacing: 3px;
+        }
+        .pw-input:focus { border-color:#F0C040; box-shadow:0 0 0 3px rgba(240,192,64,0.15); }
+        .pw-input.error { border-color:#FF4757; box-shadow:0 0 0 3px rgba(255,71,87,0.25); animation:shake .4s ease; }
+        .pw-btn {
+            width:100%; padding:14px; margin-top:14px; border-radius:12px; border:none;
+            background:linear-gradient(135deg, #6A0572 0%, #9B1FA8 40%, #F0C040 100%);
+            color:#fff; font-size:1.1rem; font-weight:700; cursor:pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.1); transition: 0.2s;
+        }
+        .pw-btn:hover { transform:translateY(-3px); box-shadow: 0 6px 20px rgba(0,0,0,0.2); }
+        .pw-err { color:#ff7675; font-size:1rem; margin-top:10px; display:none; font-weight:800; }
+        @keyframes shake { 0%,100%{transform:translateX(0)} 15%,45%,75%{transform:translateX(-6px)} 30%,60%,90%{transform:translateX(6px)} }
+
+        /* === BỐ CỤC CHÍNH === */
+        #mainContent { display: none; height: 100vh; padding: 10px; z-index: 10; position: relative; }
+        .header { text-align: center; margin-bottom: 10px; }
+        .header h1 { font-family: 'Cinzel', serif; font-size: 1.5rem; color: #2d3436; text-shadow: 1px 1px 3px rgba(255,255,255,0.8); }
+        .header p { font-weight: 800; color: #6c5ce7; font-size: 0.9rem; }
+
+        .notice-board {
+            background: rgba(255, 234, 167, 0.8); backdrop-filter: blur(10px);
+            border: 2px dashed #e17055; border-radius: 15px; padding: 12px 20px;
+            text-align: center; font-weight: 800; color: #d63031; margin-bottom: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05); animation: pulse 2s infinite;
+        }
+        @keyframes pulse { 0% {transform: scale(1);} 50% {transform: scale(1.02);} 100% {transform: scale(1);} }
+
+        .split-container { display: flex; gap: 15px; height: calc(100vh - 120px); }
+        .pane {
+            flex: 1; background: var(--glass-bg); backdrop-filter: blur(12px); border: 1px solid var(--glass-border);
+            border-radius: 20px; padding: 20px; overflow-y: auto; box-shadow: 0 8px 32px rgba(0,0,0,0.08);
+        }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.2); border-radius: 10px; }
+
+        /* === BÀI ĐỌC & TỪ VỰNG === */
+        .passage { background: rgba(255,255,255,0.5); padding: 15px; border-radius: 12px; margin-bottom: 20px; font-size: 1.1rem; line-height: 1.7; }
+        .passage-title { font-weight: 900; color: #0984e3; margin-bottom: 10px; text-transform: uppercase; border-bottom: 2px solid #0984e3; padding-bottom: 5px; }
+        .para-box { margin-bottom: 15px; }
+        .trans-btn { background: #fdcb6e; border: none; padding: 6px 12px; border-radius: 20px; font-weight: 800; font-size: 0.85rem; cursor: pointer; margin-top: 5px; color: #2d3436; transition: 0.2s; }
+        .trans-btn:hover { background: #ffeaa7; transform: scale(1.05); }
+        .translation { display: none; background: rgba(129, 236, 236, 0.4); padding: 10px; border-radius: 8px; margin-top: 10px; font-style: italic; color: #0056b3; font-size: 1rem;}
+        
+        .glossary-table { width: 100%; border-collapse: collapse; margin-top: 20px; background: rgba(255,255,255,0.6); border-radius: 10px; overflow: hidden; }
+        .glossary-table th { background: #a29bfe; color: white; padding: 10px; text-align: left; }
+        .glossary-table td { padding: 10px; border-bottom: 1px solid rgba(0,0,0,0.1); }
+
+        /* === TRẮC NGHIỆM === */
+        .question-card { background: rgba(255,255,255,0.7); border-radius: 15px; padding: 20px; margin-bottom: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); transition: 0.3s; }
+        .question-card:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(0,0,0,0.1); }
+        .q-text { font-size: 1.15rem; font-weight: 800; margin-bottom: 15px; color: #2d3436; }
+        .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .opt-btn {
+            background: #dfe6e9; border: 2px solid transparent; padding: 12px; border-radius: 12px;
+            font-size: 1.05rem; font-weight: 700; color: #2d3436; cursor: pointer; transition: 0.2s; text-align: left;
+        }
+        .opt-btn:hover { background: #b2bec3; transform: scale(1.02); }
+        .opt-btn.correct { background: var(--color-correct); color: white; border-color: #009432; box-shadow: 0 0 15px rgba(0,184,148,0.5); }
+        .opt-btn.wrong { background: var(--color-wrong); color: white; border-color: #c0392b; animation: shake 0.4s ease; }
+        .opt-btn:disabled { cursor: not-allowed; opacity: 0.7; }
+
+        /* === GIẢI THÍCH MASTER === */
+        .explanation { margin-top: 15px; padding: 15px; border-radius: 12px; background: rgba(250, 241, 214, 0.9); border-left: 5px solid #fdcb6e; display: none; font-size: 1rem; line-height: 1.6; }
+        .explanation.show { display: block; animation: slideDown 0.3s ease-out; }
+        @keyframes slideDown { from {opacity: 0; transform: translateY(-10px);} to {opacity: 1; transform: translateY(0);} }
+        .exp-title { font-weight: 900; color: #e17055; margin-bottom: 8px; }
+        
+        .p-word { color: var(--color-word); font-weight: bold; }
+        .p-mean { color: var(--color-mean); font-style: italic; font-weight: bold;}
+        .p-grammar { color: var(--color-grammar); text-decoration: underline; text-underline-offset: 3px; font-weight: bold; }
+        .hl-green { color: var(--color-correct); font-weight: bold; background: rgba(0,184,148,0.1); padding: 0 4px; border-radius: 4px; }
+        .hl-red { color: var(--color-wrong); font-weight: bold; text-decoration: line-through; background: rgba(214,48,49,0.1); padding: 0 4px; border-radius: 4px; }
+        .quote-box { background: rgba(255,255,255,0.8); padding: 10px; border-left: 3px solid #74b9ff; margin-top: 10px; border-radius: 0 8px 8px 0; font-family: monospace; font-size: 1.05rem; }
+
+        /* === NỘP BÀI & POPUP === */
+        .submit-btn {
+            display: block; width: 100%; padding: 18px; margin-top: 20px; border-radius: 15px; border: none;
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 99%, #fecfef 100%); color: #d63031; font-size: 1.3rem; font-weight: 900; cursor: pointer; transition: 0.3s;
+        }
+        .submit-btn:hover { transform: scale(1.02); }
+        #resultModal, #studentNameModal { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 10000; display: none; align-items: center; justify-content: center; backdrop-filter: blur(10px); }
+        .result-card, .name-card { background: white; padding: 30px; border-radius: 20px; text-align: center; max-width: 400px; width: 90%; }
+        .name-card input { width: 100%; padding: 10px; margin: 15px 0; font-size: 1.2rem; border: 2px solid #a29bfe; border-radius: 10px; outline: none;}
+        .name-card button { background: #6c5ce7; color: white; border: none; padding: 10px 20px; font-size: 1.1rem; border-radius: 10px; cursor: pointer; font-weight: bold;}
+        .result-score { font-size: 3rem; font-weight: 900; color: #0984e3; margin: 10px 0; }
+        .result-meme { max-width: 100%; border-radius: 15px; margin-top: 15px; }
+        .confetti { position: absolute; width: 10px; height: 10px; background: #f1c40f; z-index: 999; pointer-events: none; animation: fall 1s linear forwards;}
+        @keyframes fall { to { transform: translateY(100vh) rotate(720deg); opacity: 0; } }
+
+        @media (max-width: 768px) {
+            .split-container { flex-direction: column; height: auto; }
+            .pane { max-height: 50vh; }
+            .options-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <audio id="bgAudio"></audio>
+    <audio id="audioCorrect" src="https://assets.mixkit.co/active_storage/sfx/2013/2013-preview.mp3"></audio>
+    <audio id="audioWrong" src="https://hoctienganhcungcomaianulis.github.io/homework/%E1%BA%A2nh_File%20nghe/Sound/Am_thanh_meme_Oi_doi_oi_huan_hoa_hong-www_tiengdong_com.mp3"></audio>
+
+    <div class="floating-bg" id="floatBg"></div>
+
+    <div id="passwordModal">
+      <div class="pw-card">
+        <span style="font-size: 4rem; display:block;">🔒</span>
+        <div class="pw-title">BẢO MẬT BÀI THI</div>
+        <div class="pw-sub">Vui lòng nhập mật khẩu để làm bài</div>
+        <input type="password" class="pw-input" id="pwInput" placeholder="Nhập mật khẩu..." autocomplete="off" />
+        <button class="pw-btn" onclick="checkPassword()">XÁC NHẬN MỞ KHÓA</button>
+        <div class="pw-err" id="pwErr">Mật khẩu không đúng! Vui lòng thử lại.</div>
+      </div>
+    </div>
+
+    <div id="studentNameModal">
+        <div class="name-card">
+            <h2>Nhập tên của em nhé! 🌟</h2>
+            <input type="text" id="studentNameInput" placeholder="VD: Nguyễn Văn A">
+            <button onclick="submitTestFinal()">XEM ĐIỂM NGAY</button>
+        </div>
+    </div>
+
+    <div id="resultModal">
+        <div class="result-card">
+            <h2 id="r-name">Tên</h2>
+            <p>Em đã hoàn thành bài tập với số điểm:</p>
+            <div class="result-score" id="r-score">0/0</div>
+            <h3 id="r-remark" style="color: #e17055;">Lời phê</h3>
+            <img id="r-meme" class="result-meme" src="" alt="Meme">
+            <button class="pw-btn" onclick="location.reload()" style="margin-top: 20px;">Làm Lại</button>
+        </div>
+    </div>
+
+    <div id="mainContent">
+        <div class="header">
+            <h1>GIẢI ĐỀ 05 - TINH HOA GLOBAL SUCCESS 9</h1>
+            <p>Giáo viên tạo: Ms Mai An ULIS</p>
+        </div>
+
+        <div class="notice-board">
+            🚨 LƯU Ý TỪ CÔ MAI AN: Các em có nghe thấy cô dặn gì không? Chỉ có ĐỌC KỸ GIẢI THÍCH MÀU SẮC DƯỚI MỖI CÂU mới thực sự giỏi lên nhé. Làm cho xong mà không thèm đọc thì chỉ tốn thời gian vô ích! Nhớ bấm vào đáp án để xem lý do tại sao sai - tại sao đúng! 💖
+        </div>
+
+        <div class="split-container">
+            <div class="pane reading-pane">
+                
+                <div class="passage">
+                    <div class="passage-title">📚 Passage 1: VIETNAMESE LIFESTYLE: THEN & NOW</div>
+                    <div class="para-box">
+                        <p><strong>Mini Culture Fair - "Old Days, New Ways"</strong><br>
+                        Ever wondered how students studied <b>(13)</b> smartphones, or how families shopped before supermarkets? Come and explore real-life changes through photos, objects, and mini activities!</p>
+                        <button class="trans-btn" onclick="toggleTrans(this)">Mở dịch đoạn này 🌟</button>
+                        <div class="translation"><strong>Hội chợ Văn hóa Mini - "Ngày Cũ, Cách Mới"</strong><br>Bạn đã bao giờ tự hỏi học sinh đã học tập (13) mà không có điện thoại thông minh như thế nào, hay các gia đình đã mua sắm ra sao trước khi có siêu thị? Hãy đến và khám phá những thay đổi trong đời thực qua những bức ảnh, đồ vật và các hoạt động nhỏ!</div>
+                    </div>
+
+                    <div class="para-box">
+                        <p>EVENT DETAILS<br>
+                        ☑ Time: 3:00-4:30 p.m., Friday<br>
+                        ☑ Place: the school courtyard (near the banyan tree)<br>
+                        ☑ Who: Classes 9A-9D<br>
+                        What's inside?<br>
+                        1. Photo zone: street markets & family meals<br>
+                        2. "Then vs Now" matching game<br>
+                        3. Craft table: make paper bookmarks</p>
+                        <button class="trans-btn" onclick="toggleTrans(this)">Mở dịch đoạn này 🌟</button>
+                        <div class="translation">CHI TIẾT SỰ KIỆN<br>☑ Thời gian: 3:00-4:30 chiều, Thứ Sáu<br>☑ Địa điểm: sân trường (gần cây đa)<br>☑ Đối tượng: Các lớp 9A-9D<br>Có gì bên trong?<br>1. Khu vực chụp ảnh: chợ đường phố & bữa ăn gia đình<br>2. Trò chơi ghép nối "Xưa và Nay"<br>3. Bàn thủ công: làm dấu trang bằng giấy</div>
+                    </div>
+
+                    <div class="para-box">
+                        <p>To support the display, please bring a <b>(14)</b> of recycled items (just one or two is fine). You will learn useful <b>(15)</b> about routines and traditions. PLEASE NOTE: Please <b>(16)</b> up any litter after the fair by putting paper and bottles into the correct bins.</p>
+                        <button class="trans-btn" onclick="toggleTrans(this)">Mở dịch đoạn này 🌟</button>
+                        <div class="translation">Để hỗ trợ khu trưng bày, vui lòng mang theo (14) một vài món đồ tái chế (chỉ một hoặc hai món là đủ). Bạn sẽ học được (15) từ vựng hữu ích về các thói quen và truyền thống. LƯU Ý: Vui lòng (16) nhặt rác sau hội chợ bằng cách bỏ giấy và chai lọ vào đúng thùng.</div>
+                    </div>
+                </div>
+
+                <div class="passage">
+                    <div class="passage-title">🤖 Passage 2: AI AND CHATBOTS</div>
+                    <div class="para-box">
+                        <p>A lot of teenagers are fascinated by AI and use chatbots to find homework ideas and pick up new vocabulary. In class, it <b>(19)</b> them practise English, but it can also hide their real level. Some students use AI to prepare for exams by asking it for extra practice questions. When they feel stuck, they can ask it to explain one step again and again, and they can compare two answers. Before they copy a fact, they <b>(20)</b> check it with a book or a teacher.</p>
+                        <button class="trans-btn" onclick="toggleTrans(this)">Mở dịch đoạn này 🌟</button>
+                        <div class="translation">Rất nhiều thanh thiếu niên bị cuốn hút bởi AI và sử dụng chatbot để tìm ý tưởng bài tập về nhà và học từ vựng mới. Trong lớp, nó (19) không chỉ giúp họ thực hành tiếng Anh, mà còn có thể che giấu trình độ thực sự của họ. Một số học sinh sử dụng AI để chuẩn bị cho kỳ thi bằng cách yêu cầu nó cung cấp thêm các câu hỏi thực hành. Khi cảm thấy bế tắc, họ có thể yêu cầu nó giải thích một bước lặp đi lặp lại và họ có thể so sánh hai câu trả lời. Trước khi chép một thông tin thực tế, họ (20) nên kiểm tra lại với sách hoặc giáo viên.</div>
+                    </div>
+
+                    <div class="para-box">
+                        <p>AI can write a full paragraph in seconds; <b>(21)</b>, it cannot feel <b>(22)</b> so the text may sound cold. Teachers often notice when a story sounds too perfect, and copying can lead to trouble. Another issue is privacy: when teens type personal stories, an algorithm may store them. They may also share AI-made images, <b>(23)</b> post on social media, without thinking about ethics. To stay safe, teens should limit private details and <b>(24)</b> responsibility for the choices they make online. Used wisely, AI is a helpful tool, not a shortcut, and it can support real learning.</p>
+                        <button class="trans-btn" onclick="toggleTrans(this)">Mở dịch đoạn này 🌟</button>
+                        <div class="translation">AI có thể viết một đoạn văn đầy đủ trong vài giây; (21) tuy nhiên, nó không thể cảm nhận được (22) những gì người viết cảm thấy nên văn bản nghe có vẻ lạnh lùng. Giáo viên thường nhận ra khi một câu chuyện nghe quá hoàn hảo, và việc sao chép có thể dẫn đến rắc rối. Một vấn đề khác là quyền riêng tư: khi thanh thiếu niên gõ những câu chuyện cá nhân, một thuật toán có thể lưu trữ chúng. Họ cũng có thể chia sẻ các hình ảnh do AI tạo ra, (23) cái mà nhiều thanh thiếu niên đăng tải trên mạng xã hội, mà không suy nghĩ về đạo đức. Để an toàn, thanh thiếu niên nên giới hạn chi tiết riêng tư và (24) chịu trách nhiệm cho những lựa chọn họ đưa ra trực tuyến. Nếu được sử dụng một cách khôn ngoan, AI là một công cụ hữu ích, không phải là một lối tắt, và nó có thể hỗ trợ việc học tập thực sự.</div>
+                    </div>
+                </div>
+
+                <div class="passage">
+                    <div class="passage-title">🍲 Passage 3: THE IMPORTANCE OF FAMILY MEALS</div>
+                    <div class="para-box">
+                        <p>In many cultures around the world, sharing meals together has been an important family tradition for centuries. However, this custom is slowly disappearing in modern society. Families today rarely sit down together to eat and talk, and this change is affecting relationships and cultural values.</p>
+                        <button class="trans-btn" onclick="toggleTrans(this)">Mở dịch đoạn này 🌟</button>
+                        <div class="translation">Trong nhiều nền văn hóa trên toàn thế giới, chia sẻ bữa ăn cùng nhau đã là một truyền thống gia đình quan trọng trong nhiều thế kỷ. Tuy nhiên, phong tục này đang dần biến mất trong xã hội hiện đại. Các gia đình ngày nay hiếm khi ngồi xuống cùng nhau để ăn và nói chuyện, và sự thay đổi này đang ảnh hưởng đến các mối quan hệ và giá trị văn hóa.</div>
+                    </div>
+
+                    <div class="para-box">
+                        <p>Traditional family meals were more than just eating. They were times when parents taught children good manners and proper behavior. Grandparents shared stories about family history and cultural customs. Everyone talked about their day and listened to each other. These moments helped <b>strengthen</b> the bonds between family members and passed down important values from one generation to the next.</p>
+                        <button class="trans-btn" onclick="toggleTrans(this)">Mở dịch đoạn này 🌟</button>
+                        <div class="translation">Các bữa ăn gia đình truyền thống không chỉ đơn thuần là việc ăn uống. Đó là khoảng thời gian khi cha mẹ dạy con cái những cách cư xử tốt và hành vi chuẩn mực. Ông bà chia sẻ những câu chuyện về lịch sử gia đình và phong tục văn hóa. Mọi người kể về ngày của mình và lắng nghe lẫn nhau. Những khoảnh khắc này giúp củng cố sự gắn kết giữa các thành viên trong gia đình và truyền lại những giá trị quan trọng từ thế hệ này sang thế hệ khác.</div>
+                    </div>
+
+                    <div class="para-box">
+                        <p>Today, busy lifestyles make family meals difficult. Parents work long hours, and children have many after-school activities. Fast food and ready-made meals have replaced home-cooked dishes. Many families eat separately - some in front of the TV, others while looking at their phones. The <b>communal</b> aspect of dining together, where everyone gathers and connects, is becoming rare. Young people no longer learn the traditional recipes or understand the meaning behind special holiday foods.</p>
+                        <button class="trans-btn" onclick="toggleTrans(this)">Mở dịch đoạn này 🌟</button>
+                        <div class="translation">Ngày nay, lối sống bận rộn khiến các bữa ăn gia đình trở nên khó khăn. Cha mẹ làm việc nhiều giờ, và trẻ em có nhiều hoạt động ngoại khóa. Thức ăn nhanh và bữa ăn làm sẵn đã thay thế các món ăn nấu tại nhà. Nhiều gia đình ăn riêng rẽ - người thì ngồi trước TV, người khác lại nhìn vào điện thoại. Khía cạnh cộng đồng của việc dùng bữa cùng nhau, nơi mọi người tụ tập và kết nối, đang trở nên hiếm hoi. Người trẻ không còn học các công thức nấu ăn truyền thống hay hiểu ý nghĩa đằng sau những món ăn ngày lễ đặc biệt.</div>
+                    </div>
+
+                    <div class="para-box">
+                        <p>Experts worry that losing this tradition will weaken family relationships and cultural identity. Some families are trying to bring back regular family dinners, even if just once or twice a week. They believe that sharing meals together is essential for maintaining strong families and preserving cultural heritage in our fast-paced modern world.</p>
+                        <button class="trans-btn" onclick="toggleTrans(this)">Mở dịch đoạn này 🌟</button>
+                        <div class="translation">Các chuyên gia lo ngại rằng việc đánh mất truyền thống này sẽ làm suy yếu các mối quan hệ gia đình và bản sắc văn hóa. Một số gia đình đang cố gắng mang lại những bữa tối gia đình thường xuyên, ngay cả khi chỉ một hoặc hai lần một tuần. Họ tin rằng chia sẻ bữa ăn cùng nhau là điều cần thiết để duy trì những gia đình vững mạnh và bảo tồn di sản văn hóa trong thế giới hiện đại nhịp độ nhanh của chúng ta.</div>
+                    </div>
+                </div>
+
+                <div class="passage">
+                    <div class="passage-title">📱 Passage 4: SLOW LIVING & DIGITAL DETOX</div>
+                    <div class="para-box">
+                        <p>In the last few years, many people have started to talk about "slow living" and "digital detox." Instead of being online all the time, they try to spend more time in real life: cooking simple meals, reading paper books, walking in the park, or doing small hobbies. On social media, <b>(37)</b> but in daily life it is not always easy.</p>
+                        <button class="trans-btn" onclick="toggleTrans(this)">Mở dịch đoạn này 🌟</button>
+                        <div class="translation">Trong vài năm qua, nhiều người đã bắt đầu nói về "lối sống chậm" và "cai nghiện kỹ thuật số." Thay vì trực tuyến mọi lúc, họ cố gắng dành nhiều thời gian hơn cho đời thực: nấu những bữa ăn đơn giản, đọc sách giấy, đi dạo trong công viên, hoặc làm những sở thích nhỏ. Trên mạng xã hội, (37) xu hướng này trông có vẻ yên bình và đẹp đẽ nhưng trong cuộc sống hàng ngày thì không phải lúc nào cũng dễ dàng.</div>
+                    </div>
+
+                    <div class="para-box">
+                        <p>One reason is <b>(38)</b> We need messages, emails, and online meetings. Also, many people fear missing news or opportunities. However, too much screen time can make us tired, less focused, and even less social. Some people say a short detox helps them sleep better and feel more present with family and friends.</p>
+                        <button class="trans-btn" onclick="toggleTrans(this)">Mở dịch đoạn này 🌟</button>
+                        <div class="translation">Một lý do là (38) công việc và việc học của chúng ta thường phụ thuộc vào điện thoại và máy tính xách tay. Chúng ta cần tin nhắn, email và các cuộc họp trực tuyến. Hơn nữa, nhiều người sợ bỏ lỡ tin tức hoặc cơ hội. Tuy nhiên, thời gian sử dụng màn hình quá nhiều có thể khiến chúng ta mệt mỏi, kém tập trung, và thậm chí ít giao tiếp xã hội hơn. Một số người nói rằng một cuộc "cai nghiện" ngắn giúp họ ngủ ngon hơn và cảm thấy hiện diện nhiều hơn với gia đình và bạn bè.</div>
+                    </div>
+
+                    <div class="para-box">
+                        <p>So, is digital detox really a modern solution, or just another lifestyle "challenge" <b>(39)</b> I think <b>(40)</b> but to use it with clear rules: no phone at meals, one hour without screens before bed, and one day each week for outdoor activities. Small steps can still create a healthier lifestyle.</p>
+                        <button class="trans-btn" onclick="toggleTrans(this)">Mở dịch đoạn này 🌟</button>
+                        <div class="translation">Vậy, cai nghiện kỹ thuật số có thực sự là một giải pháp hiện đại, hay chỉ là một "thử thách" lối sống khác (39) cái mà trở thành một áp lực mới? Tôi nghĩ (40) lựa chọn tốt nhất là không từ bỏ công nghệ hoàn toàn mà hãy sử dụng nó với những quy tắc rõ ràng: không điện thoại khi ăn, một giờ không màn hình trước khi đi ngủ, và một ngày mỗi tuần cho các hoạt động ngoài trời. Những bước nhỏ vẫn có thể tạo ra một lối sống lành mạnh hơn.</div>
+                    </div>
+                </div>
+
+                <table class="glossary-table">
+                    <tr><th colspan="3">💎 Bảng Từ Vựng Học Thuật (B1 - C2)</th></tr>
+                    <tr><td><b>Eradicate</b> (v)</td><td>C2</td><td>Loại bỏ hoàn toàn, diệt trừ</td></tr>
+                    <tr><td><b>Communal</b> (adj)</td><td>C1</td><td>Thuộc về cộng đồng, chung, chia sẻ</td></tr>
+                    <tr><td><b>Algorithm</b> (n)</td><td>B2</td><td>Thuật toán (trong máy tính/AI)</td></tr>
+                    <tr><td><b>Fascinate</b> (v)</td><td>B2</td><td>Làm mê hoặc, cuốn hút</td></tr>
+                    <tr><td><b>Heritage</b> (n)</td><td>C1</td><td>Di sản (văn hóa, lịch sử)</td></tr>
+                    <tr><td><b>Overwhelmed</b> (adj)</td><td>C1</td><td>Bị choáng ngợp, quá tải</td></tr>
+                    <tr><td><b>Preserve</b> (v)</td><td>B2</td><td>Bảo tồn, giữ gìn</td></tr>
+                    <tr><td><b>Constant</b> (adj)</td><td>B2</td><td>Liên tục, không ngừng</td></tr>
+                    <tr><td><b>Accompany</b> (v)</td><td>B2</td><td>Đồng hành, đi kèm</td></tr>
+                    <tr><td><b>Ethics</b> (n)</td><td>C1</td><td>Đạo đức, nguyên tắc đạo đức</td></tr>
+                </table>
+            </div>
+
+            <div class="pane quiz-pane" id="quizContainer">
+                
+                <div class="question-card" id="q13">
+                    <div class="q-text">Câu 13: Select the best answer.</div>
+                    <div class="options-grid" id="opt-13">
+                        <button class="opt-btn" onclick="check(13, this, false)">with</button>
+                        <button class="opt-btn" onclick="check(13, this, true)">without</button>
+                        <button class="opt-btn" onclick="check(13, this, false)">beside</button>
+                        <button class="opt-btn" onclick="check(13, this, false)">between</button>
+                    </div>
+                    <div class="explanation" id="exp-13">
+                        <div class="exp-title">📝 GIẢI THÍCH CHI TIẾT:</div>
+                        Dịch yêu cầu: Lựa chọn từ phù hợp nhất điền vào chỗ trống (13).<br>
+                        • <span class='p-word'>with</span> (<span class='p-mean'>có / cùng với</span>) <span class='hl-red'>❌ Sai</span> vì trái nghĩa với ngữ cảnh (thời xưa không có điện thoại thông minh).<br>
+                        • <span class='p-word'>without</span> (<span class='p-mean'>mà không có</span>) <span class='hl-green'>✅ Đúng</span>. Hoàn toàn phù hợp để mô tả việc học thời chưa có đồ công nghệ.<br>
+                        • <span class='p-word'>beside</span> (<span class='p-mean'>bên cạnh</span>) <span class='hl-red'>❌ Sai</span> vì không hợp logic.<br>
+                        • <span class='p-word'>between</span> (<span class='p-mean'>ở giữa hai thứ</span>) <span class='hl-red'>❌ Sai</span> vì không có 2 chủ thể để điền.<br>
+                        <div class="quote-box">🔍 "how students studied <b>without</b> smartphones" [cite: 112]</div>
+                        👉 Dịch: Cách học sinh đã học tập <span class='p-word'>without</span> (<span class='p-mean'>mà không có</span>) điện thoại thông minh.
+                    </div>
+                </div>
+
+                <div class="question-card" id="q14">
+                    <div class="q-text">Câu 14: Select the best answer.</div>
+                    <div class="options-grid" id="opt-14">
+                        <button class="opt-btn" onclick="check(14, this, true)">couple</button>
+                        <button class="opt-btn" onclick="check(14, this, false)">number</button>
+                        <button class="opt-btn" onclick="check(14, this, false)">amount</button>
+                        <button class="opt-btn" onclick="check(14, this, false)">range</button>
+                    </div>
+                    <div class="explanation" id="exp-14">
+                        <div class="exp-title">📝 GIẢI THÍCH CHI TIẾT:</div>
+                        Dịch yêu cầu: Lựa chọn từ phù hợp nhất điền vào chỗ trống (14).<br>
+                        • <span class='p-word'>couple</span> <span class='hl-green'>✅ Đúng</span>. Cụm từ <span class='p-grammar'>a couple of</span> = một vài (thường là 2 hoặc số lượng rất ít), khớp tuyệt đối với câu chú thích ngay phía sau "just one or two is fine"[cite: 132].<br>
+                        • <span class='p-word'>number</span> <span class='hl-red'>❌ Sai</span> vì cấu trúc "a number of" = rất nhiều, không khớp với việc chỉ cần 1-2 món.<br>
+                        • <span class='p-word'>amount</span> <span class='hl-red'>❌ Sai</span> vì "amount" chỉ dùng cho danh từ KHÔNG đếm được, trong khi "items" là danh từ đếm được số nhiều.<br>
+                        • <span class='p-word'>range</span> <span class='hl-red'>❌ Sai</span> vì "a range of" = đa dạng chủng loại, không đúng ý "mang một vài món".<br>
+                        <div class="quote-box">🔍 "please bring a <b>couple</b> of recycled items (just one or two is fine)." [cite: 126]</div>
+                        👉 Dịch: vui lòng mang theo <span class='p-word'>một vài</span> (<span class='p-mean'>một cặp/một vài</span>) món đồ tái chế (chỉ một hoặc hai món là ổn).
+                    </div>
+                </div>
+
+                <div class="question-card" id="q15">
+                    <div class="q-text">Câu 15: Select the best answer.</div>
+                    <div class="options-grid" id="opt-15">
+                        <button class="opt-btn" onclick="check(15, this, false)">luggage</button>
+                        <button class="opt-btn" onclick="check(15, this, false)">traffic</button>
+                        <button class="opt-btn" onclick="check(15, this, true)">vocabulary</button>
+                        <button class="opt-btn" onclick="check(15, this, false)">harvest</button>
+                    </div>
+                    <div class="explanation" id="exp-15">
+                        <div class="exp-title">📝 GIẢI THÍCH CHI TIẾT:</div>
+                        Dịch yêu cầu: Lựa chọn từ phù hợp nhất điền vào chỗ trống (15).<br>
+                        • <span class='p-word'>luggage</span> (<span class='p-mean'>hành lý</span>) <span class='hl-red'>❌ Sai</span> vì không liên quan đến ngữ cảnh học tập.<br>
+                        • <span class='p-word'>traffic</span> (<span class='p-mean'>giao thông</span>) <span class='hl-red'>❌ Sai</span> vì lạc chủ đề văn hóa.<br>
+                        • <span class='p-word'>vocabulary</span> (<span class='p-mean'>từ vựng</span>) <span class='hl-green'>✅ Đúng</span>. Ngữ cảnh đang nói về hội chợ văn hóa (Culture Fair), nơi học sinh đến để "học" (learn) về thói quen và truyền thống.<br>
+                        • <span class='p-word'>harvest</span> (<span class='p-mean'>mùa màng/thu hoạch</span>) <span class='hl-red'>❌ Sai</span> vì không phù hợp ngữ nghĩa.<br>
+                        <div class="quote-box">🔍 "You will learn useful <b>vocabulary</b> about routines and traditions." [cite: 127]</div>
+                        👉 Dịch: Bạn sẽ học được <span class='p-word'>vocabulary</span> (<span class='p-mean'>từ vựng</span>) hữu ích về các thói quen và truyền thống.
+                    </div>
+                </div>
+
+                <div class="question-card" id="q16">
+                    <div class="q-text">Câu 16: Select the best answer.</div>
+                    <div class="options-grid" id="opt-16">
+                        <button class="opt-btn" onclick="check(16, this, false)">collect</button>
+                        <button class="opt-btn" onclick="check(16, this, false)">gather</button>
+                        <button class="opt-btn" onclick="check(16, this, true)">pick</button>
+                        <button class="opt-btn" onclick="check(16, this, false)">clear</button>
+                    </div>
+                    <div class="explanation" id="exp-16">
+                        <div class="exp-title">📝 GIẢI THÍCH CHI TIẾT:</div>
+                        Dịch yêu cầu: Lựa chọn từ phù hợp nhất điền vào chỗ trống (16).<br>
+                        • <span class='p-word'>collect</span> (<span class='p-mean'>sưu tầm/thu thập</span>) <span class='hl-red'>❌ Sai</span> vì không kết hợp với "up" mang nghĩa nhặt rác.<br>
+                        • <span class='p-word'>gather</span> (<span class='p-mean'>tụ tập/gom lại</span>) <span class='hl-red'>❌ Sai</span> vì "gather up" có nghĩa là gom lại chung chung, không sát nghĩa bằng pick up[cite: 132].<br>
+                        • <span class='p-word'>pick</span> (<span class='p-mean'>nhặt</span>) <span class='hl-green'>✅ Đúng</span>. Đi với giới từ "up" tạo thành cụm động từ cố định: <span class='p-grammar'>pick up litter</span> (<span class='p-mean'>nhặt rác</span>).<br>
+                        • <span class='p-word'>clear</span> (<span class='p-mean'>làm sạch</span>) <span class='hl-red'>❌ Sai</span> vì "clear up" là dọn dẹp chung chung.<br>
+                        <div class="quote-box">🔍 "Please <b>pick</b> up any litter after the fair..." [cite: 128]</div>
+                        👉 Dịch: Vui lòng <span class='p-word'>pick up</span> (<span class='p-mean'>nhặt</span>) rác sau hội chợ...
+                    </div>
+                </div>
+
+                <div class="question-card" id="q19">
+                    <div class="q-text">Câu 19: Select the best answer.</div>
+                    <div class="options-grid" id="opt-19">
+                        <button class="opt-btn" onclick="check(19, this, true)">not only helps</button>
+                        <button class="opt-btn" onclick="check(19, this, false)">only not helps</button>
+                        <button class="opt-btn" onclick="check(19, this, false)">not only help</button>
+                        <button class="opt-btn" onclick="check(19, this, false)">not helps only</button>
+                    </div>
+                    <div class="explanation" id="exp-19">
+                        <div class="exp-title">📝 GIẢI THÍCH CHI TIẾT:</div>
+                        Dịch yêu cầu: Lựa chọn cụm từ đúng cấu trúc ngữ pháp nhất.<br>
+                        Đây là câu kiểm tra cấu trúc tương quan <span class='p-grammar'>not only... but also...</span> (<span class='p-mean'>không những... mà còn...</span>).<br>
+                        • <span class='p-word'>not only helps</span> <span class='hl-green'>✅ Đúng</span>. Vì chủ ngữ là "it" (số ít, đại diện cho AI) nên động từ "help" phải chia thêm "s" thành "helps"[cite: 198]. Phía sau đã có sẵn cụm "but it can also...".<br>
+                        • <span class='p-word'>only not helps</span> <span class='hl-red'>❌ Sai</span> vì sắp xếp sai trật tự từ cơ bản.<br>
+                        • <span class='p-word'>not only help</span> <span class='hl-red'>❌ Sai</span> vì động từ chưa được chia số ít (thiếu s).<br>
+                        • <span class='p-word'>not helps only</span> <span class='hl-red'>❌ Sai</span> vì sai trật tự từ.<br>
+                        <div class="quote-box">🔍 "In class, it <b>not only helps</b> them practise English, but it can also hide their real level." [cite: 172]</div>
+                        👉 Dịch: Trong lớp học, nó <span class='p-word'>not only helps</span> (<span class='p-mean'>không những giúp</span>) họ thực hành tiếng Anh, mà còn có thể che giấu trình độ thật.
+                    </div>
+                </div>
+
+                <div class="question-card" id="q20">
+                    <div class="q-text">Câu 20: Select the best answer.</div>
+                    <div class="options-grid" id="opt-20">
+                        <button class="opt-btn" onclick="check(20, this, false)">may</button>
+                        <button class="opt-btn" onclick="check(20, this, false)">could</button>
+                        <button class="opt-btn" onclick="check(20, this, true)">should</button>
+                        <button class="opt-btn" onclick="check(20, this, false)">might</button>
+                    </div>
+                    <div class="explanation" id="exp-20">
+                        <div class="exp-title">📝 GIẢI THÍCH CHI TIẾT:</div>
+                        Dịch yêu cầu: Chọn động từ khuyết thiếu (Modal verb) phù hợp ngữ cảnh.<br>
+                        • <span class='p-word'>may</span> (<span class='p-mean'>có thể</span>) <span class='hl-red'>❌ Sai</span> vì từ này chỉ khả năng (50/50) hoặc sự cho phép, không mang tính khuyên bảo[cite: 198].<br>
+                        • <span class='p-word'>could</span> (<span class='p-mean'>có thể</span>) <span class='hl-red'>❌ Sai</span> vì nó diễn tả khả năng trong quá khứ.<br>
+                        • <span class='p-word'>should</span> (<span class='p-mean'>nên</span>) <span class='hl-green'>✅ Đúng</span>. Tác giả đang đưa ra lời khuyên mạnh mẽ: học sinh "nên" kiểm chứng thông tin AI cung cấp với giáo viên/sách vở.<br>
+                        • <span class='p-word'>might</span> (<span class='p-mean'>có lẽ</span>) <span class='hl-red'>❌ Sai</span> vì chỉ khả năng xảy ra rất thấp.<br>
+                        <div class="quote-box">🔍 "Before they copy a fact, they <b>should</b> check it with a book or a teacher." [cite: 175]</div>
+                        👉 Dịch: Trước khi sao chép một thông tin thực tế, họ <span class='p-word'>should</span> (<span class='p-mean'>nên</span>) kiểm tra nó với sách hoặc giáo viên.
+                    </div>
+                </div>
+
+                <div class="question-card" id="q21">
+                    <div class="q-text">Câu 21: Select the best answer.</div>
+                    <div class="options-grid" id="opt-21">
+                        <button class="opt-btn" onclick="check(21, this, true)">However</button>
+                        <button class="opt-btn" onclick="check(21, this, false)">Because</button>
+                        <button class="opt-btn" onclick="check(21, this, false)">Although</button>
+                        <button class="opt-btn" onclick="check(21, this, false)">Therefore</button>
+                    </div>
+                    <div class="explanation" id="exp-21">
+                        <div class="exp-title">📝 GIẢI THÍCH CHI TIẾT:</div>
+                        Dịch yêu cầu: Chọn liên từ nối phù hợp nhất.<br>
+                        • <span class='p-word'>However</span> (<span class='p-mean'>Tuy nhiên</span>) <span class='hl-green'>✅ Đúng</span>. Dùng để chỉ sự tương phản trực tiếp giữa lợi ích của AI (viết đoạn văn nhanh trong vài giây) và nhược điểm (không có cảm xúc nên bài văn lạnh lùng)[cite: 198].<br>
+                        • <span class='p-word'>Because</span> (<span class='p-mean'>Bởi vì</span>) <span class='hl-red'>❌ Sai</span> vì không có logic nguyên nhân - kết quả ở đây.<br>
+                        • <span class='p-word'>Although</span> (<span class='p-mean'>Mặc dù</span>) <span class='hl-red'>❌ Sai</span> vì Although không đứng độc lập giữa dấu chấm phẩy (;) và dấu phẩy (,).<br>
+                        • <span class='p-word'>Therefore</span> (<span class='p-mean'>Vì vậy</span>) <span class='hl-red'>❌ Sai</span> vì ý hai câu đang trái ngược, không phải hệ quả.<br>
+                        <div class="quote-box">🔍 "AI can write a full paragraph in seconds; <b>However</b>, it cannot feel..." [cite: 176]</div>
+                        👉 Dịch: AI có thể viết một đoạn văn đầy đủ trong vài giây; <span class='p-word'>Tuy nhiên</span>, nó không thể cảm nhận...
+                    </div>
+                </div>
+
+                <div class="question-card" id="q22">
+                    <div class="q-text">Câu 22: Select the best answer.</div>
+                    <div class="options-grid" id="opt-22">
+                        <button class="opt-btn" onclick="check(22, this, false)">the writer what feels</button>
+                        <button class="opt-btn" onclick="check(22, this, false)">feels what the writer</button>
+                        <button class="opt-btn" onclick="check(22, this, true)">what the writer feels</button>
+                        <button class="opt-btn" onclick="check(22, this, false)">the writer feels what</button>
+                    </div>
+                    <div class="explanation" id="exp-22">
+                        <div class="exp-title">📝 GIẢI THÍCH CHI TIẾT:</div>
+                        Dịch yêu cầu: Chọn trật tự từ đúng để hoàn thành mệnh đề.<br>
+                        Cấu trúc ngữ pháp ở đây là Mệnh đề Danh ngữ (Noun Clause) đóng vai trò làm tân ngữ cho động từ "feel". Cấu trúc chuẩn là <span class='p-grammar'>Wh-word (what) + S (the writer) + V (feels)</span>[cite: 198].<br>
+                        • <span class='p-word'>what the writer feels</span> (<span class='p-mean'>những gì người viết cảm thấy</span>) <span class='hl-green'>✅ Đúng</span>. Nó tuân thủ đúng trật tự từ.<br>
+                        • Các đáp án A, B, D <span class='hl-red'>❌ Sai</span> hoàn toàn về cấu trúc và trật tự từ trong tiếng Anh.<br>
+                        <div class="quote-box">🔍 "...it cannot feel <b>what the writer feels</b> so the text may sound cold." [cite: 176]</div>
+                        👉 Dịch: ...nó không thể cảm nhận <span class='p-word'>những gì người viết cảm thấy</span> nên văn bản có vẻ lạnh lùng.
+                    </div>
+                </div>
+
+                <div class="question-card" id="q23">
+                    <div class="q-text">Câu 23: Select the best answer.</div>
+                    <div class="options-grid" id="opt-23">
+                        <button class="opt-btn" onclick="check(23, this, false)">where many teens</button>
+                        <button class="opt-btn" onclick="check(23, this, false)">who many teens</button>
+                        <button class="opt-btn" onclick="check(23, this, false)">which teens many</button>
+                        <button class="opt-btn" onclick="check(23, this, true)">which many teens</button>
+                    </div>
+                    <div class="explanation" id="exp-23">
+                        <div class="exp-title">📝 GIẢI THÍCH CHI TIẾT:</div>
+                        Dịch yêu cầu: Chọn đại từ quan hệ và trật tự từ đúng.<br>
+                        Đại từ quan hệ cần thiết phải thay thế cho danh từ chỉ vật đứng trước nó là "AI-made images" (những bức ảnh do AI tạo ra).<br>
+                        • <span class='p-word'>which many teens</span> <span class='hl-green'>✅ Đúng</span>. "Which" thay thế cho vật, và trật tự câu "mà nhiều thanh thiếu niên đăng tải" là hoàn toàn chuẩn xác[cite: 198].<br>
+                        • <span class='p-word'>where many teens</span> <span class='hl-red'>❌ Sai</span> vì "where" dùng để thay thế cho nơi chốn.<br>
+                        • <span class='p-word'>who many teens</span> <span class='hl-red'>❌ Sai</span> vì "who" dùng để thay thế cho người.<br>
+                        • <span class='p-word'>which teens many</span> <span class='hl-red'>❌ Sai</span> vì sắp xếp sai cụm từ "many teens".<br>
+                        <div class="quote-box">🔍 "They may also share AI-made images, <b>which many teens</b> post on social media..." [cite: 179]</div>
+                        👉 Dịch: Họ cũng có thể chia sẻ các hình ảnh do AI tạo ra, <span class='p-word'>cái mà nhiều thanh thiếu niên</span> đăng tải trên mạng xã hội...
+                    </div>
+                </div>
+
+                <div class="question-card" id="q24">
+                    <div class="q-text">Câu 24: Select the best answer.</div>
+                    <div class="options-grid" id="opt-24">
+                        <button class="opt-btn" onclick="check(24, this, false)">make</button>
+                        <button class="opt-btn" onclick="check(24, this, true)">take</button>
+                        <button class="opt-btn" onclick="check(24, this, false)">do</button>
+                        <button class="opt-btn" onclick="check(24, this, false)">keep</button>
+                    </div>
+                    <div class="explanation" id="exp-24">
+                        <div class="exp-title">📝 GIẢI THÍCH CHI TIẾT:</div>
+                        Dịch yêu cầu: Điền động từ tạo thành cụm Collocation chuẩn với "responsibility".<br>
+                        Đây là một thành ngữ (Collocation) cố định.<br>
+                        • <span class='p-word'>take</span> <span class='hl-green'>✅ Đúng</span>. Cụm <span class='p-grammar'>take responsibility for</span> có nghĩa là <span class='p-mean'>chịu trách nhiệm cho việc gì đó</span>[cite: 202].<br>
+                        • <span class='p-word'>make / do / keep</span> <span class='hl-red'>❌ Sai</span> vì các động từ này không đi kèm với danh từ "responsibility" trong tiếng Anh chuẩn.<br>
+                        <div class="quote-box">🔍 "...teens should limit private details and <b>take</b> responsibility for the choices..." [cite: 180]</div>
+                        👉 Dịch: ...thanh thiếu niên nên giới hạn chi tiết riêng tư và <span class='p-word'>chịu</span> trách nhiệm cho những lựa chọn...
+                    </div>
+                </div>
+
+                <div class="question-card" id="q31">
+                    <div class="q-text">Câu 31: Which of the following statements is TRUE according to the passage?</div>
+                    <div class="options-grid" id="opt-31">
+                        <button class="opt-btn" onclick="check(31, this, false)">Most families now eat together daily because parents work fewer hours.</button>
+                        <button class="opt-btn" onclick="check(31, this, false)">Traditional family meals mainly focused on eating quickly and leaving early.</button>
+                        <button class="opt-btn" onclick="check(31, this, false)">Many young people learn more traditional recipes through social media today.</button>
+                        <button class="opt-btn" onclick="check(31, this, true)">Busy schedules make it harder for families to share meals together.</button>
+                    </div>
+                    <div class="explanation" id="exp-31">
+                        <div class="exp-title">📝 GIẢI THÍCH CHI TIẾT:</div>
+                        Dịch câu hỏi: Phát biểu nào sau đây là ĐÚNG theo đoạn văn?<br>
+                        • <span class='p-word'>Busy schedules make it harder for families to share meals together.</span> (<span class='p-mean'>Lịch trình bận rộn làm cho việc các gia đình chia sẻ bữa ăn cùng nhau trở nên khó khăn hơn.</span>) <span class='hl-green'>✅ Đúng</span>. Thông tin này hoàn toàn khớp với câu mở đầu của đoạn 3[cite: 349].<br>
+                        • <span class='p-word'>Most families now eat together...</span> <span class='hl-red'>❌ Sai</span> vì đoạn văn nhấn mạnh cha mẹ "work long hours" (làm việc nhiều giờ) chứ không phải "fewer hours" (ít giờ đi).<br>
+                        • <span class='p-word'>Traditional family meals mainly focused on eating quickly...</span> <span class='hl-red'>❌ Sai</span> vì bữa ăn truyền thống là thời gian để kết nối, kể chuyện chứ không phải "ăn nhanh rồi đi sớm".<br>
+                        • <span class='p-word'>Many young people learn more traditional recipes...</span> <span class='hl-red'>❌ Sai</span> vì bài đọc khẳng định người trẻ "no longer learn" (không còn học) công thức truyền thống nữa.<br>
+                        <div class="quote-box">🔍 "Today, <b>busy lifestyles make family meals difficult</b>. Parents work long hours..." [cite: 307]</div>
+                        👉 Dịch: Ngày nay, <span class='p-word'>lối sống bận rộn</span> (<span class='p-mean'>lịch trình bận rộn</span>) làm cho những bữa ăn gia đình trở nên khó khăn. Cha mẹ làm việc nhiều giờ...
+                    </div>
+                </div>
+
+                <div class="question-card" id="q32">
+                    <div class="q-text">Câu 32: The word "strengthen" in paragraph 2 is OPPOSITE in meaning to ___</div>
+                    <div class="options-grid" id="opt-32">
+                        <button class="opt-btn" onclick="check(32, this, true)">weaken</button>
+                        <button class="opt-btn" onclick="check(32, this, false)">improve</button>
+                        <button class="opt-btn" onclick="check(32, this, false)">break</button>
+                        <button class="opt-btn" onclick="check(32, this, false)">forget</button>
+                    </div>
+                    <div class="explanation" id="exp-32">
+                        <div class="exp-title">📝 GIẢI THÍCH CHI TIẾT:</div>
+                        Dịch câu hỏi: Từ "strengthen" ở đoạn 2 có nghĩa TRÁI NGƯỢC (Opposite) với từ nào?<br>
+                        • <span class='p-word'>strengthen</span> (v) có nghĩa là <span class='p-mean'>củng cố, làm cho mạnh thêm</span>.<br>
+                        • <span class='p-word'>weaken</span> (<span class='p-mean'>làm yếu đi, làm suy yếu</span>) <span class='hl-green'>✅ Đúng</span>. Đây là từ có nghĩa trái ngược trực tiếp nhất[cite: 353].<br>
+                        • <span class='p-word'>improve</span> (<span class='p-mean'>cải thiện</span>) <span class='hl-red'>❌ Sai</span> vì nó gần như đồng nghĩa.<br>
+                        • <span class='p-word'>break</span> (<span class='p-mean'>phá vỡ</span>) và <span class='p-word'>forget</span> (<span class='p-mean'>quên</span>) <span class='hl-red'>❌ Sai</span> vì không mang sắc thái trái ngược trực tiếp về mặt "sức mạnh/mức độ".<br>
+                        <div class="quote-box">🔍 "These moments helped <b>strengthen</b> the bonds between family members..." [cite: 306]</div>
+                        👉 Dịch: Những khoảnh khắc này giúp <span class='p-word'>củng cố</span> (<span class='p-mean'>làm mạnh thêm</span>) mối liên kết giữa các thành viên gia đình.
+                    </div>
+                </div>
+
+                <div class="question-card" id="q33">
+                    <div class="q-text">Câu 33: Which of the following best summarises the main idea of the passage?</div>
+                    <div class="options-grid" id="opt-33">
+                        <button class="opt-btn" onclick="check(33, this, false)">Fast food is unhealthy, so families should always cook at home every day.</button>
+                        <button class="opt-btn" onclick="check(33, this, false)">Parents must teach manners only at school because meals are less important now.</button>
+                        <button class="opt-btn" onclick="check(33, this, false)">Modern lifestyles are changing family meals, so people try to restore this tradition.</button>
+                        <button class="opt-btn" onclick="check(33, this, true)">Family meal traditions are fading, which harms bonds and culture, so some try to bring them back.</button>
+                    </div>
+                    <div class="explanation" id="exp-33">
+                        <div class="exp-title">📝 GIẢI THÍCH CHI TIẾT:</div>
+                        Dịch câu hỏi: Câu nào dưới đây tóm tắt tốt nhất ý chính (main idea) của đoạn văn?<br>
+                        • <span class='p-word'>Family meal traditions are fading, which harms bonds and culture, so some try to bring them back.</span> (<span class='p-mean'>Truyền thống bữa ăn gia đình đang mờ nhạt, điều này gây hại cho sự gắn kết và văn hóa, vì vậy một số người đang cố gắng mang chúng trở lại.</span>) <span class='hl-green'>✅ Đúng</span>. Tóm tắt đầy đủ nhất vấn đề, hậu quả và giải pháp được nêu xuyên suốt bài[cite: 366].<br>
+                        • <span class='p-word'>Fast food is unhealthy...</span> <span class='hl-red'>❌ Sai</span> vì bài văn không hề tập trung vào việc đồ ăn nhanh không tốt cho sức khỏe.<br>
+                        • <span class='p-word'>Parents must teach manners only at school...</span> <span class='hl-red'>❌ Sai</span> thông tin trầm trọng.<br>
+                        • <span class='p-word'>Modern lifestyles are changing family meals...</span> <span class='hl-red'>❌ Sai</span> vì ý này gần đúng nhưng chưa bao quát được hậu quả (gây hại cho các mối quan hệ) như đáp án đúng.<br>
+                    </div>
+                </div>
+
+                <div class="question-card" id="q34">
+                    <div class="q-text">Câu 34: The word "communal" in paragraph 3 is closest in meaning to ___</div>
+                    <div class="options-grid" id="opt-34">
+                        <button class="opt-btn" onclick="check(34, this, false)">collective</button>
+                        <button class="opt-btn" onclick="check(34, this, false)">expensive</button>
+                        <button class="opt-btn" onclick="check(34, this, true)">shared</button>
+                        <button class="opt-btn" onclick="check(34, this, false)">public</button>
+                    </div>
+                    <div class="explanation" id="exp-34">
+                        <div class="exp-title">📝 GIẢI THÍCH CHI TIẾT:</div>
+                        Dịch câu hỏi: Từ "communal" ở đoạn 3 có nghĩa GẦN NHẤT (Closest) với từ nào?<br>
+                        • <span class='p-word'>communal</span> (adj) có nghĩa là <span class='p-mean'>chung, thuộc về cộng đồng, có tính chia sẻ</span>.<br>
+                        • <span class='p-word'>shared</span> (<span class='p-mean'>chia sẻ</span>) <span class='hl-green'>✅ Đúng</span>. Phù hợp nhất với ngữ cảnh nói về những bữa ăn có sự chung đụng, chia sẻ giữa các thành viên[cite: 373].<br>
+                        • <span class='p-word'>collective</span> (<span class='p-mean'>tập thể</span>) <span class='hl-red'>❌ Sai</span> vì mang tính chất nhóm lớn, quy mô tổ chức hơn là tính chia sẻ ấm cúng.<br>
+                        • <span class='p-word'>expensive</span> (<span class='p-mean'>đắt đỏ</span>) <span class='hl-red'>❌ Sai</span> nghĩa.<br>
+                        • <span class='p-word'>public</span> (<span class='p-mean'>công cộng</span>) <span class='hl-red'>❌ Sai</span> vì bữa ăn gia đình là nhóm nhỏ, riêng tư chứ không phải công cộng.<br>
+                        <div class="quote-box">🔍 "The <b>communal</b> aspect of dining together, where everyone gathers and connects..." [cite: 309]</div>
+                        👉 Dịch: Khía cạnh <span class='p-word'>chia sẻ/cộng đồng</span> của việc dùng bữa cùng nhau, nơi mọi người tụ tập và kết nối...
+                    </div>
+                </div>
+
+                <div class="question-card" id="q35">
+                    <div class="q-text">Câu 35: Why does the passage mention "some in front of the TV" and "others while looking at their phones"?</div>
+                    <div class="options-grid" id="opt-35">
+                        <button class="opt-btn" onclick="check(35, this, false)">To show that family members share the same entertainment during meals.</button>
+                        <button class="opt-btn" onclick="check(35, this, true)">To illustrate how families eat separately and connect less during meals.</button>
+                        <button class="opt-btn" onclick="check(35, this, false)">To suggest that watching TV helps children learn manners more easily.</button>
+                        <button class="opt-btn" onclick="check(35, this, false)">To explain why holiday foods are becoming more popular among young people.</button>
+                    </div>
+                    <div class="explanation" id="exp-35">
+                        <div class="exp-title">📝 GIẢI THÍCH CHI TIẾT:</div>
+                        Dịch câu hỏi: Tại sao bài đọc lại đề cập đến việc "người thì ngồi trước TV, người thì nhìn điện thoại"?<br>
+                        • <span class='p-word'>To illustrate how families eat separately and connect less during meals.</span> (<span class='p-mean'>Để minh họa việc các gia đình ăn riêng rẽ và ít kết nối hơn trong bữa ăn.</span>) <span class='hl-green'>✅ Đúng</span>. Tác giả đưa ví dụ này để dẫn chứng cho sự xa cách trong bữa ăn hiện đại[cite: 382].<br>
+                        • <span class='p-word'>To show that family members share the same entertainment...</span> <span class='hl-red'>❌ Sai</span> vì họ không hề xem chung một nội dung giải trí (người xem tivi, người xem điện thoại).<br>
+                        • Các ý liên quan đến "learn manners" (học phép tắc) hay "holiday foods" (đồ ăn lễ hội) <span class='hl-red'>❌ Sai</span> vì không liên quan đến trích đoạn.<br>
+                        <div class="quote-box">🔍 "Many families <b>eat separately</b> - some in front of the TV, others while looking at their phones." [cite: 308]</div>
+                        👉 Dịch: Nhiều gia đình <span class='p-word'>ăn riêng rẽ</span> - người thì ngồi trước TV, người khác lại nhìn vào điện thoại.
+                    </div>
+                </div>
+
+                <div class="question-card" id="q36">
+                    <div class="q-text">Câu 36: Which statement can be best inferred from the passage?</div>
+                    <div class="options-grid" id="opt-36">
+                        <button class="opt-btn" onclick="check(36, this, false)">Families who eat fast food will not keep any traditions.</button>
+                        <button class="opt-btn" onclick="check(36, this, false)">Traditional recipes are no longer needed during holidays.</button>
+                        <button class="opt-btn" onclick="check(36, this, false)">Busy parents should avoid after-school activities for children.</button>
+                        <button class="opt-btn" onclick="check(36, this, true)">Even weekly family dinners could help protect family ties and culture.</button>
+                    </div>
+                    <div class="explanation" id="exp-36">
+                        <div class="exp-title">📝 GIẢI THÍCH CHI TIẾT:</div>
+                        Dịch câu hỏi: Điều gì có thể suy luận (inferred) tốt nhất từ đoạn văn?<br>
+                        • <span class='p-word'>Even weekly family dinners could help protect family ties and culture.</span> (<span class='p-mean'>Ngay cả những bữa tối gia đình hàng tuần cũng có thể giúp bảo vệ sự gắn kết gia đình và văn hóa.</span>) <span class='hl-green'>✅ Đúng</span>. Suy ra từ thông tin đoạn cuối nói rằng các gia đình đang cố duy trì ăn chung 1-2 lần/tuần để bảo tồn giá trị[cite: 397].<br>
+                        • <span class='p-word'>Families who eat fast food will not keep any traditions.</span> <span class='hl-red'>❌ Sai</span> vì từ "will not keep any" (sẽ không giữ bất kỳ) là quá tuyệt đối.<br>
+                        • <span class='p-word'>Traditional recipes are no longer needed...</span> <span class='hl-red'>❌ Sai</span> vì không có thông tin nói rằng công thức cũ không còn cần thiết.<br>
+                        • <span class='p-word'>Busy parents should avoid after-school activities...</span> <span class='hl-red'>❌ Sai</span> vì bài đọc không khuyên trẻ em nên bỏ hoạt động ngoại khóa.<br>
+                        <div class="quote-box">🔍 "Some families are trying to bring back regular family dinners, <b>even if just once or twice a week. They believe that sharing meals together is essential</b>..." [cite: 312]</div>
+                        👉 Dịch: Một số gia đình đang cố gắng mang lại những bữa tối thường xuyên, <span class='p-word'>ngay cả khi chỉ một hoặc hai lần một tuần. Họ tin rằng chia sẻ bữa ăn cùng nhau là điều cần thiết</span>...
+                    </div>
+                </div>
+
+                <div class="question-card" id="q37">
+                    <div class="q-text">Câu 37: Select the best answer.</div>
+                    <div class="options-grid" id="opt-37">
+                        <button class="opt-btn" onclick="check(37, this, false)">the best choice is not to quit technology completely</button>
+                        <button class="opt-btn" onclick="check(37, this, false)">that our work and study often depend on phones and laptops</button>
+                        <button class="opt-btn" onclick="check(37, this, true)">this trend looks calm and beautiful</button>
+                        <button class="opt-btn" onclick="check(37, this, false)">that becomes a new pressure?</button>
+                    </div>
+                    <div class="explanation" id="exp-37">
+                        <div class="exp-title">📝 GIẢI THÍCH CHI TIẾT:</div>
+                        Dịch yêu cầu: Điền cụm từ phù hợp vào chỗ trống (37).<br>
+                        • <span class='p-word'>this trend looks calm and beautiful</span> (<span class='p-mean'>xu hướng này trông có vẻ yên bình và đẹp đẽ</span>) <span class='hl-green'>✅ Đúng</span>. Cấu trúc câu đang chứa liên từ "but" tạo sự đối lập. Chúng ta cần một mệnh đề trần thuật có ý nghĩa tích cực (trông yên bình) để đối lập tự nhiên với vế tiêu cực phía sau (nhưng ngoài đời thì không dễ dàng)[cite: 418].<br>
+                        • <span class='p-word'>the best choice is...</span> <span class='hl-red'>❌ Sai</span> vì đây là ý kết luận giải pháp, không phù hợp đặt ở đầu đoạn mở vấn đề.<br>
+                        • <span class='p-word'>that our work...</span> <span class='hl-red'>❌ Sai</span> vì mệnh đề bắt đầu bằng "that" không thể đứng ngay sau dấu phẩy trong ngữ cảnh "On social media, ...".<br>
+                        • <span class='p-word'>that becomes... ?</span> <span class='hl-red'>❌ Sai</span> vì đây là câu hỏi, không thể đứng trong câu trần thuật chứa "but".<br>
+                        <div class="quote-box">🔍 "On social media, <b>this trend looks calm and beautiful</b> but in daily life it is not always easy." [cite: 418]</div>
+                        👉 Dịch: Trên mạng xã hội, <span class='p-word'>xu hướng này trông có vẻ yên bình và đẹp đẽ</span> nhưng trong đời sống hằng ngày thì không phải lúc nào cũng dễ.
+                    </div>
+                </div>
+
+                <div class="question-card" id="q38">
+                    <div class="q-text">Câu 38: Select the best answer.</div>
+                    <div class="options-grid" id="opt-38">
+                        <button class="opt-btn" onclick="check(38, this, false)">the best choice is not to quit technology completely</button>
+                        <button class="opt-btn" onclick="check(38, this, true)">that our work and study often depend on phones and laptops</button>
+                        <button class="opt-btn" onclick="check(38, this, false)">this trend looks calm and beautiful</button>
+                        <button class="opt-btn" onclick="check(38, this, false)">that becomes a new pressure?</button>
+                    </div>
+                    <div class="explanation" id="exp-38">
+                        <div class="exp-title">📝 GIẢI THÍCH CHI TIẾT:</div>
+                        Dịch yêu cầu: Điền cụm từ phù hợp vào chỗ trống (38).<br>
+                        • <span class='p-word'>that our work and study often depend on phones and laptops</span> (<span class='p-mean'>rằng công việc và việc học của chúng ta thường phụ thuộc vào điện thoại và laptop</span>) <span class='hl-green'>✅ Đúng</span>. Hoàn toàn khớp với cấu trúc <span class='p-grammar'>One reason is that + S + V</span> để giải thích nguyên nhân tại sao cai nghiện công nghệ lại khó thực hiện[cite: 418].<br>
+                        • <span class='p-word'>the best choice is...</span> <span class='hl-red'>❌ Sai</span> vì thiếu chữ "that" để nối mệnh đề danh ngữ và sai nghĩa.<br>
+                        • <span class='p-word'>this trend looks...</span> <span class='hl-red'>❌ Sai</span> vì đây chỉ là nhận xét hình ảnh, không phải là lý do.<br>
+                        <div class="quote-box">🔍 "One reason is <b>that our work and study often depend on phones and laptops</b>." [cite: 418]</div>
+                        👉 Dịch: Một lý do là <span class='p-word'>rằng công việc và việc học của chúng ta thường phụ thuộc vào điện thoại và laptop</span>.
+                    </div>
+                </div>
+
+                <div class="question-card" id="q39">
+                    <div class="q-text">Câu 39: Select the best answer.</div>
+                    <div class="options-grid" id="opt-39">
+                        <button class="opt-btn" onclick="check(39, this, false)">the best choice is not to quit technology completely</button>
+                        <button class="opt-btn" onclick="check(39, this, false)">that our work and study often depend on phones and laptops</button>
+                        <button class="opt-btn" onclick="check(39, this, false)">this trend looks calm and beautiful</button>
+                        <button class="opt-btn" onclick="check(39, this, true)">that becomes a new pressure?</button>
+                    </div>
+                    <div class="explanation" id="exp-39">
+                        <div class="exp-title">📝 GIẢI THÍCH CHI TIẾT:</div>
+                        Dịch yêu cầu: Điền cụm từ phù hợp vào chỗ trống (39).<br>
+                        Chỗ trống đứng ngay sau danh từ "challenge" và toàn bộ câu được kết thúc bằng dấu chấm hỏi (?), do đó cần một mệnh đề quan hệ để bổ nghĩa và hoàn thành câu hỏi.<br>
+                        • <span class='p-word'>that becomes a new pressure?</span> (<span class='p-mean'>cái mà trở thành một áp lực mới?</span>) <span class='hl-green'>✅ Đúng</span>. "That" thay thế cho "challenge", dịch nghĩa vô cùng mượt mà[cite: 429].<br>
+                        • Các đáp án còn lại <span class='hl-red'>❌ Sai</span> vì là câu trần thuật không có dấu hỏi chấm, hoặc không tạo thành cấu trúc mệnh đề quan hệ bổ nghĩa.<br>
+                        <div class="quote-box">🔍 "...or just another lifestyle challenge <b>that becomes a new pressure?</b>" [cite: 428]</div>
+                        👉 Dịch: ...hay chỉ là một thử thách lối sống khác <span class='p-word'>cái mà trở thành một áp lực mới?</span>
+                    </div>
+                </div>
+
+                <div class="question-card" id="q40">
+                    <div class="q-text">Câu 40: Select the best answer.</div>
+                    <div class="options-grid" id="opt-40">
+                        <button class="opt-btn" onclick="check(40, this, true)">the best choice is not to quit technology completely</button>
+                        <button class="opt-btn" onclick="check(40, this, false)">that our work and study often depend on phones and laptops</button>
+                        <button class="opt-btn" onclick="check(40, this, false)">this trend looks calm and beautiful</button>
+                        <button class="opt-btn" onclick="check(40, this, false)">that becomes a new pressure?</button>
+                    </div>
+                    <div class="explanation" id="exp-40">
+                        <div class="exp-title">📝 GIẢI THÍCH CHI TIẾT:</div>
+                        Dịch yêu cầu: Điền cụm từ phù hợp vào chỗ trống (40).<br>
+                        Chỗ trống đứng sau cụm "I think" ở cuối bài, nên nó phải là một mệnh đề thể hiện quan điểm, giải pháp cá nhân của tác giả.<br>
+                        • <span class='p-word'>the best choice is not to quit technology completely</span> (<span class='p-mean'>lựa chọn tốt nhất là không bỏ công nghệ hoàn toàn</span>) <span class='hl-green'>✅ Đúng</span>. Nó ăn khớp hoàn hảo với vế tiếp theo "but to use it with clear rules" (mà hãy sử dụng nó với quy tắc rõ ràng)[cite: 441].<br>
+                        • <span class='p-word'>that our work...</span> <span class='hl-red'>❌ Sai</span> vì đây là lý do của đoạn trước, không phải giải pháp.<br>
+                        • <span class='p-word'>that becomes... ?</span> <span class='hl-red'>❌ Sai</span> vì không dùng câu hỏi ngay sau "I think".<br>
+                        <div class="quote-box">🔍 "I think <b>the best choice is not to quit technology completely</b> but to use it with clear rules..." [cite: 438]</div>
+                        👉 Dịch: Tôi nghĩ <span class='p-word'>lựa chọn tốt nhất là không bỏ công nghệ hoàn toàn</span> mà sử dụng nó với các quy tắc rõ ràng...
+                    </div>
+                </div>
+
+                <button class="submit-btn" onclick="promptName()">🎯 NỘP BÀI TÍNH ĐIỂM & XEM KẾT QUẢ</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // === MẬT KHẨU & AUDIO INTRO (KHÔNG LOOP) ===
+        const _k  = [99, 111, 103, 97, 110, 103, 100, 97, 116, 100, 105, 101, 109, 99, 97, 111]; 
+        const _pw = _k.map(c => String.fromCharCode(c)).join('');
+        const introAudioUrl = "https://hoctienganhcungcomaianulis.github.io/homework/%E1%BA%A2nh_File%20nghe/Sound/export_dcyCDfhAokgnwEKEgvFUkr.mp3";
+        
+        let totalQuestions = 20; 
+        let correctCount = 0;
+        let answeredQuestions = new Set();
+
+        function checkPassword() {
+            const inp = document.getElementById('pwInput');
+            const err = document.getElementById('pwErr');
+            if (inp.value === _pw) {
+                document.getElementById('passwordModal').style.display = 'none';
+                document.getElementById('mainContent').style.display = 'block';
+                
+                // Play intro audio, do không có thuộc tính "loop" ở thẻ HTML nên sẽ chỉ phát 1 lần
+                const bg = document.getElementById('bgAudio');
+                bg.src = introAudioUrl;
+                bg.play().catch(e => console.log("Trình duyệt chặn auto-play"));
+                
+                spawnEmojis();
+                shuffleAllOptions();
+            } else {
+                inp.classList.remove('error'); 
+                void inp.offsetWidth; 
+                inp.classList.add('error');
+                err.style.display = 'block'; 
+                setTimeout(() => inp.classList.remove('error'), 500);
+            }
+        }
+
+        document.getElementById('pwInput').addEventListener('keydown', e => { 
+            if (e.key === 'Enter') checkPassword(); 
+        });
+
+        // Background Animations 
+        const emojis = ['📚', '📱', '🎧', '🌍', '✨', '🎯', '💡', '🚀'];
+        function spawnEmojis() {
+            const bg = document.getElementById('floatBg');
+            for(let i=0; i<15; i++) {
+                let el = document.createElement('div');
+                el.className = 'emoji';
+                el.innerText = emojis[Math.floor(Math.random()*emojis.length)];
+                el.style.left = Math.random() * 100 + 'vw';
+                el.style.animationDuration = (10 + Math.random() * 15) + 's';
+                el.style.animationDelay = (Math.random() * 5) + 's';
+                bg.appendChild(el);
+            }
+        }
+
+        function toggleTrans(btn) {
+            const transDiv = btn.nextElementSibling;
+            if(transDiv.style.display === 'block') {
+                transDiv.style.display = 'none';
+                btn.innerText = "Mở dịch đoạn này 🌟";
+            } else {
+                transDiv.style.display = 'block';
+                btn.innerText = "Ẩn dịch đoạn này 🙈";
+            }
+        }
+
+        function shuffleAllOptions() {
+            document.querySelectorAll('.options-grid').forEach(grid => {
+                for (let i = grid.children.length; i >= 0; i--) {
+                    grid.appendChild(grid.children[Math.random() * i | 0]);
+                }
+            });
+        }
+
+        function check(qId, btn, isCorrect) {
+            if(answeredQuestions.has(qId)) return; 
+
+            const grid = btn.parentElement;
+            const buttons = grid.querySelectorAll('button');
+            
+            buttons.forEach(b => b.disabled = true);
+            answeredQuestions.add(qId);
+
+            if(isCorrect) {
+                btn.classList.add('correct');
+                correctCount++;
+                document.getElementById('audioCorrect').play();
+                createConfetti(btn);
+            } else {
+                btn.classList.add('wrong');
+                document.getElementById('audioWrong').play();
+                buttons.forEach(b => {
+                    if(b.getAttribute('onclick').includes('true')) {
+                        b.classList.add('correct');
+                    }
+                });
+            }
+
+            const exp = document.getElementById('exp-' + qId);
+            exp.classList.add('show');
+        }
+
+        function createConfetti(element) {
+            const rect = element.getBoundingClientRect();
+            for(let i=0; i<30; i++) {
+                let conf = document.createElement('div');
+                conf.className = 'confetti';
+                conf.style.left = rect.left + (Math.random() * rect.width) + 'px';
+                conf.style.top = rect.top + 'px';
+                conf.style.backgroundColor = ['#f1c40f', '#e74c3c', '#3498db', '#2ecc71', '#9b59b6'][Math.floor(Math.random()*5)];
+                document.body.appendChild(conf);
+                setTimeout(() => conf.remove(), 1000);
+            }
+        }
+
+        function promptName() {
+            if(answeredQuestions.size < totalQuestions) {
+                alert("Úi! Em chưa làm hết các câu kìa. Hãy làm đủ 100% rồi mới nộp nhé!");
+                return;
+            }
+            document.getElementById('studentNameModal').style.display = 'flex';
+        }
+
+        function submitTestFinal() {
+            const nameInput = document.getElementById('studentNameInput').value.trim();
+            if(!nameInput) {
+                alert("Em quên nhập tên rồi kìa! 🌟");
+                return;
+            }
+
+            document.getElementById('studentNameModal').style.display = 'none';
+            document.getElementById('resultModal').style.display = 'flex';
+            
+            const pct = (correctCount / totalQuestions) * 100;
+            document.getElementById('r-name').innerText = "Học sinh: " + nameInput;
+            document.getElementById('r-score').innerText = correctCount + " / " + totalQuestions;
+            
+            const meme = document.getElementById('r-meme');
+            const remark = document.getElementById('r-remark');
+
+            if(pct === 100) {
+                remark.innerText = "Tuyệt đỉnh học thuật! Cô Mai An tự hào về em! 🌟🏆";
+                meme.src = "https://media.giphy.com/media/11sBLVxNs7v6WA/giphy.gif"; 
+            } else if (pct >= 60) {
+                remark.innerText = "Làm rất tốt! Cố gắng chút nữa là điểm tối đa rồi nhé! 🔥";
+                meme.src = "https://media.giphy.com/media/l41YkxvU8c7J7Bba0/giphy.gif"; 
+            } else {
+                remark.innerText = "Hơi buồn một chút nhưng không sao, hãy đọc kỹ giải thích của cô để rút kinh nghiệm nha! 💪";
+                meme.src = "https://media.giphy.com/media/2UIcmK4pn7rYNLRboG/giphy.gif"; 
+            }
+        }
+    </script>
+</body>
+</html>

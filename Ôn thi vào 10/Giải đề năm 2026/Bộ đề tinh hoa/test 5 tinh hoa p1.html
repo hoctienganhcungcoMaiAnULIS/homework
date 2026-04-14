@@ -1,0 +1,954 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bài Kiểm Tra Tương Tác - Ms Mai An ULIS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Quicksand:wght@400;600;700&family=Nunito:wght@400;700;800&display=swap" rel="stylesheet">
+    <style>
+        /* CSS Reset & Variables - SUMMER OCEAN THEME */
+        :root {
+            --ocean-dark: #0077b6;
+            --ocean-light: #00b4d8;
+            --ocean-aqua: #90e0ef;
+            --coral: #ff7f50;
+            --sand: #f4a261;
+            --success: #00b894;
+            --danger: #ff7675;
+            --glass-bg: rgba(224, 247, 250, 0.4); /* Xanh ngọc trong suốt */
+            --glass-border: rgba(255, 255, 255, 0.6);
+            --text-dark: #003049;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Quicksand', sans-serif;
+            /* Gradient Nước biển loang màu liên tục */
+            background: linear-gradient(-45deg, #48cae4, #0096c7, #0077b6, #023e8a, #00b4d8);
+            background-size: 400% 400%;
+            animation: oceanCurrent 15s ease infinite;
+            color: var(--text-dark);
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        @keyframes oceanCurrent {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* HỌA TIẾT BAY BAY ĐẠI DƯƠNG (Cá, Sao biển, Bong bóng) */
+        .bg-shapes {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; z-index: -1; overflow: hidden;
+        }
+        .shape-obj {
+            position: absolute; opacity: 0.6; animation: floatUp linear infinite;
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));
+        }
+        @keyframes floatUp {
+            0% { transform: translateY(110vh) rotate(-15deg) scale(0.8); opacity: 0; }
+            10% { opacity: 0.6; }
+            50% { transform: translateY(40vh) rotate(15deg) scale(1.2); }
+            90% { opacity: 0.6; }
+            100% { transform: translateY(-20vh) rotate(-15deg) scale(0.9); opacity: 0; }
+        }
+
+        /* GIAO DIỆN MÀN HÌNH KHÓA (KÍNH MỜ XANH BIỂN) */
+        #passwordModal {
+            position:fixed; inset:0; z-index:9999;
+            display:flex; align-items:center; justify-content:center;
+            background:rgba(0, 48, 73, 0.4); backdrop-filter:blur(15px);
+        }
+        .pw-card {
+            background: rgba(202, 240, 248, 0.35); /* Kính mờ xanh ngọc */
+            backdrop-filter: blur(25px);
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            border-radius: 30px; padding: 48px 40px 40px; 
+            max-width: 440px; width: 93%; text-align: center; position: relative; overflow: hidden;
+            box-shadow: 0 30px 60px rgba(0, 119, 182, 0.3), inset 0 0 20px rgba(255,255,255,0.3);
+        }
+        .pw-card::before {
+            content:''; position:absolute; top:0; left:0; right:0; height:6px;
+            background:linear-gradient(90deg, var(--coral), var(--sand), var(--ocean-light));
+        }
+        .pw-crest { font-size:4.5rem; margin-bottom:15px; display:block; filter: drop-shadow(0 4px 10px rgba(0,0,0,0.2)); }
+        .pw-title { font-family:'Nunito', sans-serif; font-size:1.8rem; font-weight:800; color:#fff; text-shadow: 1px 1px 4px rgba(0, 119, 182, 0.8); margin-bottom:20px; letter-spacing:1px; }
+        .pw-input {
+            width:100%; padding:15px 20px; border-radius:15px;
+            border:2px solid rgba(255,255,255,0.7); background:rgba(255,255,255,0.5);
+            color:#023e8a; font-size:1.2rem; font-family:'Nunito', sans-serif; font-weight: 800;
+            outline:none; letter-spacing:3px; text-align:center; transition:all .3s;
+            backdrop-filter: blur(5px);
+        }
+        .pw-input:focus { background: rgba(255,255,255,0.9); box-shadow:0 0 0 4px rgba(144, 224, 239, 0.5); border-color: var(--ocean-light);}
+        .pw-input.error { border-color:#FF4757; box-shadow:0 0 0 4px rgba(255,71,87,0.3); animation:shake .4s ease; background: rgba(255,255,255,0.9);}
+        .pw-input::placeholder { color:#0077b6; letter-spacing:1px; font-weight: 600; opacity: 0.7;}
+        
+        .pw-btn {
+            width:100%; padding:16px; margin-top:20px; border-radius:15px; border:none;
+            background:linear-gradient(135deg, var(--coral) 0%, #f4a261 100%);
+            color:#fff; font-size:1.2rem; font-weight:800; font-family:'Nunito', sans-serif;
+            cursor:pointer; letter-spacing:1px; transition:all .3s; box-shadow: 0 8px 20px rgba(255, 127, 80, 0.4);
+        }
+        .pw-btn:hover { transform:translateY(-3px); box-shadow:0 12px 25px rgba(255, 127, 80, 0.6); background:linear-gradient(135deg, #ff6b6b 0%, var(--coral) 100%);}
+        .pw-err { color:#d63031; font-size:0.95rem; margin-top:15px; display:none; font-weight:800; background: rgba(255,255,255,0.9); padding: 8px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);}
+
+        @keyframes shake { 0%,100%{transform:translateX(0)} 15%,45%,75%{transform:translateX(-6px)} 30%,60%,90%{transform:translateX(6px)} }
+
+        /* Container & Glassmorphism cho Bài thi */
+        .app-container {
+            max-width: 900px; margin: 2rem auto; padding: 0 1rem; position: relative; z-index: 10;
+        }
+
+        header { text-align: center; margin-bottom: 2rem; color: #fff; text-shadow: 2px 2px 6px rgba(0, 48, 73, 0.4);}
+        header h1 { font-family: 'Nunito', sans-serif; font-size: 3rem; font-weight: 800; margin-bottom: 8px; letter-spacing: 1px;}
+        header p { font-size: 1rem; font-weight: 800; background: rgba(255,255,255,0.25); backdrop-filter: blur(10px); display: inline-block; padding: 8px 25px; border-radius: 25px; border: 1px solid rgba(255,255,255,0.5); box-shadow: 0 4px 15px rgba(0,0,0,0.1); color: #fff; text-transform: uppercase; letter-spacing: 1px;}
+
+        .question-card {
+            background: var(--glass-bg); 
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border); 
+            border-radius: 24px;
+            padding: 2.5rem; margin-bottom: 2rem;
+            box-shadow: 0 15px 35px rgba(0, 119, 182, 0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .question-card:hover { transform: translateY(-4px); box-shadow: 0 20px 40px rgba(0, 119, 182, 0.3); }
+
+        .q-number {
+            display: inline-block; background: linear-gradient(135deg, var(--ocean-dark), var(--ocean-light));
+            color: #fff; padding: 8px 25px; border-radius: 25px;
+            font-size: 1.05rem; font-weight: 800; margin-bottom: 1.5rem; box-shadow: 0 4px 15px rgba(0, 119, 182, 0.4);
+            letter-spacing: 0.5px;
+        }
+
+        .q-text { font-size: 1.3rem; font-weight: 700; margin-bottom: 1.5rem; line-height: 1.6; color: #003049; }
+
+        /* Recreated Signs inside Question */
+        .electric-sign {
+            border: 4px dashed #e74c3c; border-radius: 16px; padding: 25px;
+            text-align: center; background: rgba(255,255,255,0.9); margin: 15px 0;
+            box-shadow: 4px 4px 15px rgba(0,0,0,0.1);
+        }
+        .electric-sign h2 { font-family: 'Nunito', sans-serif; color: #e74c3c; font-size: 1.8rem; margin-bottom: 10px; font-weight: 800;}
+        .electric-sign p { font-family: 'Quicksand', sans-serif; font-weight: 700; font-size: 1.2rem; color: #003049; }
+        
+        .promo-card {
+            background: rgba(255, 240, 243, 0.95); border: 4px solid #ffb8b8;
+            padding: 25px; font-family: 'Nunito', sans-serif; text-align: center;
+            margin: 15px 0; border-radius: 16px;
+            box-shadow: 0 8px 20px rgba(255, 184, 184, 0.3);
+        }
+        .promo-card h3 { color: #e84393; font-size: 1.5rem; margin-bottom: 10px; font-weight: 800;}
+        .promo-card p { font-size: 1.15rem; font-weight: 700; color: #003049;}
+
+        /* Options Grid */
+        .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 1.5rem; }
+        @media (max-width: 600px) { .options-grid { grid-template-columns: 1fr; } }
+
+        .option-btn {
+            background: rgba(255, 255, 255, 0.85); 
+            border: 2px solid rgba(255,255,255,0.9);
+            padding: 1.3rem; border-radius: 18px;
+            font-family: 'Nunito', sans-serif; font-size: 1.15rem; font-weight: 800;
+            color: #0077b6; cursor: pointer; box-shadow: 0 6px 0 rgba(0, 119, 182, 0.15);
+            transition: all 0.15s ease; text-align: left;
+            backdrop-filter: blur(5px);
+        }
+        .option-btn:hover {
+            transform: scale(1.02) translateY(-3px);
+            box-shadow: 0 9px 0 rgba(0, 119, 182, 0.2); 
+            border-color: var(--ocean-light); color: var(--ocean-dark);
+            background: #fff;
+        }
+        .option-btn:active { transform: scale(0.98) translateY(4px); box-shadow: 0 2px 0 rgba(0, 119, 182, 0.15); }
+        .option-btn.correct { background: var(--success); color: white; box-shadow: 0 6px 0 #00997a; border-color: #00997a; }
+        .option-btn.incorrect { background: var(--danger); color: white; box-shadow: 0 6px 0 #d63031; border-color: #d63031; animation: shake 0.4s both; }
+
+        /* Explanation Box */
+        .explanation {
+            display: none; margin-top: 2rem; padding: 1.8rem;
+            background: rgba(255, 255, 255, 0.95); border-radius: 16px;
+            border-left: 8px solid var(--coral); font-size: 1.1rem; line-height: 1.7;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1); animation: slideDown 0.4s ease forwards;
+            color: #003049;
+        }
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Specific Highlight Classes */
+        .vn-translate {
+            display: block; background: linear-gradient(135deg, #e0f7fa, #b2ebf2);
+            color: #0077b6; font-weight: 800; padding: 15px; border-radius: 12px;
+            margin-bottom: 20px; border-left: 5px solid #00b4d8; font-size: 1.15rem; box-shadow: 0 4px 10px rgba(0, 180, 216, 0.15);
+        }
+        .p-word { color: #d35400; font-weight: 800; }
+        .p-phonetic { background: #e0f7fa; color: #0077b6; padding: 2px 8px; border-radius: 6px; font-family: monospace; font-weight: bold; border: 1px solid #b2ebf2;}
+        .p-mean { color: #023e8a; font-weight: 700;}
+        .p-grammar { text-decoration: underline; text-decoration-color: var(--danger); text-decoration-thickness: 3px; color: #003049; font-weight: 800; }
+        .hl-green { color: #00b894; font-weight: 800; background: #e8f8f5; padding: 3px 8px; border-radius: 6px;}
+        .hl-red { color: #d63031; text-decoration: line-through; text-decoration-thickness: 3px; font-weight: 800;}
+
+        /* Submit Button */
+        .submit-wrap { text-align: center; margin: 4rem 0; }
+        .btn-submit {
+            background: linear-gradient(135deg, var(--coral) 0%, #f4a261 100%);
+            color: #fff; border: 3px solid rgba(255,255,255,0.6); padding: 20px 50px; font-size: 1.6rem;
+            font-family: 'Nunito', sans-serif; font-weight: 800; border-radius: 40px;
+            cursor: pointer; box-shadow: 0 12px 30px rgba(255, 127, 80, 0.4); transition: all 0.3s;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+        }
+        .btn-submit:hover { background: linear-gradient(135deg, #ff6b6b 0%, var(--coral) 100%); transform: translateY(-5px) scale(1.05); box-shadow: 0 18px 40px rgba(255, 127, 80, 0.6); border-color: #fff;}
+
+        /* Modals Kết Quả */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 48, 73, 0.6); backdrop-filter: blur(12px);
+            display: none; align-items: center; justify-content: center; z-index: 100;
+        }
+        .modal-content {
+            background: rgba(255, 255, 255, 0.95); padding: 3.5rem; border-radius: 35px;
+            width: 90%; max-width: 500px; text-align: center;
+            box-shadow: 0 30px 70px rgba(0,0,0,0.3); border: 2px solid #caf0f8;
+            animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+        @keyframes popIn { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: scale(1); } }
+        .modal-content h2 { color: var(--ocean-dark); margin-bottom: 15px; font-family: 'Nunito', sans-serif; font-size: 2.2rem; font-weight: 800;}
+        .name-input {
+            width: 100%; padding: 16px; border: 3px solid #caf0f8;
+            border-radius: 16px; font-size: 1.2rem; margin-bottom: 25px;
+            font-family: 'Quicksand', sans-serif; text-align: center; font-weight: 700; color: #003049;
+            background: #f8f9fa;
+        }
+        .name-input:focus { border-color: var(--ocean-light); outline: none; box-shadow: 0 0 0 4px rgba(0, 180, 216, 0.2); background: #fff;}
+        .name-input.error { border-color: var(--danger); animation: shake 0.3s; }
+        .btn-action {
+            background: var(--success); color: white; border: none;
+            padding: 16px 40px; font-size: 1.3rem; border-radius: 16px;
+            font-weight: 800; cursor: pointer; transition: 0.2s; font-family: 'Nunito', sans-serif;
+            box-shadow: 0 8px 0 #00997a;
+        }
+        .btn-action:hover { transform: translateY(-3px); box-shadow: 0 11px 0 #00997a; filter: brightness(1.1);}
+        .btn-action:active { transform: translateY(5px); box-shadow: 0 3px 0 #00997a; }
+        
+        .result-gif { width: 100%; border-radius: 20px; margin: 25px 0; max-height: 280px; object-fit: cover; border: 4px solid #caf0f8;}
+        .score-display { font-size: 4rem; font-weight: 800; color: var(--coral); text-shadow: 3px 3px 0px #f4a261; margin: 15px 0;}
+
+        /* Confetti elements */
+        .confetti {
+            position: fixed; width: 14px; height: 14px; pointer-events: none; z-index: 999; animation: fall linear forwards;
+        }
+        @keyframes fall { to { transform: translateY(100vh) rotate(720deg); opacity: 0; } }
+    </style>
+</head>
+<body>
+
+    <div id="passwordModal">
+        <div class="pw-card">
+            <span class="pw-crest">🌊</span>
+            <div class="pw-title">XÁC THỰC BÀI THI</div>
+            <input type="password" class="pw-input" id="pwInput" placeholder="Nhập mật khẩu..." autocomplete="off" />
+            <button class="pw-btn" onclick="checkPassword()">LẶN XUỐNG BIỂN THÔI!</button>
+            <div class="pw-err" id="pwErr">Mật khẩu không đúng! Vui lòng thử lại.</div>
+        </div>
+    </div>
+
+    <div id="mainContent" style="display: none;">
+        
+        <div class="bg-shapes" id="bgShapes"></div>
+
+        <div class="app-container">
+            <header>
+                <h1>🐠 Đấu Trường Đại Dương 🐠</h1>
+                <p>Giáo viên tạo: Ms Mai An ULIS</p>
+            </header>
+
+            <div id="quizContainer">
+                </div>
+
+            <div class="submit-wrap">
+                <button class="btn-submit" onclick="requestSubmit()">🎯 NỘP BÀI & XEM KẾT QUẢ</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="nameModal">
+        <div class="modal-content">
+            <h2>Nhập tên thợ lặn 🤿</h2>
+            <p style="margin-bottom: 20px; color: #0077b6; font-weight: 700; font-size: 1.1rem;">Hãy cho cô biết ai đang làm bài xuất sắc thế này?</p>
+            <input type="text" class="name-input" id="studentName" placeholder="Ví dụ: Nguyễn Văn A...">
+            <button class="btn-action" onclick="processSubmit()">Xác Nhận & Nộp Bài</button>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="resultModal">
+        <div class="modal-content">
+            <h2 id="resultGreeting">🌟 THIÊN TÀI!</h2>
+            <p style="font-size: 1.2rem; font-weight: 700; color: #0077b6;">Số kho báu con thu thập được:</p>
+            <div class="score-display" id="resultScore">10 / 20</div>
+            <img src="" alt="Meme Result" class="result-gif" id="resultImg">
+            <button class="btn-action" onclick="location.reload()">Chơi Lại Từ Đầu 🔄</button>
+        </div>
+    </div>
+
+<script>
+// --- CẤU HÌNH BẢO MẬT & ÂM THANH ---
+// Mật khẩu đã được mã hóa base64 để không lộ plain text (pass: cogangdatdiemcao)
+const _pwEnc = "Y29nYW5nZGF0ZGllbWNhbw=="; 
+
+// Âm thanh
+const introAudio = new Audio("https://hoctienganhcungcomaianulis.github.io/homework/%E1%BA%A2nh_File%20nghe/Sound/export_7wcKV5pKUrQYWyi7XgktJM.mp3");
+const wrongAudio = new Audio("https://hoctienganhcungcomaianulis.github.io/homework/%E1%BA%A2nh_File%20nghe/File%20nghe%20Ket%20A2/huh_sound_effect-www_tiengdong_com.mp3");
+
+// Check Password Logic
+function checkPassword() {
+    const inp = document.getElementById('pwInput');
+    const err = document.getElementById('pwErr');
+    if (inp.value === atob(_pwEnc)) {
+        document.getElementById('passwordModal').style.display = 'none';
+        document.getElementById('mainContent').style.display = 'block';
+        
+        // Phát âm thanh nhắc nhở
+        introAudio.play().catch(e => console.log("Trình duyệt chặn tự động phát âm thanh.", e));
+        
+        // Khởi tạo hiệu ứng bay Đại dương
+        createOceanShapes();
+    } else {
+        inp.classList.remove('error'); void inp.offsetWidth; inp.classList.add('error');
+        err.style.display = 'block'; setTimeout(() => inp.classList.remove('error'), 500);
+    }
+}
+document.addEventListener('DOMContentLoaded', () => {
+    const pwInput = document.getElementById('pwInput');
+    if(pwInput) pwInput.addEventListener('keydown', e => { if (e.key==='Enter') checkPassword(); });
+});
+
+// --- DATABASE CÂU HỎI (ĐỀ 05) ---
+const quizData = [
+    {
+        id: 1,
+        question: "Mark the word whose underlined part differs from the other three in pronunciation:<br><br>tour<u>ed</u> &nbsp;&nbsp;&nbsp; jump<u>ed</u> &nbsp;&nbsp;&nbsp; solv<u>ed</u> &nbsp;&nbsp;&nbsp; rain<u>ed</u>",
+        options: [
+            { text: "toured", isCorrect: false },
+            { text: "jumped", isCorrect: true },
+            { text: "solved", isCorrect: false },
+            { text: "rained", isCorrect: false }
+        ],
+        explanation: `
+            <span class="vn-translate">Dịch đề: Chọn từ có phần gạch chân phát âm khác với ba từ còn lại.</span>
+            <strong>1. Phân tích từ vựng 4 đáp án:</strong><br>
+            - <span class='p-word'>toured</span> <span class='p-phonetic'>/tʊərd/</span>: <span class='p-mean'>đi du lịch</span><br>
+            - <span class='p-word'>jumped</span> <span class='p-phonetic'>/dʒʌmpt/</span>: <span class='p-mean'>nhảy</span><br>
+            - <span class='p-word'>solved</span> <span class='p-phonetic'>/sɑːlvd/</span>: <span class='p-mean'>giải quyết</span><br>
+            - <span class='p-word'>rained</span> <span class='p-phonetic'>/reɪnd/</span>: <span class='p-mean'>mưa</span><br>
+            <strong>2. Tại sao chọn "jumped"?</strong><br>
+            Phần gạch chân đuôi "-ed" của từ "jumped" được phát âm là <span class='p-phonetic'>/t/</span> vì từ gốc kết thúc bằng âm vô thanh /p/. <span class='hl-green'>Correct</span><br>
+            <strong>3. Tại sao các đáp án khác sai?</strong><br>
+            Các từ "toured", "solved", "rained" có âm cuối đều là các âm hữu thanh (/r/, /v/, /n/) nên đuôi -ed của chúng được phát âm là <span class='p-phonetic'>/d/</span>. <span class='hl-red'>Incorrect</span>
+        `
+    },
+    {
+        id: 2,
+        question: "Mark the word whose underlined part differs from the other three in pronunciation:<br><br>approach<u>es</u> &nbsp;&nbsp;&nbsp; wash<u>es</u> &nbsp;&nbsp;&nbsp; notic<u>es</u> &nbsp;&nbsp;&nbsp; love<u>s</u>",
+        options: [
+            { text: "approaches", isCorrect: false },
+            { text: "washes", isCorrect: false },
+            { text: "notices", isCorrect: false },
+            { text: "loves", isCorrect: true }
+        ],
+        explanation: `
+            <span class="vn-translate">Dịch đề: Chọn từ có phần gạch chân phát âm khác với ba từ còn lại.</span>
+            <strong>1. Phân tích từ vựng 4 đáp án:</strong><br>
+            - <span class='p-word'>approaches</span> <span class='p-phonetic'>/əˈproʊtʃɪz/</span>: <span class='p-mean'>tiếp cận</span><br>
+            - <span class='p-word'>washes</span> <span class='p-phonetic'>/ˈwɑːʃɪz/</span>: <span class='p-mean'>rửa</span><br>
+            - <span class='p-word'>notices</span> <span class='p-phonetic'>/ˈnoʊtɪsɪz/</span>: <span class='p-mean'>chú ý</span><br>
+            - <span class='p-word'>loves</span> <span class='p-phonetic'>/lʌvz/</span>: <span class='p-mean'>yêu</span><br>
+            <strong>2. Tại sao chọn "loves"?</strong><br>
+            Đuôi "-s" trong từ "loves" được phát âm là <span class='p-phonetic'>/z/</span> do từ gốc kết thúc bằng âm hữu thanh /v/. <span class='hl-green'>Correct</span><br>
+            <strong>3. Tại sao các đáp án khác sai?</strong><br>
+            Các từ còn lại đều tận cùng bằng các âm rít (/tʃ/, /ʃ/, /s/) nên đuôi -es được phát âm thành một âm tiết riêng biệt là <span class='p-phonetic'>/ɪz/</span>. <span class='hl-red'>Incorrect</span>
+        `
+    },
+    {
+        id: 3,
+        question: "Mark the word that differs from the other three in the position of primary stress:<br><br>submit &nbsp;&nbsp;&nbsp; install &nbsp;&nbsp;&nbsp; happen &nbsp;&nbsp;&nbsp; attend",
+        options: [
+            { text: "submit", isCorrect: false },
+            { text: "install", isCorrect: false },
+            { text: "happen", isCorrect: true },
+            { text: "attend", isCorrect: false }
+        ],
+        explanation: `
+            <span class="vn-translate">Dịch đề: Chọn từ có vị trí trọng âm chính khác với ba từ còn lại.</span>
+            <strong>1. Phân tích trọng âm 4 đáp án:</strong><br>
+            - <span class='p-word'>submit</span> <span class='p-phonetic'>/səbˈmɪt/</span>: <span class='p-mean'>nộp (bài)</span> (Trọng âm 2)<br>
+            - <span class='p-word'>install</span> <span class='p-phonetic'>/ɪnˈstɔːl/</span>: <span class='p-mean'>cài đặt</span> (Trọng âm 2)<br>
+            - <span class='p-word'>happen</span> <span class='p-phonetic'>/ˈhæpən/</span>: <span class='p-mean'>xảy ra</span> (Trọng âm 1)<br>
+            - <span class='p-word'>attend</span> <span class='p-phonetic'>/əˈtend/</span>: <span class='p-mean'>tham dự</span> (Trọng âm 2)<br>
+            <strong>2. Tại sao chọn "happen"?</strong><br>
+            Từ này có trọng âm rơi vào âm tiết thứ nhất. <span class='hl-green'>Correct</span><br>
+            <strong>3. Tại sao các đáp án khác sai?</strong><br>
+            Ba từ còn lại (submit, install, attend) đều là động từ 2 âm tiết có trọng âm rơi vào âm tiết thứ hai. <span class='hl-red'>Incorrect</span>
+        `
+    },
+    {
+        id: 4,
+        question: "Mark the word that differs from the other three in the position of primary stress:<br><br>eradicate &nbsp;&nbsp;&nbsp; observation &nbsp;&nbsp;&nbsp; accompany &nbsp;&nbsp;&nbsp; traditional",
+        options: [
+            { text: "eradicate", isCorrect: false },
+            { text: "observation", isCorrect: true },
+            { text: "accompany", isCorrect: false },
+            { text: "traditional", isCorrect: false }
+        ],
+        explanation: `
+            <span class="vn-translate">Dịch đề: Chọn từ có vị trí trọng âm chính khác với ba từ còn lại.</span>
+            <strong>1. Phân tích trọng âm 4 đáp án:</strong><br>
+            - <span class='p-word'>eradicate</span> <span class='p-phonetic'>/ɪˈrædɪkeɪt/</span>: <span class='p-mean'>tiêu diệt, xóa bỏ</span> (Trọng âm 2)<br>
+            - <span class='p-word'>observation</span> <span class='p-phonetic'>/ˌɒbzəˈveɪʃn/</span>: <span class='p-mean'>sự quan sát</span> (Trọng âm 3)<br>
+            - <span class='p-word'>accompany</span> <span class='p-phonetic'>/əˈkʌmpəni/</span>: <span class='p-mean'>đồng hành</span> (Trọng âm 2)<br>
+            - <span class='p-word'>traditional</span> <span class='p-phonetic'>/trəˈdɪʃənl/</span>: <span class='p-mean'>thuộc truyền thống</span> (Trọng âm 2)<br>
+            <strong>2. Tại sao chọn "observation"?</strong><br>
+            Từ có đuôi "-tion" thường có trọng âm rơi vào âm tiết ngay trước nó (vei). Do đó trọng âm rơi vào âm tiết thứ 3. <span class='hl-green'>Correct</span><br>
+            <strong>3. Tại sao các đáp án khác sai?</strong><br>
+            Ba từ còn lại đều có trọng âm rơi vào âm tiết thứ hai. <span class='hl-red'>Incorrect</span>
+        `
+    },
+    {
+        id: 5,
+        question: "______ you study for these exams, ______ you will do, even with difficult reading topics.",
+        options: [
+            { text: "The harder / the better", isCorrect: true },
+            { text: "The more / the much", isCorrect: false },
+            { text: "The hardest / the best", isCorrect: false },
+            { text: "The more hard / the more good", isCorrect: false }
+        ],
+        explanation: `
+            <span class="vn-translate">Dịch đề: Bạn càng học hành chăm chỉ cho những bài thi này, bạn càng làm bài tốt, kể cả với những chủ đề đọc khó.</span>
+            <strong>1. Phân tích các đáp án:</strong><br>
+            - <span class='p-word'>The harder / the better</span>: <span class='p-mean'>Càng chăm / càng tốt</span><br>
+            - Các đáp án còn lại chia sai cấu trúc hoặc dùng sai dạng từ ngữ.<br>
+            <strong>2. Tại sao chọn "The harder / the better"?</strong><br>
+            Câu theo mẫu quan hệ tăng giảm. Cấu trúc chuẩn: <span class='p-grammar'>The + so sánh hơn + S + V, the + so sánh hơn + S + V</span> (Càng... thì càng...). "Hard" và "good" có dạng so sánh hơn là "harder" và "better". <span class='hl-green'>Correct</span><br>
+            <strong>3. Tại sao các đáp án khác sai?</strong><br>
+            - "The more/the much" thiếu tính từ so sánh hơn ở cả 2 vế. <span class='hl-red'>Incorrect</span><br>
+            - "The hardest/the best" là so sánh nhất, không dùng cho cấu trúc này. <span class='hl-red'>Incorrect</span><br>
+            - "The more hard/the more good" sai dạng từ vì hard là từ ngắn (phải thêm er), còn good là bất quy tắc (thành better). <span class='hl-red'>Incorrect</span>
+        `
+    },
+    {
+        id: 6,
+        question: "We ______ the school trip to the countryside because we want to visit a real rice farm.",
+        options: [
+            { text: "look forward to", isCorrect: true },
+            { text: "break down", isCorrect: false },
+            { text: "take away", isCorrect: false },
+            { text: "put out", isCorrect: false }
+        ],
+        explanation: `
+            <span class="vn-translate">Dịch đề: Chúng tôi rất mong đợi chuyến đi của trường về vùng nông thôn vì chúng tôi muốn đi thăm một trang trại lúa thực thụ.</span>
+            <strong>1. Phân tích cụm động từ (Phrasal Verbs):</strong><br>
+            - <span class='p-word'>look forward to</span>: <span class='p-mean'>mong đợi, ngóng chờ</span><br>
+            - <span class='p-word'>break down</span>: <span class='p-mean'>hỏng hóc (máy móc), suy sụp</span><br>
+            - <span class='p-word'>take away</span>: <span class='p-mean'>mang đi, mua đồ ăn mang về</span><br>
+            - <span class='p-word'>put out</span>: <span class='p-mean'>dập tắt (lửa)</span><br>
+            <strong>2. Tại sao chọn "look forward to"?</strong><br>
+            Ý nghĩa câu đang nói về một sự việc hào hứng sắp tới (chuyến đi dã ngoại) nên điền "look forward to" là hoàn toàn phù hợp ngữ cảnh. <span class='hl-green'>Correct</span><br>
+            <strong>3. Tại sao các đáp án khác sai?</strong><br>
+            Các cụm từ còn lại khi lắp vào câu sẽ làm câu bị vô nghĩa. Không thể "dập tắt" hay "hỏng hóc" chuyến đi của trường được. <span class='hl-red'>Incorrect</span>
+        `
+    },
+    {
+        id: 7,
+        question: "During Tet, my village held a ______ welcome party for returning relatives, with music and traditional games.",
+        options: [
+            { text: "specialization", isCorrect: false },
+            { text: "specially", isCorrect: false },
+            { text: "specialize", isCorrect: false },
+            { text: "special", isCorrect: true }
+        ],
+        explanation: `
+            <span class="vn-translate">Dịch đề: Trong dịp Tết, làng tôi đã tổ chức một bữa tiệc chào mừng đặc biệt cho những người họ hàng trở về, với âm nhạc và các trò chơi truyền thống.</span>
+            <strong>1. Phân tích từ loại:</strong><br>
+            - <span class='p-word'>specialization</span> (n): <span class='p-mean'>sự chuyên môn hóa</span><br>
+            - <span class='p-word'>specially</span> (adv): <span class='p-mean'>một cách đặc biệt</span><br>
+            - <span class='p-word'>specialize</span> (v): <span class='p-mean'>chuyên về</span><br>
+            - <span class='p-word'>special</span> (adj): <span class='p-mean'>đặc biệt</span><br>
+            <strong>2. Tại sao chọn "special"?</strong><br>
+            Chỗ trống nằm trước cụm danh từ "welcome party", vậy chúng ta cần một <span class='p-grammar'>Tính từ (Adjective)</span> để bổ nghĩa cho danh từ đó (bữa tiệc như thế nào? -> bữa tiệc đặc biệt). <span class='hl-green'>Correct</span><br>
+            <strong>3. Tại sao các đáp án khác sai?</strong><br>
+            Danh từ, Trạng từ hay Động từ đều không thể đứng trực tiếp trước "welcome party" để làm tính từ bổ nghĩa được. <span class='hl-red'>Incorrect</span>
+        `
+    },
+    {
+        id: 8,
+        question: "Joanna is inviting Sally to go out with her.<br>Joanna: \"Well, would you like to come out for dinner? Let's go somewhere this evening.\"<br>Sally: \"______\"",
+        options: [
+            { text: "Really? I'd love to.", isCorrect: true },
+            { text: "How do you feel about it?", isCorrect: false },
+            { text: "Shall we go out tonight?", isCorrect: false },
+            { text: "I love going out.", isCorrect: false }
+        ],
+        explanation: `
+            <span class="vn-translate">Dịch đề: Joanna đang rủ Sally đi chơi cùng cô ấy.<br>Joanna: "À này, cậu có muốn ra ngoài ăn tối không? Hãy đi đâu đó tối nay nhé."<br>Sally: "Thật sao? Tớ rất thích."</span>
+            <strong>1. Phân tích các lời đáp:</strong><br>
+            - <span class='p-word'>Really? I'd love to.</span>: <span class='p-mean'>Thật sao? Tớ rất muốn/rất thích.</span><br>
+            - <span class='p-word'>How do you feel about it?</span>: <span class='p-mean'>Cậu cảm thấy thế nào về điều đó?</span><br>
+            - <span class='p-word'>Shall we go out tonight?</span>: <span class='p-mean'>Chúng ta đi chơi tối nay nhé?</span><br>
+            - <span class='p-word'>I love going out.</span>: <span class='p-mean'>Tớ thích đi chơi.</span><br>
+            <strong>2. Tại sao chọn "Really? I'd love to."?</strong><br>
+            Câu của Joanna mang cấu trúc "Would you like to...?" dùng để đưa ra lời mời. Để đáp lại một cách lịch sự và đồng ý, mẫu câu <span class='p-grammar'>I'd love to</span> (Tôi rất sẵn lòng) là lựa chọn chuẩn xác nhất trong tiếng Anh giao tiếp. <span class='hl-green'>Correct</span><br>
+            <strong>3. Tại sao các đáp án khác sai?</strong><br>
+            - Không ai đi hỏi ngược lại cảm nhận của người vừa mời mình (loại B).<br>
+            - Joanna vừa rủ đi tối nay xong lại đi rủ ngược lại bằng "Shall we...?" (loại C).<br>
+            - "I love going out" chỉ là nêu sở thích chung chung, không trực tiếp nhận lời mời. <span class='hl-red'>Incorrect</span>
+        `
+    },
+    {
+        id: 9,
+        question: "The old photographs were mostly in ______ black and white.",
+        options: [
+            { text: "Ø / Ø (no articles)", isCorrect: true },
+            { text: "the / Ø", isCorrect: false },
+            { text: "a / a", isCorrect: false },
+            { text: "Ø / the", isCorrect: false }
+        ],
+        explanation: `
+            <span class="vn-translate">Dịch đề: Những bức ảnh cũ chủ yếu có màu đen và trắng.</span>
+            <strong>1. Phân tích ngữ pháp:</strong><br>
+            - Câu này sử dụng cụm từ cố định chỉ màu sắc "black and white" (đen trắng).<br>
+            <strong>2. Tại sao chọn "Ø / Ø (no articles)"?</strong><br>
+            Theo quy tắc <span class='p-grammar'>Mạo từ (Articles)</span>, trước các danh từ chỉ màu sắc chung chung, ta KHÔNG sử dụng bất kỳ mạo từ nào. <span class='hl-green'>Correct</span><br>
+            <strong>3. Tại sao các đáp án khác sai?</strong><br>
+            Sử dụng "the" hay "a" trước màu sắc trong trường hợp này đều sai hoàn toàn về ngữ pháp. <span class='hl-red'>Incorrect</span>
+        `
+    },
+    {
+        id: 10,
+        question: "______ your brother ______ out with you at the moment?",
+        options: [
+            { text: "Is / going", isCorrect: true },
+            { text: "Are / going", isCorrect: false },
+            { text: "Was / going", isCorrect: false },
+            { text: "Does / going", isCorrect: false }
+        ],
+        explanation: `
+            <span class="vn-translate">Dịch đề: Anh trai của bạn đang đi chơi cùng bạn vào lúc này phải không?</span>
+            <strong>1. Phân tích các dấu hiệu:</strong><br>
+            - Dấu hiệu nhận biết: cụm từ <span class='p-word'>"at the moment"</span> (ngay lúc này).<br>
+            - Chủ ngữ: "your brother" (số ít).<br>
+            <strong>2. Tại sao chọn "Is / going"?</strong><br>
+            "At the moment" là dấu hiệu đặc trưng của <span class='p-grammar'>Thì hiện tại tiếp diễn (S + am/is/are + V-ing)</span>. Với chủ ngữ số ít "brother", ta dùng trợ động từ to-be là "Is". <span class='hl-green'>Correct</span><br>
+            <strong>3. Tại sao các đáp án khác sai?</strong><br>
+            - Dùng "Are" sai vì chủ ngữ số ít. <span class='hl-red'>Incorrect</span><br>
+            - Dùng "Was" là thì quá khứ tiếp diễn, mâu thuẫn với "at the moment". <span class='hl-red'>Incorrect</span><br>
+            - Dùng "Does" đi chung với V-ing "going" là lỗi ngữ pháp cơ bản. <span class='hl-red'>Incorrect</span>
+        `
+    },
+    {
+        id: 11,
+        question: "If it ______ convenient, let's visit the local market this evening.",
+        options: [
+            { text: "be", isCorrect: false },
+            { text: "is", isCorrect: true },
+            { text: "was", isCorrect: false },
+            { text: "were", isCorrect: false }
+        ],
+        explanation: `
+            <span class="vn-translate">Dịch đề: Nếu tiện, tối nay chúng ta hãy đi thăm khu chợ địa phương nhé.</span>
+            <strong>1. Phân tích loại câu điều kiện:</strong><br>
+            - Mệnh đề chính: "let's visit..." (hãy đi thăm... - mang ý nghĩa gợi ý cho tương lai gần/hiện tại).<br>
+            <strong>2. Tại sao chọn "is"?</strong><br>
+            Đây là <span class='p-grammar'>Câu điều kiện loại 1</span> dùng để nói về một khả năng có thể xảy ra ở hiện tại hoặc tương lai. Mệnh đề If phải chia ở thì Hiện tại đơn: "If it is...". <span class='hl-green'>Correct</span><br>
+            <strong>3. Tại sao các đáp án khác sai?</strong><br>
+            - Dùng nguyên mẫu "be" là sai ngữ pháp chia động từ theo chủ ngữ "it". <span class='hl-red'>Incorrect</span><br>
+            - "was" hay "were" là quá khứ đơn, chỉ dùng cho câu điều kiện loại 2 (giả định không có thật). <span class='hl-red'>Incorrect</span>
+        `
+    },
+    {
+        id: 12,
+        question: "This shirt is cheap enough ______ two, so I buy one for my brother too.",
+        options: [
+            { text: "pay", isCorrect: false },
+            { text: "paying", isCorrect: false },
+            { text: "to pay for", isCorrect: true },
+            { text: "to paying for", isCorrect: false }
+        ],
+        explanation: `
+            <span class="vn-translate">Dịch đề: Cái áo này đủ rẻ để mua hai cái, vì vậy tôi mua luôn một cái cho anh trai tôi.</span>
+            <strong>1. Phân tích cấu trúc ngữ pháp:</strong><br>
+            - Dấu hiệu: từ "enough" đứng sau tính từ "cheap".<br>
+            <strong>2. Tại sao chọn "to pay for"?</strong><br>
+            Ta có cấu trúc cố định chỉ mức độ: <span class='p-grammar'>Adj + enough + (for sb) + to V</span> (Đủ... để làm gì). Phía sau "to" phải là động từ nguyên thể, và có "for" để nối với tân ngữ "two" (hai cái áo). <span class='hl-green'>Correct</span><br>
+            <strong>3. Tại sao các đáp án khác sai?</strong><br>
+            - "pay" đứng trơ trọi thiếu "to". <span class='hl-red'>Incorrect</span><br>
+            - "paying" (V-ing) không đi sau cấu trúc enough. <span class='hl-red'>Incorrect</span><br>
+            - "to paying for" là một sự kết hợp sai lệch giữa To-V và V-ing. <span class='hl-red'>Incorrect</span>
+        `
+    },
+    {
+        id: 17,
+        question: "Choose the sentence that can best fill in blank (17).<br><br>Living in a big city can feel exciting, but it can also be tiring. Many students enjoy the easy access to libraries, cafés, and part-time jobs after class. Public transport usually helps them save time, even when the streets are busy. (17) ______ People may hear loud traffic at night, and they might miss quiet places to relax.",
+        options: [
+            { text: "Still, the crowded space and constant noise can quickly drain your energy.", isCorrect: true },
+            { text: "City apartments are small, so many people buy expensive storage boxes.", isCorrect: false },
+            { text: "Because the city never sleeps, everyone should work late every evening.", isCorrect: false },
+            { text: "In the end, living in the city is always better than living outside.", isCorrect: false }
+        ],
+        explanation: `
+            <span class="vn-translate">Dịch đoạn văn: Sống ở thành phố lớn có thể thú vị, nhưng cũng mệt mỏi. Nhiều sinh viên thích sự tiện lợi... (17) ______ Người ta có thể nghe tiếng xe cộ ồn ào vào ban đêm, và nhớ những nơi yên tĩnh.</span>
+            <strong>1. Phân tích mạch văn:</strong><br>
+            - Câu trước nói về **điểm tích cực** (ưu điểm) của thành phố: tiện lợi, tiết kiệm thời gian.<br>
+            - Câu sau trống (17) nói về **điểm tiêu cực**: ồn ào ban đêm, thiếu chỗ yên tĩnh.<br>
+            - Do đó, câu (17) phải là câu **chuyển ý**, rẽ nhánh sang nói về mặt trái của thành phố.<br>
+            <strong>2. Tại sao chọn "Still, the crowded space and constant noise..."?</strong><br>
+            Câu này dịch là: "Tuy nhiên, không gian chật chội và tiếng ồn liên tục có thể nhanh chóng làm bạn kiệt sức." Từ "Still" đóng vai trò tạo sự tương phản, và cụm "constant noise" khớp hoàn hảo với ý "loud traffic" ở câu sau. <span class='hl-green'>Correct</span><br>
+            <strong>3. Tại sao các đáp án khác sai?</strong><br>
+            - Mua hộp đựng đắt tiền (B) không hề liên quan đến tiếng ồn. <span class='hl-red'>Incorrect</span><br>
+            - Khuyên mọi người làm việc muộn (C) hoàn toàn lệch mạch văn. <span class='hl-red'>Incorrect</span><br>
+            - Khen sống ở thành phố luôn tốt hơn (D) đi ngược lại với việc tác giả đang muốn nhắc đến nhược điểm. <span class='hl-red'>Incorrect</span>
+        `
+    },
+    {
+        id: 18,
+        question: "Put the sentences (a-c) in the correct order to make a logical text following the previous paragraph:<br><br>a. For example, you can visit a nearby park, or sit quietly and breathe slowly.<br>b. One helpful habit is planning small breaks so your body can recover each day.<br>c. You can also turn off some notifications, so your mind stays focused and calm.",
+        options: [
+            { text: "a - b - c", isCorrect: false },
+            { text: "b - a - c", isCorrect: true },
+            { text: "a - c - b", isCorrect: false },
+            { text: "c - a - b", isCorrect: false }
+        ],
+        explanation: `
+            <span class="vn-translate">Dịch các câu ghép: a. Ví dụ, bạn có thể ghé thăm một công viên gần đó, hoặc ngồi yên tĩnh và thở chậm. / b. Một thói quen hữu ích là lên kế hoạch cho những khoảng nghỉ ngơi ngắn để cơ thể phục hồi mỗi ngày. / c. Bạn cũng có thể tắt một số thông báo, để tâm trí luôn tập trung và bình tĩnh.</span>
+            <strong>1. Phân tích logic đoạn văn:</strong><br>
+            - Đoạn trước đang nói về làm sao để quản lý thời gian và tận hưởng thành phố mà không bị "quá tải".<br>
+            - Câu (b) đưa ra một giải pháp khái quát: "Lên kế hoạch nghỉ ngơi".<br>
+            - Câu (a) bắt đầu bằng "For example" (Ví dụ như...) dùng để làm rõ, cụ thể hóa cho kế hoạch nghỉ ngơi ở câu (b).<br>
+            - Câu (c) dùng "also" (cũng có thể) để thêm một giải pháp khác ngoài việc nghỉ ngơi thực tế (đó là tắt thông báo điện thoại).<br>
+            <strong>2. Tại sao chọn thứ tự "b - a - c"?</strong><br>
+            Mạch logic chuẩn xác: Nêu giải pháp chung (b) -> Đưa ví dụ minh chứng cho giải pháp đó (a) -> Đề xuất thêm giải pháp bổ sung (c). <span class='hl-green'>Correct</span><br>
+            <strong>3. Tại sao các đáp án khác sai?</strong><br>
+            - Nếu để (a) lên đầu thì tự nhiên lại nhảy bổ vào "Ví dụ như..." trong khi chưa nhắc đến chủ đề gì. <span class='hl-red'>Incorrect</span><br>
+            - Nếu để (c) lên đầu thì từ "also" bị vô duyên vì chưa nhắc gì trước đó mà đã "bạn cũng có thể". <span class='hl-red'>Incorrect</span>
+        `
+    },
+    {
+        id: 25,
+        question: "Peter said \"I wish I hadn't lent him some money.\"<br>(Choose the closest in meaning)",
+        options: [
+            { text: "Peter regretted lending him some money.", isCorrect: true },
+            { text: "Peter thanked him for lending him some money.", isCorrect: false },
+            { text: "Peter wished not to lend him some money.", isCorrect: false },
+            { text: "Peter suggested not lending him some money.", isCorrect: false }
+        ],
+        explanation: `
+            <span class="vn-translate">Dịch đề: Peter nói "Tôi ước gì mình đã không cho anh ta mượn tiền." (Chọn câu đồng nghĩa)</span>
+            <strong>1. Phân tích nghĩa 4 đáp án:</strong><br>
+            - <span class='p-word'>regretted lending</span>: <span class='p-mean'>hối hận vì đã cho mượn</span><br>
+            - <span class='p-word'>thanked him for lending</span>: <span class='p-mean'>cảm ơn anh ta vì đã cho mượn</span><br>
+            - <span class='p-word'>wished not to lend</span>: <span class='p-mean'>mong ước sẽ không cho mượn (sai cấu trúc hối hận)</span><br>
+            - <span class='p-word'>suggested not lending</span>: <span class='p-mean'>gợi ý/khuyên không cho mượn</span><br>
+            <strong>2. Tại sao chọn "Peter regretted lending..."?</strong><br>
+            Câu gốc dùng cấu trúc "wish + Quá khứ hoàn thành" thể hiện một sự nuối tiếc, hối hận về một việc đã xảy ra trong quá khứ. Cấu trúc tường thuật tương đương chính xác nhất là <span class='p-grammar'>regret + V-ing</span> (Hối tiếc vì ĐÃ làm việc gì). <span class='hl-green'>Correct</span><br>
+            <strong>3. Tại sao các đáp án khác sai?</strong><br>
+            Cảm ơn (thanked) hay Đề nghị (suggested) đều làm lệch hẳn ý nghĩa của câu cảm thán đầy hối hận ban đầu. <span class='hl-red'>Incorrect</span>
+        `
+    },
+    {
+        id: 26,
+        question: "If you want to keep your eyes healthy, you must see a doctor right away.<br>(Choose the closest in meaning)",
+        options: [
+            { text: "Unless you want to keep your eyes healthy, you mustn't see a doctor right away.", isCorrect: false },
+            { text: "Only by seeing a doctor right away can you keep your eyes healthy.", isCorrect: true },
+            { text: "Provided that you must see a doctor right away, you can keep your eyes healthy.", isCorrect: false },
+            { text: "If you did see a doctor right away, you couldn't keep your eyes healthy.", isCorrect: false }
+        ],
+        explanation: `
+            <span class="vn-translate">Dịch đề: Nếu bạn muốn giữ cho đôi mắt của mình khỏe mạnh, bạn phải đi khám bác sĩ ngay lập tức. (Chọn câu đồng nghĩa)</span>
+            <strong>1. Phân tích cấu trúc 4 đáp án:</strong><br>
+            - <span class='p-word'>Unless... you mustn't see...</span>: <span class='p-mean'>Trừ khi bạn muốn giữ mắt khỏe, bạn không được đi khám (Sai logic)</span><br>
+            - <span class='p-word'>Only by seeing... can you...</span>: <span class='p-mean'>Chỉ bằng cách đi khám bác sĩ ngay, bạn mới có thể...</span><br>
+            - <span class='p-word'>Provided that you must see...</span>: <span class='p-mean'>Chỉ cần bạn "phải" đi khám... (Sai ngữ pháp lủng củng)</span><br>
+            - <span class='p-word'>If you did see... you couldn't...</span>: <span class='p-mean'>Nếu bạn đã đi khám, bạn đã không thể giữ mắt khỏe (Sai nghĩa hoàn toàn)</span><br>
+            <strong>2. Tại sao chọn "Only by seeing a doctor..."?</strong><br>
+            Cấu trúc đảo ngữ <span class='p-grammar'>Only by + V-ing + Trợ Động Từ + S + V</span> dùng để nhấn mạnh điều kiện duy nhất để đạt được kết quả, rất phù hợp với ý "must see" (bắt buộc phải gặp bác sĩ) của câu gốc. <span class='hl-green'>Correct</span><br>
+            <strong>3. Tại sao các đáp án khác sai?</strong><br>
+            Đưa "Unless" (trừ khi) hoặc đảo ngược thành phủ định (couldn't) làm cho câu bị sai hoàn toàn về mặt logic bảo vệ sức khỏe. <span class='hl-red'>Incorrect</span>
+        `
+    },
+    {
+        id: 27,
+        question: "Make a sentence from cues:<br>If / we / reduce plastic waste / on beaches / sea turtles / have / safer places / nest.",
+        options: [
+            { text: "If we reduce plastic waste on beaches, sea turtles are having safer places to nest.", isCorrect: false },
+            { text: "If we reduce plastic waste on beaches, sea turtles will have safer places to nest.", isCorrect: true },
+            { text: "If we have reduced plastic waste on beaches, sea turtles would have safer places to nest.", isCorrect: false },
+            { text: "If we reduce plastic waste on the beaches, sea turtles will have safer places nesting there.", isCorrect: false }
+        ],
+        explanation: `
+            <span class="vn-translate">Dịch câu hoàn chỉnh: Nếu chúng ta giảm rác thải nhựa trên các bãi biển, rùa biển sẽ có những nơi an toàn hơn để làm tổ.</span>
+            <strong>1. Phân tích ngữ pháp cần thiết:</strong><br>
+            - Câu này nêu lên một hành động hoàn toàn có thể thực hiện và hệ quả hiển nhiên ở tương lai. Do đó phải dùng <span class='p-grammar'>Câu điều kiện loại 1 (If + Hiện tại đơn, Tương lai đơn)</span>.<br>
+            - Cấu trúc chỉ mục đích: <span class='p-grammar'>places to nest</span> (nơi ĐỂ làm tổ).<br>
+            <strong>2. Tại sao chọn "If we reduce..., sea turtles will have..."?</strong><br>
+            Vế If chia Hiện tại đơn (reduce), vế chính chia Tương lai đơn (will have). Cấu trúc To-V (to nest) đặt cuối câu cực kỳ chuẩn xác. <span class='hl-green'>Correct</span><br>
+            <strong>3. Tại sao các đáp án khác sai?</strong><br>
+            - Dùng "are having" là thì hiện tại tiếp diễn, sai cấu trúc câu điều kiện. <span class='hl-red'>Incorrect</span><br>
+            - Dùng "have reduced... would have" là sự pha trộn lộn xộn giữa các loại câu điều kiện. <span class='hl-red'>Incorrect</span><br>
+            - Dùng "places nesting there" sai cấu trúc ngữ pháp chỉ mục đích. <span class='hl-red'>Incorrect</span>
+        `
+    },
+    {
+        id: 28,
+        question: "Make a sentence from cues:<br>By the time / I / get home / work / all my children / go to sleep.",
+        options: [
+            { text: "By the time I got home from work, all my children were going to sleep.", isCorrect: false },
+            { text: "By the time I had got home from work, all my children went to sleep.", isCorrect: false },
+            { text: "By the time I get home from work, all my children will go to sleep.", isCorrect: false },
+            { text: "By the time I got home from work, all my children had gone to sleep.", isCorrect: true }
+        ],
+        explanation: `
+            <span class="vn-translate">Dịch câu hoàn chỉnh: Vào lúc tôi đi làm về đến nhà, tất cả các con tôi đã đi ngủ hết rồi.</span>
+            <strong>1. Phân tích cấu trúc thời gian "By the time":</strong><br>
+            - "By the time" (Vào lúc/Khi mà) dùng trong quá khứ thường đi với cấu trúc nhấn mạnh một việc ĐÃ HOÀN TẤT trước một việc khác: <span class='p-grammar'>By the time + S + V(quá khứ đơn), S + had + PII (quá khứ hoàn thành)</span>.<br>
+            <strong>2. Tại sao chọn "By the time I got home..., all my children had gone..."?</strong><br>
+            Hành động "về nhà" chia quá khứ đơn (got). Hành động "con đi ngủ" đã hoàn thành TRƯỚC LÚC về nhà, nên chia quá khứ hoàn thành (had gone). Rất chuẩn xác! <span class='hl-green'>Correct</span><br>
+            <strong>3. Tại sao các đáp án khác sai?</strong><br>
+            - "were going" mang nghĩa "đang đi ngủ" (chưa ngủ hẳn), sai ý hoàn tất. <span class='hl-red'>Incorrect</span><br>
+            - Đảo ngược thì (had got ... went) là sai logic thời gian trước/sau. <span class='hl-red'>Incorrect</span><br>
+            - "get ... will go" là câu diễn tả tương lai, nhưng trong bộ các đáp án thì câu (D) phù hợp và chuẩn mực nhất với cues cho sẵn. <span class='hl-red'>Incorrect</span>
+        `
+    },
+    {
+        id: 29,
+        question: "What does the notice mean?<br><br><div class='electric-sign'><h2>DON'T LEAVE RUBBISH<br>IN OUR WOODS.</h2><p>TAKE IT HOME!</p></div>",
+        options: [
+            { text: "Take away all rubbish, including other people's rubbish.", isCorrect: false },
+            { text: "Do not enter the woods at any time.", isCorrect: false },
+            { text: "Do not leave the woods without rubbish.", isCorrect: false },
+            { text: "You cannot leave your rubbish here at all!", isCorrect: true }
+        ],
+        explanation: `
+            <span class="vn-translate">Dịch biển báo: ĐỪNG ĐỂ LẠI RÁC TRONG KHU RỪNG NÀY. HÃY MANG NÓ VỀ NHÀ!</span>
+            <strong>1. Phân tích các đáp án:</strong><br>
+            - <span class='p-word'>Take away all rubbish, including other people's...</span>: <span class='p-mean'>Mang đi tất cả rác, kể cả rác của người khác (Quá lời).</span><br>
+            - <span class='p-word'>Do not enter the woods at any time.</span>: <span class='p-mean'>Không bao giờ được vào rừng.</span><br>
+            - <span class='p-word'>Do not leave the woods without rubbish.</span>: <span class='p-mean'>Không được rời rừng nếu không mang theo rác (Sai nghĩa ngớ ngẩn).</span><br>
+            - <span class='p-word'>You cannot leave your rubbish here at all!</span>: <span class='p-mean'>Bạn hoàn toàn không được để rác của mình lại đây!</span><br>
+            <strong>2. Tại sao chọn "You cannot leave your rubbish here at all!"?</strong><br>
+            Biển báo yêu cầu "Take it home" (Mang về đi), tức là cấm tuyệt đối việc xả/để lại rác tại khu rừng này. Đáp án truyền tải chính xác sự cấm đoán này. <span class='hl-green'>Correct</span><br>
+            <strong>3. Tại sao các đáp án khác sai?</strong><br>
+            Biển báo không hề cấm vào rừng (B), cũng không bắt ép bạn đi nhặt rác hộ người khác (A). <span class='hl-red'>Incorrect</span>
+        `
+    },
+    {
+        id: 30,
+        question: "What does the notice mean?<br><br><div class='promo-card'><h3>Be sure to check out any B grades</h3><p>for a discount on perfectly imperfect products!</p><p><i>The Perky Pencil</i></p></div>",
+        options: [
+            { text: "Only perfect products are on sale today.", isCorrect: false },
+            { text: "The shop gives a discount if you get grade B at school.", isCorrect: false },
+            { text: "Items with small problems are cheaper than normal.", isCorrect: true },
+            { text: "You must pay more for B-grade products.", isCorrect: false }
+        ],
+        explanation: `
+            <span class="vn-translate">Dịch biển báo: Đảm bảo kiểm tra các hàng loại B để được giảm giá cho những sản phẩm "hoàn hảo một cách không hoàn hảo" nhé!</span>
+            <strong>1. Phân tích các đáp án:</strong><br>
+            - <span class='p-word'>Only perfect products are on sale...</span>: <span class='p-mean'>Chỉ những sản phẩm hoàn hảo mới được giảm giá.</span><br>
+            - <span class='p-word'>The shop gives a discount if you get grade B...</span>: <span class='p-mean'>Quán giảm giá nếu bạn được điểm B ở trường (Bẫy từ vựng).</span><br>
+            - <span class='p-word'>Items with small problems are cheaper...</span>: <span class='p-mean'>Những món hàng có lỗi nhỏ sẽ rẻ hơn bình thường.</span><br>
+            - <span class='p-word'>You must pay more for B-grade...</span>: <span class='p-mean'>Bạn phải trả nhiều tiền hơn cho hàng loại B.</span><br>
+            <strong>2. Tại sao chọn "Items with small problems are cheaper..."?</strong><br>
+            Trong thương mại, "B grades" hoặc "imperfect products" ám chỉ các mặt hàng có chút khiếm khuyết nhỏ (trầy xước vỏ, lỗi bao bì...). Chúng luôn được bán thanh lý giảm giá (discount/cheaper). <span class='hl-green'>Correct</span><br>
+            <strong>3. Tại sao các đáp án khác sai?</strong><br>
+            Dịch "B grades" thành "điểm B ở trường" là một cái bẫy rất hài hước. Biển cũng nói là "discount" (giảm giá) chứ không phải bắt trả nhiều tiền hơn (pay more). <span class='hl-red'>Incorrect</span>
+        `
+    }
+];
+
+// --- CORE LOGIC CHẤM ĐIỂM & GIAO DIỆN ---
+const quizContainer = document.getElementById('quizContainer');
+let score = 0;
+let answeredQuestions = 0;
+let totalQuestions = quizData.length;
+
+// Audio Context Setup cho Ding sound
+const AudioContext = window.AudioContext || window.webkitAudioContext;
+let audioCtx;
+
+function playDing() {
+    if (!audioCtx) audioCtx = new AudioContext();
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain); gain.connect(audioCtx.destination);
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(880, audioCtx.currentTime); 
+    osc.frequency.exponentialRampToValueAtTime(1318.51, audioCtx.currentTime + 0.1); 
+    gain.gain.setValueAtTime(1, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+    osc.start(); osc.stop(audioCtx.currentTime + 0.5);
+}
+
+function shootConfetti(x, y) {
+    for (let i = 0; i < 35; i++) {
+        const conf = document.createElement('div');
+        conf.classList.add('confetti');
+        conf.style.left = x + (Math.random() * 80 - 40) + 'px';
+        conf.style.top = y + 'px';
+        conf.style.backgroundColor = `hsl(${Math.random() * 360}, 100%, 65%)`;
+        conf.style.transform = `rotate(${Math.random() * 360}deg)`;
+        const duration = Math.random() * 1.5 + 1;
+        conf.style.animationDuration = duration + 's';
+        document.body.appendChild(conf);
+        setTimeout(() => conf.remove(), duration * 1000);
+    }
+}
+
+function shuffleArray(array) {
+    const newArr = [...array];
+    for (let i = newArr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [newArr[i], newArr[j]] = [newArr[j], newArr[i]];
+    }
+    return newArr;
+}
+
+function renderQuiz() {
+    quizData.forEach((item, index) => {
+        const card = document.createElement('div');
+        card.classList.add('question-card');
+        card.id = `q-card-${item.id}`;
+
+        const qNumber = document.createElement('div');
+        qNumber.classList.add('q-number');
+        qNumber.innerText = `Câu ${index + 1}`;
+
+        const qText = document.createElement('div');
+        qText.classList.add('q-text');
+        qText.innerHTML = item.question;
+
+        const optionsGrid = document.createElement('div');
+        optionsGrid.classList.add('options-grid');
+        
+        const shuffledOptions = shuffleArray(item.options);
+
+        shuffledOptions.forEach(opt => {
+            const btn = document.createElement('button');
+            btn.classList.add('option-btn');
+            btn.innerHTML = opt.text;
+            btn.onclick = (e) => handleAnswer(e, btn, opt, item.id, card, shuffledOptions);
+            optionsGrid.appendChild(btn);
+        });
+
+        const explanationBox = document.createElement('div');
+        explanationBox.classList.add('explanation');
+        explanationBox.id = `exp-${item.id}`;
+        explanationBox.innerHTML = item.explanation;
+
+        card.appendChild(qNumber);
+        card.appendChild(qText);
+        card.appendChild(optionsGrid);
+        card.appendChild(explanationBox);
+        quizContainer.appendChild(card);
+    });
+}
+
+function handleAnswer(e, btn, opt, id, card, shuffledOptions) {
+    if (card.dataset.answered === "true") return;
+    card.dataset.answered = "true";
+    answeredQuestions++;
+
+    const allBtns = card.querySelectorAll('.option-btn');
+    
+    let correctBtn;
+    allBtns.forEach((b, i) => {
+        b.style.cursor = 'default';
+        if(shuffledOptions[i].isCorrect) correctBtn = b;
+    });
+
+    if (opt.isCorrect) {
+        btn.classList.add('correct');
+        score++;
+        playDing(); 
+        shootConfetti(e.clientX, e.clientY); 
+    } else {
+        btn.classList.add('incorrect'); 
+        correctBtn.classList.add('correct'); 
+        
+        wrongAudio.currentTime = 0;
+        wrongAudio.play().catch(err => console.log("Không tải được âm thanh báo lỗi.", err));
+    }
+
+    document.getElementById(`exp-${id}`).style.display = 'block';
+}
+
+function requestSubmit() {
+    if(answeredQuestions < totalQuestions) {
+        alert("Thợ lặn vẫn chưa thu thập đủ kho báu kìa! Cố lên! 🤿");
+        return;
+    }
+    document.getElementById('nameModal').style.display = 'flex';
+}
+
+function processSubmit() {
+    const nameInput = document.getElementById('studentName');
+    const name = nameInput.value.trim();
+    if(!name) {
+        nameInput.classList.add('error');
+        setTimeout(() => nameInput.classList.remove('error'), 300);
+        return;
+    }
+
+    document.getElementById('nameModal').style.display = 'none';
+    
+    const percentage = (score / totalQuestions) * 100;
+    const resultModal = document.getElementById('resultModal');
+    document.getElementById('resultGreeting').innerText = `🌟 XUẤT SẮC THỢ LẶN ${name}!`;
+    document.getElementById('resultScore').innerText = `${score} / ${totalQuestions}`;
+    
+    const imgEl = document.getElementById('resultImg');
+    if(percentage === 100) {
+        imgEl.src = "https://media.tenor.com/2R_qg1U8r3AAAAAC/leonardo-dicaprio.gif";
+    } else if (percentage >= 60) {
+        imgEl.src = "https://media.tenor.com/Z42-y42l-x4AAAAC/minions-cheering.gif";
+    } else {
+        imgEl.src = "https://media.tenor.com/Z1X-9r1sH3AAAAAC/crying-sad.gif";
+    }
+
+    resultModal.style.display = 'flex';
+}
+
+// SINH SVG CÁ, SAO BIỂN, BONG BÓNG LƠ LỬNG
+function createOceanShapes() {
+    const container = document.getElementById('bgShapes');
+    const svgs = [
+        // Cá nhỏ
+        '<svg viewBox="0 0 24 24" fill="rgba(255,255,255,0.8)"><path d="M12 4.44C15.56 2.92 19.5 5.5 19.5 9c0 1.5-.74 2.86-1.87 3.65l1.87 1.35V16l-3.32-2.4C14.88 14.47 13.5 15 12 15c-3.87 0-7-3.13-7-7s3.13-7 7-7m0-2C7.03 2.44 3 6.47 3 11.5S7.03 20.5 12 20.5c2.28 0 4.37-.86 5.95-2.28l4.05 2.92v-5.26l-1.37-1C21.49 13.54 22 12.06 22 10.5 22 5.54 17.5 2 12 2.44zM12 8c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1z"/></svg>', 
+        // Bong bóng
+        '<svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.8)" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="8" cy="8" r="2"/></svg>', 
+        // Bong bóng nhỏ
+        '<svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="2"><circle cx="12" cy="12" r="6"/><circle cx="10" cy="10" r="1.5"/></svg>',
+        // Sao biển (ngôi sao cách điệu)
+        '<svg viewBox="0 0 24 24" fill="rgba(255,255,255,0.6)"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>'
+    ];
+    
+    for(let i=0; i<25; i++) {
+        const div = document.createElement('div');
+        div.classList.add('shape-obj');
+        div.innerHTML = svgs[Math.floor(Math.random() * svgs.length)];
+        div.style.width = Math.random() * 35 + 15 + 'px';
+        div.style.height = div.style.width;
+        div.style.left = Math.random() * 100 + 'vw';
+        div.style.animationDuration = Math.random() * 20 + 10 + 's';
+        div.style.animationDelay = Math.random() * 5 + 's';
+        container.appendChild(div);
+    }
+}
+
+window.onload = () => {
+    renderQuiz();
+};
+</script>
+</body>
+</html>

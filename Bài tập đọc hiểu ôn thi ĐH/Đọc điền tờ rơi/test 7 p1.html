@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Master English with Ms Mai An ULIS</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&display=swap');
+
+        /* GLOBAL STYLES & GAMIFICATION BACKGROUND */
+        body, html {
+            margin: 0; padding: 0; height: 100vh;
+            font-family: 'Quicksand', sans-serif;
+            overflow: hidden;
+            background: linear-gradient(-45deg, #f36222, #5cb644, #007fc3);
+            background-size: 300% 300%;
+            animation: gradientBG 15s ease infinite;
+            color: #333;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* FLOATING EMOJI BACKGROUND */
+        .floating-bg {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; z-index: 0; overflow: hidden; opacity: 0.4;
+        }
+        .emoji-float {
+            position: absolute; font-size: 3rem;
+            animation: floatUp 20s linear infinite;
+        }
+        @keyframes floatUp {
+            0% { transform: translateY(110vh) rotate(0deg); }
+            100% { transform: translateY(-10vh) rotate(360deg); }
+        }
+
+        /* LAYOUT & SPLIT SCREEN */
+        .header {
+            position: relative; z-index: 10; text-align: center;
+            padding: 10px; color: white; text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        .header h2 { margin: 0; font-size: 1.2rem; font-weight: 600; }
+
+        .container {
+            display: flex; height: calc(100vh - 50px); max-width: 1400px;
+            margin: 0 auto; padding: 10px; gap: 20px;
+            position: relative; z-index: 10;
+        }
+
+        .panel {
+            flex: 1; overflow-y: auto; padding: 25px;
+            border-radius: 24px; background: rgba(255, 255, 255, 0.4);
+            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+        }
+
+        /* CUSTOM SCROLLBAR */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.8); border-radius: 10px; }
+
+        /* WARNING BOARD */
+        .warning-board {
+            background: linear-gradient(135deg, #ff416c, #ff4b2b);
+            color: white; padding: 15px; border-radius: 15px;
+            text-align: center; font-weight: bold;
+            box-shadow: 0 4px 15px rgba(255, 75, 43, 0.4);
+            margin-bottom: 20px; animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+        }
+
+        /* READING PASSAGE STYLES */
+        .passage-block {
+            background: rgba(255, 255, 255, 0.6); padding: 20px;
+            border-radius: 16px; margin-bottom: 25px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+        .passage-title { color: #0056b3; font-size: 1.5rem; margin-top: 0; }
+        .paragraph-text { font-size: 1.15rem; line-height: 1.7; font-weight: 500; margin-bottom: 5px; }
+        
+        .trans-btn-small {
+            background: #e9ecef; border: 2px dashed #adb5bd;
+            color: #495057; padding: 5px 15px; border-radius: 20px;
+            cursor: pointer; font-weight: 700; font-size: 0.9rem;
+            margin-bottom: 15px; transition: 0.3s;
+        }
+        .trans-btn-small:hover { background: #007fc3; color: white; border-color: #007fc3; }
+        
+        .translation-content {
+            display: none; background: #fff3cd; padding: 15px;
+            border-radius: 10px; margin-bottom: 15px; color: #856404;
+            font-style: italic; border-left: 5px solid #ffeeba;
+        }
+
+        /* GLOSSARY TABLE */
+        .glossary-table {
+            width: 100%; border-collapse: collapse; margin-top: 15px;
+            background: white; border-radius: 10px; overflow: hidden;
+        }
+        .glossary-table th, .glossary-table td {
+            padding: 12px; text-align: left; border-bottom: 1px solid #eee;
+        }
+        .glossary-table th { background: #5cb644; color: white; }
+
+        /* EXERCISE STYLES */
+        .question-card {
+            background: rgba(255, 255, 255, 0.7); padding: 20px;
+            border-radius: 16px; margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05); border-left: 6px solid #007fc3;
+        }
+        .question-title { font-size: 1.2rem; font-weight: bold; margin-bottom: 15px; color: #111; }
+        .options-grid { display: grid; grid-template-columns: 1fr; gap: 12px; }
+        .option-btn {
+            background: white; border: 2px solid transparent; padding: 15px;
+            border-radius: 12px; font-size: 1.1rem; cursor: pointer;
+            transition: all 0.2s; font-weight: 600; text-align: left;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        .option-btn:hover:not(:disabled) { border-color: #007fc3; transform: translateX(5px); }
+        .option-btn:disabled { cursor: not-allowed; }
+        .option-btn.correct { background: #d4edda; border-color: #28a745; color: #155724; }
+        .option-btn.wrong { background: #f8d7da; border-color: #dc3545; color: #721c24; }
+        .shake { animation: shake 0.4s; }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25%, 75% { transform: translateX(-8px); }
+            50% { transform: translateX(8px); }
+        }
+
+        /* EXPLANATION & CONTEXT BOX (MASTER LEVEL) */
+        .explanation-box {
+            display: none; background: white; padding: 20px;
+            border-radius: 12px; margin-top: 15px; border: 2px solid #5cb644;
+            font-size: 1.05rem; line-height: 1.6;
+        }
+        .context-box {
+            background: #e3f2fd; color: #0056b3; padding: 12px 15px;
+            border-left: 5px solid #007fc3; border-radius: 8px;
+            margin-bottom: 15px; font-size: 1.1rem;
+        }
+        .p-word { color: #007bff; font-weight: bold; }
+        .p-mean { color: #cc4125; font-style: italic; font-weight: bold; }
+        .p-grammar { text-decoration: underline red; font-weight: bold; color: #d9534f; }
+        .hl-green { color: #28a745; font-weight: bold; }
+        .hl-red { color: #dc3545; text-decoration: line-through; font-weight: bold; }
+
+        /* SUBMIT & MODAL */
+        .submit-btn {
+            width: 100%; background: linear-gradient(45deg, #f36222, #ffb347);
+            color: white; border: none; padding: 20px; font-size: 1.3rem;
+            font-weight: bold; border-radius: 16px; cursor: pointer;
+            box-shadow: 0 6px 15px rgba(243, 98, 34, 0.4);
+            transition: 0.3s; margin-top: 20px;
+        }
+        .submit-btn:hover { transform: scale(1.02); }
+
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6); backdrop-filter: blur(5px);
+            display: none; justify-content: center; align-items: center; z-index: 100;
+        }
+        .modal-content {
+            background: white; padding: 40px; border-radius: 20px;
+            text-align: center; max-width: 500px; width: 90%;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        .modal-content input {
+            width: 80%; padding: 10px; margin-bottom: 20px;
+            border: 2px solid #007fc3; border-radius: 10px; font-size: 1.1rem; text-align: center;
+        }
+        .modal-content img { max-width: 100%; border-radius: 15px; margin: 15px 0; }
+        .modal-content button {
+            background: #5cb644; color: white; border: none; padding: 10px 20px; border-radius: 10px; font-size: 1.1rem; cursor: pointer;
+        }
+
+        /* GIAO DIỆN MÀN HÌNH KHÓA TÔNG XUYỆT TÔNG */
+        #passwordModal {
+            position: fixed; inset: 0; z-index: 9999;
+            display: flex; align-items: center; justify-content: center;
+            background: rgba(0,0,0,0.7); backdrop-filter: blur(15px);
+        }
+        .pw-card {
+            background: rgba(255, 255, 255, 0.95);
+            border: 4px solid #f36222; border-radius: 24px; padding: 40px 30px; 
+            max-width: 400px; width: 90%; text-align: center; position: relative;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.4);
+            font-family: 'Quicksand', sans-serif;
+        }
+        .pw-crest { font-size: 4rem; display: block; margin-bottom: 10px; animation: floatUp 3s ease-in-out infinite alternate; }
+        .pw-title { font-size: 1.8rem; font-weight: 700; color: #007fc3; margin-bottom: 5px; }
+        .pw-sub   { font-size: 1rem; color: #555; margin-bottom: 25px; font-weight: 600; }
+        .pw-input {
+            width: 80%; padding: 15px; border-radius: 12px;
+            border: 3px solid #e0e0e0; background: #f9f9f9;
+            color: #333; font-size: 1.2rem; font-weight: bold;
+            outline: none; letter-spacing: 5px; text-align: center; transition: all .3s;
+        }
+        .pw-input:focus { border-color: #5cb644; box-shadow: 0 0 0 4px rgba(92,182,68,0.2); }
+        .pw-input.error { border-color: #dc3545; box-shadow: 0 0 0 4px rgba(220,53,69,0.2); animation: shake .4s ease; }
+        .pw-input::placeholder { color: #aaa; letter-spacing: 1px; font-weight: 500; font-size: 1rem; }
+        .pw-btn {
+            width: 100%; padding: 15px; margin-top: 20px; border-radius: 12px; border: none;
+            background: linear-gradient(135deg, #f36222, #ffb347);
+            color: #fff; font-size: 1.1rem; font-weight: 700;
+            cursor: pointer; box-shadow: 0 5px 15px rgba(243,98,34,0.4); transition: transform .2s;
+        }
+        .pw-btn:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(243,98,34,0.6); }
+        .pw-err { color: #dc3545; font-size: 0.95rem; margin-top: 15px; display: none; font-weight: 700; }
+    </style>
+</head>
+<body>
+
+    <div id="passwordModal">
+      <div class="pw-card">
+        <span class="pw-crest">🔐</span>
+        <div class="pw-title">KHU VỰC BẢO MẬT</div>
+        <div class="pw-sub">Vui lòng nhập mật khẩu để làm bài nhé!</div>
+        <input type="password" class="pw-input" id="pwInput" placeholder="Nhập mật khẩu..." autocomplete="off" />
+        <button class="pw-btn" onclick="checkPassword()">XÁC NHẬN MỞ KHÓA</button>
+        <div class="pw-err" id="pwErr">Sai mật khẩu rồi! Hỏi lại Ms Mai An đi nha.</div>
+      </div>
+    </div>
+
+    <audio id="wrongAudio" src="https://hoctienganhcungcomaianulis.github.io/homework/%E1%BA%A2nh_File%20nghe/Sound/Am_thanh_meme_Oi_doi_oi_huan_hoa_hong-www_tiengdong_com.mp3" preload="auto"></audio>
+    <audio id="introAudio" src="https://hoctienganhcungcomaianulis.github.io/homework/%E1%BA%A2nh_File%20nghe/Sound/ti%E1%BA%BFng%20%C4%91%E1%BB%8Dc%20kh%C3%ADch%20l%E1%BB%87%20p2.mp3" preload="auto"></audio>
+
+    <div id="mainContent" style="display: none;">
+        <div class="floating-bg" id="emoji-bg"></div>
+
+        <div class="header">
+            <h2>✨ Giáo viên tạo: Ms Mai An ULIS ✨</h2>
+        </div>
+
+        <div class="container">
+            <div class="panel left-panel" id="left-panel">
+                <div class="warning-board">
+                    ⚠️ LƯU Ý CỰC MẠNH: Đọc bài Đọc bên dưới để dò tìm số thứ tự (1), (2), (3)... Chỉ có ĐỌC KỸ GIẢI THÍCH mới thực sự giỏi lên, nhắm mắt chọn bừa cho xong thì chỉ tốn thời gian vô ích!
+                </div>
+            </div>
+
+            <div class="panel right-panel" id="right-panel">
+                <button class="submit-btn" onclick="openSubmitModal()">🎯 NỘP BÀI TÍNH ĐIỂM & XEM KẾT QUẢ</button>
+            </div>
+        </div>
+
+        <div class="modal-overlay" id="submit-modal">
+            <div class="modal-content" id="modal-body">
+                <h2>Nhập tên để vinh danh nào! 🏆</h2>
+                <input type="text" id="student-name" placeholder="Ví dụ: Nguyễn Văn A">
+                <button onclick="calculateScore()">Xem điểm</button>
+            </div>
+        </div>
+    </div>
+
+<script>
+// --- SECURITY ---
+// Mật khẩu được mã hóa Base64 để ẩn khỏi source code
+const _pw = atob('NjY4OA==');
+
+function checkPassword() {
+    const inp = document.getElementById('pwInput');
+    const err = document.getElementById('pwErr');
+    if (inp.value === _pw) {
+        document.getElementById('passwordModal').style.display = 'none';
+        document.getElementById('mainContent').style.display = 'block';
+        
+        // Phát âm thanh khích lệ
+        const introAudio = document.getElementById('introAudio');
+        introAudio.volume = 0.8;
+        introAudio.play().catch(e => console.log("Trình duyệt chặn tự động phát:", e));
+        
+        init();
+    } else {
+        inp.classList.remove('error'); void inp.offsetWidth; inp.classList.add('error');
+        err.style.display = 'block'; setTimeout(() => inp.classList.remove('error'), 500);
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    const pwInput = document.getElementById('pwInput');
+    if(pwInput) pwInput.addEventListener('keydown', e => { if (e.key==='Enter') checkPassword(); });
+});
+
+// --- DATA PREPARATION ---
+const passages = [
+    {
+        id: 1,
+        title: "Passage 1: Super Typhoon Yagi Strikes Vietnam",
+        content: `
+            <p class="paragraph-text"><strong>Facts and Figures:</strong><br>
+            Super Typhoon Yagi brought <strong>(1)</strong> winds and rainfall, causing widespread destruction across multiple provinces.<br>
+            <strong>(2)</strong> areas in the North experienced severe flooding, leading to significant damage.<br>
+            The typhoon's impact is expected to cause economic losses to a significant <strong>(3)</strong>.</p>
+            <button class="trans-btn-small" onclick="toggleTrans('t1-1')">Dịch đoạn này 🇻🇳</button>
+            <div class="translation-content" id="t1-1">
+                <strong>Số liệu thực tế:</strong><br>
+                Siêu bão Yagi mang đến những cơn gió và lượng mưa thảm khốc, gây ra sự tàn phá diện rộng qua nhiều tỉnh thành.<br>
+                Một số khu vực ở miền Bắc đã trải qua lũ lụt nghiêm trọng, dẫn đến thiệt hại to lớn.<br>
+                Tác động của cơn bão được dự kiến sẽ gây ra tổn thất kinh tế ở một mức độ đáng kể.
+            </div>
+            
+            <p class="paragraph-text"><strong>Positive Action!</strong><br>
+            Emergency Response: The government has issued <strong>(4)</strong> orders in several regions, urging residents to relocate to safer areas.<br>
+            Community Support: Encourage the public to donate essentials and raise funds to <strong>(5)</strong> victims of the typhoon.<br>
+            Rebuilding Efforts: Focus on restoring infrastructure as well as providing temporary shelters for affected families <strong>(6)</strong> the widespread damage.</p>
+            <button class="trans-btn-small" onclick="toggleTrans('t1-2')">Dịch đoạn này 🇻🇳</button>
+            <div class="translation-content" id="t1-2">
+                <strong>Hành động Tích cực!</strong><br>
+                Phản ứng Khẩn cấp: Chính phủ đã ban hành lệnh sơ tán ở nhiều vùng, kêu gọi người dân di dời đến những khu vực an toàn hơn.<br>
+                Hỗ trợ Cộng đồng: Khuyến khích công chúng quyên góp nhu yếu phẩm và gây quỹ để tặng cho các nạn nhân của cơn bão.<br>
+                Nỗ lực Tái thiết: Tập trung vào việc khôi phục cơ sở hạ tầng cũng như cung cấp nơi trú ẩn tạm thời cho các gia đình bị ảnh hưởng do những thiệt hại lan rộng.
+            </div>
+        `,
+        glossary: [
+            {word: "Typhoon", type: "n", mean: "Bão nhiệt đới"},
+            {word: "Unprecedented", type: "adj", mean: "Chưa từng có"},
+            {word: "Destruction", type: "n", mean: "Sự tàn phá"},
+            {word: "Severe", type: "adj", mean: "Nghiêm trọng"},
+            {word: "Evacuation", type: "n", mean: "Sự sơ tán"},
+            {word: "Relocate", type: "v", mean: "Di dời"},
+            {word: "Infrastructure", type: "n", mean: "Cơ sở hạ tầng"},
+            {word: "Temporary", type: "adj", mean: "Tạm thời"},
+            {word: "Widespread", type: "adj", mean: "Lan rộng"},
+            {word: "Alleviation", type: "n", mean: "Sự giảm nhẹ"}
+        ]
+    },
+    {
+        id: 2,
+        title: "Passage 2: Vietnam Restructures State-Owned Enterprises",
+        content: `
+            <p class="paragraph-text"><strong>Facts and Figures:</strong><br>
+            <strong>(7)</strong> state-owned enterprises are undergoing restructuring as part of a government initiative to streamline operations and reduce costs.<br>
+            The <strong>(8)</strong> of employees may be affected by these changes. The restructuring is being implemented on a nationwide <strong>(9)</strong>.<br>
+            These changes are expected to <strong>(10)</strong> significant transformations in the structure and functioning of state-owned enterprises in Vietnam.</p>
+            <button class="trans-btn-small" onclick="toggleTrans('t2-1')">Dịch đoạn này 🇻🇳</button>
+            <div class="translation-content" id="t2-1">
+                <strong>Số liệu thực tế:</strong><br>
+                Nhiều doanh nghiệp nhà nước đang tiến hành tái cấu trúc như một phần của sáng kiến chính phủ nhằm tinh giản hoạt động và giảm thiểu chi phí.<br>
+                Sinh kế của các nhân viên có thể bị ảnh hưởng bởi những thay đổi này. Việc tái cấu trúc đang được thực hiện trên quy mô toàn quốc.<br>
+                Những sự thay đổi này được kỳ vọng sẽ mang lại những chuyển biến đáng kể trong cấu trúc và chức năng của các doanh nghiệp nhà nước tại Việt Nam.
+            </div>
+            
+            <p class="paragraph-text"><strong>Positive Action!</strong><br>
+            Training and Reskilling Programs: Provide reskilling programs for employees <strong>(11)</strong> the need to adapt to new roles, ensuring they can thrive in the evolving job market.<br>
+            Encourage Job Creation: Work towards policies that create new job opportunities in the private sector, allowing workers to find new roles following <strong>(12)</strong> from the public sector.</p>
+            <button class="trans-btn-small" onclick="toggleTrans('t2-2')">Dịch đoạn này 🇻🇳</button>
+            <div class="translation-content" id="t2-2">
+                <strong>Hành động Tích cực!</strong><br>
+                Chương trình Đào tạo và Nâng cao kỹ năng: Cung cấp các chương trình đào tạo lại cho nhân viên để đáp ứng nhu cầu thích ứng với các vai trò mới, đảm bảo họ có thể phát triển mạnh mẽ trong thị trường việc làm đang tiến triển.<br>
+                Khuyến khích Tạo việc làm: Hướng tới các chính sách tạo ra cơ hội việc làm mới trong khu vực tư nhân, cho phép người lao động tìm được vai trò mới sau sự chuyển đổi/dịch chuyển khỏi khu vực công.
+            </div>
+        `,
+        glossary: [
+            {word: "Restructure", type: "v", mean: "Tái cấu trúc"},
+            {word: "Enterprise", type: "n", mean: "Doanh nghiệp"},
+            {word: "Streamline", type: "v", mean: "Tinh giản"},
+            {word: "Livelihood", type: "n", mean: "Sinh kế"},
+            {word: "Implement", type: "v", mean: "Thi hành, thực hiện"},
+            {word: "Transformation", type: "n", mean: "Sự biến đổi"},
+            {word: "Reskilling", type: "n", mean: "Đào tạo lại kỹ năng"},
+            {word: "Thrive", type: "v", mean: "Phát triển mạnh mẽ"},
+            {word: "Evolving", type: "adj", mean: "Đang tiến triển"},
+            {word: "Displacement", type: "n", mean: "Sự dịch chuyển, thôi việc"}
+        ]
+    },
+    {
+        id: 3,
+        title: "Passage 3: Ecotourism",
+        content: `
+            <p class="paragraph-text"><strong>Facts and Figures:</strong><br>
+            <strong>(13)</strong> regions are adopting ecotourism models to promote sustainable development.<br>
+            Green projects are integrating tourism to fund and support environmental <strong>(14)</strong> efforts. On a global <strong>(15)</strong>, ecotourism is recognized as a significant contributor to both economic growth and biodiversity conservation.</p>
+            <button class="trans-btn-small" onclick="toggleTrans('t3-1')">Dịch đoạn này 🇻🇳</button>
+            <div class="translation-content" id="t3-1">
+                <strong>Số liệu thực tế:</strong><br>
+                Nhiều khu vực đang áp dụng các mô hình du lịch sinh thái để thúc đẩy sự phát triển bền vững.<br>
+                Các dự án xanh đang tích hợp du lịch để gây quỹ và hỗ trợ các nỗ lực bảo tồn môi trường. Trên quy mô toàn cầu, du lịch sinh thái được công nhận là một nhân tố đóng góp to lớn cho cả tăng trưởng kinh tế và bảo tồn đa dạng sinh học.
+            </div>
+
+            <p class="paragraph-text"><strong>Positive Action!</strong><br>
+            Support: Efforts to <strong>(16)</strong> carbon emissions are being implemented in ecotourism destinations.<br>
+            <strong>(17)</strong> challenges, ecotourism continues to offer solutions for sustainable development.<br>
+            Engage: Participate in tours and activities that benefit local populations and promote cultural exchange.<br>
+            Advocate: Managing <strong>(18)</strong> to wildlife and ecosystems is a priority in ecotourism planning to ensure minimal negative impact.</p>
+            <button class="trans-btn-small" onclick="toggleTrans('t3-2')">Dịch đoạn này 🇻🇳</button>
+            <div class="translation-content" id="t3-2">
+                <strong>Hành động Tích cực!</strong><br>
+                Hỗ trợ: Những nỗ lực nhằm cắt giảm lượng khí thải carbon đang được thực hiện tại các điểm đến du lịch sinh thái.<br>
+                Bất chấp những thách thức, du lịch sinh thái tiếp tục cung cấp các giải pháp cho sự phát triển bền vững.<br>
+                Tham gia: Tham gia vào các chuyến đi và hoạt động mang lại lợi ích cho người dân địa phương và thúc đẩy giao lưu văn hóa.<br>
+                Ủng hộ: Việc quản lý sự làm phiền/xáo trộn đối với động vật hoang dã và hệ sinh thái là một ưu tiên trong việc lập kế hoạch du lịch sinh thái để đảm bảo tác động tiêu cực ở mức tối thiểu.
+            </div>
+        `,
+        glossary: [
+            {word: "Ecotourism", type: "n", mean: "Du lịch sinh thái"},
+            {word: "Integrate", type: "v", mean: "Tích hợp"},
+            {word: "Conservation", type: "n", mean: "Sự bảo tồn"},
+            {word: "Biodiversity", type: "n", mean: "Đa dạng sinh học"},
+            {word: "Emission", type: "n", mean: "Khí thải"},
+            {word: "Destination", type: "n", mean: "Điểm đến"},
+            {word: "Sustainable", type: "adj", mean: "Bền vững"},
+            {word: "Advocate", type: "v", mean: "Ủng hộ, biện hộ"},
+            {word: "Disturbance", type: "n", mean: "Sự làm phiền, xáo trộn"},
+            {word: "Ecosystem", type: "n", mean: "Hệ sinh thái"}
+        ]
+    }
+];
+
+const questions = [
+    {
+        id: 1, text: "Câu 1: Select the best answer",
+        options: [
+            { text: "impulsive", correct: false, exp: "<span class='hl-red'>❌ Sai.</span> <span class='p-word'>impulsive</span> mang nghĩa <span class='p-mean'>bốc đồng</span>, không dùng cho thời tiết/bão." },
+            { text: "appreciative", correct: false, exp: "<span class='hl-red'>❌ Sai.</span> <span class='p-word'>appreciative</span> mang nghĩa <span class='p-mean'>biết ơn</span>." },
+            { text: "catastrophic", correct: true, exp: "<span class='hl-green'>✅ Đúng.</span> <span class='p-word'>catastrophic</span> có nghĩa là <span class='p-mean'>thảm khốc, thê thảm</span>." },
+            { text: "considerate", correct: false, exp: "<span class='hl-red'>❌ Sai.</span> <span class='p-word'>considerate</span> mang nghĩa <span class='p-mean'>ân cần, chu đáo</span>." }
+        ],
+        explanationText: "<div class='context-box'>🌍 <strong>Dịch ngữ cảnh:</strong> 'Siêu bão Yagi mang đến những cơn gió và lượng mưa <strong>(1) _____</strong>...'</div>🔍 <strong>Dẫn chứng:</strong> Dựa vào cụm từ <span class='hl-green'>'catastrophic winds and rainfall'</span> (gió và mưa thảm khốc), từ này hoàn toàn phù hợp với bối cảnh tàn phá nghiêm trọng của một siêu bão."
+    },
+    {
+        id: 2, text: "Câu 2: Select the best answer",
+        options: [
+            { text: "Some", correct: true, exp: "<span class='hl-green'>✅ Đúng.</span> <span class='p-grammar'>Some + Danh từ số nhiều (areas)</span>: <span class='p-mean'>Một vài</span>." },
+            { text: "Another", correct: false, exp: "<span class='hl-red'>❌ Sai.</span> <span class='p-grammar'>Another + Danh từ số ít đếm được</span>: <span class='p-mean'>Một cái khác</span>." },
+            { text: "Every", correct: false, exp: "<span class='hl-red'>❌ Sai.</span> <span class='p-grammar'>Every + Danh từ số ít đếm được</span>: <span class='p-mean'>Mọi</span>." },
+            { text: "Little", correct: false, exp: "<span class='hl-red'>❌ Sai.</span> <span class='p-grammar'>Little + Danh từ không đếm được</span>: <span class='p-mean'>Rất ít</span>." }
+        ],
+        explanationText: "<div class='context-box'>🌍 <strong>Dịch ngữ cảnh:</strong> '<strong>(2) _____</strong> khu vực phía Bắc đã trải qua lũ lụt nghiêm trọng...'</div>🔍 <strong>Phân tích:</strong> Từ theo sau chỗ trống là <span class='p-word'>'areas'</span> (số nhiều). Do đó, chỉ có <span class='hl-green'>'Some'</span> là hợp ngữ pháp."
+    },
+    {
+        id: 3, text: "Câu 3: Select the best answer",
+        options: [
+            { text: "degree", correct: true, exp: "<span class='hl-green'>✅ Đúng.</span> Cấu trúc <span class='p-grammar'>to a significant degree</span> mang nghĩa là <span class='p-mean'>ở một mức độ đáng kể</span>." },
+            { text: "amount", correct: false, exp: "<span class='hl-red'>❌ Sai.</span> <span class='p-word'>amount</span> (<span class='p-mean'>lượng</span>) thường đi với 'an amount of'." },
+            { text: "scale", correct: false, exp: "<span class='hl-red'>❌ Sai.</span> <span class='p-word'>scale</span> (<span class='p-mean'>quy mô</span>) đi với giới từ 'on' (on a large scale)." },
+            { text: "number", correct: false, exp: "<span class='hl-red'>❌ Sai.</span> <span class='p-word'>number</span> (<span class='p-mean'>số lượng</span>) thường đi với 'a number of'." }
+        ],
+        explanationText: "<div class='context-box'>🌍 <strong>Dịch ngữ cảnh:</strong> 'Tác động của cơn bão được dự kiến sẽ gây ra tổn thất kinh tế ở một <strong>(3) _____</strong> đáng kể.'</div>🔍 <strong>Dẫn chứng:</strong> Sự kết hợp từ (Collocation) chuẩn xác ở đây là <span class='hl-green'>'to a significant degree'</span> để chỉ mức độ nghiêm trọng."
+    },
+    {
+        id: 4, text: "Câu 4: Select the best answer",
+        options: [
+            { text: "alleviation", correct: false, exp: "<span class='hl-red'>❌ Sai.</span> <span class='p-word'>alleviation</span> nghĩa là <span class='p-mean'>sự giảm nhẹ</span> (nỗi đau, mức độ nghiêm trọng)." },
+            { text: "mitigation", correct: false, exp: "<span class='hl-red'>❌ Sai.</span> <span class='p-word'>mitigation</span> nghĩa là <span class='p-mean'>sự giảm thiểu</span> (rủi ro, thiệt hại)." },
+            { text: "evacuation", correct: true, exp: "<span class='hl-green'>✅ Đúng.</span> <span class='p-word'>evacuation</span> nghĩa là <span class='p-mean'>sự sơ tán</span>." },
+            { text: "reconstruction", correct: false, exp: "<span class='hl-red'>❌ Sai.</span> <span class='p-word'>reconstruction</span> nghĩa là <span class='p-mean'>sự tái thiết, xây dựng lại</span>." }
+        ],
+        explanationText: "<div class='context-box'>🌍 <strong>Dịch ngữ cảnh:</strong> 'Chính phủ đã ban hành lệnh <strong>(4) _____</strong> ở nhiều vùng, kêu gọi người dân di dời đến những khu vực an toàn hơn.'</div>🔍 <strong>Dẫn chứng:</strong> Lệnh yêu cầu di dời (<span class='p-word'>relocate</span>) chính là <span class='hl-green'>'evacuation orders'</span> (lệnh sơ tán)."
+    },
+    {
+        id: 5, text: "Câu 5: Select the best answer",
+        options: [
+            { text: "press ahead", correct: false, exp: "<span class='hl-red'>❌ Sai.</span> <span class='p-word'>press ahead</span> nghĩa là <span class='p-mean'>tiếp tục, kiên quyết tiến tới</span>." },
+            { text: "stand out", correct: false, exp: "<span class='hl-red'>❌ Sai.</span> <span class='p-word'>stand out</span> nghĩa là <span class='p-mean'>nổi bật</span>." },
+            { text: "bring down", correct: false, exp: "<span class='hl-red'>❌ Sai.</span> <span class='p-word'>bring down</span> nghĩa là <span class='p-mean'>hạ bệ, làm sụp đổ</span>." },
+            { text: "give away", correct: true, exp: "<span class='hl-green'>✅ Đúng.</span> <span class='p-word'>give away</span> nghĩa là <span class='p-mean'>cho đi, tặng miễn phí</span>." }
+        ],
+        explanationText: "<div class='context-box'>🌍 <strong>Dịch ngữ cảnh:</strong> 'Khuyến khích công chúng quyên góp nhu yếu phẩm và gây quỹ để <strong>(5) _____</strong> nạn nhân của cơn bão.'</div>🔍 <strong>Dẫn chứng:</strong> Trong bối cảnh quyên góp (donate), cụm từ <span class='hl-green'>'give away to victims'</span> (tặng lại cho các nạn nhân) là hoàn toàn hợp lý."
+    },
+    {
+        id: 6, text: "Câu 6: Select the best answer",
+        options: [
+            { text: "due to", correct: true, exp: "<span class='hl-green'>✅ Đúng.</span> <span class='p-grammar'>due to + N/V-ing</span> nghĩa là <span class='p-mean'>bởi vì, do</span>." },
+            { text: "instead of", correct: false, exp: "<span class='hl-red'>❌ Sai.</span> <span class='p-word'>instead of</span> nghĩa là <span class='p-mean'>thay vì</span>." },
+            { text: "on top of", correct: false, exp: "<span class='hl-red'>❌ Sai.</span> <span class='p-word'>on top of</span> nghĩa là <span class='p-mean'>thêm vào đó, ngoài ra</span>." },
+            { text: "aside from", correct: false, exp: "<span class='hl-red'>❌ Sai.</span> <span class='p-word'>aside from</span> nghĩa là <span class='p-mean'>ngoại trừ</span>." }
+        ],
+        explanationText: "<div class='context-box'>🌍 <strong>Dịch ngữ cảnh:</strong> '...cung cấp nơi trú ẩn tạm thời cho các gia đình bị ảnh hưởng <strong>(6) _____</strong> những thiệt hại lan rộng.'</div>🔍 <strong>Phân tích:</strong> Cần một giới từ chỉ nguyên nhân. <span class='hl-green'>'due to the widespread damage'</span> (do thiệt hại lan rộng) là cụm từ chính xác."
+    },
+    {
+        id: 7, text: "Câu 7: Select the best answer",
+        options: [
+            { text: "Each", correct: false, exp: "<span class='hl-red'>❌ Sai.</span> <span class='p-grammar'>Each + Danh từ số ít đếm được</span>." },
+            { text: "Other", correct: false, exp: "<span class='hl-red'>❌ Sai.</span> Đứng đầu câu thường dùng 'Others' (đại từ) hoặc 'Other + N số nhiều' nhưng 'Many' hợp ngữ nghĩa về số lượng lớn hơn." },
+            { text: "Many", correct: true, exp: "<span class='hl-green'>✅ Đúng.</span> <span class='p-grammar'>Many + Danh từ số nhiều đếm được (enterprises)</span>: <span class='p-mean'>Nhiều</span>." },
+            { text: "Another", correct: false, exp: "<span class='hl-red'>❌ Sai.</span> <span class='p-grammar'>Another + Danh từ số ít</span>." }
+        ],
+        explanationText: "<div class='context-box'>🌍 <strong>Dịch ngữ cảnh:</strong> '<strong>(7) _____</strong> doanh nghiệp nhà nước đang tiến hành tái cấu trúc...'</div>🔍 <strong>Phân tích:</strong> Từ <span class='p-word'>'enterprises'</span> là danh từ đếm được số nhiều. Dùng <span class='hl-green'>'Many'</span> để mô tả một số lượng lớn doanh nghiệp đang thực hiện chính sách này."
+    },
+    {
+        id: 8, text: "Câu 8: Select the best answer",
+        options: [
+            { text: "livelihoods", correct: true, exp: "<span class='hl-green'>✅ Đúng.</span> <span class='p-word'>livelihood</span> nghĩa là <span class='p-mean'>sinh kế, cách kiếm sống</span>." },
+            { text: "probabilities", correct: false, exp: "<span class='hl-red'>❌ Sai.</span> <span class='p-word'>probability</span> nghĩa là <span class='p-mean'>xác suất</span>." },
+            { text: "capabilities", correct: false, exp: "<span class='hl-red'>❌ Sai.</span> <span class='p-word'>capability</span> nghĩa là <span class='p-mean'>khả năng, năng lực</span>." },
+            { text: "likelihoods", correct: false, exp: "<span class='hl-red'>❌ Sai.</span> <span class='p-word'>likelihood</span> nghĩa là <span class='p-mean'>khả năng xảy ra</span>." }
+        ],
+        explanationText: "<div class='context-box'>🌍 <strong>Dịch ngữ cảnh:</strong> '<strong>(8) _____</strong> của các nhân viên có thể bị ảnh hưởng bởi những thay đổi này.'</div>🔍 <strong>Dẫn chứng:</strong> Khi tái cấu trúc, công việc và đời sống của người lao động bị ảnh hưởng. Cụm từ <span class='hl-green'>'livelihoods of employees'</span> hoàn toàn hợp lý."
+    },
+    {
+        id: 9, text: "Câu 9: Select the best answer",
+        options: [
+            { text: "amount", correct: false, exp: "<span class='hl-red'>❌ Sai.</span> <span class='p-word'>amount</span> nghĩa là <span class='p-mean'>số lượng</span>, không đi cùng nationwide trong cấu trúc này." },
+            { text: "basis", correct: false, exp: "<span class='hl-red'>❌ Sai.</span> <span class='p-word'>basis</span> (<span class='p-mean'>cơ sở</span>) đi với on a ... basis (ví dụ on a daily basis)." },
+            { text: "scale", correct: true, exp: "<span class='hl-green'>✅ Đúng.</span> Cụm từ <span class='p-grammar'>on a nationwide scale</span> nghĩa là <span class='p-mean'>trên quy mô toàn quốc</span>." },
+            { text: "variety", correct: false, exp: "<span class='hl-red'>❌ Sai.</span> <span class='p-word'>variety</span> nghĩa là <span class='p-mean'>sự đa dạng</span>." }
+        ],
+        explanationText: "<div class='context-box'>🌍 <strong>Dịch ngữ cảnh:</strong> 'Việc tái cấu trúc đang được thực hiện trên một <strong>(9) _____</strong> toàn quốc.'</div>🔍 <strong>Dẫn chứng:</strong> Từ chỉ phạm vi thực hiện chuẩn xác nhất là <span class='hl-green'>'scale'</span>."
+    },
+    {
+        id: 10, text: "Câu 10: Select the best answer",
+        options: [
+            { text: "turn down", correct: false, exp: "<span class='hl-red'>❌ Sai.</span> <span class='p-word'>turn down</span> nghĩa là <span class='p-mean'>từ chối, vặn nhỏ</span>." },
+            { text: "result from", correct: false, exp: "<span class='hl-red'>❌ Sai.</span> <span class='p-word'>result from</span> nghĩa là <span class='p-mean'>có kết quả từ, bắt nguồn từ</span>." },
+            { text: "open up", correct: false, exp: "<span class='hl-red'>❌ Sai.</span> <span class='p-word'>open up</span> nghĩa là <span class='p-mean'>mở ra</span>." },
+            { text: "bring about", correct: true, exp: "<span class='hl-green'>✅ Đúng.</span> <span class='p-word'>bring about</span> nghĩa là <span class='p-mean'>mang lại, gây ra (sự thay đổi)</span>." }
+        ],
+        explanationText: "<div class='context-box'>🌍 <strong>Dịch ngữ cảnh:</strong> 'Những sự thay đổi này được kỳ vọng sẽ <strong>(10) _____</strong> những chuyển biến đáng kể...'</div>🔍 <strong>Phân tích:</strong> Sự tái cấu trúc sẽ <span class='hl-green'>'bring about'</span> (tạo ra/mang lại) sự lột xác về cấu trúc."
+    },
+    {
+        id: 11, text: "Câu 11: Select the best answer",
+        options: [
+            { text: "in addition to", correct: false, exp: "<span class='hl-red'>❌ Sai.</span> <span class='p-word'>in addition to</span> mang nghĩa <span class='p-mean'>thêm vào</span>." },
+            { text: "in response to", correct: true, exp: "<span class='hl-green'>✅ Đúng.</span> <span class='p-grammar'>in response to</span> mang nghĩa <span class='p-mean'>để đáp lại, đáp ứng</span>." },
+            { text: "in contrast to", correct: false, exp: "<span class='hl-red'>❌ Sai.</span> <span class='p-word'>in contrast to</span> mang nghĩa <span class='p-mean'>trái ngược với</span>." },
+            { text: "in regard to", correct: false, exp: "<span class='hl-red'>❌ Sai.</span> <span class='p-word'>in regard to</span> mang nghĩa <span class='p-mean'>liên quan đến</span>." }
+        ],
+        explanationText: "<div class='context-box'>🌍 <strong>Dịch ngữ cảnh:</strong> 'Cung cấp các chương trình đào tạo lại cho nhân viên <strong>(11) _____</strong> nhu cầu thích ứng với các vai trò mới...'</div>🔍 <strong>Dẫn chứng:</strong> Đào tạo lại là hành động <span class='hl-green'>'in response to'</span> (để đáp ứng với) đòi hỏi công việc mới."
+    },
+    {
+        id: 12, text: "Câu 12: Select the best answer",
+        options: [
+            { text: "orientation", correct: false, exp: "<span class='hl-red'>❌ Sai.</span> <span class='p-word'>orientation</span> mang nghĩa <span class='p-mean'>sự định hướng</span>." },
+            { text: "recruitment", correct: false, exp: "<span class='hl-red'>❌ Sai.</span> <span class='p-word'>recruitment</span> mang nghĩa <span class='p-mean'>sự tuyển dụng</span>." },
+            { text: "promotion", correct: false, exp: "<span class='hl-red'>❌ Sai.</span> <span class='p-word'>promotion</span> mang nghĩa <span class='p-mean'>sự thăng chức</span>." },
+            { text: "displacement", correct: true, exp: "<span class='hl-green'>✅ Đúng.</span> <span class='p-word'>displacement</span> mang nghĩa <span class='p-mean'>sự chuyển dịch, thay thế, mất việc</span>." }
+        ],
+        explanationText: "<div class='context-box'>🌍 <strong>Dịch ngữ cảnh:</strong> '...cho phép người lao động tìm được vai trò mới sau <strong>(12) _____</strong> khỏi khu vực công.'</div>🔍 <strong>Dẫn chứng:</strong> Khi nhà nước tinh giản bộ máy, nhiều người phải rời đi. Từ <span class='hl-green'>'displacement'</span> miêu tả sự mất đi/dịch chuyển vị trí công việc đó."
+    },
+    {
+        id: 13, text: "Câu 13: Select the best answer",
+        options: [
+            { text: "Little", correct: false, exp: "<span class='hl-red'>❌ Sai.</span> <span class='p-grammar'>Little + Danh từ không đếm được</span>." },
+            { text: "Every", correct: false, exp: "<span class='hl-red'>❌ Sai.</span> <span class='p-grammar'>Every + Danh từ số ít đếm được</span>." },
+            { text: "Many", correct: true, exp: "<span class='hl-green'>✅ Đúng.</span> <span class='p-grammar'>Many + Danh từ số nhiều đếm được (regions)</span>: <span class='p-mean'>Nhiều</span>." },
+            { text: "Others", correct: false, exp: "<span class='hl-red'>❌ Sai.</span> <span class='p-word'>Others</span> đóng vai trò Đại từ, không đứng trước danh từ." }
+        ],
+        explanationText: "<div class='context-box'>🌍 <strong>Dịch ngữ cảnh:</strong> '<strong>(13) _____</strong> khu vực đang áp dụng các mô hình du lịch sinh thái...'</div>🔍 <strong>Phân tích:</strong> Từ <span class='p-word'>'regions'</span> là số nhiều đếm được. Cần dùng <span class='hl-green'>'Many'</span> để diễn tả sự phổ biến."
+    },
+    {
+        id: 14, text: "Câu 14: Select the best answer",
+        options: [
+            { text: "conservation", correct: true, exp: "<span class='hl-green'>✅ Đúng.</span> <span class='p-word'>conservation</span> mang nghĩa <span class='p-mean'>sự bảo tồn</span>." },
+            { text: "maintenance", correct: false, exp: "<span class='hl-red'>❌ Sai.</span> <span class='p-word'>maintenance</span> mang nghĩa <span class='p-mean'>sự bảo trì, duy trì</span> (máy móc/nhà cửa)." },
+            { text: "reservation", correct: false, exp: "<span class='hl-red'>❌ Sai.</span> <span class='p-word'>reservation</span> mang nghĩa <span class='p-mean'>sự đặt trước (phòng, bàn)</span>." },
+            { text: "management", correct: false, exp: "<span class='hl-red'>❌ Sai.</span> <span class='p-word'>management</span> mang nghĩa <span class='p-mean'>sự quản lý</span>." }
+        ],
+        explanationText: "<div class='context-box'>🌍 <strong>Dịch ngữ cảnh:</strong> 'Các dự án xanh đang tích hợp du lịch để gây quỹ và hỗ trợ các nỗ lực <strong>(14) _____</strong> môi trường.'</div>🔍 <strong>Phân tích:</strong> Cụm từ cố định <span class='hl-green'>'environmental conservation'</span> có nghĩa là bảo tồn môi trường."
+    },
+    {
+        id: 15, text: "Câu 15: Select the best answer",
+        options: [
+            { text: "extent", correct: false, exp: "<span class='hl-red'>❌ Sai.</span> Dùng trong cụm 'to a certain extent' (tới một mức độ nhất định)." },
+            { text: "level", correct: false, exp: "<span class='hl-red'>❌ Sai.</span> Thường đi với 'at' (at a global level)." },
+            { text: "amount", correct: false, exp: "<span class='hl-red'>❌ Sai.</span> <span class='p-word'>amount</span> nghĩa là <span class='p-mean'>số lượng</span>." },
+            { text: "scale", correct: true, exp: "<span class='hl-green'>✅ Đúng.</span> Cụm từ <span class='p-grammar'>on a global scale</span> mang nghĩa là <span class='p-mean'>trên quy mô toàn cầu</span>." }
+        ],
+        explanationText: "<div class='context-box'>🌍 <strong>Dịch ngữ cảnh:</strong> 'Trên <strong>(15) _____</strong> toàn cầu, du lịch sinh thái được công nhận...'</div>🔍 <strong>Dẫn chứng:</strong> Giới từ 'on' kết hợp với tính từ 'global' tạo thành cụm thành ngữ chỉ quy mô <span class='hl-green'>'on a global scale'</span>."
+    },
+    {
+        id: 16, text: "Câu 16: Select the best answer",
+        options: [
+            { text: "fit in with", correct: false, exp: "<span class='hl-red'>❌ Sai.</span> <span class='p-word'>fit in with</span> mang nghĩa <span class='p-mean'>hòa hợp với</span>." },
+            { text: "cut down on", correct: true, exp: "<span class='hl-green'>✅ Đúng.</span> <span class='p-word'>cut down on</span> mang nghĩa <span class='p-mean'>cắt giảm</span>." },
+            { text: "run out of", correct: false, exp: "<span class='hl-red'>❌ Sai.</span> <span class='p-word'>run out of</span> mang nghĩa <span class='p-mean'>cạn kiệt, hết sạch</span>." },
+            { text: "get away with", correct: false, exp: "<span class='hl-red'>❌ Sai.</span> <span class='p-word'>get away with</span> mang nghĩa <span class='p-mean'>thoát tội</span>." }
+        ],
+        explanationText: "<div class='context-box'>🌍 <strong>Dịch ngữ cảnh:</strong> 'Những nỗ lực nhằm <strong>(16) _____</strong> lượng khí thải carbon đang được thực hiện...'</div>🔍 <strong>Phân tích:</strong> Hành động cần làm đối với khí thải (carbon emissions) là phải cắt giảm chúng đi. Phrasal verb đúng là <span class='hl-green'>'cut down on'</span>."
+    },
+    {
+        id: 17, text: "Câu 17: Select the best answer",
+        options: [
+            { text: "Instead of", correct: false, exp: "<span class='hl-red'>❌ Sai.</span> <span class='p-word'>Instead of</span> mang nghĩa <span class='p-mean'>thay vì</span>." },
+            { text: "In terms of", correct: false, exp: "<span class='hl-red'>❌ Sai.</span> <span class='p-word'>In terms of</span> mang nghĩa <span class='p-mean'>xét về mặt</span>." },
+            { text: "In light of", correct: false, exp: "<span class='hl-red'>❌ Sai.</span> <span class='p-word'>In light of</span> mang nghĩa <span class='p-mean'>bởi vì, xét thấy</span>." },
+            { text: "In spite of", correct: true, exp: "<span class='hl-green'>✅ Đúng.</span> <span class='p-grammar'>In spite of + N</span> mang nghĩa <span class='p-mean'>Mặc dù, bất chấp</span>." }
+        ],
+        explanationText: "<div class='context-box'>🌍 <strong>Dịch ngữ cảnh:</strong> '<strong>(17) _____</strong> những thách thức, du lịch sinh thái tiếp tục cung cấp các giải pháp...'</div>🔍 <strong>Dẫn chứng:</strong> Có một sự đối lập/nhượng bộ giữa vế thách thức và vế vẫn mang lại giải pháp. Do đó, cần liên từ <span class='hl-green'>'In spite of'</span>."
+    },
+    {
+        id: 18, text: "Câu 18: Select the best answer",
+        options: [
+            { text: "sensitivity", correct: false, exp: "<span class='hl-red'>❌ Sai.</span> <span class='p-word'>sensitivity</span> mang nghĩa <span class='p-mean'>sự nhạy cảm</span>." },
+            { text: "exploration", correct: false, exp: "<span class='hl-red'>❌ Sai.</span> <span class='p-word'>exploration</span> mang nghĩa <span class='p-mean'>sự thám hiểm</span>." },
+            { text: "disturbance", correct: true, exp: "<span class='hl-green'>✅ Đúng.</span> <span class='p-word'>disturbance</span> mang nghĩa <span class='p-mean'>sự làm phiền, quấy rầy</span>." },
+            { text: "dissemination", correct: false, exp: "<span class='hl-red'>❌ Sai.</span> <span class='p-word'>dissemination</span> mang nghĩa <span class='p-mean'>sự phổ biến, gieo rắc</span>." }
+        ],
+        explanationText: "<div class='context-box'>🌍 <strong>Dịch ngữ cảnh:</strong> 'Việc quản lý <strong>(18) _____</strong> đối với động vật hoang dã... là một ưu tiên để đảm bảo tác động tiêu cực ở mức tối thiểu.'</div>🔍 <strong>Phân tích:</strong> Ngữ cảnh du lịch sinh thái cần hạn chế việc quấy rầy động vật. Từ <span class='hl-green'>'disturbance'</span> (sự xáo trộn/quấy rầy) khớp với mục tiêu giảm thiểu tác động tiêu cực."
+    }
+];
+
+let score = 0;
+let attempted = 0;
+
+// --- INITIALIZE UI ---
+function init() {
+    createEmojiBG();
+    renderPassages();
+    renderQuestions();
+}
+
+// 1. Emoji BG
+function createEmojiBG() {
+    const bg = document.getElementById('emoji-bg');
+    const emojis = ['🌪️','🌧️','🏢','💼','🌳','🌍','🚀','📚','🌟','🎓'];
+    for(let i=0; i<25; i++) {
+        let span = document.createElement('span');
+        span.className = 'emoji-float';
+        span.innerText = emojis[Math.floor(Math.random() * emojis.length)];
+        span.style.left = Math.random() * 100 + 'vw';
+        span.style.animationDuration = (Math.random() * 15 + 10) + 's';
+        span.style.animationDelay = (Math.random() * 5) + 's';
+        span.style.fontSize = (Math.random() * 2 + 2) + 'rem';
+        bg.appendChild(span);
+    }
+}
+
+// 2. Render Passages
+function renderPassages() {
+    const leftPanel = document.getElementById('left-panel');
+    passages.forEach(p => {
+        let block = document.createElement('div');
+        block.className = 'passage-block';
+        
+        let tableRows = p.glossary.map(g => `<tr><td><strong>${g.word}</strong></td><td><em>${g.type}</em></td><td>${g.mean}</td></tr>`).join('');
+        
+        block.innerHTML = `
+            <h3 class="passage-title">${p.title}</h3>
+            ${p.content}
+            <h4 style="color:#5cb644; margin-top:20px;">📚 Bảng Từ Vựng VIP</h4>
+            <table class="glossary-table">
+                <tr><th>Từ vựng</th><th>Loại từ</th><th>Nghĩa tiếng Việt</th></tr>
+                ${tableRows}
+            </table>
+        `;
+        leftPanel.appendChild(block);
+    });
+}
+
+function toggleTrans(id) {
+    const el = document.getElementById(id);
+    if(el.style.display === 'block') {
+        el.style.display = 'none';
+    } else {
+        el.style.display = 'block';
+    }
+}
+
+// 3. Render Questions
+function renderQuestions() {
+    const rightPanel = document.getElementById('right-panel');
+    const insertBeforeTarget = document.querySelector('.submit-btn');
+
+    questions.forEach((q, index) => {
+        let qCard = document.createElement('div');
+        qCard.className = 'question-card';
+        qCard.id = `qcard-${q.id}`;
+        
+        let shuffledOpts = [...q.options].sort(() => Math.random() - 0.5);
+
+        let optionsHtml = shuffledOpts.map((opt, optIdx) => `
+            <button class="option-btn" 
+                    id="btn-${q.id}-${optIdx}"
+                    onclick="checkAnswer(${q.id}, ${optIdx}, ${opt.correct})">
+                ${opt.text}
+            </button>
+        `).join('');
+
+        qCard.innerHTML = `
+            <div class="question-title">${q.text}</div>
+            <div class="options-grid" id="opts-${q.id}">
+                ${optionsHtml}
+            </div>
+            <div class="explanation-box" id="exp-${q.id}">
+                ${q.explanationText}<br><br>
+                ${shuffledOpts.map(o => `<div style="margin-bottom:8px;">${o.exp}</div>`).join('')}
+            </div>
+        `;
+        
+        rightPanel.insertBefore(qCard, insertBeforeTarget);
+    });
+}
+
+// 4. Interaction Logic
+function checkAnswer(qId, btnIdx, isCorrect) {
+    const qCard = document.getElementById(`qcard-${qId}`);
+    const optsContainer = document.getElementById(`opts-${qId}`);
+    const buttons = optsContainer.querySelectorAll('.option-btn');
+    const selectedBtn = document.getElementById(`btn-${qId}-${btnIdx}`);
+    const expBox = document.getElementById(`exp-${qId}`);
+
+    buttons.forEach(b => b.disabled = true);
+    expBox.style.display = 'block';
+    attempted++;
+
+    if(isCorrect) {
+        selectedBtn.classList.add('correct');
+        score++;
+        playAudio('ding');
+        fireConfetti(selectedBtn);
+    } else {
+        selectedBtn.classList.add('wrong');
+        selectedBtn.classList.add('shake');
+        
+        // Play meme audio for wrong answer
+        const wrongAudio = document.getElementById('wrongAudio');
+        wrongAudio.currentTime = 0;
+        wrongAudio.play().catch(e => console.log(e));
+
+        buttons.forEach(b => {
+            if(b.getAttribute('onclick').includes('true')) {
+                b.classList.add('correct');
+            }
+        });
+    }
+}
+
+// 5. Audio Synthesizer for "ding"
+function playAudio(type) {
+    try {
+        if(type === 'ding') {
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            const ctx = new AudioContext();
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(880, ctx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(1760, ctx.currentTime + 0.1);
+            gain.gain.setValueAtTime(0.1, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.5);
+            osc.start(); osc.stop(ctx.currentTime + 0.5);
+        }
+    } catch(e) { console.log('Audio not supported'); }
+}
+
+// 6. Confetti DOM Effect
+function fireConfetti(buttonElem) {
+    const rect = buttonElem.getBoundingClientRect();
+    const x = rect.left + rect.width / 2;
+    const y = rect.top;
+    
+    for (let i = 0; i < 30; i++) {
+        let confetti = document.createElement('div');
+        confetti.style.position = 'fixed';
+        confetti.style.left = x + 'px';
+        confetti.style.top = y + 'px';
+        confetti.style.width = '10px';
+        confetti.style.height = '10px';
+        confetti.style.backgroundColor = ['#f36222', '#5cb644', '#007fc3', '#ffde59'][Math.floor(Math.random() * 4)];
+        confetti.style.zIndex = '9999';
+        confetti.style.borderRadius = Math.random() > 0.5 ? '50%' : '0';
+        confetti.style.transition = 'all 1s cubic-bezier(0.25, 1, 0.5, 1)';
+        document.body.appendChild(confetti);
+
+        setTimeout(() => {
+            confetti.style.transform = `translate(${(Math.random()-0.5)*200}px, ${(Math.random())*200}px) rotate(${Math.random()*360}deg)`;
+            confetti.style.opacity = '0';
+        }, 10);
+
+        setTimeout(() => confetti.remove(), 1000);
+    }
+}
+
+// 7. Submit & Modal
+function openSubmitModal() {
+    if(attempted < questions.length) {
+        alert("Em làm chưa xong tất cả các câu kìa. Kéo lên kiểm tra lại nhé! 🤔");
+    }
+    document.getElementById('submit-modal').style.display = 'flex';
+}
+
+function calculateScore() {
+    const name = document.getElementById('student-name').value.trim();
+    if(!name) { alert("Phải nhập tên để cô còn biết chứ! 😡"); return; }
+    
+    const percentage = score / questions.length;
+    let message = "";
+    let gifUrl = "";
+
+    if (percentage === 1) {
+        message = `Wow! ${name} là THIÊN TÀI! Perfect 100%! 🏆`;
+        gifUrl = "https://media.giphy.com/media/xT0xezQGU5xCDJuCPe/giphy.gif";
+    } else if (percentage >= 0.6) {
+        message = `Làm tốt lắm ${name}! Chăm đọc giải thích là sẽ Perfect sớm thôi! 👍`;
+        gifUrl = "https://media.giphy.com/media/3o7abGQa0aRJUurpII/giphy.gif";
+    } else {
+        message = `${name} ơi cố lên! Đừng chọn bừa nha, phải đọc kỹ phần giải thích của Ms Mai An đó! 😭`;
+        gifUrl = "https://media.giphy.com/media/l41YkxvU8c7J7Bba0/giphy.gif";
+    }
+
+    const modalBody = document.getElementById('modal-body');
+    modalBody.innerHTML = `
+        <h1 style="color:#007fc3;">Kết Quả của ${name}</h1>
+        <h2 style="font-size: 3rem; margin:10px; color:#5cb644;">${score} / ${questions.length}</h2>
+        <p style="font-size: 1.2rem;">${message}</p>
+        <img src="${gifUrl}" alt="Reaction GIF">
+        <br>
+        <button onclick="location.reload()" style="background:#f36222; margin-top:20px;">Làm lại từ đầu</button>
+    `;
+}
+</script>
+</body>
+</html>

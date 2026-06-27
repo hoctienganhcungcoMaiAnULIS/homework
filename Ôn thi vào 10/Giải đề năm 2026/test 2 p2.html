@@ -653,6 +653,11 @@ function toggleTranslate(id) {
     el.style.display = el.style.display === 'block' ? 'none' : 'block';
 }
 
+// Lưu các lựa chọn đã xáo trộn theo từng câu để tra cứu an toàn
+// (KHÔNG truyền dữ liệu qua thuộc tính onclick -> tránh lỗi vỡ chuỗi do dấu nháy ')
+const shuffledData = {};
+const answeredFlags = {};
+
 // Khởi tạo câu hỏi
 function initQuestions() {
     const qc = document.getElementById('questionsContainer');
@@ -663,11 +668,10 @@ function initQuestions() {
             <div class="q-text">${q.text}</div>
             <div class="options-grid" id="opts_${idx}">`;
         
-        let shuffledOpts = shuffleArray([...q.options]);
+        const shuffledOpts = shuffleArray([...q.options]);
+        shuffledData[idx] = shuffledOpts;
         shuffledOpts.forEach((opt, optIdx) => {
-            // Encode the string to pass via onclick safely
-            const optStr = encodeURIComponent(JSON.stringify(opt));
-            html += `<button class="opt-btn" id="btn_${idx}_${optIdx}" onclick="checkAnswer(${idx}, ${optIdx}, '${optStr}')">${opt.t}</button>`;
+            html += `<button class="opt-btn" id="btn_${idx}_${optIdx}" onclick="checkAnswer(${idx}, ${optIdx})">${opt.t}</button>`;
         });
         
         html += `</div><div id="expl_${idx}"></div></div>`;
@@ -675,44 +679,55 @@ function initQuestions() {
     qc.innerHTML = html;
 }
 
-function checkAnswer(qIdx, optIdx, optStrEncoded) {
-    const qBox = document.getElementById(`qBox_${qIdx}`);
+function checkAnswer(qIdx, optIdx) {
+    // Chống chấm trùng: nếu câu này đã trả lời thì bỏ qua
+    if (answeredFlags[qIdx]) return;
+    // Đánh dấu đã trả lời + đếm câu NGAY (đảm bảo không bao giờ bị bỏ sót)
+    answeredFlags[qIdx] = true;
+    answeredCount++;
+
     const optsContainer = document.getElementById(`opts_${qIdx}`);
     const explContainer = document.getElementById(`expl_${qIdx}`);
-    const btns = optsContainer.querySelectorAll('.opt-btn');
-    
-    // Parse selected option
-    const opt = JSON.parse(decodeURIComponent(optStrEncoded));
-    
-    // Disable all buttons
+    const btns = optsContainer ? optsContainer.querySelectorAll('.opt-btn') : [];
+    const opts = shuffledData[qIdx] || [];
+    const opt = opts[optIdx] || {};
+
+    // Khóa toàn bộ nút của câu này
     btns.forEach(b => b.classList.add('disabled'));
-    
+
     const selectedBtn = document.getElementById(`btn_${qIdx}_${optIdx}`);
-    
+
     if (opt.c) {
-        selectedBtn.classList.add('correct');
+        if (selectedBtn) selectedBtn.classList.add('correct');
         playSound('correct');
         fireConfetti();
         currentScore++;
     } else {
-        selectedBtn.classList.add('wrong');
-        selectedBtn.classList.add('shake-anim');
+        if (selectedBtn) {
+            selectedBtn.classList.add('wrong');
+            selectedBtn.classList.add('shake-anim');
+        }
         playSound('wrong');
-        
-        // Find and highlight correct answer
-        btns.forEach((b, i) => {
-            const currentOptStr = b.getAttribute('onclick').match(/'([^']+)'/)[1];
-            const currentOpt = JSON.parse(decodeURIComponent(currentOptStr));
-            if(currentOpt.c) b.classList.add('correct');
+        // Tô sáng đáp án đúng (tra cứu trực tiếp theo chỉ số, không dùng regex)
+        opts.forEach((o, i) => {
+            if (o.c) {
+                const cb = document.getElementById(`btn_${qIdx}_${i}`);
+                if (cb) cb.classList.add('correct');
+            }
         });
     }
-    
-    // Find explanation html from original data
-    const realOptData = questionsData[qIdx].options.find(o => o.c === true);
-    explContainer.innerHTML = realOptData.html;
-    explContainer.querySelector('.explanation').style.display = 'block';
-    
-    answeredCount++;
+
+    // Hiện giải thích — bọc try để dù có lỗi hiển thị cũng KHÔNG chặn việc đếm câu
+    try {
+        const realOptData = questionsData[qIdx].options.find(o => o.c === true);
+        if (realOptData && realOptData.html && explContainer) {
+            explContainer.innerHTML = realOptData.html;
+            const ex = explContainer.querySelector('.explanation');
+            if (ex) ex.style.display = 'block';
+        }
+    } catch (e) {
+        console.error('Lỗi hiển thị giải thích ở câu ' + qIdx, e);
+    }
 }
 
 function showSubmitPopup() {
